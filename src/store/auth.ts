@@ -30,13 +30,15 @@ export const useAuthStore = create<AuthState>()(
             return true
           }
           
-          // Verificar se está em desenvolvimento (localhost)
+          // Verificar se está em desenvolvimento ou produção
           const isDevelopment = window.location.hostname === 'localhost' || 
                               window.location.hostname === '127.0.0.1' ||
                               window.location.hostname.includes('localhost')
           
-          if (isDevelopment) {
-            // Em desenvolvimento, aceita qualquer chave não vazia
+          const isVercel = window.location.hostname.includes('vercel.app')
+          
+          // Em desenvolvimento ou Vercel, aceita qualquer chave não vazia
+          if (isDevelopment || isVercel) {
             if (key.trim().length > 0) {
               set({ 
                 apiKey: key, 
@@ -44,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
                 isLoading: false, 
                 error: null 
               })
+              console.log('🔧 Modo demo detectado. Usando dados simulados.')
               return true
             } else {
               set({ 
@@ -54,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
             }
           }
           
-          // Em produção, testa com a API real
+          // Em produção real (não Vercel), testa com a API real
           const response = await fetch('https://api.redtrack.io/me/settings', {
             method: 'GET',
             headers: {
@@ -76,24 +79,27 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Erro ao testar API key:', error)
           
-          // Em desenvolvimento, aceita a chave mesmo com erro de CORS
+          // Em desenvolvimento ou Vercel, aceita a chave mesmo com erro de CORS
           const isDevelopment = window.location.hostname === 'localhost' || 
                               window.location.hostname === '127.0.0.1' ||
                               window.location.hostname.includes('localhost')
           
-          if (isDevelopment && key.trim().length > 0) {
+          const isVercel = window.location.hostname.includes('vercel.app')
+          
+          if ((isDevelopment || isVercel) && key.trim().length > 0) {
             set({ 
               apiKey: key, 
               isAuthenticated: true, 
               isLoading: false, 
               error: null 
             })
+            console.log('🔧 Modo demo detectado. Usando dados simulados.')
             return true
           }
           
           set({ 
             isLoading: false, 
-            error: 'Erro de conexão. Em desenvolvimento, qualquer chave não vazia é aceita.' 
+            error: 'Erro de conexão. Em modo demo, qualquer chave não vazia é aceita.' 
           })
           return false
         }

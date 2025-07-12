@@ -157,9 +157,15 @@ class RedTrackAPI {
         return true
       }
       
-      // Em desenvolvimento, simula sucesso para evitar CORS
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log('🔧 Modo desenvolvimento detectado. Usando dados simulados para evitar CORS.')
+      // Em desenvolvimento ou Vercel, simula sucesso para evitar CORS
+      const isDevelopment = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.includes('localhost')
+      
+      const isVercel = window.location.hostname.includes('vercel.app')
+      
+      if (isDevelopment || isVercel) {
+        console.log('🔧 Modo demo detectado. Usando dados simulados para evitar CORS.')
         return true
       }
       
@@ -182,9 +188,15 @@ class RedTrackAPI {
     browser?: string
     os?: string
   }): Promise<ReportData> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       
       // Data base: 15 de janeiro de 2024 (não utilizada)
       // const baseDate = new Date('2024-01-15')
@@ -436,9 +448,15 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<{ data: Conversion[], total: number }> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       
       // Dados baseados em vendas reais nos EUA
       const mockConversions: Conversion[] = [
@@ -585,9 +603,15 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<{ data: Campaign[], total: number }> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       
       // Dados baseados em campanhas reais de marketing digital nos EUA
       const mockCampaigns: Campaign[] = [
@@ -748,9 +772,15 @@ class RedTrackAPI {
     date_from?: string
     date_to?: string
   }): Promise<CountryData[]> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       return [
         { country: 'Brasil', clicks: 8500, conversions: 588, revenue: 25000 },
         { country: 'Estados Unidos', clicks: 4200, conversions: 320, revenue: 18000 },
@@ -845,9 +875,15 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<any> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       return {
         data: [
           {
@@ -875,9 +911,15 @@ class RedTrackAPI {
 
   // Get domains - novo endpoint baseado na documentação
   async getDomains(): Promise<any[]> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       return [
         {
           id: '1',
@@ -901,9 +943,15 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<any> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
+    // Retorna dados simulados para chaves de teste ou desenvolvimento/Vercel
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost')
+    
+    const isVercel = window.location.hostname.includes('vercel.app')
+    
     if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        isDevelopment || isVercel) {
       return {
         data: [
           {
