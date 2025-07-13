@@ -25,9 +25,15 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' })
   }
 
+  // Verificação especial para API Key específica
+  if (apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
+    console.log('🔍 [SETTINGS] API Key específica detectada - testando...')
+  }
+
   try {
     console.log('🔍 [SETTINGS] Fazendo requisição para RedTrack...')
     console.log('🔍 [SETTINGS] URL:', 'https://api.redtrack.io/me/settings')
+    console.log('🔍 [SETTINGS] API Key sendo testada:', apiKey)
     console.log('🔍 [SETTINGS] Headers enviados:', {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
