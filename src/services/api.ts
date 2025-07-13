@@ -380,12 +380,7 @@ class RedTrackAPI {
 
   // Mock data methods (mantidos como estão)
   private getMockDashboardData(params?: any) {
-    // Data base: 15 de janeiro de 2024 (não utilizada)
-    // const baseDate = new Date('2024-01-15')
     const today = new Date()
-    
-    // Calcular dias desde a data base
-    // const daysSinceBase = Math.floor((today.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24))
     
     // Multiplicador baseado no período selecionado
     let multiplier = 1
