@@ -10,8 +10,14 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🚨 FORM SUBMIT CHAMADO!')
+    console.log('🚨 API Key no form:', apiKey ? 'SIM' : 'NÃO')
+    
     if (apiKey.trim()) {
+      console.log('🚨 CHAMANDO testApiKey...')
       await testApiKey(apiKey.trim())
+    } else {
+      console.log('🚨 API Key vazia!')
     }
   }
 

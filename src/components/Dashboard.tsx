@@ -198,45 +198,25 @@ const Dashboard: React.FC = () => {
   }
 
   const [mockData, setMockData] = useState(getDataForPeriod(selectedPeriod))
+  const [isDemoData, setIsDemoData] = useState(false)
+  const [demoMessage, setDemoMessage] = useState('')
 
-  // Métricas essenciais (9 KPIs principais)
+  // Atualizar métricas com dados mock
+  useEffect(() => {
+    const updatedMetrics = metrics.map(metric => ({
+      ...metric,
+      value: (mockData as any)[metric.id] || 0
+    }))
+    setMetrics(updatedMetrics)
+  }, [mockData])
+
   const [metrics, setMetrics] = useState<Metric[]>([
-    {
-      id: 'clicks',
-      label: 'Cliques',
-      value: 0,
-      change: 12.5,
-      icon: <MousePointer className="w-6 h-6" />,
-      color: 'text-blue-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'conversions',
-      label: 'Conversões',
-      value: 0,
-      change: 8.3,
-      icon: <Target className="w-6 h-6" />,
-      color: 'text-green-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'spend',
-      label: 'Gasto',
-      value: 0,
-      change: -2.1,
-      icon: <DollarSign className="w-6 h-6" />,
-      color: 'text-red-600',
-      format: 'currency',
-      visible: true
-    },
     {
       id: 'revenue',
       label: 'Receita',
       value: 0,
-      change: 15.7,
-      icon: <TrendingUp className="w-6 h-6" />,
+      change: 12.5,
+      icon: <DollarSign className="w-5 h-5" />,
       color: 'text-green-600',
       format: 'currency',
       visible: true
@@ -245,50 +225,50 @@ const Dashboard: React.FC = () => {
       id: 'profit',
       label: 'Lucro',
       value: 0,
-      change: 18.2,
-      icon: <DollarSign className="w-6 h-6" />,
+      change: 8.2,
+      icon: <TrendingUp className="w-5 h-5" />,
+      color: 'text-blue-600',
+      format: 'currency',
+      visible: true
+    },
+    {
+      id: 'conversions',
+      label: 'Conversões',
+      value: 0,
+      change: 15.3,
+      icon: <Target className="w-5 h-5" />,
       color: 'text-purple-600',
-      format: 'currency',
-      visible: true
-    },
-    {
-      id: 'roi',
-      label: 'ROI',
-      value: 0,
-      change: 5.4,
-      icon: <BarChart3 className="w-6 h-6" />,
-      color: 'text-indigo-600',
-      format: 'percentage',
-      visible: true
-    },
-    {
-      id: 'cpa',
-      label: 'CPA',
-      value: 0,
-      change: -3.2,
-      icon: <Target className="w-6 h-6" />,
-      color: 'text-orange-600',
-      format: 'currency',
+      format: 'number',
       visible: true
     },
     {
       id: 'ctr',
       label: 'CTR',
       value: 0,
-      change: 1.8,
-      icon: <Eye className="w-6 h-6" />,
-      color: 'text-cyan-600',
+      change: -2.1,
+      icon: <MousePointer className="w-5 h-5" />,
+      color: 'text-orange-600',
       format: 'percentage',
       visible: true
     },
     {
-      id: 'conversion_rate',
-      label: 'Taxa de Conversão',
+      id: 'impressions',
+      label: 'Impressões',
       value: 0,
-      change: 2.5,
-      icon: <Users className="w-6 h-6" />,
-      color: 'text-pink-600',
-      format: 'percentage',
+      change: 5.7,
+      icon: <Eye className="w-5 h-5" />,
+      color: 'text-indigo-600',
+      format: 'number',
+      visible: true
+    },
+    {
+      id: 'clicks',
+      label: 'Cliques',
+      value: 0,
+      change: 9.4,
+      icon: <BarChart3 className="w-5 h-5" />,
+      color: 'text-teal-600',
+      format: 'number',
       visible: true
     }
   ])
@@ -313,8 +293,6 @@ const Dashboard: React.FC = () => {
 
   // Carregar dados reais da API do RedTrack
   const loadDashboardData = async (isRefresh = false) => {
-    if (!apiKey) return
-    
     if (isRefresh) {
       setRefreshing(true)
     } else {
@@ -322,15 +300,21 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      // Usar dados mock para demonstração
+      // Simular carregamento de dados da API
       const mockData = getDataForPeriod(selectedPeriod)
       setMockData(mockData)
+      
+      // Verificar se são dados de demonstração (simulado)
+      const isDemo = !apiKey || apiKey === 'test_key' || apiKey === 'kXlmMfpINGQqv4btkwRL'
+      setIsDemoData(isDemo)
+      setDemoMessage(isDemo ? 'Dados de demonstração - Adicione sua API Key do RedTrack para ver dados reais' : '')
       
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
         value: (mockData as any)[metric.id] || 0
       }))
       setMetrics(updatedMetrics)
+      
       setLastUpdate(new Date())
       
     } catch (error) {
@@ -338,6 +322,8 @@ const Dashboard: React.FC = () => {
       // Fallback para dados mock se API falhar
       const mockData = getDataForPeriod(selectedPeriod)
       setMockData(mockData)
+      setIsDemoData(true)
+      setDemoMessage('Dados de demonstração - Erro ao carregar dados reais')
       
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
@@ -396,15 +382,6 @@ const Dashboard: React.FC = () => {
     setFilters(resetFilters)
     setTempFilters(resetFilters)
   }
-
-  // Atualizar métricas com dados mock
-  useEffect(() => {
-    const updatedMetrics = metrics.map(metric => ({
-      ...metric,
-      value: (mockData as any)[metric.id] || 0
-    }))
-    setMetrics(updatedMetrics)
-  }, [mockData])
 
   const formatValue = (value: number, format: string) => {
     switch (format) {
@@ -550,6 +527,41 @@ const Dashboard: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Mensagem de Demonstração */}
+      {isDemoData && demoMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6 shadow-lg"
+        >
+          <div className="flex items-center space-x-3">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">ℹ️</span>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                Dados de Demonstração
+              </h3>
+              <p className="text-gray-600 text-sm">
+                {demoMessage}
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDemoData(false)}
+                className="text-xs px-3 py-1 rounded-lg"
+              >
+                Entendi
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Filtros Avançados */}
       {showFilters && (

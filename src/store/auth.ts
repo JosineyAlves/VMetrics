@@ -21,92 +21,84 @@ export const useAuthStore = create<AuthState>()(
       setApiKey: (key: string) => set({ apiKey: key, isAuthenticated: true }),
       logout: () => set({ apiKey: null, isAuthenticated: false }),
       testApiKey: async (key: string) => {
+        // TESTE IMEDIATO - SEMPRE EXECUTAR
+        console.log('🚨 TESTE IMEDIATO - FUNÇÃO CHAMADA!')
+        console.log('🚨 API Key recebida:', key ? 'SIM' : 'NÃO')
+        console.log('🚨 Hostname:', window.location.hostname)
+        console.log('🚨 URL:', window.location.href)
+        
         set({ isLoading: true, error: null })
         
+        console.log('🔍 Iniciando teste de API key...')
+        console.log('🔍 Hostname atual:', window.location.hostname)
+        console.log('🔍 URL atual:', window.location.href)
+        
         try {
-          // Chaves de teste válidas
+          // Chaves de teste sempre funcionam
           if (key === 'kXlmMfpINGQqv4btkwRL' || key === 'test_key') {
-            set({ apiKey: key, isAuthenticated: true, isLoading: false, error: null })
+            console.log('🔍 Chave de teste detectada')
+            set({ isLoading: false, isAuthenticated: true })
             return true
           }
           
-          // Verificar se está em desenvolvimento ou produção
-          const isDevelopment = window.location.hostname === 'localhost' || 
-                              window.location.hostname === '127.0.0.1' ||
-                              window.location.hostname.includes('localhost')
+          // Em desenvolvimento local, simula sucesso para evitar CORS
+          const isLocalDevelopment = window.location.hostname === 'localhost' || 
+                                    window.location.hostname === '127.0.0.1'
           
-          const isVercel = window.location.hostname.includes('vercel.app')
+          console.log('🔍 É desenvolvimento local?', isLocalDevelopment)
           
-          // Em desenvolvimento ou Vercel, aceita qualquer chave não vazia
-          if (isDevelopment || isVercel) {
-            if (key.trim().length > 0) {
-              set({ 
-                apiKey: key, 
-                isAuthenticated: true, 
-                isLoading: false, 
-                error: null 
-              })
-              console.log('🔧 Modo demo detectado. Usando dados simulados.')
-              return true
-            } else {
-              set({ 
-                isLoading: false, 
-                error: 'API Key não pode estar vazia.' 
-              })
-              return false
-            }
+          if (isLocalDevelopment) {
+            console.log('🔧 Modo desenvolvimento local detectado. Aceitando qualquer chave não vazia.')
+            set({ isLoading: false, isAuthenticated: true })
+            return true
           }
           
-          // Em produção real (não Vercel), testa com a API real
-          const response = await fetch('https://api.redtrack.io/me/settings', {
+          // Em produção, testar via proxy
+          console.log('🔍 Modo produção detectado. Testando via proxy...')
+          console.log('🔍 URL do proxy:', '/api/settings')
+          console.log('🔍 API Key fornecida:', key ? 'Sim' : 'Não')
+          
+          const response = await fetch('/api/settings?v=' + Date.now(), {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${key}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${key}`
             }
           })
           
+          console.log('🔍 Status da resposta:', response.status)
+          console.log('🔍 OK?', response.ok)
+          
           if (response.ok) {
-            set({ apiKey: key, isAuthenticated: true, isLoading: false, error: null })
+            console.log('✅ API Key válida!')
+            set({ isLoading: false, isAuthenticated: true })
             return true
           } else {
+            const errorData = await response.json().catch(() => ({}))
+            console.log('❌ Erro na resposta:', errorData)
             set({ 
               isLoading: false, 
-              error: 'API Key inválida. Verifique se a chave está correta.' 
+              error: errorData.error || 'API Key inválida',
+              isAuthenticated: false 
             })
             return false
           }
+          
         } catch (error) {
-          console.error('Erro ao testar API key:', error)
-          
-          // Em desenvolvimento ou Vercel, aceita a chave mesmo com erro de CORS
-          const isDevelopment = window.location.hostname === 'localhost' || 
-                              window.location.hostname === '127.0.0.1' ||
-                              window.location.hostname.includes('localhost')
-          
-          const isVercel = window.location.hostname.includes('vercel.app')
-          
-          if ((isDevelopment || isVercel) && key.trim().length > 0) {
-            set({ 
-              apiKey: key, 
-              isAuthenticated: true, 
-              isLoading: false, 
-              error: null 
-            })
-            console.log('🔧 Modo demo detectado. Usando dados simulados.')
-            return true
-          }
-          
+          console.error('❌ Erro ao testar API key:', error)
+          console.error('❌ Tipo do erro:', typeof error)
+          console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : 'Erro desconhecido')
           set({ 
             isLoading: false, 
-            error: 'Erro de conexão. Em modo demo, qualquer chave não vazia é aceita.' 
+            error: 'Erro de conexão. Verifique sua API Key.',
+            isAuthenticated: false 
           })
           return false
         }
       }
     }),
     {
-      name: 'auth-storage',
+      name: 'auth-storage'
     }
   )
 ) 
