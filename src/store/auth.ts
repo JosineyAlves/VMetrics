@@ -70,6 +70,8 @@ export const useAuthStore = create<AuthState>()(
           // Em produção, testar via proxy
           console.log('🔍 Testando via proxy...')
           const url = '/api/report?v=' + Date.now() + '&api_key=' + encodeURIComponent(key)
+          console.log('[DEBUG] URL de validação:', url);
+          console.log('[DEBUG] Chave enviada:', key);
           const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -82,15 +84,29 @@ export const useAuthStore = create<AuthState>()(
           
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
-            console.log('✅ API Key válida!')
-            console.log('✅ Endpoint funcionando:', responseData.workingEndpoint)
-            set({ 
-              apiKey: key,
-              isLoading: false, 
-              isAuthenticated: true,
-              error: null
-            })
-            return true
+            // Se a resposta for um array (mesmo vazio), considerar sucesso
+            if (Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null)) {
+              console.log('✅ API Key válida!')
+              set({ 
+                apiKey: key,
+                isLoading: false, 
+                isAuthenticated: true,
+                error: null
+              })
+              return true
+            } else {
+              // Caso a resposta seja um objeto de erro explícito
+              let errorMessage = responseData.error || 'API Key inválida'
+              if (responseData.status) {
+                errorMessage = `Erro ${responseData.status}: ${errorMessage}`
+              }
+              set({ 
+                isLoading: false, 
+                error: errorMessage,
+                isAuthenticated: false 
+              })
+              return false
+            }
           } else {
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
