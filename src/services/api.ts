@@ -109,23 +109,32 @@ class RedTrackAPI {
     this.baseUrl = '/api'
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
-    const url = `${this.baseUrl}${endpoint}`
-    
+  private async request(endpoint: string, options: RequestInit = {}, params?: Record<string, any>) {
+    // Montar URL com api_key e outros parâmetros
+    const urlObj = new URL(`${this.baseUrl}${endpoint}`, window.location.origin)
+    if (this.apiKey) {
+      urlObj.searchParams.set('api_key', this.apiKey)
+    }
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          urlObj.searchParams.set(key, value.toString())
+        }
+      })
+    }
+    const url = urlObj.toString()
+    console.log('[API] Requisição para:', url)
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
         ...options.headers
       }
     })
-
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.error || `HTTP ${response.status}`)
     }
-
     return response.json()
   }
 
@@ -133,7 +142,7 @@ class RedTrackAPI {
   async testConnection(): Promise<boolean> {
     try {
       // Para chaves de teste, sempre retorna true
-      if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key') {
+      if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
         return true
       }
       
@@ -159,20 +168,72 @@ class RedTrackAPI {
 
   // Get dashboard data
   async getDashboardData(params?: any): Promise<any> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockDashboardData(params)
     }
-    
     try {
       // Em produção, usar proxy para dados reais
       const realData = await this.request('/dashboard')
-      console.log('📊 Dados reais carregados:', realData)
+      console.log('[DASHBOARD] Dados reais recebidos da API:', realData)
+      // Se a resposta for vazia ou não houver dados, retornar objeto zerado
+      if (!realData || Object.keys(realData).length === 0) {
+        return {
+          clicks: 0,
+          conversions: 0,
+          spend: 0,
+          revenue: 0,
+          profit: 0,
+          roi: 0,
+          cpa: 0,
+          cpl: 0,
+          impressions: 0,
+          visible_impressions: 0,
+          unique_clicks: 0,
+          ctr: 0,
+          prelp_views: 0,
+          prelp_clicks: 0,
+          prelp_click_ctr: 0,
+          lp_ctr: 0,
+          lp_click_ctr: 0,
+          conversion_cr: 0,
+          all_conversions: 0,
+          all_conversions_cr: 0,
+          approved: 0,
+          ar: 0,
+          pending: 0,
+          pr: 0,
+          declined: 0,
+          dr: 0,
+          other: 0,
+          or: 0,
+          transactions: 0,
+          tr: 0,
+          epv: 0,
+          conversion_revenue: 0,
+          publisher_revenue: 0,
+          publisher_revenue_legacy: 0,
+          conversion_roi: 0,
+          cpc: 0,
+          conversion_cpa: 0,
+          total_cpa: 0,
+          total_aov: 0,
+          conversion_aov: 0,
+          cpt: 0,
+          eplpc: 0,
+          epuc: 0,
+          listicle_epv: 0,
+          roas_percentage: 0,
+          conversion_roas: 0,
+          conversion_roas_percentage: 0,
+          conversion_profit: 0,
+          epc_roi: 0
+        }
+      }
       return realData
     } catch (error) {
       console.error('Erro ao buscar dados do dashboard:', error)
-      // Fallback para dados simulados apenas se houver erro
+      // Fallback para dados simulados apenas se houver erro real
       return this.getMockDashboardData(params)
     }
   }
@@ -187,15 +248,14 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<{ data: Conversion[], total: number }> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockConversionsData(params)
     }
-    
     try {
       // Em produção, usar proxy para dados reais
-      const realData = await this.request('/conversions')
+      // Enviar parâmetros obrigatórios e opcionais na query string
+      const realData = await this.request('/conversions', { method: 'GET' }, params)
       console.log('📊 Conversões reais carregadas:', realData)
       return realData
     } catch (error) {
@@ -212,9 +272,8 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<{ data: Campaign[], total: number }> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockCampaignsData(params)
     }
     
@@ -234,9 +293,8 @@ class RedTrackAPI {
     date_from?: string
     date_to?: string
   }): Promise<CountryData[]> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockCountriesData(params)
     }
     
@@ -326,9 +384,8 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<any> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockTracksData(params)
     }
     
@@ -343,9 +400,8 @@ class RedTrackAPI {
 
   // Get domains - novo endpoint baseado na documentação
   async getDomains(): Promise<any[]> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockDomainsData()
     }
     
@@ -363,9 +419,8 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<any> {
-    // Retorna dados simulados para chaves de teste ou desenvolvimento
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || 
-        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // Retorna dados simulados para chaves de teste
+    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
       return this.getMockOffersData(params)
     }
     

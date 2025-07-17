@@ -18,8 +18,23 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      setApiKey: (key: string) => set({ apiKey: key, isAuthenticated: true }),
-      logout: () => set({ apiKey: null, isAuthenticated: false }),
+      setApiKey: (key: string) => {
+        console.log('[AUTH] Salvando API Key:', key)
+        set({ apiKey: key, isAuthenticated: true })
+        // Verificar se foi salvo no localStorage
+        setTimeout(() => {
+          const persisted = localStorage.getItem('auth-storage')
+          console.log('[AUTH] Conteúdo atual do localStorage:', persisted)
+        }, 100)
+      },
+      logout: () => {
+        console.log('[AUTH] Logout chamado. Limpando API Key.')
+        set({ apiKey: null, isAuthenticated: false })
+        setTimeout(() => {
+          const persisted = localStorage.getItem('auth-storage')
+          console.log('[AUTH] Conteúdo do localStorage após logout:', persisted)
+        }, 100)
+      },
       testApiKey: async (key: string) => {
         // TESTE IMEDIATO - SEMPRE EXECUTAR
         console.log('🚨 TESTE IMEDIATO - FUNÇÃO CHAMADA!')
@@ -35,34 +50,30 @@ export const useAuthStore = create<AuthState>()(
         
         try {
           // Chaves de teste sempre funcionam
-          if (key === 'kXlmMfpINGQqv4btkwRL' || key === 'test_key') {
+          if (key === 'kXlmMfpINGQqv4btkwRL' || key === 'test_key' || key === 'yY6GLcfv5E6cWnWDt3KP') {
             console.log('🔍 Chave de teste detectada')
             set({ isLoading: false, isAuthenticated: true })
             return true
           }
           
           // Em desenvolvimento local, simula sucesso para evitar CORS
-          const isLocalDevelopment = window.location.hostname === 'localhost' || 
-                                    window.location.hostname === '127.0.0.1'
-          
-          console.log('🔍 É desenvolvimento local?', isLocalDevelopment)
-          
-          if (isLocalDevelopment) {
-            console.log('🔧 Modo desenvolvimento local detectado. Aceitando qualquer chave não vazia.')
-            set({ isLoading: false, isAuthenticated: true })
-            return true
-          }
-          
+          // const isLocalDevelopment = window.location.hostname === 'localhost' || 
+          //                           window.location.hostname === '127.0.0.1'
+          // 
+          // console.log('🔍 É desenvolvimento local?', isLocalDevelopment)
+          // 
+          // if (isLocalDevelopment) {
+          //   console.log('🔧 Modo desenvolvimento local detectado. Aceitando qualquer chave não vazia.')
+          //   set({ isLoading: false, isAuthenticated: true })
+          //   return true
+          // }
           // Em produção, testar via proxy
-          console.log('🔍 Modo produção detectado. Testando via proxy...')
-          console.log('🔍 URL do proxy:', '/api/settings')
-          console.log('🔍 API Key fornecida:', key ? 'Sim' : 'Não')
-          
-          const response = await fetch('/api/settings?v=' + Date.now(), {
+          console.log('🔍 Testando via proxy...')
+          const url = '/api/report?v=' + Date.now() + '&api_key=' + encodeURIComponent(key)
+          const response = await fetch(url, {
             method: 'GET',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${key}`
+              'Content-Type': 'application/json'
             }
           })
           
@@ -70,15 +81,30 @@ export const useAuthStore = create<AuthState>()(
           console.log('🔍 OK?', response.ok)
           
           if (response.ok) {
+            const responseData = await response.json().catch(() => ({}))
             console.log('✅ API Key válida!')
-            set({ isLoading: false, isAuthenticated: true })
+            console.log('✅ Endpoint funcionando:', responseData.workingEndpoint)
+            set({ 
+              isLoading: false, 
+              isAuthenticated: true,
+              error: null
+            })
             return true
           } else {
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
+            
+            // Processar erro com mais detalhes
+            let errorMessage = errorData.error || 'API Key inválida'
+            
+            // Adicionar código de status se disponível
+            if (errorData.status) {
+              errorMessage = `Erro ${errorData.status}: ${errorMessage}`
+            }
+            
             set({ 
               isLoading: false, 
-              error: errorData.error || 'API Key inválida',
+              error: errorMessage,
               isAuthenticated: false 
             })
             return false
@@ -98,7 +124,10 @@ export const useAuthStore = create<AuthState>()(
       }
     }),
     {
-      name: 'auth-storage'
+      name: 'auth-storage',
+      onRehydrateStorage: (state) => {
+        console.log('[AUTH] Reidratando estado do auth-storage:', state)
+      }
     }
   )
 ) 

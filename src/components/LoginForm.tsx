@@ -4,18 +4,21 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 
 const LoginForm: React.FC = () => {
-  const [apiKey, setApiKey] = useState('')
+  const [apiKeyInput, setApiKeyInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const { testApiKey, isLoading, error } = useAuthStore()
+  const { testApiKey, setApiKey, isLoading, error } = useAuthStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     console.log('🚨 FORM SUBMIT CHAMADO!')
-    console.log('🚨 API Key no form:', apiKey ? 'SIM' : 'NÃO')
+    console.log('🚨 API Key no form:', apiKeyInput ? 'SIM' : 'NÃO')
     
-    if (apiKey.trim()) {
+    if (apiKeyInput.trim()) {
       console.log('🚨 CHAMANDO testApiKey...')
-      await testApiKey(apiKey.trim())
+      const isValid = await testApiKey(apiKeyInput.trim())
+      if (isValid) {
+        setApiKey(apiKeyInput.trim())
+      }
     } else {
       console.log('🚨 API Key vazia!')
     }
@@ -46,8 +49,8 @@ const LoginForm: React.FC = () => {
                 <Input
                   id="apiKey"
                   type={showPassword ? 'text' : 'password'}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
                   placeholder="Digite sua API Key..."
                   className="pr-10 modern-input"
                   disabled={isLoading}
@@ -64,14 +67,51 @@ const LoginForm: React.FC = () => {
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-red-600 font-medium mb-2">{error}</p>
+                {error.includes('401') && (
+                  <div className="mt-3">
+                    <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                    <ul className="text-xs text-red-500 space-y-1">
+                      <li>• Verifique se a API Key está correta</li>
+                      <li>• A API Key pode ter expirado - gere uma nova no RedTrack</li>
+                      <li>• Certifique-se de que a API Key tem permissões adequadas</li>
+                      <li>• Plano Solo pode ter acesso limitado - tente endpoints básicos primeiro</li>
+                    </ul>
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                      <p className="text-xs text-blue-600 font-medium">🔍 Testando endpoint /report...</p>
+                      <p className="text-xs text-blue-500">Usando endpoint /report que é mais compatível com planos básicos do RedTrack</p>
+                    </div>
+                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                      <p className="text-xs text-yellow-700 font-medium">⚠️ Informação do Plano:</p>
+                      <p className="text-xs text-yellow-600">Plano Solo tem API access limitado. Considere upgrade para API completa.</p>
+                    </div>
+                  </div>
+                )}
+                {error.includes('403') && (
+                  <div className="mt-3">
+                    <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                    <ul className="text-xs text-red-500 space-y-1">
+                      <li>• Verifique se a API Key tem permissões para acessar os dados</li>
+                      <li>• Entre em contato com o administrador da conta RedTrack</li>
+                    </ul>
+                  </div>
+                )}
+                {error.includes('429') && (
+                  <div className="mt-3">
+                    <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                    <ul className="text-xs text-red-500 space-y-1">
+                      <li>• Aguarde alguns minutos antes de tentar novamente</li>
+                      <li>• Verifique o plano da sua conta RedTrack</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
             <Button
               type="submit"
               className="w-full modern-button"
-              disabled={isLoading || !apiKey.trim()}
+              disabled={isLoading || !apiKeyInput.trim()}
             >
               {isLoading ? (
                 <>

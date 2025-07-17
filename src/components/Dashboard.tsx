@@ -17,6 +17,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
+import RedTrackAPI from '../services/api'
 
 
 interface Metric {
@@ -300,23 +301,18 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      // Simular carregamento de dados da API
-      const mockData = getDataForPeriod(selectedPeriod)
-      setMockData(mockData)
-      
-      // Verificar se são dados de demonstração (simulado)
-      const isDemo = !apiKey || apiKey === 'test_key' || apiKey === 'kXlmMfpINGQqv4btkwRL'
-      setIsDemoData(isDemo)
-      setDemoMessage(isDemo ? 'Dados de demonstração - Adicione sua API Key do RedTrack para ver dados reais' : '')
-      
+      if (!apiKey) throw new Error('API Key não definida')
+      const api = new RedTrackAPI(apiKey)
+      const realData = await api.getDashboardData()
+      setMockData(realData)
+      setIsDemoData(false)
+      setDemoMessage('')
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
-        value: (mockData as any)[metric.id] || 0
+        value: (realData as any)[metric.id] || 0
       }))
       setMetrics(updatedMetrics)
-      
       setLastUpdate(new Date())
-      
     } catch (error) {
       console.error('Error loading dashboard data:', error)
       // Fallback para dados mock se API falhar
@@ -324,7 +320,6 @@ const Dashboard: React.FC = () => {
       setMockData(mockData)
       setIsDemoData(true)
       setDemoMessage('Dados de demonstração - Erro ao carregar dados reais')
-      
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
         value: (mockData as any)[metric.id] || 0
