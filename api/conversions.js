@@ -40,7 +40,7 @@ export default async function handler(req, res) {
   // Montar query string para repassar todos os parâmetros
   const urlObj = new URL(req.url, 'http://localhost')
   const params = new URLSearchParams(urlObj.search)
-  params.delete('api_key') // Não repassar api_key na query, vai no header
+  // NÃO remover api_key!
   const redtrackUrl = `https://api.redtrack.io/conversions?${params.toString()}`
 
   try {
