@@ -85,6 +85,7 @@ export const useAuthStore = create<AuthState>()(
             console.log('✅ API Key válida!')
             console.log('✅ Endpoint funcionando:', responseData.workingEndpoint)
             set({ 
+              apiKey: key,
               isLoading: false, 
               isAuthenticated: true,
               error: null
