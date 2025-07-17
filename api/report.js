@@ -16,7 +16,12 @@ export default async function handler(req, res) {
   }
 
   const authHeader = req.headers['authorization']
-  const apiKey = authHeader ? authHeader.replace('Bearer ', '') : null
+  let apiKey = authHeader ? authHeader.replace('Bearer ', '') : null
+
+  // Permitir também via query string
+  if (!apiKey && req.query && req.query.api_key) {
+    apiKey = req.query.api_key
+  }
   
   console.log('🔍 [REPORT] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
   
