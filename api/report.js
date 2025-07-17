@@ -19,8 +19,17 @@ export default async function handler(req, res) {
   let apiKey = authHeader ? authHeader.replace('Bearer ', '') : null
 
   // Permitir também via query string
-  if (!apiKey && req.query && req.query.api_key) {
-    apiKey = req.query.api_key
+  if (!apiKey) {
+    // Tenta via req.query (caso exista)
+    if (req.query && req.query.api_key) {
+      apiKey = req.query.api_key
+    } else if (req.url && req.url.includes('api_key=')) {
+      // Fallback manual para ambientes onde req.query não existe
+      const match = req.url.match(/[?&]api_key=([^&]+)/)
+      if (match) {
+        apiKey = decodeURIComponent(match[1])
+      }
+    }
   }
   
   console.log('🔍 [REPORT] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
