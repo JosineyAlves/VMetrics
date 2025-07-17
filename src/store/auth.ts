@@ -68,44 +68,58 @@ export const useAuthStore = create<AuthState>()(
           //   return true
           // }
           // Em produção, testar via proxy
-          console.log('🔍 Testando via proxy...')
-          const url = '/api/report?v=' + Date.now() + '&api_key=' + encodeURIComponent(key)
-          console.log('[DEBUG] URL de validação:', url);
-          console.log('[DEBUG] Chave enviada:', key);
-          const response = await fetch(url, {
+          // Tentar validar usando /conversions (mais compatível com trial)
+          let url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
+          let endpointTested = '/conversions';
+          let response = await fetch(url, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json'
             }
-          })
-          
-          console.log('🔍 Status da resposta:', response.status)
-          console.log('🔍 OK?', response.ok)
-          
+          });
+
+          // Se /conversions não existir, tentar /campaigns como fallback
+          if (response.status === 404) {
+            url = '/api/campaigns?v=' + Date.now() + '&api_key=' + encodeURIComponent(key);
+            endpointTested = '/campaigns';
+            response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+          }
+
+          console.log('[DEBUG] Endpoint de validação testado:', endpointTested);
+          console.log('[DEBUG] URL de validação:', url);
+          console.log('[DEBUG] Chave enviada:', key);
+          console.log('🔍 Status da resposta:', response.status);
+          console.log('🔍 OK?', response.ok);
+
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
-            // Se a resposta for um array (mesmo vazio), considerar sucesso
-            if (Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null)) {
-              console.log('✅ API Key válida!')
+            // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
+            if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
+              console.log('✅ API Key válida!');
               set({ 
                 apiKey: key,
                 isLoading: false, 
                 isAuthenticated: true,
                 error: null
-              })
-              return true
+              });
+              return true;
             } else {
               // Caso a resposta seja um objeto de erro explícito
-              let errorMessage = responseData.error || 'API Key inválida'
+              let errorMessage = responseData.error || 'API Key inválida';
               if (responseData.status) {
-                errorMessage = `Erro ${responseData.status}: ${errorMessage}`
+                errorMessage = `Erro ${responseData.status}: ${errorMessage}`;
               }
               set({ 
                 isLoading: false, 
                 error: errorMessage,
                 isAuthenticated: false 
-              })
-              return false
+              });
+              return false;
             }
           } else {
             const errorData = await response.json().catch(() => ({}))
