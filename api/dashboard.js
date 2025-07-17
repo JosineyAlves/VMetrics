@@ -18,7 +18,13 @@ module.exports = async function (req, res) {
   }
 
   try {
+    console.log('🔍 [DASHBOARD] Requisição recebida:', req.method, req.url)
+    console.log('🔍 [DASHBOARD] Headers recebidos:', Object.keys(req.headers))
+    console.log('🔍 [DASHBOARD] API Key recebida:', apiKey ? 'SIM' : 'NÃO')
+
     // Testar se a API key é válida
+    console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /me/settings...')
+    console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/me/settings')
     const testResponse = await fetch('https://api.redtrack.io/me/settings', {
       method: 'GET',
       headers: {
@@ -30,6 +36,8 @@ module.exports = async function (req, res) {
     })
 
     if (!testResponse.ok) {
+      console.log('🔍 [DASHBOARD] Status da resposta /me/settings:', testResponse.status)
+      console.log('🔍 [DASHBOARD] Headers da resposta /me/settings:', Object.fromEntries(testResponse.headers.entries()))
       const errorData = await testResponse.json().catch(() => ({}))
       return res.status(testResponse.status).json({
         error: 'API Key inválida ou erro na API do RedTrack',
@@ -37,7 +45,12 @@ module.exports = async function (req, res) {
       })
     }
 
+    console.log('🔍 [DASHBOARD] Status da resposta /me/settings:', testResponse.status)
+    console.log('🔍 [DASHBOARD] Headers da resposta /me/settings:', Object.fromEntries(testResponse.headers.entries()))
+
     // Buscar dados reais do dashboard
+    console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /report...')
+    console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/report?group_by=date&date_from=2024-01-01&date_to=2024-12-31')
     const reportResponse = await fetch('https://api.redtrack.io/report?group_by=date&date_from=2024-01-01&date_to=2024-12-31', {
       method: 'GET',
       headers: {
@@ -49,6 +62,8 @@ module.exports = async function (req, res) {
     })
 
     if (reportResponse.ok) {
+      console.log('🔍 [DASHBOARD] Status da resposta /report:', reportResponse.status)
+      console.log('🔍 [DASHBOARD] Headers da resposta /report:', Object.fromEntries(reportResponse.headers.entries()))
       const reportData = await reportResponse.json()
 
       const hasData = reportData.revenue > 0 ||
@@ -87,6 +102,8 @@ module.exports = async function (req, res) {
         res.status(200).json(emptyData)
       }
     } else {
+      console.log('🔍 [DASHBOARD] Status da resposta /report:', reportResponse.status)
+      console.log('🔍 [DASHBOARD] Headers da resposta /report:', Object.fromEntries(reportResponse.headers.entries()))
       // Fallback para dados zerados
       const fallbackData = {
         revenue: 0,

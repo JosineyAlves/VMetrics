@@ -1,4 +1,7 @@
 export default async function handler(req, res) {
+  console.log('🔍 [DICTIONARIES] Requisição recebida:', req.method, req.url)
+  console.log('🔍 [DICTIONARIES] Headers recebidos:', Object.keys(req.headers))
+  console.log('🔍 [DICTIONARIES] Authorization header:', req.headers['authorization'])
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
@@ -24,6 +27,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔍 [DICTIONARIES] Fazendo requisição para RedTrack /' + type + '...')
+    console.log('🔍 [DICTIONARIES] URL:', `https://api.redtrack.io/${type}`)
+    console.log('🔍 [DICTIONARIES] API Key sendo testada:', apiKey)
     // Buscar dicionários do RedTrack
     const response = await fetch(`https://api.redtrack.io/${type}`, {
       method: 'GET',
@@ -34,6 +40,9 @@ export default async function handler(req, res) {
         'User-Agent': 'TrackView-Dashboard/1.0'
       }
     })
+
+    console.log('🔍 [DICTIONARIES] Status da resposta:', response.status)
+    console.log('🔍 [DICTIONARIES] Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
     if (response.ok) {
       const data = await response.json()

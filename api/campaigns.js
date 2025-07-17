@@ -18,6 +18,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔍 [CAMPAIGNS] Requisição recebida:', req.method, req.url)
+    console.log('🔍 [CAMPAIGNS] Headers recebidos:', Object.keys(req.headers))
+    console.log('🔍 [CAMPAIGNS] Authorization header:', req.headers['authorization'])
+    console.log('🔍 [CAMPAIGNS] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
+    console.log('🔍 [CAMPAIGNS] Fazendo requisição para RedTrack /campaigns...')
+    console.log('🔍 [CAMPAIGNS] URL:', 'https://api.redtrack.io/campaigns')
+    console.log('🔍 [CAMPAIGNS] API Key sendo testada:', apiKey)
+
     // Buscar campanhas reais do RedTrack
     const response = await fetch('https://api.redtrack.io/campaigns', {
       method: 'GET',
@@ -28,6 +36,9 @@ export default async function handler(req, res) {
         'User-Agent': 'TrackView-Dashboard/1.0'
       }
     })
+
+    console.log('🔍 [CAMPAIGNS] Status da resposta:', response.status)
+    console.log('🔍 [CAMPAIGNS] Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
     if (response.ok) {
       const campaignsData = await response.json()
