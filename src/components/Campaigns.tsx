@@ -39,7 +39,7 @@ interface UTMCreative {
   roi: number
 }
 
-const mapRedTrackCampaign = (item) => ({
+const mapRedTrackCampaign = (item: any) => ({
   id: item.campaign_id || item.id || Math.random().toString(36).slice(2),
   name: item.campaign || item.name || 'Campanha sem nome',
   source: item.source || '',
@@ -131,9 +131,18 @@ const Campaigns: React.FC = () => {
       // Chamada real
       const response = await fetch(url.toString());
       const data = await response.json();
+      console.log('Resposta bruta do RedTrack:', data); // LOG 1
       if (Array.isArray(data)) {
+        // Logar cada item individual
+        data.forEach((item: any, idx: number) => {
+          console.log(`Item [${idx}] recebido do RedTrack:`, item); // LOG 2
+        });
         // Mapear dados do RedTrack para o formato esperado
-        const mapped = data.map(mapRedTrackCampaign);
+        const mapped = data.map((item: any, idx: number) => {
+          const mappedItem = mapRedTrackCampaign(item);
+          console.log(`Item [${idx}] mapeado:`, mappedItem); // LOG 3
+          return mappedItem;
+        });
         setCampaigns(mapped);
         setTotalCampaigns(data.length);
       } else {
@@ -184,8 +193,8 @@ const Campaigns: React.FC = () => {
       setCustomRange({ from: '', to: '' })
     }
     // Atualizar filtros para buscar campanhas
-    const range = getDateRange(period)
-    setFilters(prev => ({ ...prev, dateFrom: range.startDate, dateTo: range.endDate }))
+    // O cálculo do range já é feito no onChange do PeriodDropdown
+    // Esta função pode ser removida ou mantida apenas para compatibilidade
   }
 
   const getStatusColor = (status: string) => {
@@ -810,116 +819,4 @@ const Campaigns: React.FC = () => {
                         ) : (
                           <TrendingDown className="w-4 h-4 text-trackview-danger mr-1" />
                         )}
-                        <span className={`text-sm font-medium ${creative.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`}>
-                          {creative.roi}%
-                        </span>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-trackview-muted">Total Spend</p>
-              <p className="text-2xl font-bold text-trackview-primary">
-                ${totalSpend.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-3 bg-trackview-background rounded-lg">
-              <TrendingDown className="w-6 h-6 text-trackview-danger" />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-trackview-muted">Total Revenue</p>
-              <p className="text-2xl font-bold text-trackview-primary">
-                ${totalRevenue.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-3 bg-trackview-background rounded-lg">
-              <TrendingUp className="w-6 h-6 text-trackview-success" />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-trackview-muted">
-                {activeTab === 'campaigns' ? 'Conversões' : 'Criativos'}
-              </p>
-              <p className="text-2xl font-bold text-trackview-primary">
-                {activeTab === 'campaigns' 
-                  ? totalConversions.toLocaleString()
-                  : filteredUTMCreatives.length
-                }
-              </p>
-            </div>
-            <div className="p-3 bg-trackview-background rounded-lg">
-              {activeTab === 'campaigns' ? (
-                <TrendingUp className="w-6 h-6 text-trackview-secondary" />
-              ) : (
-                <Palette className="w-6 h-6 text-trackview-secondary" />
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-trackview-muted">
-                {activeTab === 'campaigns' ? 'ROI Médio' : 'CTR Médio'}
-              </p>
-              <p className="text-2xl font-bold text-trackview-success">
-                {activeTab === 'campaigns' 
-                  ? `${Math.round(averageRoi)}%`
-                  : `${averageCTR.toFixed(1)}%`
-                }
-              </p>
-            </div>
-            <div className="p-3 bg-trackview-background rounded-lg">
-              {activeTab === 'campaigns' ? (
-                <TrendingUp className="w-6 h-6 text-trackview-success" />
-              ) : (
-                <Target className="w-6 h-6 text-trackview-secondary" />
-              )}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-export default Campaigns; 
+                        <span className={`text-sm font-medium ${creative.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`
