@@ -110,11 +110,7 @@ class RedTrackAPI {
   }
 
   private async request(endpoint: string, options: RequestInit = {}, params?: Record<string, any>) {
-    // Montar URL com api_key e outros parâmetros
     const urlObj = new URL(`${this.baseUrl}${endpoint}`, window.location.origin)
-    if (this.apiKey) {
-      urlObj.searchParams.set('api_key', this.apiKey)
-    }
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -122,14 +118,31 @@ class RedTrackAPI {
         }
       })
     }
-    const url = urlObj.toString()
-    console.log('[API] Requisição para:', url)
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
+    // Garantir que headers seja sempre Record<string, string>
+    let extraHeaders: Record<string, string> = {}
+    if (options.headers) {
+      if (options.headers instanceof Headers) {
+        options.headers.forEach((value, key) => {
+          extraHeaders[key] = value
+        })
+      } else {
+        extraHeaders = { ...options.headers as Record<string, string> }
       }
+    }
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...extraHeaders
+    }
+    // Se for /campaigns, envie a API Key no header Authorization
+    if (endpoint === '/campaigns' && this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`
+    } else if (this.apiKey) {
+      urlObj.searchParams.set('api_key', this.apiKey)
+    }
+    const finalUrl = endpoint === '/campaigns' ? urlObj.toString() : urlObj.toString()
+    const response = await fetch(finalUrl, {
+      ...options,
+      headers
     })
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
