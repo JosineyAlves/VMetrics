@@ -107,6 +107,10 @@ const Campaigns: React.FC = () => {
       console.log('API Key não definida, não vai buscar campanhas')
       return
     }
+    if (!filters.dateFrom || !filters.dateTo) {
+      console.error('Datas não definidas ou inválidas! dateFrom:', filters.dateFrom, 'dateTo:', filters.dateTo);
+      return;
+    }
     setLoading(true)
     try {
       const params = {
