@@ -100,14 +100,11 @@ const Campaigns: React.FC = () => {
 
 
   // Remover uso de getDateRange e garantir parâmetros obrigatórios na chamada de campanhas
+  // Novo fluxo: buscar campanhas usando /campaigns (GET)
   const loadCampaigns = async () => {
     console.log('Chamando loadCampaigns')
     if (!apiKey) {
       console.log('API Key não definida, não vai buscar campanhas')
-      return
-    }
-    if (!filters.dateFrom || !filters.dateTo) {
-      console.log('Datas não definidas, não vai buscar campanhas')
       return
     }
     setLoading(true)
@@ -116,11 +113,10 @@ const Campaigns: React.FC = () => {
         api_key: apiKey,
         date_from: filters.dateFrom,
         date_to: filters.dateTo,
-        group: 'campaign',
-        ...filters
+        // Adicione outros filtros se necessário
       }
       // Log da URL para depuração
-      const url = new URL('https://api.redtrack.io/report');
+      const url = new URL('https://api.redtrack.io/campaigns');
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           url.searchParams.set(key, value.toString());
@@ -128,13 +124,13 @@ const Campaigns: React.FC = () => {
       });
       console.log('URL da requisição de campanhas:', url.toString());
       // Chamada real
-      const api = new RedTrackAPI(apiKey)
-      const response = await api.getReport(params)
-      if (response && response.items) {
+      const response = await fetch(`/api/campaigns?${url.searchParams.toString()}`);
+      const data = await response.json();
+      if (data && data.items) {
         // Mapear dados do RedTrack para o formato esperado
-        const mapped = response.items.map(mapRedTrackCampaign)
+        const mapped = data.items.map(mapRedTrackCampaign)
         setCampaigns(mapped)
-        setTotalCampaigns(response.total || mapped.length)
+        setTotalCampaigns(data.total || mapped.length)
       } else {
         setCampaigns([])
         setTotalCampaigns(0)
