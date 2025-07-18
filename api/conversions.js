@@ -52,18 +52,47 @@ export default async function handler(req, res) {
 
   try {
     console.log('🔍 [CONVERSIONS] Fazendo requisição para RedTrack /conversions...')
-    console.log('🔍 [CONVERSIONS] URL:', redtrackUrl)
+    console.log('🔍 [CONVERSIONS] URL:', `https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=${date_from}&date_to=${date_to}`)
     console.log('🔍 [CONVERSIONS] API Key sendo testada:', apiKey)
 
-    const response = await fetch(redtrackUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
+    // Retry logic para lidar com rate limiting
+    let response
+    let retries = 3
+    let delay = 1000 // 1 segundo
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        response = await fetch(`https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=${date_from}&date_to=${date_to}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'TrackView-Dashboard/1.0 (https://my-dash-two.vercel.app)',
+            'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        })
+
+        console.log(`🔍 [CONVERSIONS] Tentativa ${attempt}/${retries} - Status:`, response.status)
+
+        if (response.status === 429) {
+          // Rate limit - aguardar e tentar novamente
+          console.log(`🔍 [CONVERSIONS] Rate limit detectado, aguardando ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+          delay *= 2 // Exponential backoff
+          continue
+        }
+
+        // Se não for rate limit, sair do loop
+        break
+      } catch (error) {
+        console.log(`🔍 [CONVERSIONS] Erro na tentativa ${attempt}:`, error.message)
+        if (attempt === retries) throw error
+        await new Promise(resolve => setTimeout(resolve, delay))
+        delay *= 2
       }
-    })
+    }
 
     console.log('🔍 [CONVERSIONS] Status da resposta:', response.status)
     console.log('🔍 [CONVERSIONS] Headers da resposta:', Object.fromEntries(response.headers.entries()))
