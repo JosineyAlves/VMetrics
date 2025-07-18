@@ -303,10 +303,81 @@ const Dashboard: React.FC = () => {
     try {
       if (!apiKey) throw new Error('API Key não definida')
       const api = new RedTrackAPI(apiKey)
-      const realData = await api.getDashboardData()
-      setMockData(realData)
-      setIsDemoData(false)
-      setDemoMessage('')
+      
+      // Usar datas reais baseadas no período selecionado
+      const dateRange = getDateRange(selectedPeriod)
+      const params = {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'date', // Agrupamento por data para dashboard
+        ...filters
+      }
+      
+      const realData = await api.getReport(params)
+      
+      // Se não houver dados, usar objeto zerado
+      if (!realData || Object.keys(realData).length === 0) {
+        const emptyData = {
+          clicks: 0,
+          conversions: 0,
+          spend: 0,
+          revenue: 0,
+          profit: 0,
+          roi: 0,
+          cpa: 0,
+          cpl: 0,
+          impressions: 0,
+          ctr: 0,
+          conversion_rate: 0,
+          visible_impressions: 0,
+          unique_clicks: 0,
+          prelp_views: 0,
+          prelp_clicks: 0,
+          prelp_click_ctr: 0,
+          lp_ctr: 0,
+          lp_click_ctr: 0,
+          conversion_cr: 0,
+          all_conversions: 0,
+          all_conversions_cr: 0,
+          approved: 0,
+          ar: 0,
+          pending: 0,
+          pr: 0,
+          declined: 0,
+          dr: 0,
+          other: 0,
+          or: 0,
+          transactions: 0,
+          tr: 0,
+          epv: 0,
+          conversion_revenue: 0,
+          publisher_revenue: 0,
+          publisher_revenue_legacy: 0,
+          conversion_roi: 0,
+          cpc: 0,
+          conversion_cpa: 0,
+          total_cpa: 0,
+          total_aov: 0,
+          conversion_aov: 0,
+          cpt: 0,
+          eplpc: 0,
+          epuc: 0,
+          listicle_epv: 0,
+          roas_percentage: 0,
+          conversion_roas: 0,
+          conversion_roas_percentage: 0,
+          conversion_profit: 0,
+          epc_roi: 0
+        }
+        setMockData(emptyData)
+        setIsDemoData(true)
+        setDemoMessage('Nenhum dado encontrado para o período selecionado.')
+      } else {
+        setMockData(realData)
+        setIsDemoData(false)
+        setDemoMessage('Dados reais do RedTrack')
+      }
+      
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
         value: (realData as any)[metric.id] || 0

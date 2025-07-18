@@ -238,29 +238,18 @@ class RedTrackAPI {
     }
   }
 
-  // Get conversions
-  async getConversions(params?: {
-    date_from?: string
-    date_to?: string
-    campaign?: string
-    type?: string
-    country?: string
-    page?: number
-    limit?: number
-  }): Promise<{ data: Conversion[], total: number }> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockConversionsData(params)
+  // Get conversions (corrigir para exigir datas)
+  async getConversions(params: { date_from: string; date_to: string; [key: string]: any }): Promise<any> {
+    if (!params?.date_from || !params?.date_to) {
+      throw new Error('Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD')
     }
     try {
-      // Em produção, usar proxy para dados reais
-      // Enviar parâmetros obrigatórios e opcionais na query string
       const realData = await this.request('/conversions', { method: 'GET' }, params)
       console.log('📊 Conversões reais carregadas:', realData)
       return realData
     } catch (error) {
       console.error('Erro ao buscar conversões:', error)
-      return this.getMockConversionsData(params)
+      throw error
     }
   }
 
@@ -375,26 +364,16 @@ class RedTrackAPI {
     }
   }
 
-  // Get tracks (clicks) - novo endpoint baseado na documentação
-  async getTracks(params?: {
-    date_from?: string
-    date_to?: string
-    campaign?: string
-    country?: string
-    page?: number
-    limit?: number
-  }): Promise<any> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockTracksData(params)
+  // Get tracks (cliques)
+  async getTracks(params: { date_from: string; date_to: string; [key: string]: any }): Promise<any> {
+    if (!params?.date_from || !params?.date_to) {
+      throw new Error('Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD')
     }
-    
     try {
-      // Em produção, usar proxy (implementar endpoint específico)
-      return this.getMockTracksData(params)
+      return await this.request('/tracks', { method: 'GET' }, params)
     } catch (error) {
       console.error('Erro ao buscar tracks:', error)
-      return this.getMockTracksData(params)
+      throw error
     }
   }
 
@@ -430,6 +409,37 @@ class RedTrackAPI {
     } catch (error) {
       console.error('Erro ao buscar ofertas:', error)
       return this.getMockOffersData(params)
+    }
+  }
+
+  // Get custom reports
+  async getReport(params: { 
+    date_from: string; 
+    date_to: string; 
+    group_by?: string;
+    campaign?: string;
+    country?: string;
+    device?: string;
+    [key: string]: any 
+  }): Promise<any> {
+    if (!params?.date_from || !params?.date_to) {
+      throw new Error('Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD')
+    }
+    try {
+      return await this.request('/report', { method: 'GET' }, params)
+    } catch (error) {
+      console.error('Erro ao buscar relatório:', error)
+      throw error
+    }
+  }
+
+  // Get account settings
+  async getSettings(): Promise<any> {
+    try {
+      return await this.request('/settings', { method: 'GET' })
+    } catch (error) {
+      console.error('Erro ao buscar configurações da conta:', error)
+      throw error
     }
   }
 

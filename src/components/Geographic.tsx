@@ -16,6 +16,7 @@ import {
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
+import RedTrackAPI from '../services/api'
 
 
 interface GeographicData {
@@ -159,15 +160,58 @@ const Geographic: React.FC = () => {
     }))
   }
 
+  // Função utilitária para obter datas do período
+  const getDateRange = (period: string) => {
+    const today = new Date()
+    let startDate = new Date(today)
+    let endDate = new Date(today)
+    switch (period) {
+      case '1d':
+        // Hoje
+        break
+      case '7d':
+        startDate.setDate(today.getDate() - 6)
+        break
+      case '30d':
+        startDate.setDate(today.getDate() - 29)
+        break
+      case '90d':
+        startDate.setDate(today.getDate() - 89)
+        break
+      case '1y':
+        startDate.setFullYear(today.getFullYear() - 1)
+        break
+      default:
+        break
+    }
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    }
+  }
+
   const loadGeographicData = async () => {
     if (!apiKey) return
-    
     setLoading(true)
     try {
-      // Mock data for demonstration
-      // Simular dados da API
-      const geographicData = getDataForPeriod(selectedPeriod)
-      setGeographicData(geographicData)
+      const api = new RedTrackAPI(apiKey)
+      const dateRange = getDateRange(selectedPeriod)
+      const params = {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        ...filters
+      }
+      const response = await api.getTracks(params)
+      // Se não houver dados, mostrar mensagem amigável
+      if (!response || (Array.isArray(response.items) && response.items.length === 0)) {
+        setGeographicData([])
+      } else if (response.items) {
+        setGeographicData(response.items)
+      } else if (Array.isArray(response)) {
+        setGeographicData(response)
+      } else {
+        setGeographicData([])
+      }
     } catch (error) {
       console.error('Error loading geographic data:', error)
       // Fallback para dados mock
@@ -257,6 +301,15 @@ const Geographic: React.FC = () => {
   const averageConversionRate = filteredData.length > 0
     ? filteredData.reduce((sum, d) => sum + d.conversion_rate, 0) / filteredData.length
     : 0
+
+  // Mensagem amigável se não houver dados
+  if (!loading && geographicData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-gray-500 text-lg">Nenhum clique encontrado para o período selecionado.</div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

@@ -22,12 +22,20 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' })
   }
 
+  // Validar parâmetros obrigatórios de data
+  const { date_from, date_to } = req.query || {};
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!date_from || !date_to || !dateRegex.test(date_from) || !dateRegex.test(date_to)) {
+    return res.status(400).json({ error: 'Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD' });
+  }
+
   try {
     console.log('🔍 [TRACKS] Fazendo requisição para RedTrack /tracks...')
     console.log('🔍 [TRACKS] URL:', 'https://api.redtrack.io/tracks')
     console.log('🔍 [TRACKS] API Key sendo testada:', apiKey)
     // Buscar tracks (cliques) reais do RedTrack
-    const response = await fetch('https://api.redtrack.io/tracks', {
+    const url = `https://api.redtrack.io/tracks?api_key=${apiKey}&date_from=${date_from}&date_to=${date_to}`;
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -41,7 +49,10 @@ export default async function handler(req, res) {
     console.log('🔍 [TRACKS] Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
     if (response.ok) {
-      const tracksData = await response.json()
+      const tracksData = await response.json();
+      if (Array.isArray(tracksData) && tracksData.length === 0) {
+        return res.status(200).json({ items: [], total: 0, message: 'Nenhum clique encontrado para o período.' });
+      }
       console.log('📊 Tracks reais carregados do RedTrack')
       res.status(200).json(tracksData)
     } else {

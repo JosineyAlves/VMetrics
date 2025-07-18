@@ -18,7 +18,7 @@ import {
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
-import { Campaign } from '../services/api'
+import RedTrackAPI from '../services/api'
 
 interface UTMCreative {
   id: string
@@ -39,7 +39,7 @@ interface UTMCreative {
 
 const Campaigns: React.FC = () => {
   const { apiKey } = useAuthStore()
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [campaigns, setCampaigns] = useState<any[]>([])
   const [utmCreatives, setUtmCreatives] = useState<UTMCreative[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -79,12 +79,45 @@ const Campaigns: React.FC = () => {
     return option ? option.label : 'Últimos 7 dias'
   }
 
-  // Função para calcular datas reais baseadas no período
-
+  // Função utilitária para obter datas do período
+  const getDateRange = (period: string) => {
+    const today = new Date()
+    let startDate = new Date(today)
+    let endDate = new Date(today)
+    switch (period) {
+      case 'today':
+        // Hoje
+        break
+      case 'yesterday':
+        startDate.setDate(today.getDate() - 1)
+        endDate.setDate(today.getDate() - 1)
+        break
+      case '7d':
+        startDate.setDate(today.getDate() - 6)
+        break
+      case 'this_month':
+        startDate.setDate(1)
+        break
+      case 'last_month':
+        startDate.setMonth(today.getMonth() - 1)
+        startDate.setDate(1)
+        endDate = new Date(today.getFullYear(), today.getMonth(), 0)
+        break
+      case 'max':
+        startDate.setFullYear(today.getFullYear() - 1)
+        break
+      default:
+        break
+    }
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    }
+  }
 
   // Dados dinâmicos baseados no período
-  const getDataForPeriod = (period: string): Campaign[] => {
-    const baseData: Campaign[] = [
+  const getDataForPeriod = (period: string): any[] => {
+    const baseData: any[] = [
       {
         id: '1',
         name: 'Campanha Facebook Ads',
@@ -262,18 +295,28 @@ const Campaigns: React.FC = () => {
     
     setLoading(true)
     try {
-      // Simular dados da API
-      const campaignsData = getDataForPeriod(selectedPeriod)
-      const utmData = getUTMDataForPeriod(selectedPeriod)
-      setCampaigns(campaignsData)
-      setUtmCreatives(utmData)
+      const api = new RedTrackAPI(apiKey)
+      const dateRange = getDateRange(selectedPeriod)
+      const params = {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        ...filters
+      }
+      const response = await api.getCampaigns(params)
+      if (!response || (Array.isArray(response.data) && response.data.length === 0)) {
+        setCampaigns([])
+      } else if (response.data) {
+        setCampaigns(response.data)
+      } else if (Array.isArray(response)) {
+        setCampaigns(response)
+      } else {
+        setCampaigns([])
+      }
     } catch (error) {
       console.error('Error loading campaigns:', error)
       // Fallback para dados mock
       const campaignsData = getDataForPeriod(selectedPeriod)
-      const utmData = getUTMDataForPeriod(selectedPeriod)
       setCampaigns(campaignsData)
-      setUtmCreatives(utmData)
     } finally {
       setLoading(false)
     }
@@ -394,6 +437,15 @@ const Campaigns: React.FC = () => {
   const averageCTR = activeTab === 'utm' && filteredUTMCreatives.length > 0
     ? filteredUTMCreatives.reduce((sum, c) => sum + c.ctr, 0) / filteredUTMCreatives.length
     : 0
+
+  // Mensagem amigável se não houver campanhas
+  if (!loading && campaigns.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-gray-500 text-lg">Nenhuma campanha encontrada para o período selecionado.</div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

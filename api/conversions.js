@@ -37,11 +37,18 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' })
   }
 
+  // Validar parâmetros obrigatórios de data
+  const { date_from, date_to } = req.query || {};
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!date_from || !date_to || !dateRegex.test(date_from) || !dateRegex.test(date_to)) {
+    return res.status(400).json({ error: 'Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD' });
+  }
+
   // Montar query string para repassar todos os parâmetros
-  const urlObj = new URL(req.url, 'http://localhost')
-  const params = new URLSearchParams(urlObj.search)
+  const urlObj = new URL(req.url, 'http://localhost');
+  const params = new URLSearchParams(urlObj.search);
   // NÃO remover api_key!
-  const redtrackUrl = `https://api.redtrack.io/conversions?${params.toString()}`
+  const redtrackUrl = `https://api.redtrack.io/conversions?${params.toString()}`;
 
   try {
     console.log('🔍 [CONVERSIONS] Fazendo requisição para RedTrack /conversions...')
@@ -61,8 +68,15 @@ export default async function handler(req, res) {
     console.log('🔍 [CONVERSIONS] Status da resposta:', response.status)
     console.log('🔍 [CONVERSIONS] Headers da resposta:', Object.fromEntries(response.headers.entries()))
 
-    const data = await response.json().catch(() => ({}))
-    res.status(response.status).json(data)
+    const data = await response.json().catch(() => ({}));
+    // Se resposta vazia, retornar mensagem amigável
+    if (Array.isArray(data) && data.length === 0) {
+      return res.status(200).json({ items: [], total: 0, message: 'Nenhuma conversão encontrada para o período.' });
+    }
+    if (data && data.items && data.items.length === 0) {
+      data.message = 'Nenhuma conversão encontrada para o período.';
+    }
+    res.status(response.status).json(data);
   } catch (error) {
     console.error('❌ [CONVERSIONS] Erro ao conectar com RedTrack:', error)
     res.status(500).json({ 

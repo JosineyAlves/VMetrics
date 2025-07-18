@@ -95,17 +95,17 @@ export const useAuthStore = create<AuthState>()(
           console.log('[DEBUG] Chave enviada:', key);
           console.log('🔍 Status da resposta:', response.status);
           console.log('🔍 OK?', response.ok);
-
+          
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
             // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
             if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
               console.log('✅ API Key válida!');
-              set({ 
+            set({ 
                 apiKey: key,
-                isLoading: false, 
-                isAuthenticated: true,
-                error: null
+              isLoading: false, 
+              isAuthenticated: true,
+              error: null
               });
               return true;
             } else {
