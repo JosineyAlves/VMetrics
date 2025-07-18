@@ -155,61 +155,7 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  // Dados dinâmicos baseados no período (fallback)
-  const getDataForPeriod = (period: string) => {
-    const baseData = {
-      clicks: 15420,
-      conversions: 1234,
-      spend: 45678.90,
-      revenue: 98765.43,
-      profit: 53086.53, // Receita - Gasto
-      roi: 116.3,
-      cpa: 37.0,
-      cpl: 12.5,
-      impressions: 125000,
-      ctr: 0.5,
-      conversion_rate: 8.0
-    }
 
-    const multipliers = {
-      'max': 52,        // 1 ano de dados
-      'today': 0.14,    // 1 dia
-      'yesterday': 0.12, // 1 dia (15% menos que hoje)
-      '7d': 1,          // 7 dias
-      'this_month': 4.3, // ~30 dias
-      'last_month': 4.3, // ~30 dias
-      'custom': 1,      // baseado nas datas selecionadas
-    }
-
-    const multiplier = multipliers[period as keyof typeof multipliers] || 1
-    
-    return {
-      clicks: Math.round(baseData.clicks * multiplier),
-      conversions: Math.round(baseData.conversions * multiplier),
-      spend: baseData.spend * multiplier,
-      revenue: baseData.revenue * multiplier,
-      profit: baseData.profit * multiplier,
-      roi: baseData.roi,
-      cpa: baseData.cpa,
-      cpl: baseData.cpl,
-      impressions: Math.round(baseData.impressions * multiplier),
-      ctr: baseData.ctr,
-      conversion_rate: baseData.conversion_rate
-    }
-  }
-
-  const [mockData, setMockData] = useState(getDataForPeriod(selectedPeriod))
-  const [isDemoData, setIsDemoData] = useState(false)
-  const [demoMessage, setDemoMessage] = useState('')
-
-  // Atualizar métricas com dados mock
-  useEffect(() => {
-    const updatedMetrics = metrics.map(metric => ({
-      ...metric,
-      value: (mockData as any)[metric.id] || 0
-    }))
-    setMetrics(updatedMetrics)
-  }, [mockData])
 
   const [metrics, setMetrics] = useState<Metric[]>([
     {
@@ -369,13 +315,8 @@ const Dashboard: React.FC = () => {
           conversion_profit: 0,
           epc_roi: 0
         }
-        setMockData(emptyData)
-        setIsDemoData(true)
-        setDemoMessage('✅ API conectada com sucesso! Conta trial sem dados ainda.')
       } else {
-        setMockData(realData)
-        setIsDemoData(false)
-        setDemoMessage('✅ Dados reais do RedTrack')
+        // Dados reais encontrados
       }
       
       const updatedMetrics = metrics.map(metric => ({
@@ -439,9 +380,7 @@ const Dashboard: React.FC = () => {
         conversion_profit: 0,
         epc_roi: 0
       }
-      setMockData(emptyData)
-      setIsDemoData(true)
-      setDemoMessage('❌ Erro ao conectar com RedTrack API')
+
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
         value: 0
@@ -516,68 +455,7 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  // Dados dinâmicos para performance por dia baseados no período
-  const getPerformanceData = (period: string) => {
-    const baseData = [
-      { name: 'Seg', clicks: 1200, conversions: 95, revenue: 8500 },
-      { name: 'Ter', clicks: 1350, conversions: 108, revenue: 9200 },
-      { name: 'Qua', clicks: 1100, conversions: 87, revenue: 7800 },
-      { name: 'Qui', clicks: 1600, conversions: 125, revenue: 10500 },
-      { name: 'Sex', clicks: 1800, conversions: 142, revenue: 11800 },
-      { name: 'Sáb', clicks: 1400, conversions: 112, revenue: 9500 },
-      { name: 'Dom', clicks: 1300, conversions: 98, revenue: 8200 },
-    ]
 
-    const multipliers = {
-      'max': 52,        // 1 ano de dados
-      'today': 0.14,    // 1 dia
-      'yesterday': 0.12, // 1 dia (15% menos que hoje)
-      '7d': 1,          // 7 dias
-      'this_month': 4.3, // ~30 dias
-      'last_month': 4.3, // ~30 dias
-      'custom': 1,      // baseado nas datas selecionadas
-    }
-
-    const multiplier = multipliers[period as keyof typeof multipliers] || 1
-    
-    return baseData.map(item => ({
-      ...item,
-      clicks: Math.round(item.clicks * multiplier),
-      conversions: Math.round(item.conversions * multiplier),
-      revenue: Math.round(item.revenue * multiplier)
-    }))
-  }
-
-  const chartData = getPerformanceData(selectedPeriod)
-
-  // Dados dinâmicos para distribuição por fonte baseados no período
-  const getSourceDistributionData = (period: string) => {
-    const baseData = [
-      { name: 'Facebook', value: 45 },
-      { name: 'Google', value: 30 },
-      { name: 'TikTok', value: 15 },
-      { name: 'Taboola', value: 10 },
-    ]
-
-    const multipliers = {
-      'max': 52,        // 1 ano de dados
-      'today': 0.14,    // 1 dia
-      'yesterday': 0.12, // 1 dia (15% menos que hoje)
-      '7d': 1,          // 7 dias
-      'this_month': 4.3, // ~30 dias
-      'last_month': 4.3, // ~30 dias
-      'custom': 1,      // baseado nas datas selecionadas
-    }
-
-    const multiplier = multipliers[period as keyof typeof multipliers] || 1
-    
-    return baseData.map(item => ({
-      ...item,
-      value: Math.round(item.value * multiplier)
-    }))
-  }
-
-  const barChartData = getSourceDistributionData(selectedPeriod)
 
   if (loading) {
     return (
@@ -645,40 +523,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Mensagem de Demonstração */}
-      {isDemoData && demoMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6 shadow-lg"
-        >
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">ℹ️</span>
-              </div>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                Dados de Demonstração
-              </h3>
-              <p className="text-gray-600 text-sm">
-                {demoMessage}
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsDemoData(false)}
-                className="text-xs px-3 py-1 rounded-lg"
-              >
-                Entendi
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
+
 
       {/* Filtros Avançados */}
       {showFilters && (
@@ -913,23 +758,13 @@ const Dashboard: React.FC = () => {
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
           <h3 className="text-xl font-bold text-gray-800 mb-8">Performance por Dia</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="name" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                  border: 'none', 
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-                }} 
-              />
-              <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={3} />
-              <Line type="monotone" dataKey="conversions" stroke="#10B981" strokeWidth={3} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📊</div>
+              <p className="text-lg font-semibold">Gráfico de Performance</p>
+              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Distribuição por Fonte */}
@@ -940,28 +775,13 @@ const Dashboard: React.FC = () => {
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
           <h3 className="text-xl font-bold text-gray-800 mb-8">Distribuição por Fonte</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={barChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="name" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                  border: 'none', 
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-                }} 
-              />
-              <Bar dataKey="value" fill="url(#gradient)" radius={[8, 8, 0, 0]} />
-              <defs>
-                <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#A855F7" />
-                </linearGradient>
-              </defs>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📈</div>
+              <p className="text-lg font-semibold">Distribuição por Fonte</p>
+              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>

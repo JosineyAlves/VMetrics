@@ -66,99 +66,7 @@ const Geographic: React.FC = () => {
     return option ? option.label : 'Últimos 7 dias'
   }
 
-  // Dados dinâmicos baseados no período
-  const getDataForPeriod = (period: string): GeographicData[] => {
-    const baseData: GeographicData[] = [
-      {
-        id: '1',
-        country: 'Brasil',
-        region: 'Sudeste',
-        city: 'São Paulo',
-        visitors: 25000,
-        conversions: 1250,
-        revenue: 187500,
-        spend: 37500,
-        roi: 500.0,
-        conversion_rate: 5.0,
-        cpa: 30.0
-      },
-      {
-        id: '2',
-        country: 'Brasil',
-        region: 'Sul',
-        city: 'Curitiba',
-        visitors: 15000,
-        conversions: 900,
-        revenue: 135000,
-        spend: 22500,
-        roi: 600.0,
-        conversion_rate: 6.0,
-        cpa: 25.0
-      },
-      {
-        id: '3',
-        country: 'Brasil',
-        region: 'Nordeste',
-        city: 'Salvador',
-        visitors: 12000,
-        conversions: 600,
-        revenue: 90000,
-        spend: 18000,
-        roi: 500.0,
-        conversion_rate: 5.0,
-        cpa: 30.0
-      },
-      {
-        id: '4',
-        country: 'Brasil',
-        region: 'Centro-Oeste',
-        city: 'Brasília',
-        visitors: 8000,
-        conversions: 480,
-        revenue: 72000,
-        spend: 12000,
-        roi: 600.0,
-        conversion_rate: 6.0,
-        cpa: 25.0
-      },
-      {
-        id: '5',
-        country: 'Brasil',
-        region: 'Norte',
-        city: 'Manaus',
-        visitors: 5000,
-        conversions: 250,
-        revenue: 37500,
-        spend: 7500,
-        roi: 500.0,
-        conversion_rate: 5.0,
-        cpa: 30.0
-      }
-    ]
 
-    const multipliers = {
-      'max': 52,        // 1 ano de dados
-      'today': 0.14,    // 1 dia
-      'yesterday': 0.12, // 1 dia (15% menos que hoje)
-      '7d': 1,          // 7 dias
-      'this_month': 4.3, // ~30 dias
-      'last_month': 4.3, // ~30 dias
-      'custom': 1,      // baseado nas datas selecionadas
-    }
-
-    const multiplier = multipliers[period as keyof typeof multipliers] || 1
-    
-    return baseData.map(data => ({
-      ...data,
-      visitors: Math.round(data.visitors * multiplier),
-      conversions: Math.round(data.conversions * multiplier),
-      revenue: data.revenue * multiplier,
-      spend: data.spend * multiplier,
-      roi: data.roi,
-      conversion_rate: data.conversion_rate,
-      cpa: data.cpa
-    }))
-  }
 
   // Função utilitária para obter datas do período
   const getDateRange = (period: string) => {
@@ -214,9 +122,8 @@ const Geographic: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading geographic data:', error)
-      // Fallback para dados mock
-      const geographicData = getDataForPeriod(selectedPeriod)
-      setGeographicData(geographicData)
+      // NÃO usar dados mock - mostrar dados reais vazios
+      setGeographicData([])
     } finally {
       setLoading(false)
     }
