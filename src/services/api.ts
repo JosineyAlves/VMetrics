@@ -168,16 +168,14 @@ class RedTrackAPI {
 
   // Get dashboard data
   async getDashboardData(params?: any): Promise<any> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockDashboardData(params)
-    }
     try {
-      // Em produção, usar proxy para dados reais
-      const realData = await this.request('/dashboard')
+      // Sempre tentar buscar dados reais primeiro
+      const realData = await this.request('/dashboard', { method: 'GET' }, params)
       console.log('[DASHBOARD] Dados reais recebidos da API:', realData)
+      
       // Se a resposta for vazia ou não houver dados, retornar objeto zerado
       if (!realData || Object.keys(realData).length === 0) {
+        console.log('[DASHBOARD] Nenhum dado encontrado - retornando dados zerados')
         return {
           clicks: 0,
           conversions: 0,
@@ -261,19 +259,22 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<{ data: Campaign[], total: number }> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockCampaignsData(params)
-    }
-    
     try {
-      // Em produção, usar proxy para dados reais
-      const realData = await this.request('/campaigns')
+      // Sempre tentar buscar dados reais primeiro
+      const realData = await this.request('/campaigns', { method: 'GET' }, params)
       console.log('📊 Campanhas reais carregadas:', realData)
+      
+      // Se não há dados ou dados vazios, retornar array vazio
+      if (!realData || !realData.data || realData.data.length === 0) {
+        console.log('📊 Nenhuma campanha encontrada - retornando dados vazios')
+        return { data: [], total: 0 }
+      }
+      
       return realData
     } catch (error) {
       console.error('Erro ao buscar campanhas:', error)
-      return this.getMockCampaignsData(params)
+      // NÃO retornar dados mock - retornar dados vazios
+      return { data: [], total: 0 }
     }
   }
 
@@ -282,17 +283,22 @@ class RedTrackAPI {
     date_from?: string
     date_to?: string
   }): Promise<CountryData[]> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockCountriesData(params)
-    }
-    
     try {
-      // Em produção, usar proxy (implementar endpoint específico)
-      return this.getMockCountriesData(params)
+      // Sempre tentar buscar dados reais primeiro
+      const realData = await this.request('/countries', { method: 'GET' }, params)
+      console.log('📊 Dados geográficos reais carregados:', realData)
+      
+      // Se não há dados ou dados vazios, retornar array vazio
+      if (!realData || !Array.isArray(realData) || realData.length === 0) {
+        console.log('📊 Nenhum dado geográfico encontrado - retornando dados vazios')
+        return []
+      }
+      
+      return realData
     } catch (error) {
       console.error('Erro ao buscar dados geográficos:', error)
-      return this.getMockCountriesData(params)
+      // NÃO retornar dados mock - retornar dados vazios
+      return []
     }
   }
 
@@ -379,17 +385,22 @@ class RedTrackAPI {
 
   // Get domains - novo endpoint baseado na documentação
   async getDomains(): Promise<any[]> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockDomainsData()
-    }
-    
     try {
-      // Em produção, usar proxy (implementar endpoint específico)
-      return this.getMockDomainsData()
+      // Sempre tentar buscar dados reais primeiro
+      const realData = await this.request('/domains', { method: 'GET' })
+      console.log('📊 Domínios reais carregados:', realData)
+      
+      // Se não há dados ou dados vazios, retornar array vazio
+      if (!realData || !Array.isArray(realData) || realData.length === 0) {
+        console.log('📊 Nenhum domínio encontrado - retornando dados vazios')
+        return []
+      }
+      
+      return realData
     } catch (error) {
       console.error('Erro ao buscar domínios:', error)
-      return this.getMockDomainsData()
+      // NÃO retornar dados mock - retornar dados vazios
+      return []
     }
   }
 
@@ -398,17 +409,22 @@ class RedTrackAPI {
     page?: number
     limit?: number
   }): Promise<any> {
-    // Retorna dados simulados para chaves de teste
-    if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-      return this.getMockOffersData(params)
-    }
-    
     try {
-      // Em produção, usar proxy (implementar endpoint específico)
-      return this.getMockOffersData(params)
+      // Sempre tentar buscar dados reais primeiro
+      const realData = await this.request('/offers', { method: 'GET' }, params)
+      console.log('📊 Ofertas reais carregadas:', realData)
+      
+      // Se não há dados ou dados vazios, retornar objeto vazio
+      if (!realData || !realData.data || realData.data.length === 0) {
+        console.log('📊 Nenhuma oferta encontrada - retornando dados vazios')
+        return { data: [], total: 0 }
+      }
+      
+      return realData
     } catch (error) {
       console.error('Erro ao buscar ofertas:', error)
-      return this.getMockOffersData(params)
+      // NÃO retornar dados mock - retornar dados vazios
+      return { data: [], total: 0 }
     }
   }
 
