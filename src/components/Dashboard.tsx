@@ -136,6 +136,9 @@ const Dashboard: React.FC = () => {
     }
   ])
 
+  // Novo estado para armazenar dados diários para o gráfico
+  const [dailyData, setDailyData] = useState<any[]>([]);
+
   // Fechar dropdown quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -181,7 +184,9 @@ const Dashboard: React.FC = () => {
       
       const realData = await api.getReport(params)
       let summary: any = {};
+      let daily: any[] = [];
       if (Array.isArray(realData)) {
+        daily = realData;
         summary = realData.reduce((acc: any, item: any) => {
           Object.keys(item).forEach(key => {
             if (typeof item[key] === 'number') {
@@ -193,6 +198,7 @@ const Dashboard: React.FC = () => {
       } else {
         summary = realData || {};
       }
+      setDailyData(daily);
       // Se não houver dados, usar objeto zerado
       if (!summary || Object.keys(summary).length === 0) {
         summary = {
@@ -545,37 +551,38 @@ const Dashboard: React.FC = () => {
                 let startDate = new Date(today);
                 let endDate = new Date(today);
                 switch (period) {
-                  case 'today':
-                    // hoje
+                  case 'today': // Hoje
+                    // já está correto
                     break;
-                  case 'last_60_minutes':
-                    // último 1h: manter hoje
+                  case 'last_60_minutes': // Últimos 60 minutos
+                    startDate = new Date(today.getTime() - 60 * 60 * 1000);
+                    endDate = today;
                     break;
-                  case 'yesterday':
+                  case 'yesterday': // Ontem
                     startDate.setDate(today.getDate() - 1);
                     endDate.setDate(today.getDate() - 1);
                     break;
-                  case 'this_week': {
+                  case 'this_week': { // Esta semana
                     const day = today.getDay() || 7;
                     startDate.setDate(today.getDate() - day + 1);
                     break;
                   }
-                  case 'last_7_days':
+                  case 'last_7_days': // Últimos 7 dias
                     startDate.setDate(today.getDate() - 6);
                     break;
-                  case 'last_week': {
+                  case 'last_week': { // Semana passada
                     const day = today.getDay() || 7;
                     endDate.setDate(today.getDate() - day);
                     startDate.setDate(endDate.getDate() - 6);
                     break;
                   }
-                  case 'this_month':
+                  case 'this_month': // Este mês
                     startDate.setDate(1);
                     break;
-                  case 'last_30_days':
+                  case 'last_30_days': // Últimos 30 dias
                     startDate.setDate(today.getDate() - 29);
                     break;
-                  case 'last_month':
+                  case 'last_month': // Mês passado
                     startDate.setMonth(today.getMonth() - 1, 1);
                     endDate = new Date(today.getFullYear(), today.getMonth(), 0);
                     break;
@@ -590,6 +597,19 @@ const Dashboard: React.FC = () => {
                 }));
               }
             }}
+            // Tradução dos períodos para português
+            presets={[
+              { value: 'today', label: 'Hoje' },
+              { value: 'last_60_minutes', label: 'Últimos 60 minutos' },
+              { value: 'yesterday', label: 'Ontem' },
+              { value: 'this_week', label: 'Esta semana' },
+              { value: 'last_7_days', label: 'Últimos 7 dias' },
+              { value: 'last_week', label: 'Semana passada' },
+              { value: 'this_month', label: 'Este mês' },
+              { value: 'last_30_days', label: 'Últimos 30 dias' },
+              { value: 'last_month', label: 'Mês passado' },
+              { value: 'custom', label: 'Personalizado' },
+            ]}
           />
         </div>
       </div>
@@ -637,13 +657,27 @@ const Dashboard: React.FC = () => {
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
           <h3 className="text-xl font-bold text-gray-800 mb-8">Performance por Dia</h3>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-lg font-semibold">Gráfico de Performance</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+          {dailyData && dailyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
+                <Line type="monotone" dataKey="clicks" stroke="#6366f1" name="Cliques" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="conversions" stroke="#10b981" name="Conversões" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="revenue" stroke="#f59e42" name="Receita" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📊</div>
+                <p className="text-lg font-semibold">Gráfico de Performance</p>
+                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
 
         {/* Distribuição por Fonte */}
