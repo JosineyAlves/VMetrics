@@ -135,8 +135,12 @@ const Campaigns: React.FC = () => {
       console.log('Resposta bruta do RedTrack:', JSON.stringify(data, null, 2)); // LOG detalhado
       if (Array.isArray(data)) {
         // Filtrar apenas itens com campaign e campaign_id
-        const filtered = data.filter((item: any) => item.campaign && item.campaign_id);
-        console.log('Itens filtrados (com campaign e campaign_id):', filtered);
+        let filtered = data.filter((item: any) => item.campaign && item.campaign_id);
+        // Se não houver campanhas reais, exibir pelo menos o primeiro item (dados agregados)
+        if (filtered.length === 0 && data.length > 0) {
+          filtered = [data[0]];
+        }
+        console.log('Itens filtrados (com campaign e campaign_id ou agregados):', filtered);
         // Mapear dados do RedTrack para o formato esperado
         const mapped = filtered.map((item: any, idx: number) => {
           const mappedItem = mapRedTrackCampaign(item);
