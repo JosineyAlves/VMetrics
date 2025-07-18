@@ -120,6 +120,7 @@ const Campaigns: React.FC = () => {
         group_by: 'campaign',
         // Adicione outros filtros se necessário
       }
+      console.log('Parâmetros enviados:', params); // LOG detalhado dos parâmetros
       // Log da URL para depuração
       const url = new URL('/api/report', window.location.origin);
       Object.entries(params).forEach(([key, value]) => {
