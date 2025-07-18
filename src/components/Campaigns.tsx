@@ -39,10 +39,10 @@ interface UTMCreative {
   roi: number
 }
 
-const mapRedTrackCampaign = (item: any) => ({
-  id: item.rt_campaign || item.campaign_id || item.id || Math.random().toString(36).slice(2),
-  name: item.rt_campaign || item.campaign || item.name || 'Campanha sem nome',
-  source: item.traffic_channel || item.source || '',
+const mapRedTrackCampaign = (item) => ({
+  id: item.campaign_id || item.id || Math.random().toString(36).slice(2),
+  name: item.campaign || item.name || 'Campanha sem nome',
+  source: item.source || '',
   status: item.status || 'active',
   spend: item.cost || 0,
   revenue: item.revenue || 0,
