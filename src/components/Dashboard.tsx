@@ -139,6 +139,7 @@ const Dashboard: React.FC = () => {
 
   // Novo estado para armazenar dados diários para o gráfico
   const [dailyData, setDailyData] = useState<any[]>([]);
+  const [sourceDistributionData, setSourceDistributionData] = useState<any[]>([]);
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
@@ -205,6 +206,41 @@ const Dashboard: React.FC = () => {
       } else {
         summary = realData || {};
       }
+
+      // Buscar dados de distribuição por fonte
+      const sourceParams = {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'source',
+        ...filters
+      }
+      
+      console.log('Dashboard - Buscando dados por fonte:', sourceParams)
+      const sourceData = await api.getReport(sourceParams)
+      console.log('Dashboard - Dados por fonte:', sourceData)
+      
+      let sourceDistribution: any[] = [];
+      if (Array.isArray(sourceData)) {
+        sourceDistribution = sourceData.map((item: any) => ({
+          source: item.source || 'Outros',
+          clicks: item.clicks || 0,
+          conversions: item.conversions || 0,
+          revenue: item.revenue || 0,
+          spend: item.spend || 0
+        }));
+      } else if (sourceData && typeof sourceData === 'object') {
+        // Se for um objeto único, criar array com um item
+        sourceDistribution = [{
+          source: sourceData.source || 'Outros',
+          clicks: sourceData.clicks || 0,
+          conversions: sourceData.conversions || 0,
+          revenue: sourceData.revenue || 0,
+          spend: sourceData.spend || 0
+        }];
+      }
+      
+      setSourceDistributionData(sourceDistribution);
+
       setDailyData(daily);
       // Se não houver dados, usar objeto zerado
       if (!summary || Object.keys(summary).length === 0) {
@@ -648,13 +684,27 @@ const Dashboard: React.FC = () => {
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
           <h3 className="text-lg font-semibold text-gray-800 mb-6">Distribuição por Fonte</h3>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📈</div>
-              <p className="text-lg font-semibold">Distribuição por Fonte</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+          {sourceDistributionData && sourceDistributionData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={sourceDistributionData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="source" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
+                <Bar dataKey="clicks" fill="#6366f1" name="Cliques" />
+                <Bar dataKey="conversions" fill="#10b981" name="Conversões" />
+                <Bar dataKey="revenue" fill="#f59e42" name="Receita" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📈</div>
+                <p className="text-lg font-semibold">Distribuição por Fonte</p>
+                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
       </div>
     </div>
