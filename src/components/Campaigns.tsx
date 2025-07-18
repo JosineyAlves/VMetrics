@@ -131,14 +131,14 @@ const Campaigns: React.FC = () => {
       // Chamada real
       const response = await fetch(url.toString());
       const data = await response.json();
-      if (data && Array.isArray(data.data)) {
+      if (Array.isArray(data)) {
         // Mapear dados do RedTrack para o formato esperado
-        const mapped = data.data.map(mapRedTrackCampaign)
-        setCampaigns(mapped)
-        setTotalCampaigns(data.data.length)
+        const mapped = data.map(mapRedTrackCampaign);
+        setCampaigns(mapped);
+        setTotalCampaigns(data.length);
       } else {
-        setCampaigns([])
-        setTotalCampaigns(0)
+        setCampaigns([]);
+        setTotalCampaigns(0);
       }
       setLastUpdate(new Date())
     } catch (error) {
