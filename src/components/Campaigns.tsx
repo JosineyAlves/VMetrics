@@ -819,4 +819,20 @@ const Campaigns: React.FC = () => {
                         ) : (
                           <TrendingDown className="w-4 h-4 text-trackview-danger mr-1" />
                         )}
-                        <span className={`text-sm font-medium ${creative.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`
+                        <span className={`text-sm font-medium ${creative.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`}>
+                          {creative.roi}%
+                        </span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+export default Campaigns
