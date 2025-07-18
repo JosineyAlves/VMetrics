@@ -39,15 +39,15 @@ interface UTMCreative {
 }
 
 const mapRedTrackCampaign = (item: any) => ({
-  id: item.campaign_id || item.id || item.campaign || item.name || Math.random().toString(36).slice(2),
-  name: item.campaign || item.name || 'Campanha sem nome',
+  id: item.rt_campaign || item.campaign_id || item.id || Math.random().toString(36).slice(2),
+  name: item.rt_campaign || item.campaign || item.name || 'Campanha sem nome',
   source: item.traffic_channel || item.source || '',
   status: item.status || 'active',
   spend: item.cost || 0,
   revenue: item.revenue || 0,
   cpa: item.cpa || 0,
   roi: item.roi || 0,
-  conversions: item.conversions || item.conversion || 0,
+  conversions: item.conversions || 0,
   clicks: item.clicks || 0,
   impressions: item.impressions || 0
 })
