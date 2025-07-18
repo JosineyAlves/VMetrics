@@ -546,43 +546,43 @@ const Dashboard: React.FC = () => {
                 setCustomRange(custom);
                 setFilters(prev => ({ ...prev, dateFrom: custom.from, dateTo: custom.to }));
               } else {
-                // Calcular datas reais do período padrão
+                // Calcular datas reais do período padrão (valores internos em inglês)
                 const today = new Date();
                 let startDate = new Date(today);
                 let endDate = new Date(today);
                 switch (period) {
-                  case 'today': // Hoje
+                  case 'today':
                     // já está correto
                     break;
-                  case 'last_60_minutes': // Últimos 60 minutos
+                  case 'last_60_minutes':
                     startDate = new Date(today.getTime() - 60 * 60 * 1000);
                     endDate = today;
                     break;
-                  case 'yesterday': // Ontem
+                  case 'yesterday':
                     startDate.setDate(today.getDate() - 1);
                     endDate.setDate(today.getDate() - 1);
                     break;
-                  case 'this_week': { // Esta semana
+                  case 'this_week': {
                     const day = today.getDay() || 7;
                     startDate.setDate(today.getDate() - day + 1);
                     break;
                   }
-                  case 'last_7_days': // Últimos 7 dias
+                  case 'last_7_days':
                     startDate.setDate(today.getDate() - 6);
                     break;
-                  case 'last_week': { // Semana passada
+                  case 'last_week': {
                     const day = today.getDay() || 7;
                     endDate.setDate(today.getDate() - day);
                     startDate.setDate(endDate.getDate() - 6);
                     break;
                   }
-                  case 'this_month': // Este mês
+                  case 'this_month':
                     startDate.setDate(1);
                     break;
-                  case 'last_30_days': // Últimos 30 dias
+                  case 'last_30_days':
                     startDate.setDate(today.getDate() - 29);
                     break;
-                  case 'last_month': // Mês passado
+                  case 'last_month':
                     startDate.setMonth(today.getMonth() - 1, 1);
                     endDate = new Date(today.getFullYear(), today.getMonth(), 0);
                     break;
@@ -597,7 +597,7 @@ const Dashboard: React.FC = () => {
                 }));
               }
             }}
-            // Tradução dos períodos para português
+            // Tradução dos períodos apenas para exibição
             presets={[
               { value: 'today', label: 'Hoje' },
               { value: 'last_60_minutes', label: 'Últimos 60 minutos' },
