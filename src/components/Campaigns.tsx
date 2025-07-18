@@ -131,20 +131,20 @@ const Campaigns: React.FC = () => {
       // Chamada real
       const response = await fetch(url.toString());
       const data = await response.json();
-      console.log('Resposta bruta do RedTrack:', data); // LOG 1
+      console.log('Resposta bruta do RedTrack:', JSON.stringify(data, null, 2)); // LOG detalhado
       if (Array.isArray(data)) {
-        // Logar cada item individual
-        data.forEach((item: any, idx: number) => {
-          console.log(`Item [${idx}] recebido do RedTrack:`, item); // LOG 2
-        });
+        // Filtrar apenas itens com campaign e campaign_id
+        const filtered = data.filter((item: any) => item.campaign && item.campaign_id);
+        console.log('Itens filtrados (com campaign e campaign_id):', filtered);
         // Mapear dados do RedTrack para o formato esperado
-        const mapped = data.map((item: any, idx: number) => {
+        const mapped = filtered.map((item: any, idx: number) => {
           const mappedItem = mapRedTrackCampaign(item);
           console.log(`Item [${idx}] mapeado:`, mappedItem); // LOG 3
           return mappedItem;
         });
+        console.log('Campanhas mapeadas:', mapped);
         setCampaigns(mapped);
-        setTotalCampaigns(data.length);
+        setTotalCampaigns(mapped.length);
       } else {
         setCampaigns([]);
         setTotalCampaigns(0);
