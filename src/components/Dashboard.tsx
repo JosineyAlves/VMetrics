@@ -371,11 +371,11 @@ const Dashboard: React.FC = () => {
         }
         setMockData(emptyData)
         setIsDemoData(true)
-        setDemoMessage('Nenhum dado encontrado para o período selecionado.')
+        setDemoMessage('✅ API conectada com sucesso! Conta trial sem dados ainda.')
       } else {
         setMockData(realData)
         setIsDemoData(false)
-        setDemoMessage('Dados reais do RedTrack')
+        setDemoMessage('✅ Dados reais do RedTrack')
       }
       
       const updatedMetrics = metrics.map(metric => ({

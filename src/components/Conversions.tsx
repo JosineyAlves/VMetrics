@@ -121,7 +121,7 @@ const Conversions: React.FC = () => {
       setLastUpdate(new Date())
     } catch (error) {
       console.error('Error loading conversions:', error)
-      // Fallback para dados mock
+      // Fallback para dados mock apenas se API falhar completamente
       const mockData = getMockConversionsData()
       setConversions(mockData.data)
       setTotalConversions(mockData.total)
@@ -402,8 +402,9 @@ const Conversions: React.FC = () => {
         {conversions.length === 0 ? (
           <div className="p-8 text-center">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Nenhuma conversão encontrada para o período selecionado</p>
-            <p className="text-gray-400 text-sm mt-2">Tente ajustar os filtros ou selecionar um período diferente</p>
+            <p className="text-gray-500 text-lg">✅ API conectada com sucesso!</p>
+            <p className="text-gray-400 text-sm mt-2">Sua conta trial ainda não possui conversões registradas.</p>
+            <p className="text-gray-400 text-sm mt-1">Crie campanhas e comece a rastrear conversões para ver dados aqui.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

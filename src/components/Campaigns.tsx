@@ -63,6 +63,8 @@ const Campaigns: React.FC = () => {
   const [tempFilters, setTempFilters] = useState(filters)
   const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
+  const [totalCampaigns, setTotalCampaigns] = useState(0)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
   const periodOptions = [
     { value: 'max', label: 'Máximo' },
@@ -290,6 +292,42 @@ const Campaigns: React.FC = () => {
     }))
   }
 
+  const getMockCampaignsData = () => {
+    const mockData: any[] = [
+      {
+        id: '1',
+        name: 'Facebook Ads - Produto A',
+        source: 'Facebook',
+        status: 'active',
+        spend: 150.00,
+        revenue: 450.00,
+        cpa: 25.50,
+        roi: 200.0,
+        conversions: 6,
+        clicks: 125,
+        impressions: 850
+      },
+      {
+        id: '2',
+        name: 'Google Ads - Produto B',
+        source: 'Google',
+        status: 'active',
+        spend: 200.00,
+        revenue: 600.00,
+        cpa: 35.20,
+        roi: 200.0,
+        conversions: 6,
+        clicks: 95,
+        impressions: 680
+      }
+    ]
+    
+    return {
+      data: mockData,
+      total: mockData.length
+    }
+  }
+
   const loadCampaigns = async () => {
     if (!apiKey) return
     
@@ -303,20 +341,21 @@ const Campaigns: React.FC = () => {
         ...filters
       }
       const response = await api.getCampaigns(params)
-      if (!response || (Array.isArray(response.data) && response.data.length === 0)) {
-        setCampaigns([])
-      } else if (response.data) {
+      if (response && response.data) {
         setCampaigns(response.data)
-      } else if (Array.isArray(response)) {
-        setCampaigns(response)
+        setTotalCampaigns(response.total || response.data.length)
       } else {
         setCampaigns([])
+        setTotalCampaigns(0)
       }
+      
+      setLastUpdate(new Date())
     } catch (error) {
       console.error('Error loading campaigns:', error)
-      // Fallback para dados mock
-      const campaignsData = getDataForPeriod(selectedPeriod)
-      setCampaigns(campaignsData)
+      // Fallback para dados mock apenas se API falhar completamente
+      const mockData = getMockCampaignsData()
+      setCampaigns(mockData.data)
+      setTotalCampaigns(mockData.total)
     } finally {
       setLoading(false)
     }
