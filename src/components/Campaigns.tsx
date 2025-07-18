@@ -20,7 +20,8 @@ import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
 import { addDays, format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
-import PeriodDropdown from './ui/PeriodDropdown';
+import PeriodDropdown from './ui/PeriodDropdown'
+import { getDateRange, periodPresets } from '../lib/utils'
 
 interface UTMCreative {
   id: string
@@ -293,34 +294,36 @@ const Campaigns: React.FC = () => {
   // Mostrar filtros sempre, mesmo sem campanhas
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Campanhas & UTM
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Gerencie campanhas e analise performance por UTM
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setTempFilters(filters)
-              setShowFilters(!showFilters)
-            }}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-          </Button>
+      {/* Nav Container */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Campanhas & UTM
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
+              Gerencie campanhas e analise performance por UTM
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setTempFilters(filters)
+                setShowFilters(!showFilters)
+              }}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-trackview-background rounded-lg p-1 mb-6">
+      <div className="flex space-x-1 bg-trackview-background rounded-lg p-1 mb-4">
         <button
           onClick={() => setActiveTab('campaigns')}
           className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -346,70 +349,26 @@ const Campaigns: React.FC = () => {
       </div>
 
       {/* Filtro de período padronizado - sempre visível */}
-      <div className="w-full flex justify-end mb-8">
-        <div className="relative period-dropdown min-w-[260px]">
+      <div className="flex items-center justify-between">
+        <div className="relative period-dropdown">
           <PeriodDropdown
             value={selectedPeriod}
             customRange={customRange}
             onChange={(period, custom) => {
               setSelectedPeriod(period);
-              let startDate, endDate;
+              const dateRange = getDateRange(period, custom);
               if (period === 'custom' && custom) {
                 setCustomRange(custom);
-                startDate = custom.from;
-                endDate = custom.to;
               } else {
-                const today = new Date();
-                startDate = new Date(today);
-                endDate = new Date(today);
-                switch (period) {
-                  case 'today':
-                    // hoje
-                    break;
-                  case 'last_60_minutes':
-                    // último 1h: manter hoje
-                    break;
-                  case 'yesterday':
-                    startDate.setDate(today.getDate() - 1);
-                    endDate.setDate(today.getDate() - 1);
-                    break;
-                  case 'this_week': {
-                    const day = today.getDay() || 7;
-                    startDate.setDate(today.getDate() - day + 1);
-                    break;
-                  }
-                  case 'last_7_days':
-                    startDate.setDate(today.getDate() - 6);
-                    break;
-                  case 'last_week': {
-                    const day = today.getDay() || 7;
-                    endDate.setDate(today.getDate() - day);
-                    startDate.setDate(endDate.getDate() - 6);
-                    break;
-                  }
-                  case 'this_month':
-                    startDate.setDate(1);
-                    break;
-                  case 'last_30_days':
-                    startDate.setDate(today.getDate() - 29);
-                    break;
-                  case 'last_month':
-                    startDate.setMonth(today.getMonth() - 1, 1);
-                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                    break;
-                  default:
-                    break;
-                }
-                // Converter para YYYY-MM-DD
-                startDate = startDate.toISOString().split('T')[0];
-                endDate = endDate.toISOString().split('T')[0];
+                setCustomRange({ from: '', to: '' });
               }
               setFilters(prev => ({
                 ...prev,
-                dateFrom: startDate,
-                dateTo: endDate,
+                dateFrom: dateRange.startDate,
+                dateTo: dateRange.endDate,
               }));
             }}
+            presets={periodPresets}
           />
         </div>
       </div>
@@ -635,29 +594,32 @@ const Campaigns: React.FC = () => {
             <table className="w-full">
               <thead className="bg-trackview-background">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campanha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fonte
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    Spend
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cliques
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    Revenue
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Conversões
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    CPA
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Gasto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Receita
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ROI
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    Conversões
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CPA
                   </th>
                 </tr>
               </thead>
@@ -670,58 +632,35 @@ const Campaigns: React.FC = () => {
                     transition={{ delay: index * 0.1 }}
                     className="hover:bg-trackview-background"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-trackview-primary">
-                          {campaign.name}
-                        </div>
-                        <div className="text-sm text-trackview-muted">
-                          {campaign.clicks.toLocaleString()} cliques
-                        </div>
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text capitalize">
-                        {campaign.source}
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{campaign.source}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
                         {getStatusIcon(campaign.status)}
-                        <span className="ml-1 capitalize">{campaign.status}</span>
+                        <span className="ml-1">{campaign.status}</span>
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-primary">
-                        ${campaign.spend.toLocaleString()}
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-primary">
-                        ${campaign.revenue.toLocaleString()}
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        ${campaign.cpa}
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">${campaign.spend.toLocaleString()}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {campaign.roi > 100 ? (
-                          <TrendingUp className="w-4 h-4 text-trackview-success mr-1" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-trackview-danger mr-1" />
-                        )}
-                        <span className={`text-sm font-medium ${campaign.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`}>
-                          {campaign.roi}%
-                        </span>
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">${campaign.revenue.toLocaleString()}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        {campaign.conversions.toLocaleString()}
-                      </div>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.roi}%</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">${campaign.cpa}</div>
                     </td>
                   </motion.tr>
                 ))}

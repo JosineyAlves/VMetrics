@@ -17,7 +17,8 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
-import PeriodDropdown from './ui/PeriodDropdown';
+import PeriodDropdown from './ui/PeriodDropdown'
+import { getDateRange, periodPresets } from '../lib/utils'
 
 
 interface GeographicData {
@@ -53,66 +54,32 @@ const Geographic: React.FC = () => {
     dateTo: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
-  const [selectedPeriod, setSelectedPeriod] = useState('7d')
+  const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [customRange, setCustomRange] = useState({ from: '', to: '' });
 
-  const periodOptions = [
-    { value: '1d', label: 'Hoje' },
-    { value: '7d', label: 'Últimos 7 dias' },
-    { value: '30d', label: 'Últimos 30 dias' },
-    { value: '90d', label: 'Últimos 90 dias' },
-    { value: '1y', label: 'Último ano' },
-  ]
-
-  const getPeriodLabel = (value: string) => {
-    const option = periodOptions.find(opt => opt.value === value)
-    return option ? option.label : 'Últimos 7 dias'
-  }
-
-
-
-  // Função utilitária para obter datas do período
-  const getDateRange = (period: string) => {
-    const today = new Date()
-    let startDate = new Date(today)
-    let endDate = new Date(today)
-    switch (period) {
-      case '1d':
-        // Hoje
-        break
-      case '7d':
-        startDate.setDate(today.getDate() - 6)
-        break
-      case '30d':
-        startDate.setDate(today.getDate() - 29)
-        break
-      case '90d':
-        startDate.setDate(today.getDate() - 89)
-        break
-      case '1y':
-        startDate.setFullYear(today.getFullYear() - 1)
-        break
-      default:
-        break
-    }
-    return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
-    }
-  }
+  // Remover periodOptions, getPeriodLabel, getDateRange antigos
 
   const loadGeographicData = async () => {
     if (!apiKey) return
     setLoading(true)
     try {
       const api = new RedTrackAPI(apiKey)
-      const dateRange = getDateRange(selectedPeriod)
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      
+      console.log('Geografia - Parâmetros enviados:', {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        ...filters
+      })
+      
       const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         ...filters
       }
       const response = await api.getTracks(params)
+      console.log('Geografia - Resposta da API:', response)
+      
       // Se não houver dados, mostrar mensagem amigável
       if (!response || (Array.isArray(response.items) && response.items.length === 0)) {
         setGeographicData([])
@@ -218,94 +185,55 @@ const Geographic: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Análise Geográfica
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Performance por localização geográfica
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setTempFilters(filters)
-              setShowFilters(!showFilters)
-            }}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-          </Button>
+      {/* Nav Container */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Análise Geográfica
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
+              Performance por localização geográfica
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setTempFilters(filters)
+                setShowFilters(!showFilters)
+              }}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Filtro de período padronizado */}
-      <div className="w-full flex justify-end mb-8">
-        <div className="relative period-dropdown min-w-[260px]">
+      <div className="flex items-center justify-between">
+        <div className="relative period-dropdown">
           <PeriodDropdown
             value={selectedPeriod}
             customRange={customRange}
             onChange={(period, custom) => {
               setSelectedPeriod(period);
+              const dateRange = getDateRange(period, custom);
               if (period === 'custom' && custom) {
                 setCustomRange(custom);
-                setFilters(prev => ({ ...prev, dateFrom: custom.from, dateTo: custom.to }));
               } else {
-                // Calcular datas reais do período padrão
-                const today = new Date();
-                let startDate = new Date(today);
-                let endDate = new Date(today);
-                switch (period) {
-                  case 'today':
-                    // hoje
-                    break;
-                  case 'last_60_minutes':
-                    // último 1h: manter hoje
-                    break;
-                  case 'yesterday':
-                    startDate.setDate(today.getDate() - 1);
-                    endDate.setDate(today.getDate() - 1);
-                    break;
-                  case 'this_week': {
-                    const day = today.getDay() || 7;
-                    startDate.setDate(today.getDate() - day + 1);
-                    break;
-                  }
-                  case 'last_7_days':
-                    startDate.setDate(today.getDate() - 6);
-                    break;
-                  case 'last_week': {
-                    const day = today.getDay() || 7;
-                    endDate.setDate(today.getDate() - day);
-                    startDate.setDate(endDate.getDate() - 6);
-                    break;
-                  }
-                  case 'this_month':
-                    startDate.setDate(1);
-                    break;
-                  case 'last_30_days':
-                    startDate.setDate(today.getDate() - 29);
-                    break;
-                  case 'last_month':
-                    startDate.setMonth(today.getMonth() - 1, 1);
-                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                    break;
-                  default:
-                    break;
-                }
                 setCustomRange({ from: '', to: '' });
-                setFilters(prev => ({
-                  ...prev,
-                  dateFrom: startDate.toISOString().split('T')[0],
-                  dateTo: endDate.toISOString().split('T')[0],
-                }));
               }
+              setFilters(prev => ({
+                ...prev,
+                dateFrom: dateRange.startDate,
+                dateTo: dateRange.endDate,
+              }));
             }}
+            presets={periodPresets}
           />
         </div>
       </div>
@@ -484,28 +412,28 @@ const Geographic: React.FC = () => {
           <table className="w-full">
             <thead className="bg-trackview-background">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Localização
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Visitantes
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Conversões
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Taxa de Conversão
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Receita
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Gasto
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ROI
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   CPA
                 </th>
               </tr>
@@ -519,60 +447,60 @@ const Geographic: React.FC = () => {
                   transition={{ delay: index * 0.1 }}
                   className="hover:bg-trackview-background"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div>
                       <div className="flex items-center">
                         <MapPin className="w-4 h-4 text-trackview-muted mr-2" />
                         <div>
-                          <div className="text-sm font-medium text-trackview-primary">
+                          <div className="text-sm font-medium text-gray-900">
                             {data.city}
                           </div>
-                          <div className="text-sm text-trackview-muted">
+                          <div className="text-sm text-gray-500">
                             {data.region}, {data.country}
                           </div>
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-trackview-text">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
                       {data.visitors.toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-trackview-text">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
                       {data.conversions.toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-trackview-primary">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
                       {data.conversion_rate}%
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-trackview-success">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-green-600">
                       ${data.revenue.toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-trackview-danger">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-red-600">
                       ${data.spend.toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center">
                       {data.roi > 100 ? (
-                        <TrendingUp className="w-4 h-4 text-trackview-success mr-1" />
+                        <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
                       ) : (
-                        <TrendingDown className="w-4 h-4 text-trackview-danger mr-1" />
+                        <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
                       )}
-                      <span className={`text-sm font-medium ${data.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`}>
+                      <span className={`text-sm font-medium ${data.roi > 100 ? 'text-green-600' : 'text-red-600'}`}>
                         {data.roi}%
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-trackview-text">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
                       ${data.cpa}
                     </div>
                   </td>

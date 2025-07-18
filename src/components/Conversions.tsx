@@ -11,9 +11,11 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { Button } from './ui/button'
+import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
-import PeriodDropdown from './ui/PeriodDropdown';
+import PeriodDropdown from './ui/PeriodDropdown'
+import { getDateRange, periodPresets } from '../lib/utils'
 
 interface Conversion {
   id: string
@@ -33,57 +35,22 @@ const Conversions: React.FC = () => {
   const [conversions, setConversions] = useState<Conversion[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [selectedPeriod, setSelectedPeriod] = useState('30d')
+  const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [customRange, setCustomRange] = useState({ from: '', to: '' });
   const [filters, setFilters] = useState({
     campaign: '',
     type: '',
     country: '',
-    status: ''
+    status: '',
+    dateFrom: '',
+    dateTo: ''
   })
+  const [tempFilters, setTempFilters] = useState(filters)
   const [totalConversions, setTotalConversions] = useState(0)
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
-  // Função utilitária para obter datas do período
-  const getDateRange = (period: string) => {
-    const today = new Date()
-    let startDate = new Date(today)
-    let endDate = new Date(today)
-    
-    switch (period) {
-      case 'today':
-        // Hoje
-        break
-      case 'yesterday':
-        startDate.setDate(today.getDate() - 1)
-        endDate.setDate(today.getDate() - 1)
-        break
-      case '7d':
-        startDate.setDate(today.getDate() - 6)
-        break
-      case '30d':
-        startDate.setDate(today.getDate() - 29)
-        break
-      case '90d':
-        startDate.setDate(today.getDate() - 89)
-        break
-      case 'this_month':
-        startDate.setDate(1)
-        break
-      case 'last_month':
-        startDate.setMonth(today.getMonth() - 1, 1)
-        endDate.setDate(0)
-        break
-      default:
-        startDate.setDate(today.getDate() - 29)
-    }
-    
-    return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
-    }
-  }
 
   const loadConversions = async (isRefresh = false) => {
     if (!apiKey) return
@@ -96,7 +63,13 @@ const Conversions: React.FC = () => {
 
     try {
       const api = new RedTrackAPI(apiKey)
-      const dateRange = getDateRange(selectedPeriod)
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      
+      console.log('Conversões - Parâmetros enviados:', {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        ...filters
+      })
       
       const params = {
         date_from: dateRange.startDate,
@@ -105,6 +78,7 @@ const Conversions: React.FC = () => {
       }
       
       const response = await api.getConversions(params)
+      console.log('Conversões - Resposta da API:', response)
       
       if (response && response.data) {
         setConversions(response.data)
@@ -148,6 +122,23 @@ const Conversions: React.FC = () => {
     console.log('Exportando conversões...')
   }
 
+  const handleApplyFilters = () => {
+    setFilters(tempFilters)
+  }
+
+  const handleResetFilters = () => {
+    const resetFilters = {
+      campaign: '',
+      type: '',
+      country: '',
+      status: '',
+      dateFrom: '',
+      dateTo: ''
+    }
+    setFilters(resetFilters)
+    setTempFilters(resetFilters)
+  }
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -169,39 +160,174 @@ const Conversions: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Conversões
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Análise detalhada de conversões e performance
-          </p>
-          {lastUpdate && (
-            <p className="text-sm text-gray-500 mt-1">
-              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
+      {/* Nav Container */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Conversões
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
+              Análise detalhada de conversões e performance
             </p>
-          )}
+            {lastUpdate && (
+              <p className="text-sm text-gray-500 mt-1">
+                Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Atualizando...' : 'Atualizar'}
+            </Button>
+            <Button 
+              onClick={handleExport}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setTempFilters(filters)
+                setShowFilters(!showFilters)
+              }}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
-          <Button 
-            onClick={handleExport}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
+      </div>
+
+      {/* Filtros Avançados */}
+      {showFilters && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Filtros Avançados</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(false)}
+              className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              Ocultar Filtros
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Campanha
+              </label>
+              <Input 
+                type="text"
+                placeholder="Todas as campanhas"
+                value={tempFilters.campaign}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, campaign: e.target.value }))}
+                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Tipo
+              </label>
+              <select
+                value={tempFilters.type}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, type: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              >
+                <option value="">Todos os tipos</option>
+                <option value="lead">Lead</option>
+                <option value="sale">Venda</option>
+                <option value="upsell">Upsell</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                País
+              </label>
+              <Input 
+                type="text"
+                placeholder="Todos os países"
+                value={tempFilters.country}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, country: e.target.value }))}
+                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Status
+              </label>
+              <select
+                value={tempFilters.status}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              >
+                <option value="">Todos os status</option>
+                <option value="approved">Aprovado</option>
+                <option value="pending">Pendente</option>
+                <option value="declined">Rejeitado</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between mt-6">
+            <Button
+              onClick={handleApplyFilters}
+              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600"
+            >
+              Aplicar Filtros
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleResetFilters}
+              className="px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              Limpar Filtros
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Filtro de período padronizado */}
+      <div className="flex items-center justify-between">
+        <div className="relative period-dropdown">
+          <PeriodDropdown
+            value={selectedPeriod}
+            customRange={customRange}
+            onChange={(period, custom) => {
+              setSelectedPeriod(period);
+              const dateRange = getDateRange(period, custom);
+              if (period === 'custom' && custom) {
+                setCustomRange(custom);
+              } else {
+                setCustomRange({ from: '', to: '' });
+              }
+              setFilters(prev => ({
+                ...prev,
+                dateFrom: dateRange.startDate,
+                dateTo: dateRange.endDate,
+              }));
+            }}
+            presets={periodPresets}
+          />
         </div>
       </div>
 
@@ -215,7 +341,7 @@ const Conversions: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
-              <p className="text-3xl font-bold text-gray-900">{totalConversions}</p>
+              <p className="text-2xl font-bold text-gray-900">{totalConversions}</p>
             </div>
             <div className="p-3 bg-blue-100 rounded-xl">
               <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -232,7 +358,7 @@ const Conversions: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Receita Total</p>
-              <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-xl">
               <DollarSign className="w-6 h-6 text-green-600" />
@@ -249,7 +375,7 @@ const Conversions: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-gray-900">
                 {totalConversions > 0 ? formatCurrency(totalRevenue / totalConversions) : formatCurrency(0)}
               </p>
             </div>
@@ -260,84 +386,6 @@ const Conversions: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Filtro de período padronizado */}
-      <div className="mb-6">
-        <PeriodDropdown
-          value={selectedPeriod}
-          customRange={customRange}
-          onChange={(period, custom) => {
-            setSelectedPeriod(period);
-            if (period === 'custom' && custom) {
-              setCustomRange(custom);
-              // Atualize os filtros se necessário
-            } else {
-              // Atualize os filtros se necessário
-            }
-          }}
-        />
-      </div>
-
-      {/* Filtros */}
-        <motion.div
-          transition={{ delay: 0.3 }}
-        className="bg-white rounded-2xl shadow-lg p-6"
-      >
-        <div className="flex items-center space-x-4 mb-6">
-          <Filter className="w-6 h-6 text-trackview-primary" />
-          <h2 className="text-xl font-semibold text-trackview-primary">Filtros</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Remover o select antigo de período */}
-          <div style={{ display: 'none' }} />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Campanha</label>
-            <input
-              type="text"
-              placeholder="Todas as campanhas"
-              value={filters.campaign}
-              onChange={(e) => setFilters({...filters, campaign: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-            <select
-              value={filters.type}
-              onChange={(e) => setFilters({...filters, type: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Todos os tipos</option>
-              <option value="lead">Lead</option>
-              <option value="sale">Venda</option>
-              <option value="upsell">Upsell</option>
-            </select>
-            </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">País</label>
-            <input
-              type="text"
-              placeholder="Todos os países"
-              value={filters.country}
-              onChange={(e) => setFilters({...filters, country: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters({...filters, status: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Todos os status</option>
-              <option value="approved">Aprovado</option>
-              <option value="pending">Pendente</option>
-              <option value="declined">Rejeitado</option>
-            </select>
-            </div>
-          </div>
-        </motion.div>
-
       {/* Conversions Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -346,7 +394,7 @@ const Conversions: React.FC = () => {
         className="bg-white rounded-2xl shadow-lg overflow-hidden"
       >
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Lista de Conversões</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Lista de Conversões</h2>
         </div>
 
         {conversions.length === 0 ? (
@@ -361,25 +409,25 @@ const Conversions: React.FC = () => {
           <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Data
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campanha
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     País
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fonte
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Receita
                   </th>
               </tr>
@@ -387,13 +435,13 @@ const Conversions: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {conversions.map((conversion) => (
                   <tr key={conversion.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(conversion.date)}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {conversion.campaign}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         conversion.type === 'sale' ? 'bg-green-100 text-green-800' :
                         conversion.type === 'lead' ? 'bg-blue-100 text-blue-800' :
@@ -402,13 +450,13 @@ const Conversions: React.FC = () => {
                         {conversion.type}
                     </span>
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {conversion.country}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {conversion.source}
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         conversion.status === 'approved' ? 'bg-green-100 text-green-800' :
                         conversion.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -417,7 +465,7 @@ const Conversions: React.FC = () => {
                         {conversion.status || 'N/A'}
                     </span>
                   </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {formatCurrency(conversion.revenue || conversion.payout || 0)}
                   </td>
                   </tr>

@@ -18,7 +18,8 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
-import PeriodDropdown from './ui/PeriodDropdown';
+import PeriodDropdown from './ui/PeriodDropdown'
+import { getDateRange, periodPresets } from '../lib/utils'
 
 
 interface Metric {
@@ -169,11 +170,15 @@ const Dashboard: React.FC = () => {
       if (!apiKey) throw new Error('API Key não definida')
       const api = new RedTrackAPI(apiKey)
       
-      // Usar datas reais baseadas no período selecionado
-      const dateRange = {
-        startDate: customRange.from || selectedPeriod === 'today' ? new Date().toISOString().split('T')[0] : '',
-        endDate: customRange.to || selectedPeriod === 'today' ? new Date().toISOString().split('T')[0] : ''
-      };
+      // Usar a base padronizada de datas
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      
+      console.log('Dashboard - Parâmetros enviados:', {
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'date',
+        ...filters
+      })
 
       const params = {
         date_from: dateRange.startDate,
@@ -183,6 +188,8 @@ const Dashboard: React.FC = () => {
       }
       
       const realData = await api.getReport(params)
+      console.log('Dashboard - Resposta da API:', realData)
+      
       let summary: any = {};
       let daily: any[] = [];
       if (Array.isArray(realData)) {
@@ -403,59 +410,61 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Visão geral de performance
-          </p>
-          {lastUpdate && (
-            <p className="text-sm text-gray-500 mt-1">
-              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
+      {/* Nav Container */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
+              Visão geral de performance
             </p>
-          )}
-        </div>
-        <div className="flex items-center space-x-3">
-          {/* Botão de Atualização */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
-          
-          {/* Toggle Auto Refresh */}
-          <Button 
-            variant={autoRefresh ? "primary" : "outline"}
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <div className="w-4 h-4 mr-2">
-              {autoRefresh && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
-            </div>
-            Auto
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setTempFilters(filters)
-              setShowFilters(!showFilters)
-            }}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-          </Button>
+            {lastUpdate && (
+              <p className="text-sm text-gray-500 mt-1">
+                Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center space-x-3">
+            {/* Botão de Atualização */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Atualizando...' : 'Atualizar'}
+            </Button>
+            
+            {/* Toggle Auto Refresh */}
+            <Button 
+              variant={autoRefresh ? "primary" : "outline"}
+              size="sm"
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <div className="w-4 h-4 mr-2">
+                {autoRefresh && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+              </div>
+              Auto
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                setTempFilters(filters)
+                setShowFilters(!showFilters)
+              }}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtros
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -469,8 +478,8 @@ const Dashboard: React.FC = () => {
           exit={{ opacity: 0, height: 0 }}
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-800">Filtros Avançados</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">Filtros Avançados</h3>
             <Button
               variant="outline"
               size="sm"
@@ -544,72 +553,23 @@ const Dashboard: React.FC = () => {
               setSelectedPeriod(period);
               if (period === 'custom' && custom) {
                 setCustomRange(custom);
-                setFilters(prev => ({ ...prev, dateFrom: custom.from, dateTo: custom.to }));
+                const dateRange = getDateRange(period, custom);
+                setFilters(prev => ({ 
+                  ...prev, 
+                  dateFrom: dateRange.startDate, 
+                  dateTo: dateRange.endDate 
+                }));
               } else {
-                // Calcular datas reais do período padrão (valores internos em inglês)
-                const today = new Date();
-                let startDate = new Date(today);
-                let endDate = new Date(today);
-                switch (period) {
-                  case 'today':
-                    // já está correto
-                    break;
-                  case 'last_60_minutes':
-                    startDate = new Date(today.getTime() - 60 * 60 * 1000);
-                    endDate = today;
-                    break;
-                  case 'yesterday':
-                    startDate.setDate(today.getDate() - 1);
-                    endDate.setDate(today.getDate() - 1);
-                    break;
-                  case 'this_week': {
-                    const day = today.getDay() || 7;
-                    startDate.setDate(today.getDate() - day + 1);
-                    break;
-                  }
-                  case 'last_7_days':
-                    startDate.setDate(today.getDate() - 6);
-                    break;
-                  case 'last_week': {
-                    const day = today.getDay() || 7;
-                    endDate.setDate(today.getDate() - day);
-                    startDate.setDate(endDate.getDate() - 6);
-                    break;
-                  }
-                  case 'this_month':
-                    startDate.setDate(1);
-                    break;
-                  case 'last_30_days':
-                    startDate.setDate(today.getDate() - 29);
-                    break;
-                  case 'last_month':
-                    startDate.setMonth(today.getMonth() - 1, 1);
-                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                    break;
-                  default:
-                    break;
-                }
                 setCustomRange({ from: '', to: '' });
+                const dateRange = getDateRange(period);
                 setFilters(prev => ({
                   ...prev,
-                  dateFrom: startDate.toISOString().split('T')[0],
-                  dateTo: endDate.toISOString().split('T')[0],
+                  dateFrom: dateRange.startDate,
+                  dateTo: dateRange.endDate,
                 }));
               }
             }}
-            // Tradução dos períodos apenas para exibição
-            presets={[
-              { value: 'today', label: 'Hoje' },
-              { value: 'last_60_minutes', label: 'Últimos 60 minutos' },
-              { value: 'yesterday', label: 'Ontem' },
-              { value: 'this_week', label: 'Esta semana' },
-              { value: 'last_7_days', label: 'Últimos 7 dias' },
-              { value: 'last_week', label: 'Semana passada' },
-              { value: 'this_month', label: 'Este mês' },
-              { value: 'last_30_days', label: 'Últimos 30 dias' },
-              { value: 'last_month', label: 'Mês passado' },
-              { value: 'custom', label: 'Personalizado' },
-            ]}
+            presets={periodPresets}
           />
         </div>
       </div>
@@ -627,7 +587,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
-                <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   {formatValue(metric.value, metric.format)}
                 </p>
                 <div className="flex items-center">
@@ -656,7 +616,7 @@ const Dashboard: React.FC = () => {
           transition={{ delay: 0.4 }}
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
-          <h3 className="text-xl font-bold text-gray-800 mb-8">Performance por Dia</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Performance por Dia</h3>
           {dailyData && dailyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -687,7 +647,7 @@ const Dashboard: React.FC = () => {
           transition={{ delay: 0.5 }}
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
-          <h3 className="text-xl font-bold text-gray-800 mb-8">Distribuição por Fonte</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Distribuição por Fonte</h3>
           <div className="flex items-center justify-center h-64 text-gray-500">
             <div className="text-center">
               <div className="text-4xl mb-2">📈</div>
