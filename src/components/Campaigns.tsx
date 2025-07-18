@@ -335,14 +335,15 @@ const Campaigns: React.FC = () => {
             customRange={customRange}
             onChange={(period, custom) => {
               setSelectedPeriod(period);
+              let startDate, endDate;
               if (period === 'custom' && custom) {
                 setCustomRange(custom);
-                setFilters(prev => ({ ...prev, dateFrom: custom.from, dateTo: custom.to }));
+                startDate = custom.from;
+                endDate = custom.to;
               } else {
-                // Calcular datas reais do período padrão
                 const today = new Date();
-                let startDate = new Date(today);
-                let endDate = new Date(today);
+                startDate = new Date(today);
+                endDate = new Date(today);
                 switch (period) {
                   case 'today':
                     // hoje
@@ -381,13 +382,15 @@ const Campaigns: React.FC = () => {
                   default:
                     break;
                 }
-                setCustomRange({ from: '', to: '' });
-                setFilters(prev => ({
-                  ...prev,
-                  dateFrom: startDate.toISOString().split('T')[0],
-                  dateTo: endDate.toISOString().split('T')[0],
-                }));
+                // Converter para YYYY-MM-DD
+                startDate = startDate.toISOString().split('T')[0];
+                endDate = endDate.toISOString().split('T')[0];
               }
+              setFilters(prev => ({
+                ...prev,
+                dateFrom: startDate,
+                dateTo: endDate,
+              }));
             }}
           />
         </div>
