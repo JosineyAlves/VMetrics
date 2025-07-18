@@ -19,6 +19,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
+import { addDays, format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
 
 interface UTMCreative {
   id: string
@@ -36,6 +37,20 @@ interface UTMCreative {
   cpa: number
   roi: number
 }
+
+const mapRedTrackCampaign = (item: any) => ({
+  id: item.campaign_id || item.id || item.campaign || item.name || Math.random().toString(36).slice(2),
+  name: item.campaign || item.name || 'Campanha sem nome',
+  source: item.traffic_channel || item.source || '',
+  status: item.status || 'active',
+  spend: item.cost || 0,
+  revenue: item.revenue || 0,
+  cpa: item.cpa || 0,
+  roi: item.roi || 0,
+  conversions: item.conversions || item.conversion || 0,
+  clicks: item.clicks || 0,
+  impressions: item.impressions || 0
+})
 
 const Campaigns: React.FC = () => {
   console.log('Montou Campanhas')
@@ -67,6 +82,9 @@ const Campaigns: React.FC = () => {
   const [totalCampaigns, setTotalCampaigns] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
+  // Date range picker state
+  const [dateRange, setDateRange] = useState({ from: '', to: '' })
+
   const periodOptions = [
     { value: 'max', label: 'Máximo' },
     { value: 'today', label: 'Hoje' },
@@ -75,6 +93,35 @@ const Campaigns: React.FC = () => {
     { value: 'this_month', label: 'Este mês' },
     { value: 'last_month', label: 'Mês passado' },
     { value: 'custom', label: 'Personalizado' },
+  ]
+
+  const periodPresets = [
+    { label: 'Hoje', getRange: () => {
+      const today = new Date();
+      return { from: format(today, 'yyyy-MM-dd'), to: format(today, 'yyyy-MM-dd') }
+    }},
+    { label: 'Ontem', getRange: () => {
+      const yesterday = subDays(new Date(), 1);
+      return { from: format(yesterday, 'yyyy-MM-dd'), to: format(yesterday, 'yyyy-MM-dd') }
+    }},
+    { label: 'Últimos 7 dias', getRange: () => {
+      const today = new Date();
+      return { from: format(subDays(today, 6), 'yyyy-MM-dd'), to: format(today, 'yyyy-MM-dd') }
+    }},
+    { label: 'Este mês', getRange: () => {
+      const today = new Date();
+      return { from: format(startOfMonth(today), 'yyyy-MM-dd'), to: format(today, 'yyyy-MM-dd') }
+    }},
+    { label: 'Mês passado', getRange: () => {
+      const today = new Date();
+      const start = startOfMonth(subDays(today, today.getDate()));
+      const end = endOfMonth(subDays(today, today.getDate()));
+      return { from: format(start, 'yyyy-MM-dd'), to: format(end, 'yyyy-MM-dd') }
+    }},
+    { label: 'Este ano', getRange: () => {
+      const today = new Date();
+      return { from: format(startOfYear(today), 'yyyy-MM-dd'), to: format(today, 'yyyy-MM-dd') }
+    }},
   ]
 
   const getPeriodLabel = (value: string) => {
@@ -118,6 +165,13 @@ const Campaigns: React.FC = () => {
     }
   }
 
+  // Atualizar filtros ao selecionar um preset
+  const handlePreset = (preset: any) => {
+    const range = preset.getRange()
+    setDateRange(range)
+    setTempFilters(prev => ({ ...prev, dateFrom: range.from, dateTo: range.to }))
+    setFilters(prev => ({ ...prev, dateFrom: range.from, dateTo: range.to }))
+  }
 
 
   const loadCampaigns = async () => {
@@ -139,8 +193,10 @@ const Campaigns: React.FC = () => {
       console.log('Chamando getCampaigns', params)
       const response = await api.getCampaigns(params)
       if (response && response.data) {
-        setCampaigns(response.data)
-        setTotalCampaigns(response.total || response.data.length)
+        // Mapear dados do RedTrack para o formato esperado
+        const mapped = response.data.map(mapRedTrackCampaign)
+        setCampaigns(mapped)
+        setTotalCampaigns(response.total || mapped.length)
       } else {
         setCampaigns([])
         setTotalCampaigns(0)
@@ -149,7 +205,6 @@ const Campaigns: React.FC = () => {
       setLastUpdate(new Date())
     } catch (error) {
       console.error('Error loading campaigns:', error)
-      // NÃO usar dados mock - mostrar dados reais vazios
       setCampaigns([])
       setTotalCampaigns(0)
     } finally {
@@ -276,10 +331,98 @@ const Campaigns: React.FC = () => {
     : 0
 
   // Mensagem amigável se não houver campanhas
+  // Mostrar filtros sempre, mesmo sem campanhas
   if (!loading && campaigns.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500 text-lg">Nenhuma campanha encontrada para o período selecionado.</div>
+      <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Campanhas & UTM
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
+              Gerencie campanhas e analise performance por UTM
+            </p>
+          </div>
+        </div>
+        {/* Filtros Avançados */}
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-trackview-primary">Filtros Avançados</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                Data Inicial
+              </label>
+              <input
+                type="date"
+                value={tempFilters.dateFrom}
+                onChange={e => setTempFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                Data Final
+              </label>
+              <input
+                type="date"
+                value={tempFilters.dateTo}
+                onChange={e => setTempFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                Status
+              </label>
+              <select 
+                value={tempFilters.status}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+              >
+                <option value="">Todos</option>
+                <option value="active">Ativo</option>
+                <option value="paused">Pausado</option>
+                <option value="inactive">Inativo</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                Fonte
+              </label>
+              <select 
+                value={tempFilters.source}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+              >
+                <option value="">Todas</option>
+                <option value="facebook">Facebook</option>
+                <option value="google">Google</option>
+                <option value="tiktok">TikTok</option>
+                <option value="instagram">Instagram</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition"
+              onClick={() => setFilters(tempFilters)}
+            >
+              Aplicar Filtros
+            </button>
+          </div>
+        </motion.div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500 text-lg">Nenhuma campanha encontrada para o período selecionado.</div>
+        </div>
       </div>
     )
   }
@@ -346,6 +489,41 @@ const Campaigns: React.FC = () => {
         </button>
       </div>
 
+      {/* Seletor de período com presets */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {periodPresets.map(preset => (
+          <button
+            key={preset.label}
+            className="px-3 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+            onClick={() => handlePreset(preset)}
+          >
+            {preset.label}
+          </button>
+        ))}
+        <div className="flex items-center gap-2 ml-4">
+          <label className="text-sm text-gray-700">De:</label>
+          <input
+            type="date"
+            value={tempFilters.dateFrom}
+            onChange={e => setTempFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+            className="px-2 py-1 border rounded"
+          />
+          <label className="text-sm text-gray-700">Até:</label>
+          <input
+            type="date"
+            value={tempFilters.dateTo}
+            onChange={e => setTempFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+            className="px-2 py-1 border rounded"
+          />
+          <button
+            className="ml-2 px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+            onClick={() => setFilters(tempFilters)}
+          >
+            Aplicar
+          </button>
+        </div>
+      </div>
+
       {/* Filtros Avançados */}
       {showFilters && (
         <motion.div 
@@ -368,6 +546,28 @@ const Campaigns: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {activeTab === 'campaigns' ? (
               <>
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    Data Inicial
+                  </label>
+                  <input
+                    type="date"
+                    value={tempFilters.dateFrom}
+                    onChange={e => setTempFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    Data Final
+                  </label>
+                  <input
+                    type="date"
+                    value={tempFilters.dateTo}
+                    onChange={e => setTempFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-trackview-text mb-2">
                     Status
