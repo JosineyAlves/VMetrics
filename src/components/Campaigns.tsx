@@ -38,6 +38,7 @@ interface UTMCreative {
 }
 
 const Campaigns: React.FC = () => {
+  console.log('Montou Campanhas')
   const { apiKey } = useAuthStore()
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [utmCreatives, setUtmCreatives] = useState<UTMCreative[]>([])
@@ -120,7 +121,11 @@ const Campaigns: React.FC = () => {
 
 
   const loadCampaigns = async () => {
-    if (!apiKey) return
+    console.log('Chamando loadCampaigns')
+    if (!apiKey) {
+      console.log('API Key não definida, não vai buscar campanhas')
+      return
+    }
     
     setLoading(true)
     try {
@@ -131,6 +136,7 @@ const Campaigns: React.FC = () => {
         date_to: dateRange.endDate,
         ...filters
       }
+      console.log('Chamando getCampaigns', params)
       const response = await api.getCampaigns(params)
       if (response && response.data) {
         setCampaigns(response.data)
@@ -154,6 +160,8 @@ const Campaigns: React.FC = () => {
   useEffect(() => {
     if (apiKey) {
       loadCampaigns()
+    } else {
+      console.log('API Key não definida no useEffect')
     }
   }, [apiKey, selectedPeriod, filters])
 
