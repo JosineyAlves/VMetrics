@@ -138,6 +138,7 @@ const Campaigns: React.FC = () => {
   }
 
   useEffect(() => {
+    console.log('useEffect - apiKey:', apiKey, 'selectedPeriod:', selectedPeriod, 'filters:', filters);
     if (apiKey) {
       loadCampaigns()
     } else {
