@@ -17,6 +17,7 @@ export default async function handler(req, res) {
 
   // Datas do período (pode ajustar para o range desejado)
   const { date_from, date_to } = req.query
+  // NÃO envie api_key na query string!
   const url = `https://api.redtrack.io/report?group_by=campaign&date_from=${date_from || '2024-01-01'}&date_to=${date_to || '2024-12-31'}`
 
   try {
@@ -32,7 +33,6 @@ export default async function handler(req, res) {
 
     if (response.ok) {
       const data = await response.json()
-      // Adapte o formato se necessário para o frontend
       res.status(200).json({ data: data, total: data.length || 0 })
     } else {
       res.status(200).json({ data: [], total: 0 })
