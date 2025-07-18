@@ -180,10 +180,22 @@ const Dashboard: React.FC = () => {
       }
       
       const realData = await api.getReport(params)
-      
+      let summary: any = {};
+      if (Array.isArray(realData)) {
+        summary = realData.reduce((acc: any, item: any) => {
+          Object.keys(item).forEach(key => {
+            if (typeof item[key] === 'number') {
+              acc[key] = (acc[key] || 0) + item[key];
+            }
+          });
+          return acc;
+        }, {});
+      } else {
+        summary = realData || {};
+      }
       // Se não houver dados, usar objeto zerado
-      if (!realData || Object.keys(realData).length === 0) {
-        const emptyData = {
+      if (!summary || Object.keys(summary).length === 0) {
+        summary = {
           clicks: 0,
           conversions: 0,
           spend: 0,
@@ -195,7 +207,6 @@ const Dashboard: React.FC = () => {
           impressions: 0,
           ctr: 0,
           conversion_rate: 0,
-          visible_impressions: 0,
           unique_clicks: 0,
           prelp_views: 0,
           prelp_clicks: 0,
@@ -235,13 +246,10 @@ const Dashboard: React.FC = () => {
           conversion_profit: 0,
           epc_roi: 0
         }
-      } else {
-        // Dados reais encontrados
       }
-      
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
-        value: (realData as any)[metric.id] || 0,
+        value: (summary as any)[metric.id] || 0,
         change: 0 // Zerar mudança quando não há dados históricos
       }))
       setMetrics(updatedMetrics)
