@@ -162,7 +162,7 @@ const Dashboard: React.FC = () => {
       id: 'revenue',
       label: 'Receita',
       value: 0,
-      change: 12.5,
+      change: 0,
       icon: <DollarSign className="w-5 h-5" />,
       color: 'text-green-600',
       format: 'currency',
@@ -172,7 +172,7 @@ const Dashboard: React.FC = () => {
       id: 'profit',
       label: 'Lucro',
       value: 0,
-      change: 8.2,
+      change: 0,
       icon: <TrendingUp className="w-5 h-5" />,
       color: 'text-blue-600',
       format: 'currency',
@@ -182,7 +182,7 @@ const Dashboard: React.FC = () => {
       id: 'conversions',
       label: 'Conversões',
       value: 0,
-      change: 15.3,
+      change: 0,
       icon: <Target className="w-5 h-5" />,
       color: 'text-purple-600',
       format: 'number',
@@ -192,7 +192,7 @@ const Dashboard: React.FC = () => {
       id: 'ctr',
       label: 'CTR',
       value: 0,
-      change: -2.1,
+      change: 0,
       icon: <MousePointer className="w-5 h-5" />,
       color: 'text-orange-600',
       format: 'percentage',
@@ -202,7 +202,7 @@ const Dashboard: React.FC = () => {
       id: 'impressions',
       label: 'Impressões',
       value: 0,
-      change: 5.7,
+      change: 0,
       icon: <Eye className="w-5 h-5" />,
       color: 'text-indigo-600',
       format: 'number',
@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
       id: 'clicks',
       label: 'Cliques',
       value: 0,
-      change: 9.4,
+      change: 0,
       icon: <BarChart3 className="w-5 h-5" />,
       color: 'text-teal-600',
       format: 'number',
@@ -321,7 +321,8 @@ const Dashboard: React.FC = () => {
       
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
-        value: (realData as any)[metric.id] || 0
+        value: (realData as any)[metric.id] || 0,
+        change: 0 // Zerar mudança quando não há dados históricos
       }))
       setMetrics(updatedMetrics)
       setLastUpdate(new Date())
@@ -383,7 +384,8 @@ const Dashboard: React.FC = () => {
 
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
-        value: 0
+        value: 0,
+        change: 0 // Zerar mudança quando há erro
       }))
       setMetrics(updatedMetrics)
     } finally {
