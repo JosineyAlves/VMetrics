@@ -121,12 +121,10 @@ const Conversions: React.FC = () => {
       setLastUpdate(new Date())
     } catch (error) {
       console.error('Error loading conversions:', error)
-      // Fallback para dados mock apenas se API falhar completamente
-      const mockData = getMockConversionsData()
-      setConversions(mockData.data)
-      setTotalConversions(mockData.total)
-      setTotalRevenue(mockData.data.reduce((sum: number, conv: Conversion) => 
-        sum + (conv.revenue || conv.payout || 0), 0))
+      // NÃO usar dados mock - mostrar dados reais vazios
+      setConversions([])
+      setTotalConversions(0)
+      setTotalRevenue(0)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -146,52 +144,6 @@ const Conversions: React.FC = () => {
   const handleExport = () => {
     // Implementar exportação de conversões
     console.log('Exportando conversões...')
-  }
-
-  const getMockConversionsData = () => {
-    const mockData: Conversion[] = [
-      {
-        id: '1',
-        click_id: 'click_001',
-        date: '2024-01-15',
-        campaign: 'Facebook Ads - Produto A',
-        payout: 25.50,
-        type: 'lead',
-        country: 'Brasil',
-        source: 'Facebook',
-        status: 'approved',
-        revenue: 25.50
-      },
-      {
-        id: '2',
-        click_id: 'click_002',
-        date: '2024-01-14',
-        campaign: 'Google Ads - Produto B',
-        payout: 45.00,
-        type: 'sale',
-        country: 'Estados Unidos',
-        source: 'Google',
-        status: 'approved',
-        revenue: 45.00
-      },
-      {
-        id: '3',
-        click_id: 'click_003',
-        date: '2024-01-13',
-        campaign: 'Instagram Ads - Produto C',
-        payout: 15.75,
-        type: 'lead',
-        country: 'Canadá',
-        source: 'Instagram',
-        status: 'pending',
-        revenue: 15.75
-      }
-    ]
-    
-    return {
-      data: mockData,
-      total: mockData.length
-    }
   }
 
   const formatCurrency = (value: number) => {

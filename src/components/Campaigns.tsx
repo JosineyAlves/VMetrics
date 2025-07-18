@@ -205,127 +205,58 @@ const Campaigns: React.FC = () => {
         id: '1',
         utm_source: 'facebook',
         utm_medium: 'cpc',
-        utm_campaign: 'black_friday_2024',
-        utm_term: 'desconto',
-        utm_content: 'banner_principal',
-        spend: 8500.00,
-        revenue: 14200.00,
-        conversions: 284,
-        clicks: 4250,
-        impressions: 25000,
-        ctr: 17.0,
-        cpa: 29.9,
-        roi: 167.1
+        utm_campaign: 'produto_a',
+        utm_term: 'marketing digital',
+        utm_content: 'banner_1',
+        spend: 150.00,
+        revenue: 450.00,
+        conversions: 6,
+        clicks: 125,
+        impressions: 850,
+        ctr: 14.7,
+        cpa: 25.50,
+        roi: 200.0
       },
       {
         id: '2',
         utm_source: 'google',
         utm_medium: 'cpc',
-        utm_campaign: 'search_brand',
-        utm_term: 'marca',
-        utm_content: 'texto_responsivo',
-        spend: 4200.00,
-        revenue: 6800.00,
-        conversions: 136,
-        clicks: 2100,
-        impressions: 15000,
-        ctr: 9.1,
-        cpa: 30.9,
-        roi: 161.9
-      },
-      {
-        id: '3',
-        utm_source: 'instagram',
-        utm_medium: 'cpc',
-        utm_campaign: 'stories_ads',
-        utm_term: 'promoção',
-        utm_content: 'story_vertical',
-        spend: 2800.00,
-        revenue: 4200.00,
-        conversions: 84,
-        clicks: 1400,
-        impressions: 12000,
-        ctr: 11.7,
-        cpa: 33.3,
-        roi: 150.0
-      },
-      {
-        id: '4',
-        utm_source: 'tiktok',
-        utm_medium: 'cpc',
-        utm_campaign: 'video_ads',
-        utm_term: 'tutorial',
-        utm_content: 'video_15s',
-        spend: 3200.00,
-        revenue: 3800.00,
-        conversions: 76,
-        clicks: 1600,
-        impressions: 18000,
-        ctr: 8.9,
-        cpa: 42.1,
-        roi: 118.8
+        utm_campaign: 'produto_b',
+        utm_term: 'curso online',
+        utm_content: 'text_ad_1',
+        spend: 200.00,
+        revenue: 600.00,
+        conversions: 6,
+        clicks: 95,
+        impressions: 680,
+        ctr: 14.0,
+        cpa: 35.20,
+        roi: 200.0
       }
     ]
 
     const multipliers = {
-      'max': 52,        // 1 ano de dados
-      'today': 0.14,    // 1 dia
-      'yesterday': 0.14, // 1 dia
-      '7d': 1,          // 7 dias
-      'this_month': 4.3, // ~30 dias
-      'last_month': 4.3, // ~30 dias
-      'custom': 1,      // baseado nas datas selecionadas
+      'max': 52,
+      'today': 0.14,
+      'yesterday': 0.12,
+      '7d': 1,
+      'this_month': 4.3,
+      'last_month': 4.3,
+      'custom': 1,
     }
 
     const multiplier = multipliers[period as keyof typeof multipliers] || 1
     
-    return baseData.map(creative => ({
-      ...creative,
-      spend: creative.spend * multiplier,
-      revenue: creative.revenue * multiplier,
-      conversions: Math.round(creative.conversions * multiplier),
-      clicks: Math.round(creative.clicks * multiplier),
-      impressions: Math.round(creative.impressions * multiplier),
-      ctr: creative.ctr,
-      cpa: creative.cpa,
-      roi: creative.roi
+    return baseData.map(item => ({
+      ...item,
+      spend: item.spend * multiplier,
+      revenue: item.revenue * multiplier,
+      conversions: Math.round(item.conversions * multiplier),
+      clicks: Math.round(item.clicks * multiplier),
+      impressions: Math.round(item.impressions * multiplier),
+      roi: item.roi,
+      cpa: item.cpa
     }))
-  }
-
-  const getMockCampaignsData = () => {
-    const mockData: any[] = [
-      {
-        id: '1',
-        name: 'Facebook Ads - Produto A',
-        source: 'Facebook',
-        status: 'active',
-        spend: 150.00,
-        revenue: 450.00,
-        cpa: 25.50,
-        roi: 200.0,
-        conversions: 6,
-        clicks: 125,
-        impressions: 850
-      },
-      {
-        id: '2',
-        name: 'Google Ads - Produto B',
-        source: 'Google',
-        status: 'active',
-        spend: 200.00,
-        revenue: 600.00,
-        cpa: 35.20,
-        roi: 200.0,
-        conversions: 6,
-        clicks: 95,
-        impressions: 680
-      }
-    ]
-    
-    return {
-      data: mockData,
-      total: mockData.length
-    }
   }
 
   const loadCampaigns = async () => {
@@ -352,10 +283,9 @@ const Campaigns: React.FC = () => {
       setLastUpdate(new Date())
     } catch (error) {
       console.error('Error loading campaigns:', error)
-      // Fallback para dados mock apenas se API falhar completamente
-      const mockData = getMockCampaignsData()
-      setCampaigns(mockData.data)
-      setTotalCampaigns(mockData.total)
+      // NÃO usar dados mock - mostrar dados reais vazios
+      setCampaigns([])
+      setTotalCampaigns(0)
     } finally {
       setLoading(false)
     }
