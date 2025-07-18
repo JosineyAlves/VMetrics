@@ -17,6 +17,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
+import PeriodDropdown from './ui/PeriodDropdown';
 
 
 interface GeographicData {
@@ -47,11 +48,13 @@ const Geographic: React.FC = () => {
     minRevenue: '',
     maxRevenue: '',
     minRoi: '',
-    maxRoi: ''
+    maxRoi: '',
+    dateFrom: '',
+    dateTo: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
   const [selectedPeriod, setSelectedPeriod] = useState('7d')
-  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
+  const [customRange, setCustomRange] = useState({ from: '', to: '' });
 
   const periodOptions = [
     { value: '1d', label: 'Hoje' },
@@ -140,23 +143,23 @@ const Geographic: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
       if (!target.closest('.period-dropdown')) {
-        setShowPeriodDropdown(false)
+        // setShowPeriodDropdown(false) // This state is removed
       }
     }
 
-    if (showPeriodDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
+    // if (showPeriodDropdown) { // This state is removed
+    //   document.addEventListener('mousedown', handleClickOutside)
+    // }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      // document.removeEventListener('mousedown', handleClickOutside) // This state is removed
     }
-  }, [showPeriodDropdown])
+  }, []) // This state is removed
 
-  const handlePeriodChange = (period: string) => {
-    setSelectedPeriod(period)
-    setShowPeriodDropdown(false)
-  }
+  // const handlePeriodChange = (period: string) => { // This function is removed
+  //   setSelectedPeriod(period)
+  //   setShowPeriodDropdown(false)
+  // }
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
@@ -171,7 +174,9 @@ const Geographic: React.FC = () => {
       minRevenue: '',
       maxRevenue: '',
       minRoi: '',
-      maxRoi: ''
+      maxRoi: '',
+      dateFrom: '',
+      dateTo: ''
     }
     setFilters(resetFilters)
     setTempFilters(resetFilters)
@@ -209,22 +214,7 @@ const Geographic: React.FC = () => {
     ? filteredData.reduce((sum, d) => sum + d.conversion_rate, 0) / filteredData.length
     : 0
 
-  // Mensagem amigável se não houver dados
-  if (!loading && geographicData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-500 text-lg">Nenhum clique encontrado para o período selecionado.</div>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-trackview-primary"></div>
-      </div>
-    )
-  }
+  // Mensagem amigável e loading agora são exibidos dentro do fluxo principal, mantendo o filtro de período sempre visível
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
@@ -251,6 +241,72 @@ const Geographic: React.FC = () => {
             <Filter className="w-4 h-4 mr-2" />
             Filtros
           </Button>
+        </div>
+      </div>
+
+      {/* Filtro de período padronizado */}
+      <div className="w-full flex justify-end mb-8">
+        <div className="relative period-dropdown min-w-[260px]">
+          <PeriodDropdown
+            value={selectedPeriod}
+            customRange={customRange}
+            onChange={(period, custom) => {
+              setSelectedPeriod(period);
+              if (period === 'custom' && custom) {
+                setCustomRange(custom);
+                setFilters(prev => ({ ...prev, dateFrom: custom.from, dateTo: custom.to }));
+              } else {
+                // Calcular datas reais do período padrão
+                const today = new Date();
+                let startDate = new Date(today);
+                let endDate = new Date(today);
+                switch (period) {
+                  case 'today':
+                    // hoje
+                    break;
+                  case 'last_60_minutes':
+                    // último 1h: manter hoje
+                    break;
+                  case 'yesterday':
+                    startDate.setDate(today.getDate() - 1);
+                    endDate.setDate(today.getDate() - 1);
+                    break;
+                  case 'this_week': {
+                    const day = today.getDay() || 7;
+                    startDate.setDate(today.getDate() - day + 1);
+                    break;
+                  }
+                  case 'last_7_days':
+                    startDate.setDate(today.getDate() - 6);
+                    break;
+                  case 'last_week': {
+                    const day = today.getDay() || 7;
+                    endDate.setDate(today.getDate() - day);
+                    startDate.setDate(endDate.getDate() - 6);
+                    break;
+                  }
+                  case 'this_month':
+                    startDate.setDate(1);
+                    break;
+                  case 'last_30_days':
+                    startDate.setDate(today.getDate() - 29);
+                    break;
+                  case 'last_month':
+                    startDate.setMonth(today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                  default:
+                    break;
+                }
+                setCustomRange({ from: '', to: '' });
+                setFilters(prev => ({
+                  ...prev,
+                  dateFrom: startDate.toISOString().split('T')[0],
+                  dateTo: endDate.toISOString().split('T')[0],
+                }));
+              }
+            }}
+          />
         </div>
       </div>
 
@@ -415,42 +471,7 @@ const Geographic: React.FC = () => {
         </div>
         
         {/* Período Dropdown */}
-        <div className="relative period-dropdown">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
-            className="min-w-[180px] justify-between"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            {getPeriodLabel(selectedPeriod)}
-            <ChevronDown className="w-4 h-4 ml-2" />
-          </Button>
-          
-          {showPeriodDropdown && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute top-full left-0 mt-1 w-64 bg-white border border-trackview-accent rounded-lg shadow-lg z-50"
-            >
-              <div className="py-2">
-                {periodOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handlePeriodChange(option.value)}
-                    className={`w-full flex items-center px-4 py-2 text-sm hover:bg-trackview-background ${
-                      selectedPeriod === option.value 
-                        ? 'bg-trackview-accent text-trackview-primary' 
-                        : 'text-trackview-text'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </div>
+        {/* This div is removed as the PeriodDropdown component handles its own dropdown */}
       </div>
 
       {/* Data Table */}

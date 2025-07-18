@@ -13,6 +13,7 @@ import {
 import { Button } from './ui/button'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
+import PeriodDropdown from './ui/PeriodDropdown';
 
 interface Conversion {
   id: string
@@ -33,6 +34,7 @@ const Conversions: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState('30d')
+  const [customRange, setCustomRange] = useState({ from: '', to: '' });
   const [filters, setFilters] = useState({
     campaign: '',
     type: '',
@@ -258,36 +260,35 @@ const Conversions: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Filters */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+      {/* Filtro de período padronizado */}
+      <div className="mb-6">
+        <PeriodDropdown
+          value={selectedPeriod}
+          customRange={customRange}
+          onChange={(period, custom) => {
+            setSelectedPeriod(period);
+            if (period === 'custom' && custom) {
+              setCustomRange(custom);
+              // Atualize os filtros se necessário
+            } else {
+              // Atualize os filtros se necessário
+            }
+          }}
+        />
+      </div>
+
+      {/* Filtros */}
+        <motion.div
+          transition={{ delay: 0.3 }}
         className="bg-white rounded-2xl shadow-lg p-6"
       >
         <div className="flex items-center space-x-4 mb-6">
           <Filter className="w-6 h-6 text-trackview-primary" />
           <h2 className="text-xl font-semibold text-trackview-primary">Filtros</h2>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Período</label>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="today">Hoje</option>
-              <option value="yesterday">Ontem</option>
-              <option value="7d">Últimos 7 dias</option>
-              <option value="30d">Últimos 30 dias</option>
-              <option value="90d">Últimos 90 dias</option>
-              <option value="this_month">Este mês</option>
-              <option value="last_month">Mês passado</option>
-            </select>
-          </div>
-
+          {/* Remover o select antigo de período */}
+          <div style={{ display: 'none' }} />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Campanha</label>
             <input
@@ -298,8 +299,7 @@ const Conversions: React.FC = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-
-          <div>
+            <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
             <select
               value={filters.type}
@@ -311,8 +311,7 @@ const Conversions: React.FC = () => {
               <option value="sale">Venda</option>
               <option value="upsell">Upsell</option>
             </select>
-          </div>
-
+            </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">País</label>
             <input
@@ -323,7 +322,6 @@ const Conversions: React.FC = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select
@@ -336,9 +334,9 @@ const Conversions: React.FC = () => {
               <option value="pending">Pendente</option>
               <option value="declined">Rejeitado</option>
             </select>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
       {/* Conversions Table */}
       <motion.div
@@ -359,8 +357,8 @@ const Conversions: React.FC = () => {
             <p className="text-gray-400 text-sm mt-1">Crie campanhas e comece a rastrear conversões para ver dados aqui.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <div className="overflow-x-auto">
+          <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -384,17 +382,17 @@ const Conversions: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Receita
                   </th>
-                </tr>
-              </thead>
+              </tr>
+            </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {conversions.map((conversion) => (
                   <tr key={conversion.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(conversion.date)}
-                    </td>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {conversion.campaign}
-                    </td>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         conversion.type === 'sale' ? 'bg-green-100 text-green-800' :
@@ -402,14 +400,14 @@ const Conversions: React.FC = () => {
                         'bg-purple-100 text-purple-800'
                       }`}>
                         {conversion.type}
-                      </span>
-                    </td>
+                    </span>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {conversion.country}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {conversion.source}
-                    </td>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         conversion.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -417,16 +415,16 @@ const Conversions: React.FC = () => {
                         'bg-red-100 text-red-800'
                       }`}>
                         {conversion.status || 'N/A'}
-                      </span>
-                    </td>
+                    </span>
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {formatCurrency(conversion.revenue || conversion.payout || 0)}
-                    </td>
+                  </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
         )}
       </motion.div>
     </div>

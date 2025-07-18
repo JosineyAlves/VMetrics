@@ -18,6 +18,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
+import PeriodDropdown from './ui/PeriodDropdown';
 
 
 interface Metric {
@@ -56,15 +57,7 @@ const Dashboard: React.FC = () => {
   // Novo estado para datas personalizadas
   const [customRange, setCustomRange] = useState({ from: '', to: '' })
 
-  const periodOptions = [
-    { value: 'max', label: 'Máximo' },
-    { value: 'today', label: 'Hoje' },
-    { value: 'yesterday', label: 'Ontem' },
-    { value: '7d', label: 'Últimos 7 dias' },
-    { value: 'this_month', label: 'Este mês' },
-    { value: 'last_month', label: 'Mês passado' },
-    { value: 'custom', label: 'Personalizado' },
-  ]
+  // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
 
   const trafficChannelOptions = [
     { value: '', label: 'Todos os canais' },
@@ -76,85 +69,8 @@ const Dashboard: React.FC = () => {
   ]
 
   // Atualizar label do período para customizado
-  const getPeriodLabel = (value: string) => {
-    if (value === 'custom' && customRange.from && customRange.to) {
-      return `${customRange.from} a ${customRange.to}`
-    }
-    const option = periodOptions.find(opt => opt.value === value)
-    return option ? option.label : 'Últimos 7 dias'
-  }
-
   // Função para calcular datas reais baseadas no período (não utilizada)
-  const getDateRange = (period: string) => {
-    const today = new Date()
-    const endDate = new Date(today)
-    endDate.setHours(23, 59, 59, 999) // Fim do dia atual
-    
-    const startDate = new Date(today)
-    
-    switch (period) {
-      case 'max':
-        // Máximo = desde o início dos dados (1 ano atrás)
-        startDate.setFullYear(today.getFullYear() - 1)
-        startDate.setHours(0, 0, 0, 0)
-        break
-      case 'today':
-        // Hoje = dia atual (00:00 até 23:59)
-        startDate.setHours(0, 0, 0, 0)
-        break
-      case 'yesterday':
-        // Ontem = dia anterior (00:00 até 23:59)
-        startDate.setDate(today.getDate() - 1)
-        startDate.setHours(0, 0, 0, 0)
-        endDate.setDate(today.getDate() - 1)
-        endDate.setHours(23, 59, 59, 999)
-        break
-      case '7d':
-        // Últimos 7 dias (incluindo hoje)
-        startDate.setDate(today.getDate() - 6)
-        startDate.setHours(0, 0, 0, 0)
-        break
-      case 'this_month':
-        // Este mês = desde o primeiro dia do mês atual
-        startDate.setDate(1)
-        startDate.setHours(0, 0, 0, 0)
-        break
-      case 'last_month':
-        // Mês passado = primeiro até último dia do mês anterior
-        startDate.setMonth(today.getMonth() - 1)
-        startDate.setDate(1)
-        startDate.setHours(0, 0, 0, 0)
-        
-        const lastMonthEnd = new Date(today)
-        lastMonthEnd.setMonth(today.getMonth() - 1)
-        lastMonthEnd.setDate(0) // Último dia do mês anterior
-        lastMonthEnd.setHours(23, 59, 59, 999)
-        endDate.setTime(lastMonthEnd.getTime())
-        break
-      case 'custom':
-        // Personalizado = usar datas dos filtros se disponíveis
-        if (customRange.from && customRange.to) {
-          return {
-            startDate: customRange.from,
-            endDate: customRange.to
-          }
-        }
-        // Fallback para últimos 7 dias se não houver datas personalizadas
-        startDate.setDate(today.getDate() - 6)
-        startDate.setHours(0, 0, 0, 0)
-        break
-      default:
-        // Padrão: últimos 7 dias
-        startDate.setDate(today.getDate() - 6)
-        startDate.setHours(0, 0, 0, 0)
-    }
-    
-    return {
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0]
-    }
-  }
-
+  // Função para calcular datas reais baseadas no período (não utilizada)
 
 
   const [metrics, setMetrics] = useState<Metric[]>([
@@ -251,7 +167,11 @@ const Dashboard: React.FC = () => {
       const api = new RedTrackAPI(apiKey)
       
       // Usar datas reais baseadas no período selecionado
-      const dateRange = getDateRange(selectedPeriod)
+      const dateRange = {
+        startDate: customRange.from || selectedPeriod === 'today' ? new Date().toISOString().split('T')[0] : '',
+        endDate: customRange.to || selectedPeriod === 'today' ? new Date().toISOString().split('T')[0] : ''
+      };
+
       const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
@@ -381,7 +301,7 @@ const Dashboard: React.FC = () => {
         conversion_profit: 0,
         epc_roi: 0
       }
-
+      
       const updatedMetrics = metrics.map(metric => ({
         ...metric,
         value: 0,
@@ -403,14 +323,14 @@ const Dashboard: React.FC = () => {
 
       return () => clearInterval(interval)
     }
-  }, [autoRefresh, selectedPeriod, filters])
+  }, [autoRefresh, selectedPeriod, filters, customRange])
 
   // Carregar dados quando componente montar ou parâmetros mudarem
   useEffect(() => {
     if (apiKey) {
       loadDashboardData()
     }
-  }, [apiKey, selectedPeriod, filters])
+  }, [apiKey, selectedPeriod, filters, customRange])
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period)
@@ -476,7 +396,7 @@ const Dashboard: React.FC = () => {
             Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Visão geral das métricas de performance
+            Visão geral de performance
           </p>
           {lastUpdate && (
             <p className="text-sm text-gray-500 mt-1">
@@ -548,30 +468,8 @@ const Dashboard: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Data Inicial
-              </label>
-              <Input 
-                type="date"
-                value={tempFilters.dateFrom}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Data Final
-              </label>
-              <Input 
-                type="date"
-                value={tempFilters.dateTo}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
-              />
-            </div>
-            
+            {/* Removido: Data Inicial */}
+            {/* Removido: Data Final */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Canal de Tráfego
@@ -588,7 +486,6 @@ const Dashboard: React.FC = () => {
                 ))}
               </select>
             </div>
-            
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 País
@@ -625,95 +522,67 @@ const Dashboard: React.FC = () => {
       {/* Período Dropdown */}
       <div className="flex items-center justify-between">
         <div className="relative period-dropdown">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
-            className="min-w-[200px] justify-between rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3"
-          >
-            <Calendar className="w-5 h-5 mr-3" />
-            {getPeriodLabel(selectedPeriod)}
-            <ChevronDown className="w-5 h-5 ml-3" />
-          </Button>
-          
-          {showPeriodDropdown && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute top-full left-0 mt-2 w-80 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl z-50"
-            >
-              <div className="py-2">
-                {periodOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      handlePeriodChange(option.value)
-                      if (option.value !== 'custom') {
-                        setShowPeriodDropdown(false)
-                        setCustomRange({ from: '', to: '' })
-                      }
-                    }}
-                    className={`w-full flex items-center px-4 py-3 text-sm hover:bg-blue-50 transition-colors duration-200 ${
-                      selectedPeriod === option.value 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold' 
-                        : 'text-gray-700 hover:text-blue-600'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-                
-                {/* Campos de data para modo personalizado - sempre visíveis quando custom está selecionado */}
-                {selectedPeriod === 'custom' && (
-                  <div className="border-t border-gray-200 mt-3 pt-4 px-4 pb-4">
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-2">
-                          Data Inicial
-                        </label>
-                        <input
-                          type="date"
-                          value={customRange.from}
-                          onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm"
-                          placeholder="Selecione a data inicial"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-2">
-                          Data Final
-                        </label>
-                        <input
-                          type="date"
-                          value={customRange.to}
-                          onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm"
-                          placeholder="Selecione a data final"
-                        />
-                      </div>
-                      
-                      <button
-                        className={`w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                          (!customRange.from || !customRange.to) 
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                            : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
-                        }`}
-                        disabled={!customRange.from || !customRange.to}
-                        onClick={() => {
-                          handlePeriodChange('custom')
-                          setShowPeriodDropdown(false)
-                          setFilters(prev => ({ ...prev, dateFrom: customRange.from, dateTo: customRange.to }))
-                        }}
-                      >
-                        Aplicar Período Personalizado
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
+          {/* Filtro de período padronizado */}
+          <PeriodDropdown
+            value={selectedPeriod}
+            customRange={customRange}
+            onChange={(period, custom) => {
+              setSelectedPeriod(period);
+              if (period === 'custom' && custom) {
+                setCustomRange(custom);
+                setFilters(prev => ({ ...prev, dateFrom: custom.from, dateTo: custom.to }));
+              } else {
+                // Calcular datas reais do período padrão
+                const today = new Date();
+                let startDate = new Date(today);
+                let endDate = new Date(today);
+                switch (period) {
+                  case 'today':
+                    // hoje
+                    break;
+                  case 'last_60_minutes':
+                    // último 1h: manter hoje
+                    break;
+                  case 'yesterday':
+                    startDate.setDate(today.getDate() - 1);
+                    endDate.setDate(today.getDate() - 1);
+                    break;
+                  case 'this_week': {
+                    const day = today.getDay() || 7;
+                    startDate.setDate(today.getDate() - day + 1);
+                    break;
+                  }
+                  case 'last_7_days':
+                    startDate.setDate(today.getDate() - 6);
+                    break;
+                  case 'last_week': {
+                    const day = today.getDay() || 7;
+                    endDate.setDate(today.getDate() - day);
+                    startDate.setDate(endDate.getDate() - 6);
+                    break;
+                  }
+                  case 'this_month':
+                    startDate.setDate(1);
+                    break;
+                  case 'last_30_days':
+                    startDate.setDate(today.getDate() - 29);
+                    break;
+                  case 'last_month':
+                    startDate.setMonth(today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                  default:
+                    break;
+                }
+                setCustomRange({ from: '', to: '' });
+                setFilters(prev => ({
+                  ...prev,
+                  dateFrom: startDate.toISOString().split('T')[0],
+                  dateTo: endDate.toISOString().split('T')[0],
+                }));
+              }
+            }}
+          />
         </div>
       </div>
 
