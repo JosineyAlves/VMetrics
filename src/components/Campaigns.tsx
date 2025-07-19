@@ -274,6 +274,42 @@ const Campaigns: React.FC = () => {
     }
   }
 
+  // Novos estados para os blocos de performance
+  const [bestCampaigns, setBestCampaigns] = useState<any[]>([])
+  const [bestAds, setBestAds] = useState<any[]>([])
+  const [bestOffers, setBestOffers] = useState<any[]>([])
+
+  // Função utilitária para buscar e ordenar top 3
+  const fetchBestPerformers = async (groupBy: string, setter: (data: any[]) => void) => {
+    if (!apiKey) return;
+    const { getDateRange } = await import('../lib/utils')
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    const params = {
+      api_key: apiKey,
+      date_from: dateRange.startDate,
+      date_to: dateRange.endDate,
+      group_by: groupBy
+    }
+    const url = new URL('/api/report', window.location.origin)
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        url.searchParams.set(key, value.toString())
+      }
+    })
+    try {
+      const response = await fetch(url.toString())
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 3)
+        setter(sorted)
+      } else {
+        setter([])
+      }
+    } catch {
+      setter([])
+    }
+  }
+
   // useEffect para carregar dados ao trocar de aba ou filtros
   useEffect(() => {
     if (apiKey) {
@@ -282,6 +318,16 @@ const Campaigns: React.FC = () => {
       } else if (activeTab === 'utm') {
         loadUTMCreatives()
       }
+    }
+    // eslint-disable-next-line
+  }, [apiKey, selectedPeriod, filters, activeTab, customRange])
+
+  // useEffect para buscar os blocos de performance ao trocar filtros/aba
+  useEffect(() => {
+    if (activeTab === 'utm' && apiKey) {
+      fetchBestPerformers('campaign', setBestCampaigns)
+      fetchBestPerformers('ad', setBestAds)
+      fetchBestPerformers('offer', setBestOffers)
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange])
@@ -827,111 +873,93 @@ const Campaigns: React.FC = () => {
               </tbody>
             </table>
           ) : (
-            <table className="w-full">
-              <thead className="bg-trackview-background">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    UTM Source
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    UTM Medium
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    UTM Campaign
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    UTM Term
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    UTM Content
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    Spend
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    Revenue
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    CTR
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    CPA
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-trackview-primary uppercase tracking-wider">
-                    ROI
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-trackview-background">
-                {filteredUTMCreatives.map((creative, index) => (
-                  <motion.tr 
-                    key={creative.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="hover:bg-trackview-background"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-trackview-primary capitalize">
-                        {creative.utm_source}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text uppercase">
-                        {creative.utm_medium}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        {creative.utm_campaign}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        {creative.utm_term}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        {creative.utm_content}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-primary">
-                        ${creative.spend.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-primary">
-                        ${creative.revenue.toLocaleString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        {creative.ctr}%
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-trackview-text">
-                        ${creative.cpa}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {creative.roi > 100 ? (
-                          <TrendingUp className="w-4 h-4 text-trackview-success mr-1" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-trackview-danger mr-1" />
-                        )}
-                        <span className={`text-sm font-medium ${creative.roi > 100 ? 'text-trackview-success' : 'text-trackview-danger'}`}>
-                          {creative.roi}%
-                        </span>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+            filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_medium && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
+              <div className="p-8 text-center text-gray-500">
+                Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
+                Tente ampliar o período ou revisar os filtros.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Best performing campaigns */}
+                <div className="bg-blue-50 rounded-xl p-4 shadow">
+                  <h3 className="font-bold text-blue-700 mb-2">Best performing campaigns (RT):</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left">#</th>
+                        <th className="text-left">Campaign</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Conversions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestCampaigns.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+                      ) : bestCampaigns.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}.</td>
+                          <td>{item.campaign || item.title || item.name || '-'} </td>
+                          <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
+                          <td className="text-right">{item.conversions || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Best performing ads */}
+                <div className="bg-blue-50 rounded-xl p-4 shadow">
+                  <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left">#</th>
+                        <th className="text-left">Ad</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Conversions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestAds.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+                      ) : bestAds.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}.</td>
+                          <td>{item.ad || item.rt_ad || item.title || item.name || '-'} </td>
+                          <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
+                          <td className="text-right">{item.conversions || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Best offers */}
+                <div className="bg-blue-50 rounded-xl p-4 shadow">
+                  <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left">#</th>
+                        <th className="text-left">Offer</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Conversions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestOffers.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+                      ) : bestOffers.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}.</td>
+                          <td>{item.offer || item.rt_offer || item.title || item.name || '-'}</td>
+                          <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
+                          <td className="text-right">{item.conversions || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
           )}
         </div>
       </motion.div>
