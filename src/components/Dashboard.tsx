@@ -11,7 +11,8 @@ import {
   Calendar,
   ChevronDown,
   Filter,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { Button } from './ui/button'
@@ -96,12 +97,52 @@ const Dashboard: React.FC = () => {
       visible: true
     },
     {
+      id: 'clicks',
+      label: 'Cliques',
+      value: 0,
+      change: 0,
+      icon: <BarChart3 className="w-5 h-5" />,
+      color: 'text-teal-600',
+      format: 'number',
+      visible: true
+    },
+    {
+      id: 'unique_clicks',
+      label: 'Cliques Únicos',
+      value: 0,
+      change: 0,
+      icon: <Users className="w-5 h-5" />,
+      color: 'text-cyan-600',
+      format: 'number',
+      visible: true
+    },
+    {
       id: 'conversions',
       label: 'Conversões',
       value: 0,
       change: 0,
       icon: <Target className="w-5 h-5" />,
       color: 'text-purple-600',
+      format: 'number',
+      visible: true
+    },
+    {
+      id: 'all_conversions',
+      label: 'Todas Conversões',
+      value: 0,
+      change: 0,
+      icon: <Target className="w-5 h-5" />,
+      color: 'text-violet-600',
+      format: 'number',
+      visible: true
+    },
+    {
+      id: 'impressions',
+      label: 'Impressões',
+      value: 0,
+      change: 0,
+      icon: <Eye className="w-5 h-5" />,
+      color: 'text-indigo-600',
       format: 'number',
       visible: true
     },
@@ -116,22 +157,32 @@ const Dashboard: React.FC = () => {
       visible: true
     },
     {
-      id: 'impressions',
-      label: 'Impressões',
+      id: 'approved',
+      label: 'Aprovadas',
       value: 0,
       change: 0,
-      icon: <Eye className="w-5 h-5" />,
-      color: 'text-indigo-600',
+      icon: <TrendingUp className="w-5 h-5" />,
+      color: 'text-green-600',
       format: 'number',
       visible: true
     },
     {
-      id: 'clicks',
-      label: 'Cliques',
+      id: 'pending',
+      label: 'Pendentes',
       value: 0,
       change: 0,
-      icon: <BarChart3 className="w-5 h-5" />,
-      color: 'text-teal-600',
+      icon: <AlertCircle className="w-5 h-5" />,
+      color: 'text-yellow-600',
+      format: 'number',
+      visible: true
+    },
+    {
+      id: 'declined',
+      label: 'Recusadas',
+      value: 0,
+      change: 0,
+      icon: <AlertCircle className="w-5 h-5" />,
+      color: 'text-red-600',
       format: 'number',
       visible: true
     }

@@ -51,7 +51,14 @@ const mapRedTrackCampaign = (item: any) => ({
   roi: item.roi || item.return_on_investment || 0,
   conversions: item.conversions || item.approved || item.total_conversions || 0,
   clicks: item.clicks || item.total_clicks || 0,
-  impressions: item.impressions || item.total_impressions || 0
+  unique_clicks: item.unique_clicks || 0,
+  impressions: item.impressions || item.total_impressions || 0,
+  all_conversions: item.all_conversions || 0,
+  approved: item.approved || 0,
+  pending: item.pending || 0,
+  declined: item.declined || 0,
+  ctr: item.ctr || 0,
+  conversion_rate: item.conversion_rate || 0
 })
 
 const Campaigns: React.FC = () => {
@@ -171,7 +178,14 @@ const Campaigns: React.FC = () => {
             roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
             conversions: stat.conversions || 0,
             clicks: stat.clicks || 0,
-            impressions: stat.impressions || 0
+            unique_clicks: stat.unique_clicks || 0,
+            impressions: stat.impressions || 0,
+            all_conversions: stat.all_conversions || 0,
+            approved: stat.approved || 0,
+            pending: stat.pending || 0,
+            declined: stat.declined || 0,
+            ctr: stat.ctr || 0,
+            conversion_rate: stat.conversion_rate || 0
           }
         })
       }
@@ -631,7 +645,31 @@ const Campaigns: React.FC = () => {
                     Cliques
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cliques Únicos
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Impressões
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Conversões
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Todas Conversões
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aprovadas
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pendentes
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Recusadas
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CTR
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Taxa Conv.
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Gasto
@@ -672,7 +710,31 @@ const Campaigns: React.FC = () => {
                       <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.ctr}%</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">${campaign.spend.toLocaleString()}</div>

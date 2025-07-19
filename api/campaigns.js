@@ -17,20 +17,25 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('Campaigns API - Buscando dados de campanhas com performance...');
+    console.log('=== CAMPAIGNS API DEBUG START ===');
+    console.log('Campaigns API - Buscando dados de campanhas para data específica...');
     
-    // Usar endpoint /report com group_by=campaign para obter dados completos
-    const reportUrl = new URL('https://api.redtrack.io/report');
-    reportUrl.searchParams.set('api_key', apiKey);
-    reportUrl.searchParams.set('group_by', 'campaign');
+    // Usar apenas a data específica solicitada pelo usuário
+    const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
+    const dateTo = params.date_to || dateFrom;
     
-    // Adicionar parâmetros de data se fornecidos
-    if (params.date_from) reportUrl.searchParams.set('date_from', params.date_from);
-    if (params.date_to) reportUrl.searchParams.set('date_to', params.date_to);
+    console.log('Campaigns API - Data solicitada:', { dateFrom, dateTo });
     
-    console.log('Campaigns API - URL para report:', reportUrl.toString());
+    // Buscar conversões para a data específica
+    const conversionsUrl = new URL('https://api.redtrack.io/conversions');
+    conversionsUrl.searchParams.set('api_key', apiKey);
+    conversionsUrl.searchParams.set('per', '1000');
+    conversionsUrl.searchParams.set('date_from', dateFrom);
+    conversionsUrl.searchParams.set('date_to', dateTo);
     
-    const reportResponse = await fetch(reportUrl.toString(), {
+    console.log('Campaigns API - URL para conversões:', conversionsUrl.toString());
+    
+    const conversionsResponse = await fetch(conversionsUrl.toString(), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -39,70 +44,209 @@ export default async function handler(req, res) {
       }
     });
 
-    if (!reportResponse.ok) {
-      const errorData = await reportResponse.json().catch(() => ({}));
-      console.error('Campaigns API - Erro ao buscar performance:', errorData);
-      return res.status(reportResponse.status).json({
-        error: errorData.error || 'Erro ao buscar performance do RedTrack',
-        status: reportResponse.status,
-        endpoint: '/report'
+    if (!conversionsResponse.ok) {
+      const errorData = await conversionsResponse.json().catch(() => ({}));
+      console.error('Campaigns API - Erro ao buscar conversões:', errorData);
+      return res.status(conversionsResponse.status).json({
+        error: errorData.error || 'Erro ao buscar conversões do RedTrack',
+        status: conversionsResponse.status,
+        endpoint: '/conversions'
       });
     }
 
-    const reportData = await reportResponse.json();
-    console.log('Campaigns API - Dados de performance:', reportData);
+    const conversionsData = await conversionsResponse.json();
+    console.log('Campaigns API - Dados de conversões BRUTOS:', JSON.stringify(conversionsData, null, 2));
     
-    // Processar dados do report
-    const processedData = [];
+    // Buscar tracks (cliques) para a data específica
+    const tracksUrl = new URL('https://api.redtrack.io/tracks');
+    tracksUrl.searchParams.set('api_key', apiKey);
+    tracksUrl.searchParams.set('per', '1000');
+    tracksUrl.searchParams.set('date_from', dateFrom);
+    tracksUrl.searchParams.set('date_to', dateTo);
     
-    if (reportData && Array.isArray(reportData)) {
-      reportData.forEach(item => {
-        // Extrair nome da campanha do campo correto
-        const campaignName = item.campaign || item.campaign_name || item.title || item.name || 'Campanha sem nome';
-        const campaignId = item.campaign_id || item.id || Math.random().toString(36).slice(2);
-        
-        // Extrair métricas do objeto stat ou diretamente
-        const stat = item.stat || {};
-        const metrics = {
-          clicks: stat.clicks || item.clicks || 0,
-          conversions: stat.conversions || item.conversions || 0,
-          revenue: stat.revenue || item.revenue || 0,
-          cost: stat.cost || item.cost || 0,
-          impressions: stat.impressions || item.impressions || 0
-        };
-        
-        processedData.push({
-          id: campaignId,
-          title: campaignName,
-          source_title: item.source || item.traffic_source || '',
-          status: item.status || 'active',
-          stat: metrics
-        });
-      });
-    } else if (reportData && typeof reportData === 'object' && !Array.isArray(reportData)) {
-      // Se for um objeto único (dados agregados), criar uma entrada
-      const campaignName = reportData.campaign || reportData.campaign_name || reportData.title || 'Campanha sem nome';
-      const campaignId = reportData.campaign_id || reportData.id || 'aggregated';
+    console.log('Campaigns API - URL para tracks:', tracksUrl.toString());
+    
+    const tracksResponse = await fetch(tracksUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'TrackView-Dashboard/1.0'
+      }
+    });
+
+    const tracksData = await tracksResponse.json();
+    console.log('Campaigns API - Dados de tracks BRUTOS:', JSON.stringify(tracksData, null, 2));
+    
+    // Combinar dados de conversões e tracks para métricas completas
+    // Usar nome da campanha como chave única para evitar problemas de ID
+    const campaignMap = new Map();
+    
+    // Set para rastrear cliques únicos (evitar duplicatas)
+    const uniqueClicks = new Set();
+    
+    console.log('=== PROCESSANDO TRACKS ===');
+    // Processar tracks primeiro para obter cliques base
+    if (tracksData && tracksData.items && Array.isArray(tracksData.items)) {
+      console.log(`Campaigns API - Total de tracks encontrados: ${tracksData.items.length}`);
       
-      const stat = reportData.stat || {};
-      const metrics = {
-        clicks: stat.clicks || reportData.clicks || 0,
-        conversions: stat.conversions || reportData.conversions || 0,
-        revenue: stat.revenue || reportData.revenue || 0,
-        cost: stat.cost || reportData.cost || 0,
-        impressions: stat.impressions || reportData.impressions || 0
-      };
-      
-      processedData.push({
-        id: campaignId,
-        title: campaignName,
-        source_title: reportData.source || reportData.traffic_source || '',
-        status: reportData.status || 'active',
-        stat: metrics
+      tracksData.items.forEach((track, index) => {
+        console.log(`\n--- Track ${index + 1} ---`);
+        console.log('Track completo:', JSON.stringify(track, null, 2));
+        
+        const campaignName = track.campaign || track.campaign_name || track.title || 'Campanha sem nome';
+        const campaignId = track.campaign_id || track.id || Math.random().toString(36).slice(2);
+        
+        console.log('Campaign name extraído:', campaignName);
+        console.log('Campaign ID extraído:', campaignId);
+        
+        // FILTROS MAIS SUAVES (SIMILAR AO REDTRACK DASHBOARD)
+        // 1. Remover apenas cliques com fraud.is_ok = 0 (fraud detectado)
+        if (track.fraud && track.fraud.is_ok === 0) {
+          console.log(`❌ Clique com fraud ignorado: ${campaignName} - fraud.is_ok: ${track.fraud.is_ok}`);
+          return;
+        }
+        
+        // 2. Remover apenas cliques duplicados exatos (mesmo ID)
+        const clickKey = `${campaignName.toLowerCase().trim()}_${track.ip}_${track.track_time}_${track.user_agent}`;
+        
+        // Verificar se este clique já foi contabilizado (evitar duplicatas exatas)
+        if (uniqueClicks.has(clickKey)) {
+          console.log(`❌ Clique duplicado exato ignorado: ${campaignName} - IP: ${track.ip} - Time: ${track.track_time}`);
+          return;
+        }
+        
+        // Adicionar à lista de cliques únicos
+        uniqueClicks.add(clickKey);
+        
+        if (!campaignMap.has(campaignName.toLowerCase().trim())) {
+          console.log(`🆕 Criando nova campanha: ${campaignName}`);
+          campaignMap.set(campaignName.toLowerCase().trim(), {
+            id: campaignId,
+            name: campaignName,
+            source: track.source || track.traffic_source || '',
+            clicks: 0,
+            unique_clicks: 0,
+            conversions: 0,
+            all_conversions: 0,
+            approved: 0,
+            pending: 0,
+            declined: 0,
+            revenue: 0,
+            cost: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0
+          });
+        }
+        
+        // Acumular métricas de tracks (cliques)
+        const campaign = campaignMap.get(campaignName.toLowerCase().trim());
+        campaign.clicks += 1; // Cada track é um clique
+        campaign.unique_clicks += 1; // Cliques únicos (sem duplicatas)
+        campaign.cost += track.cost || 0; // Cost dos cliques
+        console.log(`✅ Track válido: ${campaignName} - Cliques: ${campaign.clicks}, Cliques Únicos: ${campaign.unique_clicks}, Cost: ${campaign.cost}`);
       });
+    } else {
+      console.log('❌ Nenhum track encontrado ou dados inválidos');
     }
     
-    console.log('Campaigns API - Dados processados:', processedData);
+    console.log('\n=== PROCESSANDO CONVERSÕES ===');
+    // Processar conversões para adicionar revenue e conversões
+    if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
+      console.log(`Campaigns API - Total de conversões encontradas: ${conversionsData.items.length}`);
+      
+      conversionsData.items.forEach((conversion, index) => {
+        console.log(`\n--- Conversão ${index + 1} ---`);
+        console.log('Conversão completa:', JSON.stringify(conversion, null, 2));
+        
+        const campaignName = conversion.campaign || conversion.campaign_name || conversion.title || 'Campanha sem nome';
+        const campaignId = conversion.campaign_id || conversion.id || Math.random().toString(36).slice(2);
+        
+        console.log('Campaign name extraído:', campaignName);
+        console.log('Campaign ID extraído:', campaignId);
+        
+        // Usar nome da campanha como chave única
+        const campaignKey = campaignName.toLowerCase().trim();
+        
+        if (!campaignMap.has(campaignKey)) {
+          console.log(`🆕 Criando nova campanha: ${campaignName}`);
+          campaignMap.set(campaignKey, {
+            id: campaignId,
+            name: campaignName,
+            source: conversion.source || conversion.traffic_source || '',
+            clicks: 0,
+            unique_clicks: 0,
+            conversions: 0,
+            all_conversions: 0,
+            approved: 0,
+            pending: 0,
+            declined: 0,
+            revenue: 0,
+            cost: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0
+          });
+        }
+        
+        // Acumular métricas de conversões (sem duplicar cliques)
+        const campaign = campaignMap.get(campaignKey);
+        campaign.all_conversions += 1; // Todas as conversões
+        campaign.conversions += 1; // Conversões aprovadas (assumindo que são aprovadas)
+        campaign.revenue += conversion.payout || conversion.revenue || 0; // Revenue das conversões
+        
+        // Classificar conversões por status
+        const status = conversion.status || conversion.conversion_status || 'approved';
+        if (status === 'approved' || status === 'approved') {
+          campaign.approved += 1;
+        } else if (status === 'pending' || status === 'pending') {
+          campaign.pending += 1;
+        } else if (status === 'declined' || status === 'declined') {
+          campaign.declined += 1;
+        }
+        
+        // NÃO somar cost das conversões para evitar duplicação
+        console.log(`✅ Conversão: ${campaignName} - Todas Conversões: ${campaign.all_conversions}, Aprovadas: ${campaign.approved}, Revenue: ${campaign.revenue}`);
+      });
+    } else {
+      console.log('❌ Nenhuma conversão encontrada ou dados inválidos');
+    }
+    
+    console.log('\n=== RESULTADO FINAL ===');
+    console.log('Campaigns API - Campanhas combinadas:', Array.from(campaignMap.values()));
+    
+    // Converter para array e mapear
+    const processedData = Array.from(campaignMap.values()).map(campaign => {
+      // Calcular métricas derivadas
+      const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
+      const conversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0;
+      
+      return {
+        id: campaign.id,
+        title: campaign.name,
+        source_title: campaign.source,
+        status: 'active',
+        stat: {
+          clicks: campaign.clicks,
+          unique_clicks: campaign.unique_clicks,
+          conversions: campaign.conversions,
+          all_conversions: campaign.all_conversions,
+          approved: campaign.approved,
+          pending: campaign.pending,
+          declined: campaign.declined,
+          revenue: campaign.revenue,
+          cost: campaign.cost,
+          impressions: campaign.impressions,
+          ctr: ctr,
+          conversion_rate: conversionRate
+        }
+      };
+    });
+    
+    console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
+    console.log('=== CAMPAIGNS API DEBUG END ===');
+    
     res.status(200).json(processedData);
 
   } catch (error) {
@@ -110,7 +254,7 @@ export default async function handler(req, res) {
     res.status(500).json({
       error: 'Erro de conexão com a API do RedTrack',
       details: error.message,
-      endpoint: '/report'
+      endpoint: '/conversions'
     });
   }
 } 
