@@ -44,10 +44,16 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('🔴 [REPORT] Erro da RedTrack:', {
+        status: response.status,
+        url: url.toString(),
+        errorData
+      });
       return res.status(response.status).json({ 
         error: errorData.error || 'Erro na API do RedTrack',
         status: response.status,
-        endpoint: '/report'
+        endpoint: '/report',
+        redtrack: errorData
       });
     }
 

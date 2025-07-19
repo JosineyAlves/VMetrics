@@ -222,14 +222,14 @@ const Campaigns: React.FC = () => {
         api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        group_by: 'utm_source,utm_medium,utm_campaign,utm_term,utm_content',
+        group_by: 'rt_source,rt_medium,rt_campaign,rt_adgroup,rt_ad,rt_placement',
       }
-      // Adicionar filtros de UTM se existirem
-      if (filters.utm_source) params.utm_source = filters.utm_source
-      if (filters.utm_medium) params.utm_medium = filters.utm_medium
-      if (filters.utm_campaign) params.utm_campaign = filters.utm_campaign
-      if (filters.utm_term) params.utm_term = filters.utm_term
-      if (filters.utm_content) params.utm_content = filters.utm_content
+      // Adicionar filtros de UTM se existirem (usando os campos rt_*)
+      if (filters.utm_source) params.rt_source = filters.utm_source
+      if (filters.utm_medium) params.rt_medium = filters.utm_medium
+      if (filters.utm_campaign) params.rt_campaign = filters.utm_campaign
+      if (filters.utm_term) params.rt_adgroup = filters.utm_term
+      if (filters.utm_content) params.rt_ad = filters.utm_content
       // Montar URL
       const url = new URL('/api/report', window.location.origin)
       Object.entries(params).forEach(([key, value]) => {
@@ -242,18 +242,18 @@ const Campaigns: React.FC = () => {
       const response = await fetch(url.toString())
       const data = await response.json()
       console.log('UTM/Creativos - Resposta da API:', data)
-      // Mapear resposta para UTMCreative[]
+      // Mapear resposta para UTMCreative[] usando campos rt_*
       let utmArray: UTMCreative[] = []
       if (data && Array.isArray(data)) {
         utmArray = data.map((item: any) => {
-          const stat = item.stat || {}
+          const stat = item.stat || item // fallback para quando não há stat aninhado
           return {
-            id: [item.utm_source, item.utm_medium, item.utm_campaign, item.utm_term, item.utm_content].join('-') || Math.random().toString(36).slice(2),
-            utm_source: item.utm_source || '',
-            utm_medium: item.utm_medium || '',
-            utm_campaign: item.utm_campaign || '',
-            utm_term: item.utm_term || '',
-            utm_content: item.utm_content || '',
+            id: [item.rt_source, item.rt_medium, item.rt_campaign, item.rt_adgroup, item.rt_ad, item.rt_placement].join('-') || Math.random().toString(36).slice(2),
+            utm_source: item.rt_source || '',
+            utm_medium: item.rt_medium || '',
+            utm_campaign: item.rt_campaign || '',
+            utm_term: item.rt_adgroup || '',
+            utm_content: item.rt_ad || '',
             spend: stat.cost || 0,
             revenue: stat.revenue || 0,
             conversions: stat.conversions || 0,

@@ -107,7 +107,7 @@ const Conversions: React.FC = () => {
             conversionsData = Array.isArray(response.conversions) ? response.conversions : [response.conversions]
           } else if (response.conversion) {
             conversionsData = Array.isArray(response.conversion) ? response.conversion : [response.conversion]
-          } else {
+      } else {
             // Se não encontrar estrutura específica, usar o próprio response
             conversionsData = [response]
           }
@@ -213,38 +213,38 @@ const Conversions: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 shadow-2xl border border-white/20">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="flex items-center justify-between">
+        <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Conversões
-            </h1>
+            Conversões
+          </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
-              Análise detalhada de conversões e performance
+            Análise detalhada de conversões e performance
+          </p>
+          {lastUpdate && (
+            <p className="text-sm text-gray-500 mt-1">
+              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
             </p>
-            {lastUpdate && (
-              <p className="text-sm text-gray-500 mt-1">
-                Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Atualizando...' : 'Atualizar'}
-            </Button>
-            <Button 
-              onClick={handleExport}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
+          )}
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Atualizando...' : 'Atualizar'}
+          </Button>
+          <Button 
+            onClick={handleExport}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
             <Button 
               variant="outline" 
               size="sm"

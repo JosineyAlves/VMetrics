@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge"
  
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
+} 
 
 // Função para obter data no timezone do RedTrack (UTC)
 export const getRedTrackDate = (date: Date = new Date()) => {

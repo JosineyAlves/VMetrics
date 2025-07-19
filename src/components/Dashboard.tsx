@@ -463,58 +463,58 @@ const Dashboard: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 shadow-2xl border border-white/20">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="flex items-center justify-between">
+        <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
+            Dashboard
+          </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
-              Visão geral de performance
+            Visão geral de performance
+          </p>
+          {lastUpdate && (
+            <p className="text-sm text-gray-500 mt-1">
+              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
             </p>
-            {lastUpdate && (
-              <p className="text-sm text-gray-500 mt-1">
-                Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center space-x-3">
-            {/* Botão de Atualização */}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Atualizando...' : 'Atualizar'}
-            </Button>
-            
-            {/* Toggle Auto Refresh */}
-            <Button 
-              variant={autoRefresh ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <div className="w-4 h-4 mr-2">
-                {autoRefresh && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
-              </div>
-              Auto
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                setTempFilters(filters)
-                setShowFilters(!showFilters)
-              }}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
-            </Button>
+          )}
+        </div>
+        <div className="flex items-center space-x-3">
+          {/* Botão de Atualização */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Atualizando...' : 'Atualizar'}
+          </Button>
+          
+          {/* Toggle Auto Refresh */}
+          <Button 
+            variant={autoRefresh ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <div className="w-4 h-4 mr-2">
+              {autoRefresh && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+            </div>
+            Auto
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              setTempFilters(filters)
+              setShowFilters(!showFilters)
+            }}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+          </Button>
           </div>
         </div>
       </div>
@@ -681,13 +681,13 @@ const Dashboard: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
-              <div className="text-center">
-                <div className="text-4xl mb-2">📊</div>
-                <p className="text-lg font-semibold">Gráfico de Performance</p>
-                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
-              </div>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📊</div>
+              <p className="text-lg font-semibold">Gráfico de Performance</p>
+              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
             </div>
+          </div>
           )}
         </motion.div>
 

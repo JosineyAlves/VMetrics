@@ -187,28 +187,28 @@ const Geographic: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 shadow-2xl border border-white/20">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="flex items-center justify-between">
+        <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Análise Geográfica
-            </h1>
+            Análise Geográfica
+          </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
-              Performance por localização geográfica
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                setTempFilters(filters)
-                setShowFilters(!showFilters)
-              }}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
-            </Button>
+            Performance por localização geográfica
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              setTempFilters(filters)
+              setShowFilters(!showFilters)
+            }}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+          </Button>
           </div>
         </div>
       </div>
@@ -216,25 +216,25 @@ const Geographic: React.FC = () => {
       {/* Filtro de período padronizado */}
       <div className="flex items-center justify-between">
         <div className="relative period-dropdown">
-          <PeriodDropdown
-            value={selectedPeriod}
-            customRange={customRange}
-            onChange={(period, custom) => {
-              setSelectedPeriod(period);
+        <PeriodDropdown
+          value={selectedPeriod}
+          customRange={customRange}
+          onChange={(period, custom) => {
+            setSelectedPeriod(period);
               const dateRange = getDateRange(period, custom);
-              if (period === 'custom' && custom) {
-                setCustomRange(custom);
-              } else {
+            if (period === 'custom' && custom) {
+              setCustomRange(custom);
+            } else {
                 setCustomRange({ from: '', to: '' });
-              }
+            }
               setFilters(prev => ({
                 ...prev,
                 dateFrom: dateRange.startDate,
                 dateTo: dateRange.endDate,
               }));
-            }}
+          }}
             presets={periodPresets}
-          />
+        />
         </div>
       </div>
 
