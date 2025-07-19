@@ -209,20 +209,64 @@ const Campaigns: React.FC = () => {
             
             // Se encontrou campanhas, usar elas
             if (availableCampaigns.length > 0) {
-              const aggregatedData = campaignsData[0];
-              const individualCampaigns = availableCampaigns.map((campaign: any) => ({
-                ...aggregatedData,
-                campaign: campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome',
-                campaign_id: campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`,
-                // Dividir métricas pelo número de campanhas (aproximação)
-                clicks: Math.round(aggregatedData.clicks / availableCampaigns.length),
-                conversions: Math.round(aggregatedData.conversions / availableCampaigns.length),
-                revenue: aggregatedData.revenue / availableCampaigns.length,
-                cost: aggregatedData.cost / availableCampaigns.length
-              }));
+              console.log('Campanhas - Buscando dados individuais para cada campanha...');
               
-              campaignsData = individualCampaigns;
-              console.log('Campanhas - Dados individuais criados a partir da lista de campanhas:', campaignsData);
+              // Buscar dados individuais para cada campanha
+              const individualCampaignsData = [];
+              
+              for (const campaign of availableCampaigns) {
+                const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
+                const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
+                
+                console.log(`Campanhas - Buscando dados para campanha: ${campaignName}`);
+                
+                try {
+                  // Buscar dados específicos desta campanha
+                  const campaignDataResponse = await fetch(`/api/report?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}&group_by=campaign&campaign=${encodeURIComponent(campaignName)}`);
+                  const campaignData = await campaignDataResponse.json();
+                  console.log(`Campanhas - Dados da campanha ${campaignName}:`, campaignData);
+                  
+                  if (campaignData && Array.isArray(campaignData) && campaignData.length > 0) {
+                    // Usar dados reais da campanha
+                    const campaignMetrics = campaignData[0];
+                    individualCampaignsData.push({
+                      ...campaignMetrics,
+                      campaign: campaignName,
+                      campaign_id: campaignId
+                    });
+                  } else {
+                    // Se não há dados específicos, usar dados zerados
+                    individualCampaignsData.push({
+                      campaign: campaignName,
+                      campaign_id: campaignId,
+                      clicks: 0,
+                      conversions: 0,
+                      revenue: 0,
+                      cost: 0,
+                      roi: 0,
+                      cpa: 0,
+                      impressions: 0
+                    });
+                  }
+                } catch (error) {
+                  console.error(`Campanhas - Erro ao buscar dados da campanha ${campaignName}:`, error);
+                  // Adicionar campanha com dados zerados
+                  individualCampaignsData.push({
+                    campaign: campaignName,
+                    campaign_id: campaignId,
+                    clicks: 0,
+                    conversions: 0,
+                    revenue: 0,
+                    cost: 0,
+                    roi: 0,
+                    cpa: 0,
+                    impressions: 0
+                  });
+                }
+              }
+              
+              campaignsData = individualCampaignsData;
+              console.log('Campanhas - Dados individuais reais criados:', campaignsData);
             } else {
               // Se não encontrou campanhas na lista, tentar buscar conversões como fallback
               console.log('Campanhas - Nenhuma campanha encontrada na lista, tentando conversões...');
