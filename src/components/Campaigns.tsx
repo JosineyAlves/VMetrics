@@ -41,17 +41,17 @@ interface UTMCreative {
 }
 
 const mapRedTrackCampaign = (item: any) => ({
-  id: item.campaign_id || item.id || Math.random().toString(36).slice(2),
-  name: item.campaign || item.name || 'Campanha sem nome',
-  source: item.source || '',
-  status: item.status || 'active',
-  spend: item.cost || 0,
-  revenue: item.revenue || 0,
-  cpa: item.cpa || 0,
-  roi: item.roi || 0,
-  conversions: item.conversions || 0,
-  clicks: item.clicks || 0,
-  impressions: item.impressions || 0
+  id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
+  name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
+  source: item.source || item.traffic_source || item.media_source || '',
+  status: item.status || item.campaign_status || 'active',
+  spend: item.cost || item.spend || item.campaign_cost || 0,
+  revenue: item.revenue || item.campaign_revenue || item.earnings || 0,
+  cpa: item.cpa || item.cost_per_acquisition || 0,
+  roi: item.roi || item.return_on_investment || 0,
+  conversions: item.conversions || item.approved || item.total_conversions || 0,
+  clicks: item.clicks || item.total_clicks || 0,
+  impressions: item.impressions || item.total_impressions || 0
 })
 
 const Campaigns: React.FC = () => {
@@ -108,20 +108,27 @@ const Campaigns: React.FC = () => {
       console.log('API Key não definida, não vai buscar campanhas')
       return
     }
-    if (!filters.dateFrom || !filters.dateTo) {
-      console.error('Datas não definidas ou inválidas! dateFrom:', filters.dateFrom, 'dateTo:', filters.dateTo);
+    
+    // Usar getDateRange para obter datas corretas
+    const { getDateRange } = await import('../lib/utils')
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    
+    if (!dateRange.startDate || !dateRange.endDate) {
+      console.error('Datas não definidas ou inválidas! startDate:', dateRange.startDate, 'endDate:', dateRange.endDate);
       return;
     }
+    
     setLoading(true)
     try {
       const params = {
         api_key: apiKey,
-        date_from: filters.dateFrom,
-        date_to: filters.dateTo,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
         group_by: 'campaign',
         // Adicione outros filtros se necessário
       }
-      console.log('Parâmetros enviados:', params); // LOG detalhado dos parâmetros
+      console.log('Campanhas - Parâmetros enviados:', params); // LOG detalhado dos parâmetros
+      
       // Log da URL para depuração
       const url = new URL('/api/report', window.location.origin);
       Object.entries(params).forEach(([key, value]) => {
@@ -129,26 +136,45 @@ const Campaigns: React.FC = () => {
           url.searchParams.set(key, value.toString());
         }
       });
-      console.log('URL da requisição de campanhas:', url.toString());
-      // Chamada real
+      console.log('Campanhas - URL da requisição:', url.toString());
+      
+      // Chamada real usando endpoint de report com group_by=campaign
       const response = await fetch(url.toString());
       const data = await response.json();
-      console.log('Resposta bruta do RedTrack:', JSON.stringify(data, null, 2)); // LOG detalhado
-      if (Array.isArray(data)) {
-        // Filtrar apenas itens com campaign e campaign_id
-        let filtered = data.filter((item: any) => item.campaign && item.campaign_id);
-        // Se não houver campanhas reais, exibir pelo menos o primeiro item (dados agregados)
-        if (filtered.length === 0 && data.length > 0) {
-          filtered = [data[0]];
+      console.log('Campanhas - Resposta bruta do RedTrack:', JSON.stringify(data, null, 2)); // LOG detalhado
+      
+      // Processar diferentes formatos de resposta
+      let campaignsData = []
+      
+      if (data) {
+        // Se data é um array direto
+        if (Array.isArray(data)) {
+          campaignsData = data
         }
-        console.log('Itens filtrados (com campaign e campaign_id ou agregados):', filtered);
+        // Se data tem propriedade items (formato RedTrack)
+        else if (data.items && Array.isArray(data.items)) {
+          campaignsData = data.items
+        }
+        // Se data tem propriedade data
+        else if (data.data && Array.isArray(data.data)) {
+          campaignsData = data.data
+        }
+        // Se data é um objeto único
+        else if (typeof data === 'object' && !Array.isArray(data)) {
+          campaignsData = [data]
+        }
+      }
+      
+      console.log('Campanhas - Dados processados:', campaignsData);
+      
+      if (campaignsData.length > 0) {
         // Mapear dados do RedTrack para o formato esperado
-        const mapped = filtered.map((item: any, idx: number) => {
+        const mapped = campaignsData.map((item: any, idx: number) => {
           const mappedItem = mapRedTrackCampaign(item);
-          console.log(`Item [${idx}] mapeado:`, mappedItem); // LOG 3
+          console.log(`Campanha [${idx}] mapeada:`, mappedItem); // LOG detalhado
           return mappedItem;
         });
-        console.log('Campanhas mapeadas:', mapped);
+        console.log('Campanhas - Campanhas mapeadas:', mapped);
         setCampaigns(mapped);
         setTotalCampaigns(mapped.length);
       } else {
