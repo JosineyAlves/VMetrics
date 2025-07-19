@@ -167,6 +167,71 @@ const Campaigns: React.FC = () => {
       
       console.log('Campanhas - Dados processados:', campaignsData);
       
+      // Verificar se há campos de campanha nos dados
+      if (campaignsData.length > 0) {
+        console.log('Campanhas - Campos disponíveis no primeiro item:', Object.keys(campaignsData[0]));
+        console.log('Campanhas - Valores do primeiro item:', campaignsData[0]);
+        
+        // Verificar se há campos relacionados a campanha
+        const firstItem = campaignsData[0];
+        const campaignFields = Object.keys(firstItem).filter(key => 
+          key.toLowerCase().includes('campaign') || 
+          key.toLowerCase().includes('name') ||
+          key.toLowerCase().includes('title')
+        );
+        console.log('Campanhas - Campos relacionados a campanha:', campaignFields);
+        
+        // Se não há dados individuais por campanha, tentar buscar dados de conversões para extrair nomes
+        if (campaignsData.length === 1 && !firstItem.campaign && !firstItem.campaign_id) {
+          console.log('Campanhas - Dados agregados detectados, tentando buscar dados individuais...');
+          
+          // Tentar buscar conversões para extrair nomes de campanhas
+          try {
+            const conversionsResponse = await fetch(`/api/conversions?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}`);
+            const conversionsData = await conversionsResponse.json();
+            console.log('Campanhas - Dados de conversões para extrair campanhas:', conversionsData);
+            
+            // Extrair campanhas únicas das conversões
+            const uniqueCampaigns = new Set();
+            if (conversionsData && Array.isArray(conversionsData)) {
+              conversionsData.forEach((conv: any) => {
+                if (conv.campaign) {
+                  uniqueCampaigns.add(conv.campaign);
+                }
+              });
+            } else if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
+              conversionsData.items.forEach((conv: any) => {
+                if (conv.campaign) {
+                  uniqueCampaigns.add(conv.campaign);
+                }
+              });
+            }
+            
+            console.log('Campanhas - Campanhas únicas encontradas:', Array.from(uniqueCampaigns));
+            
+            // Criar dados individuais por campanha
+            if (uniqueCampaigns.size > 0) {
+              const aggregatedData = campaignsData[0];
+              const individualCampaigns = Array.from(uniqueCampaigns).map((campaignName: any) => ({
+                ...aggregatedData,
+                campaign: campaignName,
+                campaign_id: `campaign_${campaignName.toString().replace(/\s+/g, '_').toLowerCase()}`,
+                // Dividir métricas pelo número de campanhas (aproximação)
+                clicks: Math.round(aggregatedData.clicks / uniqueCampaigns.size),
+                conversions: Math.round(aggregatedData.conversions / uniqueCampaigns.size),
+                revenue: aggregatedData.revenue / uniqueCampaigns.size,
+                cost: aggregatedData.cost / uniqueCampaigns.size
+              }));
+              
+              campaignsData = individualCampaigns;
+              console.log('Campanhas - Dados individuais criados:', campaignsData);
+            }
+          } catch (error) {
+            console.error('Campanhas - Erro ao buscar conversões:', error);
+          }
+        }
+      }
+      
       if (campaignsData.length > 0) {
         // Mapear dados do RedTrack para o formato esperado
         const mapped = campaignsData.map((item: any, idx: number) => {
