@@ -216,42 +216,163 @@ const Campaigns: React.FC = () => {
                 const allCampaignsDataResponse = await fetch(`/api/report?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}&group_by=campaign`);
                 const allCampaignsData = await allCampaignsDataResponse.json();
                 console.log('Campanhas - Todos os dados de campanhas:', allCampaignsData);
+                console.log('Campanhas - Tipo de dados:', typeof allCampaignsData);
+                console.log('Campanhas - É array?', Array.isArray(allCampaignsData));
+                if (Array.isArray(allCampaignsData)) {
+                  console.log('Campanhas - Número de itens:', allCampaignsData.length);
+                  allCampaignsData.forEach((item, index) => {
+                    console.log(`Campanhas - Item ${index}:`, item);
+                  });
+                }
                 
-                // Processar dados e mapear para campanhas disponíveis
-                const individualCampaignsData = [];
+                // Verificar se os dados são agregados (apenas 1 item com dados totais)
+                const isAggregatedData = Array.isArray(allCampaignsData) && allCampaignsData.length === 1 && 
+                  (!allCampaignsData[0].campaign && !allCampaignsData[0].campaign_name && !allCampaignsData[0].name && !allCampaignsData[0].title && !allCampaignsData[0].Title);
                 
-                for (const campaign of availableCampaigns) {
-                  const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
-                  const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
+                console.log('Campanhas - Dados são agregados?', isAggregatedData);
+                
+                // Verificar se a resposta tem estrutura { items: [...] }
+                const hasItemsStructure = allCampaignsData && allCampaignsData.items && Array.isArray(allCampaignsData.items);
+                console.log('Campanhas - Tem estrutura items?', hasItemsStructure);
+                
+                if (hasItemsStructure) {
+                  console.log('Campanhas - Usando estrutura items com dados individuais...');
                   
-                  console.log(`Campanhas - Procurando dados para campanha: ${campaignName}`);
+                  // Usar dados individuais da estrutura items
+                  const individualCampaignsData = [];
                   
-                  // Procurar dados desta campanha nos dados retornados
-                  let campaignData = null;
-                  
-                  if (Array.isArray(allCampaignsData)) {
-                    // Procurar por correspondência exata ou parcial do nome
-                    campaignData = allCampaignsData.find((item: any) => {
-                      const itemCampaign = item.campaign || item.campaign_name || item.name || '';
-                      return itemCampaign.toLowerCase() === campaignName.toLowerCase() ||
-                             itemCampaign.toLowerCase().includes(campaignName.toLowerCase()) ||
-                             campaignName.toLowerCase().includes(itemCampaign.toLowerCase());
+                  for (const campaign of availableCampaigns) {
+                    const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
+                    const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
+                    
+                    console.log(`Campanhas - Procurando dados para campanha: ${campaignName}`);
+                    
+                    // Procurar dados desta campanha nos items
+                    const campaignData = allCampaignsData.items.find((item: any) => {
+                      const itemTitle = item.title || item.Title || '';
+                      console.log(`Campanhas - Comparando "${itemTitle}" com "${campaignName}"`);
+                      return itemTitle.toLowerCase() === campaignName.toLowerCase() ||
+                             itemTitle.toLowerCase().includes(campaignName.toLowerCase()) ||
+                             campaignName.toLowerCase().includes(itemTitle.toLowerCase());
                     });
+                    
+                    if (campaignData && campaignData.stat) {
+                      console.log(`Campanhas - Dados encontrados para ${campaignName}:`, campaignData.stat);
+                      individualCampaignsData.push({
+                        campaign: campaignName,
+                        campaign_id: campaignId,
+                        clicks: campaignData.stat.clicks || 0,
+                        conversions: campaignData.stat.conversions || 0,
+                        revenue: campaignData.stat.revenue || 0,
+                        cost: campaignData.stat.cost || 0,
+                        roi: campaignData.stat.roi || 0,
+                        cpa: campaignData.stat.cpa || 0,
+                        impressions: campaignData.stat.impressions || 0,
+                        source: campaignData.source_title || ''
+                      });
+                    } else {
+                      console.log(`Campanhas - Nenhum dado encontrado para ${campaignName}, usando dados zerados`);
+                      individualCampaignsData.push({
+                        campaign: campaignName,
+                        campaign_id: campaignId,
+                        clicks: 0,
+                        conversions: 0,
+                        revenue: 0,
+                        cost: 0,
+                        roi: 0,
+                        cpa: 0,
+                        impressions: 0,
+                        source: ''
+                      });
+                    }
                   }
                   
-                  if (campaignData) {
-                    console.log(`Campanhas - Dados encontrados para ${campaignName}:`, campaignData);
-                    individualCampaignsData.push({
-                      ...campaignData,
-                      campaign: campaignName,
-                      campaign_id: campaignId
-                    });
-                  } else {
-                    console.log(`Campanhas - Nenhum dado encontrado para ${campaignName}, usando dados zerados`);
-                    // Se não há dados específicos, usar dados zerados
-                    individualCampaignsData.push({
-                      campaign: campaignName,
-                      campaign_id: campaignId,
+                  campaignsData = individualCampaignsData;
+                  console.log('Campanhas - Dados individuais criados a partir da estrutura items:', campaignsData);
+                } else if (isAggregatedData) {
+                  console.log('Campanhas - Dados agregados detectados, tentando buscar dados individuais via conversões...');
+                  
+                  // Se são dados agregados, tentar extrair dados individuais das conversões
+                  try {
+                    const conversionsResponse = await fetch(`/api/conversions?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}`);
+                    const conversionsData = await conversionsResponse.json();
+                    console.log('Campanhas - Dados de conversões para extrair campanhas:', conversionsData);
+                    
+                    // Agrupar conversões por campanha para obter dados individuais
+                    const campaignStats = new Map();
+                    
+                    if (conversionsData && Array.isArray(conversionsData)) {
+                      conversionsData.forEach((conv: any) => {
+                        if (conv.campaign) {
+                          if (!campaignStats.has(conv.campaign)) {
+                            campaignStats.set(conv.campaign, {
+                              clicks: 0,
+                              conversions: 0,
+                              revenue: 0,
+                              cost: 0
+                            });
+                          }
+                          const stats = campaignStats.get(conv.campaign);
+                          stats.conversions += 1;
+                          stats.revenue += (conv.revenue || conv.payout || 0);
+                        }
+                      });
+                    } else if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
+                      conversionsData.items.forEach((conv: any) => {
+                        if (conv.campaign) {
+                          if (!campaignStats.has(conv.campaign)) {
+                            campaignStats.set(conv.campaign, {
+                              clicks: 0,
+                              conversions: 0,
+                              revenue: 0,
+                              cost: 0
+                            });
+                          }
+                          const stats = campaignStats.get(conv.campaign);
+                          stats.conversions += 1;
+                          stats.revenue += (conv.revenue || conv.payout || 0);
+                        }
+                      });
+                    }
+                    
+                    console.log('Campanhas - Estatísticas por campanha:', campaignStats);
+                    
+                    // Criar dados individuais baseados nas conversões
+                    const individualCampaignsData = [];
+                    
+                    for (const campaign of availableCampaigns) {
+                      const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
+                      const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
+                      
+                      const stats = campaignStats.get(campaignName) || {
+                        clicks: 0,
+                        conversions: 0,
+                        revenue: 0,
+                        cost: 0
+                      };
+                      
+                      individualCampaignsData.push({
+                        campaign: campaignName,
+                        campaign_id: campaignId,
+                        clicks: stats.clicks,
+                        conversions: stats.conversions,
+                        revenue: stats.revenue,
+                        cost: stats.cost,
+                        roi: stats.cost > 0 ? ((stats.revenue - stats.cost) / stats.cost) * 100 : 0,
+                        cpa: stats.conversions > 0 ? stats.cost / stats.conversions : 0,
+                        impressions: 0
+                      });
+                    }
+                    
+                    campaignsData = individualCampaignsData;
+                    console.log('Campanhas - Dados individuais criados a partir das conversões:', campaignsData);
+                    
+                  } catch (conversionError) {
+                    console.error('Campanhas - Erro ao buscar conversões:', conversionError);
+                    // Fallback: usar dados zerados
+                    const fallbackData = availableCampaigns.map((campaign: any) => ({
+                      campaign: campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome',
+                      campaign_id: campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`,
                       clicks: 0,
                       conversions: 0,
                       revenue: 0,
@@ -259,12 +380,60 @@ const Campaigns: React.FC = () => {
                       roi: 0,
                       cpa: 0,
                       impressions: 0
-                    });
+                    }));
+                    campaignsData = fallbackData;
                   }
+                } else {
+                  // Processar dados e mapear para campanhas disponíveis
+                  const individualCampaignsData = [];
+                  
+                  for (const campaign of availableCampaigns) {
+                    const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
+                    const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
+                    
+                    console.log(`Campanhas - Procurando dados para campanha: ${campaignName}`);
+                    
+                    // Procurar dados desta campanha nos dados retornados
+                    let campaignData = null;
+                    
+                    if (Array.isArray(allCampaignsData)) {
+                      // Procurar por correspondência exata ou parcial do nome
+                      campaignData = allCampaignsData.find((item: any) => {
+                        const itemCampaign = item.campaign || item.campaign_name || item.name || item.title || item.Title || '';
+                        console.log(`Campanhas - Comparando "${itemCampaign}" com "${campaignName}"`);
+                        return itemCampaign.toLowerCase() === campaignName.toLowerCase() ||
+                               itemCampaign.toLowerCase().includes(campaignName.toLowerCase()) ||
+                               campaignName.toLowerCase().includes(itemCampaign.toLowerCase());
+                      });
+                    }
+                    
+                    if (campaignData) {
+                      console.log(`Campanhas - Dados encontrados para ${campaignName}:`, campaignData);
+                      individualCampaignsData.push({
+                        ...campaignData,
+                        campaign: campaignName,
+                        campaign_id: campaignId
+                      });
+                    } else {
+                      console.log(`Campanhas - Nenhum dado encontrado para ${campaignName}, usando dados zerados`);
+                      // Se não há dados específicos, usar dados zerados
+                      individualCampaignsData.push({
+                        campaign: campaignName,
+                        campaign_id: campaignId,
+                        clicks: 0,
+                        conversions: 0,
+                        revenue: 0,
+                        cost: 0,
+                        roi: 0,
+                        cpa: 0,
+                        impressions: 0
+                      });
+                    }
+                  }
+                  
+                  campaignsData = individualCampaignsData;
+                  console.log('Campanhas - Dados individuais reais criados:', campaignsData);
                 }
-                
-                campaignsData = individualCampaignsData;
-                console.log('Campanhas - Dados individuais reais criados:', campaignsData);
                 
               } catch (error) {
                 console.error('Campanhas - Erro ao buscar dados de campanhas:', error);
