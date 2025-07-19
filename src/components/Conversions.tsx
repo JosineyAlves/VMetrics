@@ -80,19 +80,70 @@ const Conversions: React.FC = () => {
       const response = await api.getConversions(params)
       console.log('Conversões - Resposta da API:', response)
       
-      if (response && response.data) {
-        setConversions(response.data)
-        setTotalConversions(response.total || response.data.length)
-        
-        // Calcular receita total
-        const revenue = response.data.reduce((sum: number, conv: Conversion) => 
-          sum + (conv.revenue || conv.payout || 0), 0)
-        setTotalRevenue(revenue)
-      } else {
-        setConversions([])
-        setTotalConversions(0)
-        setTotalRevenue(0)
+      // Processar diferentes formatos de resposta
+      let conversionsData = []
+      let totalCount = 0
+      
+      if (response) {
+        // Se response é um array direto
+        if (Array.isArray(response)) {
+          conversionsData = response
+          totalCount = response.length
+        }
+        // Se response tem propriedade items (formato RedTrack)
+        else if (response.items && Array.isArray(response.items)) {
+          conversionsData = response.items
+          totalCount = response.total || response.items.length
+        }
+        // Se response tem propriedade data
+        else if (response.data && Array.isArray(response.data)) {
+          conversionsData = response.data
+          totalCount = response.total || response.data.length
+        }
+        // Se response é um objeto com dados diretos
+        else if (typeof response === 'object' && !Array.isArray(response)) {
+          // Tentar extrair dados de diferentes propriedades possíveis
+          if (response.conversions) {
+            conversionsData = Array.isArray(response.conversions) ? response.conversions : [response.conversions]
+          } else if (response.conversion) {
+            conversionsData = Array.isArray(response.conversion) ? response.conversion : [response.conversion]
+          } else {
+            // Se não encontrar estrutura específica, usar o próprio response
+            conversionsData = [response]
+          }
+          totalCount = conversionsData.length
+        }
       }
+      
+      console.log('Conversões - Dados processados:', {
+        conversionsData,
+        totalCount,
+        originalResponse: response
+      })
+      
+      // Mapear dados para o formato esperado
+      const mappedConversions = conversionsData.map((item: any, index: number) => ({
+        id: item.id || item.conversion_id || `conv_${index}`,
+        click_id: item.click_id || item.clickid || '',
+        date: item.date || item.created_at || item.timestamp || new Date().toISOString().split('T')[0],
+        campaign: item.campaign || item.campaign_name || item.name || 'Campanha sem nome',
+        payout: item.payout || item.revenue || item.amount || 0,
+        type: item.type || item.conversion_type || 'sale',
+        country: item.country || item.geo || 'N/A',
+        source: item.source || item.traffic_source || 'N/A',
+        status: item.status || item.approval_status || 'approved',
+        revenue: item.revenue || item.payout || item.amount || 0
+      }))
+      
+      console.log('Conversões - Dados mapeados:', mappedConversions)
+      
+      setConversions(mappedConversions)
+      setTotalConversions(totalCount)
+      
+      // Calcular receita total
+      const revenue = mappedConversions.reduce((sum: number, conv: Conversion) => 
+        sum + (conv.revenue || conv.payout || 0), 0)
+      setTotalRevenue(revenue)
       
       setLastUpdate(new Date())
     } catch (error) {
