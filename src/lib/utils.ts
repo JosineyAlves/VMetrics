@@ -5,7 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Base padronizada de datas para todas as telas
+// Função para obter data no timezone do RedTrack (UTC)
+export const getRedTrackDate = (date: Date = new Date()) => {
+  // RedTrack usa UTC, então convertemos para UTC
+  const utcDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000))
+  return utcDate
+}
+
+// Função para formatar data no formato YYYY-MM-DD para RedTrack
+export const formatDateForRedTrack = (date: Date) => {
+  return date.toISOString().split('T')[0]
+}
+
+// Base padronizada de datas para todas as telas - Sincronizada com RedTrack
 export const getDateRange = (period: string, customRange?: { from: string; to: string }) => {
   if (period === 'custom' && customRange?.from && customRange?.to) {
     return {
@@ -14,13 +26,14 @@ export const getDateRange = (period: string, customRange?: { from: string; to: s
     }
   }
 
-  const today = new Date()
+  // Usar timezone do RedTrack (UTC)
+  const today = getRedTrackDate(new Date())
   let startDate = new Date(today)
   let endDate = new Date(today)
 
   switch (period) {
     case 'today':
-      // já está correto
+      // já está correto - usa data atual no timezone do RedTrack
       break
     case 'last_60_minutes':
       startDate = new Date(today.getTime() - 60 * 60 * 1000)
@@ -59,9 +72,19 @@ export const getDateRange = (period: string, customRange?: { from: string; to: s
   }
 
   return {
-    startDate: startDate.toISOString().split('T')[0],
-    endDate: endDate.toISOString().split('T')[0]
+    startDate: formatDateForRedTrack(startDate),
+    endDate: formatDateForRedTrack(endDate)
   }
+}
+
+// Função para obter data atual no timezone do RedTrack
+export const getCurrentRedTrackDate = () => {
+  return formatDateForRedTrack(getRedTrackDate())
+}
+
+// Função para converter data local para timezone do RedTrack
+export const convertToRedTrackTimezone = (localDate: Date) => {
+  return getRedTrackDate(localDate)
 }
 
 // Presets padronizados com tradução

@@ -110,7 +110,7 @@ const Campaigns: React.FC = () => {
     }
     
     // Usar getDateRange para obter datas corretas
-    const { getDateRange } = await import('../lib/utils')
+    const { getDateRange, getCurrentRedTrackDate } = await import('../lib/utils')
     const dateRange = getDateRange(selectedPeriod, customRange)
     
     if (!dateRange.startDate || !dateRange.endDate) {
@@ -130,13 +130,22 @@ const Campaigns: React.FC = () => {
       console.log('Campanhas - Parâmetros enviados:', params); // LOG detalhado dos parâmetros
       
       // Log da URL para depuração
-      const url = new URL('/api/report', window.location.origin);
+      const url = new URL('/api/campaigns', window.location.origin);
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           url.searchParams.set(key, value.toString());
         }
       });
       console.log('Campanhas - URL da requisição:', url.toString());
+      
+      // Log de timezone para debug
+      console.log('Campanhas - Timezone UTC - Data atual:', getCurrentRedTrackDate());
+      console.log('Campanhas - Timezone UTC - Período selecionado:', selectedPeriod);
+      console.log('Campanhas - Timezone UTC - Datas calculadas:', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        timezone: 'UTC'
+      });
       
       // Chamada real usando endpoint de report com group_by=campaign
       const response = await fetch(url.toString());
@@ -270,7 +279,7 @@ const Campaigns: React.FC = () => {
                         impressions: campaignData.stat.impressions || 0,
                         source: campaignData.source_title || ''
                       });
-                    } else {
+      } else {
                       console.log(`Campanhas - Nenhum dado encontrado para ${campaignName}, usando dados zerados`);
                       individualCampaignsData.push({
                         campaign: campaignName,

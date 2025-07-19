@@ -19,7 +19,7 @@ import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
 import PeriodDropdown from './ui/PeriodDropdown'
-import { getDateRange, periodPresets } from '../lib/utils'
+import { getDateRange, getCurrentRedTrackDate, periodPresets } from '../lib/utils'
 
 
 interface Metric {
@@ -173,11 +173,11 @@ const Dashboard: React.FC = () => {
       // Usar a base padronizada de datas
       const dateRange = getDateRange(selectedPeriod, customRange)
       
-      console.log('Dashboard - Parâmetros enviados:', {
+      console.log('Dashboard - Timezone UTC - Data atual:', getCurrentRedTrackDate())
+      console.log('Dashboard - Timezone UTC - Parâmetros enviados:', {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        group_by: 'date',
-        ...filters
+        timezone: 'UTC'
       })
 
       const params = {
