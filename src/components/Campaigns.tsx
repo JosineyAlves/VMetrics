@@ -203,14 +203,88 @@ const Campaigns: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    console.log('useEffect - apiKey:', apiKey, 'selectedPeriod:', selectedPeriod, 'filters:', filters);
-    if (apiKey) {
-      loadCampaigns()
-    } else {
-      console.log('API Key não definida no useEffect')
+  // Função para carregar dados de UTM/Creativos
+  const loadUTMCreatives = async () => {
+    if (!apiKey) {
+      console.log('API Key não definida, não vai buscar UTMs')
+      return
     }
-  }, [apiKey, selectedPeriod, filters])
+    const { getDateRange, getCurrentRedTrackDate } = await import('../lib/utils')
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    if (!dateRange.startDate || !dateRange.endDate) {
+      console.error('Datas não definidas ou inválidas! startDate:', dateRange.startDate, 'endDate:', dateRange.endDate);
+      return;
+    }
+    setLoading(true)
+    try {
+      // Montar parâmetros
+      const params: Record<string, string> = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'utm_source,utm_medium,utm_campaign,utm_term,utm_content',
+      }
+      // Adicionar filtros de UTM se existirem
+      if (filters.utm_source) params.utm_source = filters.utm_source
+      if (filters.utm_medium) params.utm_medium = filters.utm_medium
+      if (filters.utm_campaign) params.utm_campaign = filters.utm_campaign
+      if (filters.utm_term) params.utm_term = filters.utm_term
+      if (filters.utm_content) params.utm_content = filters.utm_content
+      // Montar URL
+      const url = new URL('/api/report', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
+        }
+      })
+      console.log('UTM/Creativos - URL da requisição:', url.toString())
+      // Chamada para API
+      const response = await fetch(url.toString())
+      const data = await response.json()
+      console.log('UTM/Creativos - Resposta da API:', data)
+      // Mapear resposta para UTMCreative[]
+      let utmArray: UTMCreative[] = []
+      if (data && Array.isArray(data)) {
+        utmArray = data.map((item: any) => {
+          const stat = item.stat || {}
+          return {
+            id: [item.utm_source, item.utm_medium, item.utm_campaign, item.utm_term, item.utm_content].join('-') || Math.random().toString(36).slice(2),
+            utm_source: item.utm_source || '',
+            utm_medium: item.utm_medium || '',
+            utm_campaign: item.utm_campaign || '',
+            utm_term: item.utm_term || '',
+            utm_content: item.utm_content || '',
+            spend: stat.cost || 0,
+            revenue: stat.revenue || 0,
+            conversions: stat.conversions || 0,
+            clicks: stat.clicks || 0,
+            impressions: stat.impressions || 0,
+            ctr: stat.ctr || 0,
+            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
+            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
+          }
+        })
+      }
+      setUtmCreatives(utmArray)
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('Error loading UTM Creatives:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // useEffect para carregar dados ao trocar de aba ou filtros
+  useEffect(() => {
+    if (apiKey) {
+      if (activeTab === 'campaigns') {
+        loadCampaigns()
+      } else if (activeTab === 'utm') {
+        loadUTMCreatives()
+      }
+    }
+    // eslint-disable-next-line
+  }, [apiKey, selectedPeriod, filters, activeTab, customRange])
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
