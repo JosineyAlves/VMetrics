@@ -101,7 +101,7 @@ const Campaigns: React.FC = () => {
 
 
   // Remover uso de getDateRange e garantir parâmetros obrigatórios na chamada de campanhas
-  // Novo fluxo: buscar campanhas usando /report (GET) com group_by=campaign
+  // Novo fluxo: buscar campanhas usando /api/campaigns que agora retorna dados combinados
   const loadCampaigns = async () => {
     console.log('Chamando loadCampaigns')
     if (!apiKey) {
@@ -120,121 +120,61 @@ const Campaigns: React.FC = () => {
     
     setLoading(true)
     try {
-      // Estratégia: Buscar dados de conversões para obter nomes das campanhas que tiveram cliques
-      console.log('Campanhas - Buscando dados de conversões para extrair nomes das campanhas...');
-      
-      const conversionsParams = {
+      const params = {
         api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        // Não usar group_by para obter dados individuais
+        group_by: 'campaign'
       }
       
-      console.log('Campanhas - Parâmetros para conversões:', conversionsParams);
+      console.log('Campanhas - Parâmetros enviados:', params);
       
-      // Buscar dados de conversões primeiro
-      const conversionsUrl = new URL('/api/conversions', window.location.origin);
-      Object.entries(conversionsParams).forEach(([key, value]) => {
+      // Log da URL para depuração
+      const url = new URL('/api/campaigns', window.location.origin);
+      Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          conversionsUrl.searchParams.set(key, value.toString());
+          url.searchParams.set(key, value.toString());
         }
       });
+      console.log('Campanhas - URL da requisição:', url.toString());
       
-      console.log('Campanhas - URL para conversões:', conversionsUrl.toString());
+      // Log de timezone para debug
+      console.log('Campanhas - Timezone UTC - Data atual:', getCurrentRedTrackDate());
+      console.log('Campanhas - Timezone UTC - Período selecionado:', selectedPeriod);
+      console.log('Campanhas - Timezone UTC - Datas calculadas:', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        timezone: 'UTC'
+      });
       
-      const conversionsResponse = await fetch(conversionsUrl.toString());
-      const conversionsData = await conversionsResponse.json();
+      // Chamada para API que agora retorna dados combinados
+      const response = await fetch(url.toString());
+      const data = await response.json();
       
-      console.log('Campanhas - Dados de conversões:', conversionsData);
+      console.log('Campanhas - Resposta da API:', data);
       
-      // Extrair nomes únicos das campanhas que tiveram conversões
-      const campaignNames = new Map()
+      // Processar dados que já vêm com title correto
+      let campaignsArray: any[] = []
       
-      if (conversionsData && Array.isArray(conversionsData)) {
-        conversionsData.forEach((conversion: any) => {
-          const campaignName = conversion.campaign || conversion.campaign_name || conversion.title || 'Campanha sem nome'
-          const campaignId = conversion.campaign_id || conversion.id || Math.random().toString(36).slice(2)
+      if (data && Array.isArray(data)) {
+        campaignsArray = data.map(item => {
+          const stat = item.stat || {}
           
-          if (!campaignNames.has(campaignId)) {
-            campaignNames.set(campaignId, {
-              id: campaignId,
-              name: campaignName,
-              source: conversion.source || conversion.traffic_source || '',
-              clicks: 0,
-              conversions: 0,
-              revenue: 0,
-              cost: 0
-            })
+          return {
+            id: item.id,
+            name: item.title || 'Campanha sem nome',
+            source: item.source_title || '',
+            status: item.status || 'active',
+            spend: stat.cost || 0,
+            revenue: stat.revenue || 0,
+            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
+            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
+            conversions: stat.conversions || 0,
+            clicks: stat.clicks || 0,
+            impressions: stat.impressions || 0
           }
-          
-          // Acumular métricas
-          const campaign = campaignNames.get(campaignId)
-          campaign.clicks += conversion.clicks || 0
-          campaign.conversions += conversion.conversions || 0
-          campaign.revenue += conversion.revenue || 0
-          campaign.cost += conversion.cost || 0
         })
       }
-      
-      console.log('Campanhas - Campanhas extraídas das conversões:', Array.from(campaignNames.values()));
-      
-      // Se não encontrou campanhas nas conversões, tentar buscar dados agregados
-      if (campaignNames.size === 0) {
-        console.log('Campanhas - Nenhuma campanha encontrada nas conversões, tentando dados agregados...');
-        
-        const reportParams = {
-          api_key: apiKey,
-          date_from: dateRange.startDate,
-          date_to: dateRange.endDate,
-          group_by: 'campaign'
-        }
-        
-        const reportUrl = new URL('/api/report', window.location.origin);
-        Object.entries(reportParams).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            reportUrl.searchParams.set(key, value.toString());
-          }
-        });
-        
-        console.log('Campanhas - URL para report:', reportUrl.toString());
-        
-        const reportResponse = await fetch(reportUrl.toString());
-        const reportData = await reportResponse.json()
-        
-        console.log('Campanhas - Dados do report:', reportData)
-        
-        if (reportData && Array.isArray(reportData)) {
-          reportData.forEach((item: any) => {
-            const campaignName = item.campaign || item.campaign_name || item.title || 'Campanha sem nome'
-            const campaignId = item.campaign_id || item.id || Math.random().toString(36).slice(2)
-            
-            campaignNames.set(campaignId, {
-              id: campaignId,
-              name: campaignName,
-              source: item.source || item.traffic_source || '',
-              clicks: item.clicks || item.stat?.clicks || 0,
-              conversions: item.conversions || item.stat?.conversions || 0,
-              revenue: item.revenue || item.stat?.revenue || 0,
-              cost: item.cost || item.stat?.cost || 0
-            })
-          })
-        }
-      }
-      
-      // Converter para array e mapear
-      const campaignsArray = Array.from(campaignNames.values()).map(campaign => ({
-        id: campaign.id,
-        name: campaign.name,
-        source: campaign.source,
-        status: 'active',
-        spend: campaign.cost,
-        revenue: campaign.revenue,
-        cpa: campaign.cost > 0 && campaign.conversions > 0 ? campaign.cost / campaign.conversions : 0,
-        roi: campaign.cost > 0 ? ((campaign.revenue - campaign.cost) / campaign.cost) * 100 : 0,
-        conversions: campaign.conversions,
-        clicks: campaign.clicks,
-        impressions: 0
-      }))
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
       
