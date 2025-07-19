@@ -211,30 +211,43 @@ const Campaigns: React.FC = () => {
             if (availableCampaigns.length > 0) {
               console.log('Campanhas - Buscando dados individuais para cada campanha...');
               
-              // Buscar dados individuais para cada campanha
-              const individualCampaignsData = [];
-              
-              for (const campaign of availableCampaigns) {
-                const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
-                const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
+              // Buscar todos os dados de campanhas de uma vez
+              try {
+                const allCampaignsDataResponse = await fetch(`/api/report?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}&group_by=campaign`);
+                const allCampaignsData = await allCampaignsDataResponse.json();
+                console.log('Campanhas - Todos os dados de campanhas:', allCampaignsData);
                 
-                console.log(`Campanhas - Buscando dados para campanha: ${campaignName}`);
+                // Processar dados e mapear para campanhas disponíveis
+                const individualCampaignsData = [];
                 
-                try {
-                  // Buscar dados específicos desta campanha
-                  const campaignDataResponse = await fetch(`/api/report?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}&group_by=campaign&campaign=${encodeURIComponent(campaignName)}`);
-                  const campaignData = await campaignDataResponse.json();
-                  console.log(`Campanhas - Dados da campanha ${campaignName}:`, campaignData);
+                for (const campaign of availableCampaigns) {
+                  const campaignName = campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome';
+                  const campaignId = campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`;
                   
-                  if (campaignData && Array.isArray(campaignData) && campaignData.length > 0) {
-                    // Usar dados reais da campanha
-                    const campaignMetrics = campaignData[0];
+                  console.log(`Campanhas - Procurando dados para campanha: ${campaignName}`);
+                  
+                  // Procurar dados desta campanha nos dados retornados
+                  let campaignData = null;
+                  
+                  if (Array.isArray(allCampaignsData)) {
+                    // Procurar por correspondência exata ou parcial do nome
+                    campaignData = allCampaignsData.find((item: any) => {
+                      const itemCampaign = item.campaign || item.campaign_name || item.name || '';
+                      return itemCampaign.toLowerCase() === campaignName.toLowerCase() ||
+                             itemCampaign.toLowerCase().includes(campaignName.toLowerCase()) ||
+                             campaignName.toLowerCase().includes(itemCampaign.toLowerCase());
+                    });
+                  }
+                  
+                  if (campaignData) {
+                    console.log(`Campanhas - Dados encontrados para ${campaignName}:`, campaignData);
                     individualCampaignsData.push({
-                      ...campaignMetrics,
+                      ...campaignData,
                       campaign: campaignName,
                       campaign_id: campaignId
                     });
                   } else {
+                    console.log(`Campanhas - Nenhum dado encontrado para ${campaignName}, usando dados zerados`);
                     // Se não há dados específicos, usar dados zerados
                     individualCampaignsData.push({
                       campaign: campaignName,
@@ -248,25 +261,30 @@ const Campaigns: React.FC = () => {
                       impressions: 0
                     });
                   }
-                } catch (error) {
-                  console.error(`Campanhas - Erro ao buscar dados da campanha ${campaignName}:`, error);
-                  // Adicionar campanha com dados zerados
-                  individualCampaignsData.push({
-                    campaign: campaignName,
-                    campaign_id: campaignId,
-                    clicks: 0,
-                    conversions: 0,
-                    revenue: 0,
-                    cost: 0,
-                    roi: 0,
-                    cpa: 0,
-                    impressions: 0
-                  });
                 }
+                
+                campaignsData = individualCampaignsData;
+                console.log('Campanhas - Dados individuais reais criados:', campaignsData);
+                
+              } catch (error) {
+                console.error('Campanhas - Erro ao buscar dados de campanhas:', error);
+                
+                // Fallback: usar dados zerados para todas as campanhas
+                const fallbackData = availableCampaigns.map((campaign: any) => ({
+                  campaign: campaign.name || campaign.campaign || campaign.campaign_name || campaign.title || 'Campanha sem nome',
+                  campaign_id: campaign.id || campaign.campaign_id || `campaign_${Math.random().toString(36).slice(2)}`,
+                  clicks: 0,
+                  conversions: 0,
+                  revenue: 0,
+                  cost: 0,
+                  roi: 0,
+                  cpa: 0,
+                  impressions: 0
+                }));
+                
+                campaignsData = fallbackData;
+                console.log('Campanhas - Dados de fallback criados:', campaignsData);
               }
-              
-              campaignsData = individualCampaignsData;
-              console.log('Campanhas - Dados individuais reais criados:', campaignsData);
             } else {
               // Se não encontrou campanhas na lista, tentar buscar conversões como fallback
               console.log('Campanhas - Nenhuma campanha encontrada na lista, tentando conversões...');
