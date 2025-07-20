@@ -21,6 +21,7 @@ import conversionsHandler from './api/conversions.js'
 import tracksHandler from './api/tracks.js'
 import settingsHandler from './api/settings.js'
 import dictionariesHandler from './api/dictionaries.js'
+import trafficSourcesHandler from './api/traffic-sources.js'
 
 // Rotas da API
 app.get('/report', async (req, res) => {
@@ -86,6 +87,15 @@ app.get('/dictionaries', async (req, res) => {
   }
 })
 
+app.get('/traffic-sources', async (req, res) => {
+  try {
+    await trafficSourcesHandler(req, res)
+  } catch (error) {
+    console.error('Erro no endpoint /traffic-sources:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
 // Servir arquivos estáticos do build (se existir)
 app.use(express.static(path.join(__dirname, 'dist')))
 
@@ -104,4 +114,5 @@ app.listen(PORT, () => {
   console.log(`   - GET /tracks`)
   console.log(`   - GET /settings`)
   console.log(`   - GET /dictionaries`)
+  console.log(`   - GET /traffic-sources`)
 }) 

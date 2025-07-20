@@ -16,7 +16,7 @@ import {
   HelpCircle,
   Calculator
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
@@ -103,32 +103,33 @@ const Dashboard: React.FC = () => {
     }
 
     try {
+      console.log('🔍 [DASHBOARD] Carregando dados do dashboard...')
+      console.log('🔍 [DASHBOARD] API Key:', apiKey ? 'SIM' : 'NÃO')
+      console.log('🔍 [DASHBOARD] Período selecionado:', selectedPeriod)
+      console.log('🔍 [DASHBOARD] Filtros:', filters)
+      console.log('🔍 [DASHBOARD] Range customizado:', customRange)
+
       if (!apiKey) throw new Error('API Key não definida')
       const api = new RedTrackAPI(apiKey)
       
-      // Usar a base padronizada de datas
+      // Calcular datas baseadas no período selecionado
       const dateRange = getDateRange(selectedPeriod, customRange)
-      
-      console.log('🔍 [DASHBOARD] Timezone UTC - Data atual:', getCurrentRedTrackDate())
-      console.log('🔍 [DASHBOARD] Timezone UTC - Parâmetros enviados:', {
-        date_from: dateRange.startDate,
-        date_to: dateRange.endDate,
-        timezone: 'UTC'
-      })
+      console.log('🔍 [DASHBOARD] Range de datas:', dateRange)
 
+      // Parâmetros para a API
       const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        group_by: 'date', // Agrupamento por data para dashboard
         ...filters
       }
-      
-      console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
-      const realData = await api.getReport(params)
-      console.log('🔍 [DASHBOARD] Resposta da API:', realData)
-      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
-      console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
-      
+
+      console.log('🔍 [DASHBOARD] Parâmetros para API:', params)
+
+      // Buscar dados do dashboard
+      const realData = await api.getDashboardData(params)
+      console.log('🔍 [DASHBOARD] Dados reais recebidos:', realData)
+
+      // Processar dados
       let summary: any = {};
       let daily: any[] = [];
       if (Array.isArray(realData)) {
@@ -146,6 +147,28 @@ const Dashboard: React.FC = () => {
         summary = realData || {};
         console.log('🔍 [DASHBOARD] Dados diretos:', summary)
       }
+
+      // Buscar dados de distribuição por fonte
+      try {
+        const trafficSourcesResponse = await fetch(`/api/traffic-sources?date_from=${dateRange.startDate}&date_to=${dateRange.endDate}`, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        })
+        
+        if (trafficSourcesResponse.ok) {
+          const trafficSources = await trafficSourcesResponse.json()
+          summary.traffic_sources = trafficSources
+          console.log('📊 [DASHBOARD] Dados de distribuição por fonte:', trafficSources)
+        } else {
+          console.log('⚠️ [DASHBOARD] Erro ao buscar distribuição por fonte')
+          summary.traffic_sources = []
+        }
+      } catch (error) {
+        console.log('⚠️ [DASHBOARD] Erro ao buscar distribuição por fonte:', error)
+        summary.traffic_sources = []
+      }
+
       setDailyData(daily);
       setDashboardData(summary);
       
@@ -211,7 +234,8 @@ const Dashboard: React.FC = () => {
           conversion_roas: 0,
           conversion_roas_percentage: 0,
           conversion_profit: 0,
-          epc_roi: 0
+          epc_roi: 0,
+          traffic_sources: []
         }
         setDashboardData(emptyData)
       }
@@ -270,7 +294,8 @@ const Dashboard: React.FC = () => {
         conversion_roas: 0,
         conversion_roas_percentage: 0,
         conversion_profit: 0,
-        epc_roi: 0
+        epc_roi: 0,
+        traffic_sources: []
       }
       setDashboardData(emptyData)
     } finally {
@@ -419,11 +444,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header com ações */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Visão geral das suas campanhas</p>
+          <h1 className="text-2xl font-bold text-gray-900">Visão Geral</h1>
+          <p className="text-gray-600">Análise completa das suas campanhas</p>
         </div>
         <div className="flex items-center gap-3">
           <MetricsSelector />
@@ -590,50 +615,49 @@ const Dashboard: React.FC = () => {
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
           <h3 className="text-lg font-semibold text-gray-800 mb-6">Distribuição por Fonte</h3>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📈</div>
-              <p className="text-lg font-semibold">Distribuição por Fonte</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+          {dashboardData.traffic_sources && dashboardData.traffic_sources.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={dashboardData.traffic_sources}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {dashboardData.traffic_sources.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'][index % 5]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📈</div>
+                <p className="text-lg font-semibold">Distribuição por Fonte</p>
+                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+              </div>
             </div>
-          </div>
+          )}
         </motion.div>
 
-        {/* Métricas de Conversão */}
+        {/* Espaço para futuro gráfico */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Métricas de Conversão</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="font-medium">Taxa de Conversão</span>
-              </div>
-              <span className="text-xl font-bold text-blue-600">
-                {dashboardData.conversion_rate ? `${dashboardData.conversion_rate.toFixed(2)}%` : '0.00%'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="font-medium">CTR</span>
-              </div>
-              <span className="text-xl font-bold text-green-600">
-                {dashboardData.ctr ? `${dashboardData.ctr.toFixed(2)}%` : '0.00%'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span className="font-medium">ROI</span>
-              </div>
-              <span className="text-xl font-bold text-purple-600">
-                {dashboardData.roi ? `${dashboardData.roi.toFixed(2)}%` : '0.00%'}
-              </span>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Análise Avançada</h3>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📊</div>
+              <p className="text-lg font-semibold">Análise Avançada</p>
+              <p className="text-sm">Novos gráficos e análises serão adicionados aqui</p>
             </div>
           </div>
         </motion.div>
