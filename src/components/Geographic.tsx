@@ -173,6 +173,98 @@ const Geographic: React.FC = () => {
     ? filteredData.reduce((sum, d) => sum + d.conversion_rate, 0) / filteredData.length
     : 0
 
+  // Ranking de países por conversão
+  const topCountries = [...geographicData]
+    .filter(d => d.country)
+    .reduce((acc, curr) => {
+      const found = acc.find(a => a.country === curr.country)
+      if (found) {
+        found.conversions += curr.conversions
+        found.revenue += curr.revenue
+      } else {
+        acc.push({ country: curr.country, conversions: curr.conversions, revenue: curr.revenue })
+      }
+      return acc
+    }, [] as { country: string, conversions: number, revenue: number }[])
+    .sort((a, b) => b.conversions - a.conversions)
+    .slice(0, 5)
+
+  // Ranking de estados/regiões por conversão
+  const topRegions = [...geographicData]
+    .filter(d => d.region)
+    .reduce((acc, curr) => {
+      const found = acc.find(a => a.region === curr.region)
+      if (found) {
+        found.conversions += curr.conversions
+        found.revenue += curr.revenue
+      } else {
+        acc.push({ region: curr.region, conversions: curr.conversions, revenue: curr.revenue })
+      }
+      return acc
+    }, [] as { region: string, conversions: number, revenue: number }[])
+    .sort((a, b) => b.conversions - a.conversions)
+    .slice(0, 5)
+
+  // Painel detalhado de vendas por país
+  const countryStats = [...geographicData]
+    .filter(d => d.country)
+    .reduce((acc, curr) => {
+      const found = acc.find(a => a.country === curr.country)
+      if (found) {
+        found.conversions += curr.conversions
+        found.clicks += curr.visitors
+        found.spend += curr.spend
+        found.revenue += curr.revenue
+        found.cpa = found.spend / (found.conversions || 1)
+        found.roi = found.revenue && found.spend ? ((found.revenue - found.spend) / found.spend) * 100 : 0
+        found.conversion_rate = found.clicks ? (found.conversions / found.clicks) * 100 : 0
+      } else {
+        acc.push({
+          country: curr.country,
+          conversions: curr.conversions,
+          clicks: curr.visitors,
+          spend: curr.spend,
+          revenue: curr.revenue,
+          cpa: curr.cpa,
+          roi: curr.roi,
+          conversion_rate: curr.conversion_rate
+        })
+      }
+      return acc
+    }, [] as { country: string, conversions: number, clicks: number, spend: number, revenue: number, cpa: number, roi: number, conversion_rate: number }[])
+    .sort((a, b) => b.conversions - a.conversions)
+    .slice(0, 10)
+
+  // Painel detalhado de vendas por estado/região
+  const regionStats = [...geographicData]
+    .filter(d => d.region)
+    .reduce((acc, curr) => {
+      const found = acc.find(a => a.region === curr.region)
+      if (found) {
+        found.conversions += curr.conversions
+        found.clicks += curr.visitors
+        found.spend += curr.spend
+        found.revenue += curr.revenue
+        found.cpa = found.spend / (found.conversions || 1)
+        found.roi = found.revenue && found.spend ? ((found.revenue - found.spend) / found.spend) * 100 : 0
+        found.conversion_rate = found.clicks ? (found.conversions / found.clicks) * 100 : 0
+      } else {
+        acc.push({
+          region: curr.region,
+          conversions: curr.conversions,
+          clicks: curr.visitors,
+          spend: curr.spend,
+          revenue: curr.revenue,
+          cpa: curr.cpa,
+          roi: curr.roi,
+          conversion_rate: curr.conversion_rate
+        })
+      }
+      return acc
+    }, [] as { region: string, conversions: number, clicks: number, spend: number, revenue: number, cpa: number, roi: number, conversion_rate: number }[])
+    .sort((a, b) => b.conversions - a.conversions)
+    .slice(0, 10)
+
   // Mensagem amigável e loading agora são exibidos dentro do fluxo principal, mantendo o filtro de período sempre visível
 
   return (
@@ -539,6 +631,75 @@ const Geographic: React.FC = () => {
             </div>
           </div>
         </motion.div>
+      </div>
+
+      {/* Painel Países */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-2">Vendas por País</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-xl">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 text-left">País</th>
+                <th className="px-4 py-2 text-right">Vendas</th>
+                <th className="px-4 py-2 text-right">Cliques</th>
+                <th className="px-4 py-2 text-right">Custo</th>
+                <th className="px-4 py-2 text-right">Receita</th>
+                <th className="px-4 py-2 text-right">Taxa de Conversão</th>
+                <th className="px-4 py-2 text-right">CPA</th>
+                <th className="px-4 py-2 text-right">ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {countryStats.map((item) => (
+                <tr key={item.country} className="border-t">
+                  <td className="px-4 py-2 font-medium">{item.country}</td>
+                  <td className="px-4 py-2 text-right">{item.conversions}</td>
+                  <td className="px-4 py-2 text-right">{item.clicks}</td>
+                  <td className="px-4 py-2 text-right">${item.spend.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-2 text-right">${item.revenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-2 text-right">{item.conversion_rate.toFixed(2)}%</td>
+                  <td className="px-4 py-2 text-right">${item.cpa.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-2 text-right">{item.roi.toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Painel Estados/Regiões */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-2">Vendas por Estado/Região</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-xl">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 text-left">Estado/Região</th>
+                <th className="px-4 py-2 text-right">Vendas</th>
+                <th className="px-4 py-2 text-right">Cliques</th>
+                <th className="px-4 py-2 text-right">Custo</th>
+                <th className="px-4 py-2 text-right">Receita</th>
+                <th className="px-4 py-2 text-right">Taxa de Conversão</th>
+                <th className="px-4 py-2 text-right">CPA</th>
+                <th className="px-4 py-2 text-right">ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {regionStats.map((item) => (
+                <tr key={item.region} className="border-t">
+                  <td className="px-4 py-2 font-medium">{item.region}</td>
+                  <td className="px-4 py-2 text-right">{item.conversions}</td>
+                  <td className="px-4 py-2 text-right">{item.clicks}</td>
+                  <td className="px-4 py-2 text-right">${item.spend.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-2 text-right">${item.revenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-2 text-right">{item.conversion_rate.toFixed(2)}%</td>
+                  <td className="px-4 py-2 text-right">${item.cpa.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                  <td className="px-4 py-2 text-right">{item.roi.toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

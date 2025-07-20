@@ -20,7 +20,8 @@ export default async function handler(req, res) {
 
   // Garante que a API Key está presente
   let apiKey = params.api_key;
-  if (!apiKey) {
+  let frontendAuth = req.headers['authorization'];
+  if (!apiKey && !frontendAuth) {
     return res.status(401).json({ error: 'API Key required' });
   }
 
@@ -41,7 +42,7 @@ export default async function handler(req, res) {
     'User-Agent': 'TrackView-Dashboard/1.0'
   };
   if (isGeoGroup) {
-    headers['Authorization'] = `Bearer ${apiKey}`;
+    headers['Authorization'] = frontendAuth ? frontendAuth : `Bearer ${apiKey}`;
   }
 
   try {
