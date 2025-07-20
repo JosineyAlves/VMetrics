@@ -121,15 +121,6 @@ class RedTrackAPI {
   // Modificar o método request para suportar timestamps ISO:
   private async request(endpoint: string, options: RequestInit = {}, params?: Record<string, any>) {
     const urlObj = new URL(`${this.baseUrl}${endpoint}`, window.location.origin)
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          // Para parâmetros de data, manter formato original (ISO ou YYYY-MM-DD)
-          urlObj.searchParams.set(key, value.toString())
-        }
-      })
-    }
-    // Garantir que headers seja sempre Record<string, string>
     let extraHeaders: Record<string, string> = {}
     if (options.headers) {
       if (options.headers instanceof Headers) {
@@ -147,14 +138,27 @@ class RedTrackAPI {
     // Se for /campaigns, envie a API Key no header Authorization
     if (endpoint === '/campaigns' && this.apiKey) {
       headers['Authorization'] = `Bearer ${this.apiKey}`
+    } else if (
+      endpoint === '/report' &&
+      params &&
+      params.group_by &&
+      params.group_by !== 'date' &&
+      this.apiKey
+    ) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`
     } else if (this.apiKey) {
       urlObj.searchParams.set('api_key', this.apiKey)
     }
-    const finalUrl = endpoint === '/campaigns' ? urlObj.toString() : urlObj.toString()
-    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          urlObj.searchParams.set(key, value.toString())
+        }
+      })
+    }
+    const finalUrl = urlObj.toString()
     console.log(`[API] ${endpoint} - Parâmetros:`, params)
     console.log(`[API] ${endpoint} - URL:`, finalUrl)
-    
     const response = await fetch(finalUrl, {
       ...options,
       headers
