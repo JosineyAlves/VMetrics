@@ -420,11 +420,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Visão geral das suas campanhas</p>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           <MetricsSelector />
           <MetricsOrder />

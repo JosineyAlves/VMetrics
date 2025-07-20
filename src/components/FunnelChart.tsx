@@ -36,28 +36,28 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
         stage: 'Pre-LP',
         value: prelpViews,
         percentage: 100,
-        icon: <Eye className="w-5 h-5" />,
+        icon: <Eye className="w-4 h-4" />,
         color: 'bg-blue-500'
       },
       {
         stage: 'LP',
         value: lpViews,
         percentage: prelpToLpRate,
-        icon: <MousePointer className="w-5 h-5" />,
+        icon: <MousePointer className="w-4 h-4" />,
         color: 'bg-green-500'
       },
       {
         stage: 'Offer',
         value: offerViews,
         percentage: lpToOfferRate,
-        icon: <ShoppingCart className="w-5 h-5" />,
+        icon: <ShoppingCart className="w-4 h-4" />,
         color: 'bg-purple-500'
       },
       {
         stage: 'Conversion',
         value: conversions,
         percentage: offerToConversionRate,
-        icon: <Target className="w-5 h-5" />,
+        icon: <Target className="w-4 h-4" />,
         color: 'bg-orange-500'
       }
     ]
@@ -70,17 +70,17 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
+      className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Funil de Marketing</h3>
         <div className="flex items-center space-x-2">
-          <TrendingDown className="w-5 h-5 text-gray-600" />
+          <TrendingDown className="w-4 h-4 text-gray-600" />
           <span className="text-sm text-gray-600">Taxa de Conversão</span>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {funnelData.map((item, index) => (
           <motion.div
             key={item.stage}
@@ -90,21 +90,21 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
             className="relative"
           >
             {/* Etapa do Funil */}
-            <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors">
               <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${item.color} text-white`}>
+                <div className={`p-1.5 rounded-lg ${item.color} text-white`}>
                   {item.icon}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">{item.stage}</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="font-semibold text-gray-900 text-sm">{item.stage}</h4>
+                  <p className="text-xs text-gray-600">
                     {item.value.toLocaleString('pt-BR')} pessoas
                   </p>
                 </div>
               </div>
               
               <div className="text-right">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-lg font-bold text-gray-900">
                   {item.percentage.toFixed(1)}%
                 </div>
                 <div className="text-xs text-gray-500">
@@ -115,10 +115,10 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
 
             {/* Seta para próxima etapa (exceto na última) */}
             {index < funnelData.length - 1 && (
-              <div className="flex justify-center my-2">
-                <div className="w-0.5 h-6 bg-gray-300 relative">
+              <div className="flex justify-center my-1">
+                <div className="w-0.5 h-4 bg-gray-300 relative">
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-3 h-3 bg-gray-300 rotate-45"></div>
+                    <div className="w-2 h-2 bg-gray-300 rotate-45"></div>
                   </div>
                 </div>
               </div>
@@ -128,16 +128,16 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
       </div>
 
       {/* Resumo do Funil */}
-      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+      <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-semibold text-gray-900">Taxa de Conversão Total</h4>
-            <p className="text-sm text-gray-600">
+            <h4 className="font-semibold text-gray-900 text-sm">Taxa de Conversão Total</h4>
+            <p className="text-xs text-gray-600">
               Do início ao fim do funil
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-lg font-bold text-blue-600">
               {funnelData.length > 0 && funnelData[funnelData.length - 1].value > 0
                 ? ((funnelData[funnelData.length - 1].value / funnelData[0].value) * 100).toFixed(2)
                 : '0.00'}%
@@ -150,22 +150,22 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
       </div>
 
       {/* Legenda */}
-      <div className="mt-4 grid grid-cols-2 gap-4 text-xs text-gray-500">
+      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-500">
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-          <span>Pre-LP: Visualizações da pré-landing page</span>
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <span className="text-xs">Pre-LP: Visualizações da pré-landing page</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          <span>LP: Visualizações da landing page</span>
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className="text-xs">LP: Visualizações da landing page</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-          <span>Offer: Visualizações da oferta</span>
+          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+          <span className="text-xs">Offer: Visualizações da oferta</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-          <span>Conversion: Conversões aprovadas</span>
+          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+          <span className="text-xs">Conversion: Conversões aprovadas</span>
         </div>
       </div>
     </motion.div>

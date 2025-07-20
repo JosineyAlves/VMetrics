@@ -10,10 +10,12 @@ import Settings from "./components/Settings"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
+import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore()
+  const { isCollapsed, toggle } = useSidebarStore()
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -137,8 +139,10 @@ const App: React.FC = () => {
         onSectionChange={setCurrentSection}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={toggleMobileMenu}
+        isSidebarCollapsed={isCollapsed}
+        onToggleSidebar={toggle}
       />
-      <main className="flex-1 overflow-auto">
+      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''}`}>
         {/* Barra global fixa */}
         <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white/80 sticky top-0 z-20">
           {/* Título da tela à esquerda */}

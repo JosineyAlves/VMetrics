@@ -7,7 +7,9 @@ import {
   Globe,
   Settings,
   Menu,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
 
@@ -16,13 +18,17 @@ interface SidebarProps {
   onSectionChange: (section: string) => void
   isMobileMenuOpen: boolean
   onToggleMobileMenu: () => void
+  isSidebarCollapsed: boolean
+  onToggleSidebar: () => void
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
   currentSection, 
   onSectionChange, 
   isMobileMenuOpen, 
-  onToggleMobileMenu 
+  onToggleMobileMenu,
+  isSidebarCollapsed,
+  onToggleSidebar
 }) => {
   const { logout } = useAuthStore()
 
@@ -87,29 +93,41 @@ const Sidebar: React.FC<SidebarProps> = ({
         animate={{ x: 0 }}
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-72 bg-white/90 backdrop-blur-sm border-r border-white/20 shadow-2xl
-          transform transition-transform duration-300 ease-in-out
+          bg-white/90 backdrop-blur-sm border-r border-white/20 shadow-2xl
+          transform transition-all duration-300 ease-in-out
+          ${isSidebarCollapsed ? 'w-16' : 'w-72'}
           ${isMobileMenuOpen ? 'translate-x-0' : 'lg:translate-x-0 -translate-x-full'}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-8 border-b border-gray-100">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className={`border-b border-gray-100 ${isSidebarCollapsed ? 'p-4' : 'p-8'}`}>
+            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-4'}`}>
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
                 <Target className="w-7 h-7 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  TrackView
-                </h1>
-                <p className="text-sm text-gray-500 font-medium">RedTrack Dashboard</p>
-              </div>
+              {!isSidebarCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    TrackView
+                  </h1>
+                  <p className="text-sm text-gray-500 font-medium">RedTrack Dashboard</p>
+                </div>
+              )}
+              {/* Toggle Button */}
+              {!isSidebarCollapsed && (
+                <button
+                  onClick={onToggleSidebar}
+                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200 flex-shrink-0"
+                >
+                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                </button>
+              )}
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-6 space-y-3">
+          <nav className={`flex-1 ${isSidebarCollapsed ? 'p-2' : 'p-6'} space-y-3`}>
             {menuItems.map((item) => {
               const Icon = item.icon
               const isActive = currentSection === item.id
@@ -124,8 +142,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                     }
                   }}
                   className={`
-                    w-full flex items-center space-x-4 px-6 py-4 rounded-2xl
+                    w-full flex items-center rounded-2xl
                     transition-all duration-300 ease-in-out
+                    ${isSidebarCollapsed 
+                      ? 'px-2 py-3 justify-center' 
+                      : 'px-6 py-4 space-x-4'
+                    }
                     ${isActive 
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl' 
                       : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 hover:shadow-lg'
@@ -133,31 +155,53 @@ const Sidebar: React.FC<SidebarProps> = ({
                   `}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  title={isSidebarCollapsed ? item.label : undefined}
                 >
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-500'}`} />
-                  <div className="flex-1 text-left">
-                    <div className="font-semibold text-sm">{item.label}</div>
-                    <div className={`text-xs mt-1 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
-                      {item.description}
+                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-500'} flex-shrink-0`} />
+                  {!isSidebarCollapsed && (
+                    <div className="flex-1 text-left">
+                      <div className="font-semibold text-sm">{item.label}</div>
+                      <div className={`text-xs mt-1 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                        {item.description}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </motion.button>
               )
             })}
           </nav>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-100">
+          <div className={`border-t border-gray-100 ${isSidebarCollapsed ? 'p-2' : 'p-6'}`}>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center space-x-3 px-6 py-4 text-sm font-semibold bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className={`
+                w-full flex items-center justify-center text-sm font-semibold 
+                bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 
+                rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105
+                ${isSidebarCollapsed ? 'px-2 py-3' : 'px-6 py-4 space-x-3'}
+              `}
+              title={isSidebarCollapsed ? 'Sair' : undefined}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              <span>Sair</span>
+              {!isSidebarCollapsed && <span>Sair</span>}
             </button>
           </div>
+
+          {/* Toggle Button for Collapsed State */}
+          {isSidebarCollapsed && (
+            <div className="p-2 border-t border-gray-100">
+              <button
+                onClick={onToggleSidebar}
+                className="w-full flex items-center justify-center p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
+                title="Expandir sidebar"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     </>
