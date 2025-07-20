@@ -15,9 +15,12 @@ export interface Metric {
 export interface MetricsState {
   availableMetrics: Metric[]
   selectedMetrics: string[]
+  metricsOrder: string[] // Nova propriedade para ordem das métricas
   addMetric: (metricId: string) => void
   removeMetric: (metricId: string) => void
   setSelectedMetrics: (metrics: string[]) => void
+  setMetricsOrder: (order: string[]) => void // Nova função
+  moveMetric: (fromIndex: number, toIndex: number) => void // Nova função
   resetToDefault: () => void
   isMetricSelected: (metricId: string) => boolean
 }
@@ -526,6 +529,117 @@ const allMetrics: Metric[] = [
     format: 'currency',
     icon: 'DollarSign',
     color: 'green'
+  },
+  // Métricas de Landing Page
+  {
+    id: 'lp_views',
+    label: 'LP Views',
+    description: 'Visualizações da landing page',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'Eye',
+    color: 'blue'
+  },
+  {
+    id: 'lp_clicks',
+    label: 'LP Clicks',
+    description: 'Cliques na landing page',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'MousePointer',
+    color: 'blue'
+  },
+  {
+    id: 'lp_ctr',
+    label: 'LP CTR',
+    description: 'CTR da landing page (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'blue'
+  },
+  {
+    id: 'lp_click_ctr',
+    label: 'LP Click CTR',
+    description: 'CTR para cliques da landing page (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'blue'
+  },
+  {
+    id: 'offer_views',
+    label: 'Offer Views',
+    description: 'Visualizações da oferta',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'Eye',
+    color: 'green'
+  },
+  {
+    id: 'offer_clicks',
+    label: 'Offer Clicks',
+    description: 'Cliques na oferta',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'MousePointer',
+    color: 'green'
+  },
+  {
+    id: 'offer_ctr',
+    label: 'Offer CTR',
+    description: 'CTR da oferta (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'green'
+  },
+  {
+    id: 'offer_click_ctr',
+    label: 'Offer Click CTR',
+    description: 'CTR para cliques da oferta (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'green'
+  },
+  {
+    id: 'prelp_to_lp_rate',
+    label: 'Pre-LP → LP Rate',
+    description: 'Taxa de conversão Pre-LP para LP (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'ArrowRight',
+    color: 'purple'
+  },
+  {
+    id: 'lp_to_offer_rate',
+    label: 'LP → Offer Rate',
+    description: 'Taxa de conversão LP para Offer (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'ArrowRight',
+    color: 'purple'
+  },
+  {
+    id: 'offer_to_conversion_rate',
+    label: 'Offer → Conversion Rate',
+    description: 'Taxa de conversão Offer para Conversão (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'ArrowRight',
+    color: 'purple'
   }
 ]
 
@@ -546,27 +660,52 @@ export const useMetricsStore = create<MetricsState>()(
     (set, get) => ({
       availableMetrics: allMetrics,
       selectedMetrics: defaultSelectedMetrics,
+      metricsOrder: allMetrics.map(metric => metric.id), // Inicializa a ordem com todas as métricas disponíveis
 
       addMetric: (metricId: string) => {
-        const { selectedMetrics } = get()
+        const { selectedMetrics, metricsOrder } = get()
         if (!selectedMetrics.includes(metricId)) {
-          set({ selectedMetrics: [...selectedMetrics, metricId] })
+          const newSelectedMetrics = [...selectedMetrics, metricId]
+          // Adicionar à ordem se não estiver lá
+          const newMetricsOrder = metricsOrder.includes(metricId) 
+            ? metricsOrder 
+            : [...metricsOrder, metricId]
+          set({ 
+            selectedMetrics: newSelectedMetrics,
+            metricsOrder: newMetricsOrder
+          })
         }
       },
 
       removeMetric: (metricId: string) => {
         const { selectedMetrics } = get()
-        set({ 
-          selectedMetrics: selectedMetrics.filter(id => id !== metricId) 
-        })
+        set({ selectedMetrics: selectedMetrics.filter(id => id !== metricId) })
       },
 
       setSelectedMetrics: (metrics: string[]) => {
-        set({ selectedMetrics: metrics })
+        const { metricsOrder } = get()
+        // Manter apenas métricas que estão na ordem
+        const validMetrics = metrics.filter(id => metricsOrder.includes(id))
+        set({ selectedMetrics: validMetrics })
+      },
+
+      setMetricsOrder: (order: string[]) => {
+        set({ metricsOrder: order })
+      },
+
+      moveMetric: (fromIndex: number, toIndex: number) => {
+        const { metricsOrder } = get()
+        const newOrder = [...metricsOrder]
+        const [movedMetric] = newOrder.splice(fromIndex, 1)
+        newOrder.splice(toIndex, 0, movedMetric)
+        set({ metricsOrder: newOrder })
       },
 
       resetToDefault: () => {
-        set({ selectedMetrics: defaultSelectedMetrics })
+        set({ 
+          selectedMetrics: defaultSelectedMetrics,
+          metricsOrder: allMetrics.map(metric => metric.id)
+        })
       },
 
       isMetricSelected: (metricId: string) => {
@@ -576,7 +715,10 @@ export const useMetricsStore = create<MetricsState>()(
     }),
     {
       name: 'metrics-storage',
-      partialize: (state) => ({ selectedMetrics: state.selectedMetrics })
+      partialize: (state) => ({
+        selectedMetrics: state.selectedMetrics,
+        metricsOrder: state.metricsOrder
+      })
     }
   )
 ) 

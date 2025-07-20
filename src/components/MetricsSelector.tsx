@@ -4,19 +4,7 @@ import {
   Settings, 
   X, 
   Check, 
-  Plus,
-  Target,
-  DollarSign,
-  TrendingUp,
-  BarChart3,
-  MousePointer,
-  Eye,
-  ShoppingCart,
-  CheckCircle,
-  Clock,
-  XCircle,
-  HelpCircle,
-  Calculator
+  Plus
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { useMetricsStore, type Metric } from '../store/metrics'
@@ -31,24 +19,6 @@ const MetricsSelector: React.FC = () => {
     resetToDefault,
     isMetricSelected 
   } = useMetricsStore()
-
-  const getIcon = (iconName?: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      'Target': <Target className="w-4 h-4" />,
-      'DollarSign': <DollarSign className="w-4 h-4" />,
-      'TrendingUp': <TrendingUp className="w-4 h-4" />,
-      'BarChart3': <BarChart3 className="w-4 h-4" />,
-      'MousePointer': <MousePointer className="w-4 h-4" />,
-      'Eye': <Eye className="w-4 h-4" />,
-      'ShoppingCart': <ShoppingCart className="w-4 h-4" />,
-      'CheckCircle': <CheckCircle className="w-4 h-4" />,
-      'Clock': <Clock className="w-4 h-4" />,
-      'XCircle': <XCircle className="w-4 h-4" />,
-      'HelpCircle': <HelpCircle className="w-4 h-4" />,
-      'Calculator': <Calculator className="w-4 h-4" />
-    }
-    return icons[iconName || 'BarChart3'] || <BarChart3 className="w-4 h-4" />
-  }
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
@@ -82,6 +52,22 @@ const MetricsSelector: React.FC = () => {
     return acc
   }, {} as Record<string, Metric[]>)
 
+  const handleSelectAll = () => {
+    availableMetrics.forEach(metric => {
+      if (!isMetricSelected(metric.id)) {
+        addMetric(metric.id)
+      }
+    })
+  }
+
+  const handleDeselectAll = () => {
+    selectedMetrics.forEach(metricId => {
+      if (isMetricSelected(metricId)) {
+        removeMetric(metricId)
+      }
+    })
+  }
+
   return (
     <>
       <Button
@@ -96,85 +82,75 @@ const MetricsSelector: React.FC = () => {
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={() => setIsOpen(false)}
-          >
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl w-full max-w-4xl mx-auto shadow-2xl flex flex-col max-h-[90vh]"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Personalizar Métricas</h2>
+                  <h2 className="text-xl font-bold text-gray-900">Selecionar Métricas</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Selecione quais métricas deseja ver no dashboard
+                    Escolha quais métricas você quer ver no dashboard
                   </p>
                 </div>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="p-2 bg-transparent hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
 
               {/* Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      {selectedMetrics.length} métricas selecionadas
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      de {availableMetrics.length} disponíveis
-                    </span>
+              <div className="flex-1 overflow-hidden">
+                <div className="p-6 pb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSelectAll}
+                        className="text-xs"
+                      >
+                        Selecionar Todas
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeselectAll}
+                        className="text-xs"
+                      >
+                        Desmarcar Todas
+                      </Button>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {selectedMetrics.length} de {availableMetrics.length} selecionadas
+                    </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={resetToDefault}
-                    className="text-xs"
-                  >
-                    Restaurar Padrão
-                  </Button>
                 </div>
 
-                {/* Metrics by Category */}
-                <div className="space-y-6">
+                <div className="px-6 pb-4 overflow-y-auto max-h-[50vh]">
                   {Object.entries(groupedMetrics).map(([category, metrics]) => (
-                    <div key={category} className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(category)}`}>
-                          {getCategoryLabel(category)}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {metrics.filter(m => isMetricSelected(m.id)).length} selecionadas
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div key={category} className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                        {getCategoryLabel(category)}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {metrics.map((metric) => {
                           const isSelected = isMetricSelected(metric.id)
                           return (
-                            <motion.div
+                            <div
                               key={metric.id}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
                               className={`
-                                relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                                relative p-3 rounded-lg border cursor-pointer transition-all duration-200
                                 ${isSelected 
-                                  ? 'border-blue-500 bg-blue-50' 
-                                  : 'border-gray-200 bg-white hover:border-gray-300'
+                                  ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                                  : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                                 }
                               `}
                               onClick={() => {
@@ -185,48 +161,23 @@ const MetricsSelector: React.FC = () => {
                                 }
                               }}
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className={`
-                                    p-2 rounded-lg
-                                    ${isSelected ? 'bg-blue-100' : 'bg-gray-100'}
-                                  `}>
-                                    {getIcon(metric.icon)}
-                                  </div>
-                                  <div className="flex-1">
-                                    <h3 className="font-medium text-gray-900 text-sm">
-                                      {metric.label}
-                                    </h3>
-                                    <p className="text-xs text-gray-600 mt-1">
-                                      {metric.description}
-                                    </p>
+                              <div className="flex items-center justify-between p-3 border-b border-gray-200">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-gray-900 truncate">{metric.label}</h3>
+                                    <p className="text-sm text-gray-500 line-clamp-2">{metric.description}</p>
                                   </div>
                                 </div>
-                                
-                                {isSelected && (
-                                  <div className="absolute top-2 right-2">
-                                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                      <Check className="w-3 h-3 text-white" />
-                                    </div>
-                                  </div>
-                                )}
+                                <div className="flex items-center space-x-2">
+                                  {isSelected ? (
+                                    <Check className="w-4 h-4 text-green-600" />
+                                  ) : (
+                                    <Plus className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
                               </div>
-                              
-                              <div className="mt-3 flex items-center gap-2">
-                                <span className={`
-                                  px-2 py-1 rounded text-xs font-medium
-                                  ${metric.unit === 'currency' ? 'bg-green-100 text-green-800' :
-                                    metric.unit === 'percentage' ? 'bg-purple-100 text-purple-800' :
-                                    'bg-gray-100 text-gray-800'
-                                  }
-                                `}>
-                                  {metric.unit === 'currency' ? 'Moeda' :
-                                   metric.unit === 'percentage' ? 'Percentual' :
-                                   'Número'
-                                  }
-                                </span>
-                              </div>
-                            </motion.div>
+                            </div>
                           )
                         })}
                       </div>
@@ -235,28 +186,24 @@ const MetricsSelector: React.FC = () => {
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">{selectedMetrics.length}</span> métricas selecionadas
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    onClick={() => setIsOpen(false)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Aplicar
-                  </Button>
-                </div>
+              {/* Footer com botões sempre visíveis */}
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                  className="px-6 py-2"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => setIsOpen(false)}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Salvar Seleção
+                </Button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>

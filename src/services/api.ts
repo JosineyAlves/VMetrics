@@ -49,8 +49,17 @@ export interface ReportData {
   prelp_views: number
   prelp_clicks: number
   prelp_click_ctr: number
+  lp_views: number
+  lp_clicks: number
   lp_ctr: number
   lp_click_ctr: number
+  offer_views: number
+  offer_clicks: number
+  offer_ctr: number
+  offer_click_ctr: number
+  prelp_to_lp_rate: number
+  lp_to_offer_rate: number
+  offer_to_conversion_rate: number
   conversion_cr: number
   all_conversions: number
   all_conversions_cr: number

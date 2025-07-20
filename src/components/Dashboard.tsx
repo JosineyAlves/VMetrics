@@ -3,14 +3,10 @@ import { motion } from 'framer-motion'
 import { 
   TrendingUp,
   DollarSign,
-  Target,
   Users,
-  BarChart3,
-  Eye,
-  MousePointer,
   Calendar,
-  ChevronDown,
   Filter,
+  Download,
   RefreshCw,
   AlertCircle,
   ShoppingCart,
@@ -29,19 +25,10 @@ import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, getCurrentRedTrackDate, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
 import MetricsSelector from './MetricsSelector'
+import MetricsOrder from './MetricsOrder'
+import FunnelChart from './FunnelChart'
 import { useMetricsStore } from '../store/metrics'
-
-
-interface Metric {
-  id: string
-  label: string
-  value: number
-  change: number
-  icon: React.ReactNode
-  color: string
-  format: 'currency' | 'number' | 'percentage'
-  visible: boolean
-}
+import type { Metric } from '../store/metrics'
 
 const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
@@ -182,8 +169,17 @@ const Dashboard: React.FC = () => {
           prelp_views: 0,
           prelp_clicks: 0,
           prelp_click_ctr: 0,
+          lp_views: 0,
+          lp_clicks: 0,
           lp_ctr: 0,
           lp_click_ctr: 0,
+          offer_views: 0,
+          offer_clicks: 0,
+          offer_ctr: 0,
+          offer_click_ctr: 0,
+          prelp_to_lp_rate: 0,
+          lp_to_offer_rate: 0,
+          offer_to_conversion_rate: 0,
           conversion_cr: 0,
           all_conversions: 0,
           all_conversions_cr: 0,
@@ -400,61 +396,14 @@ const Dashboard: React.FC = () => {
     return selectedMetricsData
   }
 
-  // Adicionar função para renderizar ícones:
-  const getIconComponent = (iconName?: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      'Target': <Target className="w-8 h-8" />,
-      'DollarSign': <DollarSign className="w-8 h-8" />,
-      'TrendingUp': <TrendingUp className="w-8 h-8" />,
-      'BarChart3': <BarChart3 className="w-8 h-8" />,
-      'MousePointer': <MousePointer className="w-8 h-8" />,
-      'Eye': <Eye className="w-8 h-8" />,
-      'ShoppingCart': <ShoppingCart className="w-8 h-8" />,
-      'CheckCircle': <CheckCircle className="w-8 h-8" />,
-      'Clock': <Clock className="w-8 h-8" />,
-      'XCircle': <XCircle className="w-8 h-8" />,
-      'HelpCircle': <HelpCircle className="w-8 h-8" />,
-      'Calculator': <Calculator className="w-8 h-8" />,
-      'Users': <Users className="w-8 h-8" />
-    }
-    return icons[iconName || 'BarChart3'] || <BarChart3 className="w-8 h-8" />
-  }
+  // Remover as funções getIconComponent, getColorClass, getTextColorClass, getColorClasses que não são mais necessárias
 
-  // Adicionar funções auxiliares para cores:
-  const getColorClass = (color?: string) => {
-    if (!color) return 'bg-gray-100'
-    const colorMap: Record<string, string> = {
-      'blue': 'bg-blue-100',
-      'green': 'bg-green-100', 
-      'red': 'bg-red-100',
-      'purple': 'bg-purple-100',
-      'orange': 'bg-orange-100',
-      'yellow': 'bg-yellow-100',
-      'gray': 'bg-gray-100',
-      'cyan': 'bg-cyan-100',
-      'teal': 'bg-teal-100',
-      'indigo': 'bg-indigo-100',
-      'violet': 'bg-violet-100'
-    }
-    return colorMap[color] || 'bg-gray-100'
-  }
-
-  const getTextColorClass = (color?: string) => {
-    if (!color) return 'text-gray-600'
-    const colorMap: Record<string, string> = {
-      'blue': 'text-blue-600',
-      'green': 'text-green-600',
-      'red': 'text-red-600', 
-      'purple': 'text-purple-600',
-      'orange': 'text-orange-600',
-      'yellow': 'text-yellow-600',
-      'gray': 'text-gray-600',
-      'cyan': 'text-cyan-600',
-      'teal': 'text-teal-600',
-      'indigo': 'text-indigo-600',
-      'violet': 'text-violet-600'
-    }
-    return colorMap[color] || 'text-gray-600'
+  const getSelectedMetricsInOrder = () => {
+    const { selectedMetrics, metricsOrder, availableMetrics } = useMetricsStore.getState()
+    return metricsOrder
+      .filter(metricId => selectedMetrics.includes(metricId))
+      .map(metricId => availableMetrics.find(m => m.id === metricId))
+      .filter((metric): metric is Metric => metric !== null)
   }
 
 
@@ -478,6 +427,7 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <MetricsSelector />
+          <MetricsOrder />
           <Button
             variant="outline"
             size="sm"
@@ -566,36 +516,31 @@ const Dashboard: React.FC = () => {
       {/* Removido: PeriodDropdown duplicado do Dashboard */}
 
       {/* KPIs Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {metrics.filter(metric => metric.visible).map((metric, index) => (
-          <motion.div
-            key={metric.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
-                <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                  {formatValue(metric.rawValue || metric.value, metric.format)}
-                </p>
-                <div className="flex items-center">
-                  <span className={`text-sm font-semibold ${metric.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {metric.change >= 0 ? '+' : ''}{metric.change}%
-                  </span>
-                  <span className="text-sm text-gray-500 ml-2 truncate">vs período anterior</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {getSelectedMetricsInOrder().map((metric) => {
+          const value = dashboardData[metric.id as keyof typeof dashboardData] || 0
+          const formattedValue = formatValue(value, metric.format || 'integer')
+          
+          return (
+            <motion.div
+              key={metric.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
+                  <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                    {formattedValue}
+                  </p>
+                  <p className="text-xs text-gray-500 line-clamp-2">{metric.description}</p>
                 </div>
               </div>
-              <div className={`p-4 rounded-2xl ${getColorClass(metric.color)} ml-4 flex-shrink-0`}>
-                <div className={`${getTextColorClass(metric.color)}`}>
-                  {getIconComponent(metric.icon)}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* Gráficos */}
@@ -621,16 +566,22 @@ const Dashboard: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-lg font-semibold">Gráfico de Performance</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📊</div>
+                <p className="text-lg font-semibold">Gráfico de Performance</p>
+                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+              </div>
             </div>
-          </div>
           )}
         </motion.div>
 
+        {/* Funil de Marketing */}
+        <FunnelChart data={dashboardData} />
+      </div>
+
+      {/* Gráficos Adicionais */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Distribuição por Fonte */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -644,6 +595,45 @@ const Dashboard: React.FC = () => {
               <div className="text-4xl mb-2">📈</div>
               <p className="text-lg font-semibold">Distribuição por Fonte</p>
               <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Métricas de Conversão */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
+        >
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Métricas de Conversão</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="font-medium">Taxa de Conversão</span>
+              </div>
+              <span className="text-xl font-bold text-blue-600">
+                {dashboardData.conversion_rate ? `${dashboardData.conversion_rate.toFixed(2)}%` : '0.00%'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium">CTR</span>
+              </div>
+              <span className="text-xl font-bold text-green-600">
+                {dashboardData.ctr ? `${dashboardData.ctr.toFixed(2)}%` : '0.00%'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span className="font-medium">ROI</span>
+              </div>
+              <span className="text-xl font-bold text-purple-600">
+                {dashboardData.roi ? `${dashboardData.roi.toFixed(2)}%` : '0.00%'}
+              </span>
             </div>
           </div>
         </motion.div>
