@@ -27,7 +27,8 @@ export const getDateRange = (period: string, customRange?: { from: string; to: s
   }
 
   // Usar timezone do RedTrack (UTC)
-  const today = getRedTrackDate(new Date())
+  const now = new Date()
+  const today = getRedTrackDate(now)
   let startDate = new Date(today)
   let endDate = new Date(today)
 
@@ -36,9 +37,15 @@ export const getDateRange = (period: string, customRange?: { from: string; to: s
       // já está correto - usa data atual no timezone do RedTrack
       break
     case 'last_60_minutes':
-      startDate = new Date(today.getTime() - 60 * 60 * 1000)
-      endDate = today
-      break
+      // Usar timestamp preciso para últimos 60 minutos
+      const sixtyMinutesAgo = new Date(now.getTime() - 60 * 60 * 1000)
+      startDate = getRedTrackDate(sixtyMinutesAgo)
+      endDate = getRedTrackDate(now)
+      // Para RedTrack, usar formato ISO com timestamp para precisão
+      return {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      }
     case 'yesterday':
       startDate.setDate(today.getDate() - 1)
       endDate.setDate(today.getDate() - 1)

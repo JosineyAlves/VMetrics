@@ -109,11 +109,13 @@ class RedTrackAPI {
     this.baseUrl = '/api'
   }
 
+  // Modificar o método request para suportar timestamps ISO:
   private async request(endpoint: string, options: RequestInit = {}, params?: Record<string, any>) {
     const urlObj = new URL(`${this.baseUrl}${endpoint}`, window.location.origin)
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
+          // Para parâmetros de data, manter formato original (ISO ou YYYY-MM-DD)
           urlObj.searchParams.set(key, value.toString())
         }
       })
@@ -140,6 +142,10 @@ class RedTrackAPI {
       urlObj.searchParams.set('api_key', this.apiKey)
     }
     const finalUrl = endpoint === '/campaigns' ? urlObj.toString() : urlObj.toString()
+    
+    console.log(`[API] ${endpoint} - Parâmetros:`, params)
+    console.log(`[API] ${endpoint} - URL:`, finalUrl)
+    
     const response = await fetch(finalUrl, {
       ...options,
       headers
