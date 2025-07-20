@@ -84,6 +84,56 @@ const Dashboard: React.FC = () => {
   // Novo estado para armazenar dados diários para o gráfico
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [sourceStats, setSourceStats] = useState<any[]>([])
+  const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([])
+  const [selectedCampaign, setSelectedCampaign] = useState<string>('all')
+  const [funnelData, setFunnelData] = useState<any>({})
+
+  // Buscar campanhas ao carregar
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      if (!apiKey) return
+      const api = new RedTrackAPI(apiKey)
+      try {
+        const data = await api.getCampaigns?.() // Se existir getCampaigns
+        let items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
+        setCampaigns(items.map((c: any) => ({ id: c.id, name: c.name || c.title || 'Campanha sem nome' })))
+      } catch (err) {
+        setCampaigns([])
+      }
+    }
+    fetchCampaigns()
+  }, [apiKey])
+
+  // Buscar dados do funil ao trocar campanha
+  useEffect(() => {
+    const fetchFunnel = async () => {
+      if (!apiKey) return
+      const api = new RedTrackAPI(apiKey)
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      try {
+        const params: any = {
+          date_from: dateRange.startDate,
+          date_to: dateRange.endDate,
+          group_by: 'date',
+        }
+        if (selectedCampaign !== 'all') params.campaign = selectedCampaign
+        const data = await api.getReport(params)
+        // Agregar dados se for array
+        let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
+        const arr = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
+        arr.forEach((d: any) => {
+          funnel.prelp_views += d.prelp_views ?? 0
+          funnel.lp_views += d.lp_views ?? 0
+          funnel.offer_views += d.offer_views ?? 0
+          funnel.conversions += d.conversions ?? 0
+        })
+        setFunnelData(funnel)
+      } catch (err) {
+        setFunnelData({})
+      }
+    }
+    fetchFunnel()
+  }, [apiKey, selectedPeriod, customRange, selectedCampaign])
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
@@ -674,8 +724,25 @@ const Dashboard: React.FC = () => {
           )}
         </motion.div>
 
-        {/* Funil de Marketing */}
-        <FunnelChart data={dashboardData} />
+        {/* Funil de Marketing com seletor de campanha embutido no header */}
+        <FunnelChart 
+          data={funnelData}
+          campaignSelector={
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-gray-700">Campanha:</label>
+              <select
+                value={selectedCampaign}
+                onChange={e => setSelectedCampaign(e.target.value)}
+                className="rounded-xl border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Todas</option>
+                {campaigns.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          }
+        />
       </div>
 
       {/* Gráficos Adicionais */}

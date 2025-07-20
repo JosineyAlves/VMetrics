@@ -17,9 +17,10 @@ interface FunnelChartProps {
     offer_views?: number
     conversions?: number
   }
+  campaignSelector?: React.ReactNode
 }
 
-const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
+const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => {
   const calculateFunnelData = (): FunnelData[] => {
     const prelpViews = data.prelp_views || 0
     const lpViews = data.lp_views || 0
@@ -72,12 +73,11 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data }) => {
       transition={{ duration: 0.5 }}
       className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
         <h3 className="text-lg font-semibold text-gray-800">Funil de Marketing</h3>
-        <div className="flex items-center space-x-2">
-          <TrendingDown className="w-4 h-4 text-gray-600" />
-          <span className="text-sm text-gray-600">Taxa de Conversão</span>
-        </div>
+        {campaignSelector && (
+          <div>{campaignSelector}</div>
+        )}
       </div>
 
       <div className="space-y-3">
