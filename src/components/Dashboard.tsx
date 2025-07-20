@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
         date_to: dateRange.endDate,
         group_by: 'date',
       }
-      if (selectedCampaign !== 'all') params.campaign = selectedCampaign
+      if (selectedCampaign !== 'all') params.campaign_id = selectedCampaign
       const url = new URL('/api/report', window.location.origin)
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -141,7 +141,6 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch(url.toString())
         const data = await response.json()
-        // Agregar dados se for array
         let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
         const arr = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
         arr.forEach((d: any) => {
