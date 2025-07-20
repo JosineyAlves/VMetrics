@@ -83,6 +83,7 @@ const Dashboard: React.FC = () => {
 
   // Novo estado para armazenar dados diários para o gráfico
   const [dailyData, setDailyData] = useState<any[]>([]);
+  const [sourceStats, setSourceStats] = useState<any[]>([])
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
@@ -427,20 +428,34 @@ const Dashboard: React.FC = () => {
 
   const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
 
-  // 1. Processar os dados para agrupar por fonte
-  const sourceStats = Array.isArray(dailyData)
-    ? dailyData.reduce((acc: any[], curr: any) => {
-        const key = curr.source || curr.utm_source || curr.traffic_channel || 'Indefinido';
-        const found = acc.find((a) => a.key === key);
-        if (found) {
-          found.conversions += curr.conversions || 0;
-        } else {
-          acc.push({ key, conversions: curr.conversions || 0 });
+  // (Removido: processamento antigo de sourceStats, agora é buscado via useEffect)
+
+  // Buscar distribuição por fonte (custo e receita por traffic_channel)
+  useEffect(() => {
+    const fetchSourceStats = async () => {
+      if (!apiKey) return
+      const api = new RedTrackAPI(apiKey)
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      try {
+        const params = {
+          date_from: dateRange.startDate,
+          date_to: dateRange.endDate,
+          group_by: 'traffic_channel',
         }
-        return acc;
-      }, [])
-      .sort((a, b) => b.conversions - a.conversions)
-    : [];
+        const data = await api.getReport(params)
+        let items = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
+        const mapped = items.map((item: any) => ({
+          key: item.traffic_channel || item.source || item.utm_source || 'Indefinido',
+          cost: item.spend ?? item.cost ?? 0,
+          revenue: item.revenue ?? 0,
+        }))
+        setSourceStats(mapped.sort((a, b) => b.revenue - a.revenue))
+      } catch (err) {
+        setSourceStats([])
+      }
+    }
+    fetchSourceStats()
+  }, [apiKey, selectedPeriod, customRange])
 
 
   if (loading) {
@@ -686,12 +701,10 @@ const Dashboard: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
                   <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
-                  <Tooltip cursor={{ fill: '#f3f4f6' }} formatter={(v: any) => `${v} conversões`} />
-                  <Bar dataKey="conversions" fill="#6366f1" radius={[0, 12, 12, 0]}>
-                    {sourceStats.slice(0, 8).map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={`hsl(${220 + idx * 20}, 80%, 65%)`} />
-                    ))}
-                  </Bar>
+                  <Tooltip formatter={(v: any, n: string) => n === 'cost' ? `Custo: $${v}` : `Receita: $${v}`} />
+                  <Bar dataKey="cost" name="Custo" fill="#6366f1" radius={[0, 12, 12, 0]} />
+                  <Bar dataKey="revenue" name="Receita" fill="#22d3ee" radius={[0, 12, 12, 0]} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
