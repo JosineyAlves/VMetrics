@@ -18,7 +18,7 @@ import {
   BarChart2,
   Shuffle
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from 'recharts'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
@@ -427,6 +427,21 @@ const Dashboard: React.FC = () => {
 
   const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
 
+  // 1. Processar os dados para agrupar por fonte
+  const sourceStats = Array.isArray(dailyData)
+    ? dailyData.reduce((acc: any[], curr: any) => {
+        const key = curr.source || curr.utm_source || curr.traffic_channel || 'Indefinido';
+        const found = acc.find((a) => a.key === key);
+        if (found) {
+          found.conversions += curr.conversions || 0;
+        } else {
+          acc.push({ key, conversions: curr.conversions || 0 });
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => b.conversions - a.conversions)
+    : [];
+
 
   if (loading) {
     return (
@@ -656,16 +671,33 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
+          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
         >
           <h3 className="text-lg font-semibold text-gray-800 mb-6">Distribuição por Fonte</h3>
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📈</div>
-              <p className="text-lg font-semibold">Distribuição por Fonte</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+          {sourceStats.length > 0 ? (
+            <div className="w-full h-[320px] flex flex-col justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  layout="vertical"
+                  data={sourceStats.slice(0, 8)}
+                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                  barCategoryGap={18}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
+                  <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
+                  <Tooltip cursor={{ fill: '#f3f4f6' }} formatter={(v: any) => `${v} conversões`} />
+                  <Bar dataKey="conversions" fill="#6366f1" radius={[0, 12, 12, 0]}>
+                    {sourceStats.slice(0, 8).map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={`hsl(${220 + idx * 20}, 80%, 65%)`} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          </div>
+          ) : (
+            <div className="text-gray-400 text-center py-12">Sem dados de fonte para o período selecionado.</div>
+          )}
         </motion.div>
 
         {/* Métricas de Conversão */}
