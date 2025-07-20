@@ -24,10 +24,10 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' });
   }
 
-  // Monta a URL do RedTrack com todos os parâmetros recebidos
+  // Monta a URL do RedTrack com todos os parâmetros recebidos, exceto api_key
   const url = new URL('https://api.redtrack.io/report');
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
+    if (key !== 'api_key' && value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, value.toString());
     }
   });
@@ -38,7 +38,8 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
+        'User-Agent': 'TrackView-Dashboard/1.0',
+        'Authorization': `Bearer ${apiKey}`
       }
     });
 
