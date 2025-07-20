@@ -21,6 +21,7 @@ import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, getCurrentRedTrackDate, periodPresets } from '../lib/utils'
+import { useDateRangeStore } from '../store/dateRange'
 
 
 interface Metric {
@@ -38,7 +39,6 @@ const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
@@ -56,8 +56,8 @@ const Dashboard: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(false)
 
-  // Novo estado para datas personalizadas
-  const [customRange, setCustomRange] = useState({ from: '', to: '' })
+  // Remover estados locais de datas
+  const { selectedPeriod, customRange } = useDateRangeStore()
 
   // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
 
@@ -404,11 +404,7 @@ const Dashboard: React.FC = () => {
     }
   }, [apiKey, selectedPeriod, filters, customRange])
 
-  const handlePeriodChange = (period: string) => {
-    setSelectedPeriod(period)
-    setShowPeriodDropdown(false)
-    loadDashboardData()
-  }
+  // Remover handlePeriodChange e qualquer uso de setSelectedPeriod
 
   const handleRefresh = () => {
     loadDashboardData(true)
@@ -461,65 +457,18 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Nav Container */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 shadow-2xl border border-white/20">
-      <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
-            Visão geral de performance
-          </p>
-          {lastUpdate && (
-            <p className="text-sm text-gray-500 mt-1">
-              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
-            </p>
-          )}
-        </div>
-        <div className="flex items-center space-x-3">
-          {/* Botão de Atualização */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
-          
-          {/* Toggle Auto Refresh */}
-          <Button 
-            variant={autoRefresh ? "primary" : "outline"}
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <div className="w-4 h-4 mr-2">
-              {autoRefresh && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
-            </div>
-            Auto
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setTempFilters(filters)
-              setShowFilters(!showFilters)
-            }}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-          </Button>
-          </div>
-        </div>
+      {/* Botão de filtros fixo, alinhado à direita */}
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+        >
+          <Filter className="w-4 h-4 mr-2 inline" />
+          Filtros
+        </Button>
       </div>
-
-
 
       {/* Filtros Avançados */}
       {showFilters && (
@@ -594,36 +543,7 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Período Dropdown */}
-      <div className="flex items-center justify-between">
-        <div className="relative period-dropdown">
-          {/* Filtro de período padronizado */}
-          <PeriodDropdown
-            value={selectedPeriod}
-            customRange={customRange}
-            onChange={(period, custom) => {
-              setSelectedPeriod(period);
-              if (period === 'custom' && custom) {
-                setCustomRange(custom);
-                const dateRange = getDateRange(period, custom);
-                setFilters(prev => ({ 
-                  ...prev, 
-                  dateFrom: dateRange.startDate, 
-                  dateTo: dateRange.endDate 
-                }));
-              } else {
-                setCustomRange({ from: '', to: '' });
-                const dateRange = getDateRange(period);
-                setFilters(prev => ({
-                  ...prev,
-                  dateFrom: dateRange.startDate,
-                  dateTo: dateRange.endDate,
-                }));
-              }
-            }}
-            presets={periodPresets}
-          />
-        </div>
-      </div>
+      {/* Removido: PeriodDropdown duplicado do Dashboard */}
 
       {/* KPIs Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

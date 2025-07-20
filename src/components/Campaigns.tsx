@@ -22,6 +22,7 @@ import RedTrackAPI from '../services/api'
 import { addDays, format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
+import { useDateRangeStore } from '../store/dateRange'
 
 interface UTMCreative {
   id: string
@@ -86,9 +87,8 @@ const Campaigns: React.FC = () => {
     utm_content: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
-  const [selectedPeriod, setSelectedPeriod] = useState('today')
+  const { selectedPeriod, customRange } = useDateRangeStore()
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
-  const [customRange, setCustomRange] = useState({ from: '', to: '' })
   const [totalCampaigns, setTotalCampaigns] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
@@ -314,7 +314,7 @@ const Campaigns: React.FC = () => {
   useEffect(() => {
     if (apiKey) {
       if (activeTab === 'campaigns') {
-        loadCampaigns()
+      loadCampaigns()
       } else if (activeTab === 'utm') {
         loadUTMCreatives()
       }
@@ -453,81 +453,48 @@ const Campaigns: React.FC = () => {
     return (
       <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 shadow-2xl border border-white/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Campanhas & UTM
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
-            Gerencie campanhas e analise performance por UTM
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between mb-4">
+          {/* Tabs */}
+          <div className="flex space-x-1 bg-trackview-background rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('campaigns')}
+              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'campaigns'
+                  ? 'bg-white text-trackview-primary shadow-sm'
+                  : 'text-trackview-muted hover:text-trackview-primary'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Campanhas
+            </button>
+            <button
+              onClick={() => setActiveTab('utm')}
+              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'utm'
+                  ? 'bg-white text-trackview-primary shadow-sm'
+                  : 'text-trackview-muted hover:text-trackview-primary'
+              }`}
+            >
+              <Link className="w-4 h-4 mr-2" />
+              UTM / Criativos
+            </button>
+          </div>
+
+          {/* Botão de filtros alinhado à direita */}
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => {
-              setTempFilters(filters)
-              setShowFilters(!showFilters)
-            }}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            onClick={() => setShowFilters(!showFilters)}
+            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
           >
-            <Filter className="w-4 h-4 mr-2" />
+            <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
           </Button>
-          </div>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-trackview-background rounded-lg p-1 mb-4">
-        <button
-          onClick={() => setActiveTab('campaigns')}
-          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'campaigns'
-              ? 'bg-white text-trackview-primary shadow-sm'
-              : 'text-trackview-muted hover:text-trackview-primary'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4 mr-2" />
-          Campanhas
-        </button>
-        <button
-          onClick={() => setActiveTab('utm')}
-          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'utm'
-              ? 'bg-white text-trackview-primary shadow-sm'
-              : 'text-trackview-muted hover:text-trackview-primary'
-          }`}
-        >
-          <Link className="w-4 h-4 mr-2" />
-          UTM / Criativos
-        </button>
-      </div>
 
       {/* Filtro de período padronizado - sempre visível */}
       <div className="flex items-center justify-between">
         <div className="relative period-dropdown">
-        <PeriodDropdown
-          value={selectedPeriod}
-          customRange={customRange}
-          onChange={(period, custom) => {
-            setSelectedPeriod(period);
-              const dateRange = getDateRange(period, custom);
-            if (period === 'custom' && custom) {
-              setCustomRange(custom);
-            } else {
-                setCustomRange({ from: '', to: '' });
-            }
-              setFilters(prev => ({
-                ...prev,
-                dateFrom: dateRange.startDate,
-                dateTo: dateRange.endDate,
-              }));
-          }}
-            presets={periodPresets}
-        />
         </div>
       </div>
       {/* Filtros Avançados */}
@@ -877,7 +844,7 @@ const Campaigns: React.FC = () => {
               <div className="p-8 text-center text-gray-500">
                 Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
                 Tente ampliar o período ou revisar os filtros.
-              </div>
+                      </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Best performing campaigns */}
@@ -902,10 +869,10 @@ const Campaigns: React.FC = () => {
                           <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
                           <td className="text-right">{item.conversions || 0}</td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                ))}
+              </tbody>
+            </table>
+        </div>
                 {/* Best performing ads */}
                 <div className="bg-blue-50 rounded-xl p-4 shadow">
                   <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
@@ -931,7 +898,7 @@ const Campaigns: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
-                </div>
+            </div>
                 {/* Best offers */}
                 <div className="bg-blue-50 rounded-xl p-4 shadow">
                   <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
@@ -957,12 +924,12 @@ const Campaigns: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
+            </div>
+          </div>
             )
           )}
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
             </div>
   )
 }

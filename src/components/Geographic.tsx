@@ -19,6 +19,7 @@ import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
+import { useDateRangeStore } from '../store/dateRange'
 
 
 interface GeographicData {
@@ -54,8 +55,7 @@ const Geographic: React.FC = () => {
     dateTo: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
-  const [selectedPeriod, setSelectedPeriod] = useState('today')
-  const [customRange, setCustomRange] = useState({ from: '', to: '' });
+  const { selectedPeriod, customRange } = useDateRangeStore()
 
   // Remover periodOptions, getPeriodLabel, getDateRange antigos
 
@@ -185,56 +185,32 @@ const Geographic: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Nav Container */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-3 shadow-2xl border border-white/20">
+      {/* Search and Filters */}
       <div className="flex items-center justify-between">
-        <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Análise Geográfica
-          </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
-            Performance por localização geográfica
-          </p>
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-trackview-muted w-4 h-4" />
+          <Input
+            placeholder="Buscar localização..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
-        <div className="flex items-center space-x-3">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setTempFilters(filters)
-              setShowFilters(!showFilters)
-            }}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-          </Button>
-          </div>
-        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+        >
+          <Filter className="w-4 h-4 mr-2 inline" />
+          Filtros
+        </Button>
       </div>
 
       {/* Filtro de período padronizado */}
       <div className="flex items-center justify-between">
         <div className="relative period-dropdown">
-        <PeriodDropdown
-          value={selectedPeriod}
-          customRange={customRange}
-          onChange={(period, custom) => {
-            setSelectedPeriod(period);
-              const dateRange = getDateRange(period, custom);
-            if (period === 'custom' && custom) {
-              setCustomRange(custom);
-            } else {
-                setCustomRange({ from: '', to: '' });
-            }
-              setFilters(prev => ({
-                ...prev,
-                dateFrom: dateRange.startDate,
-                dateTo: dateRange.endDate,
-              }));
-          }}
-            presets={periodPresets}
-        />
         </div>
       </div>
 
@@ -385,22 +361,6 @@ const Geographic: React.FC = () => {
           </div>
         </motion.div>
       )}
-
-      {/* Search and Filters */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-trackview-muted w-4 h-4" />
-          <Input
-            placeholder="Buscar localização..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        {/* Período Dropdown */}
-        {/* This div is removed as the PeriodDropdown component handles its own dropdown */}
-      </div>
 
       {/* Data Table */}
       <motion.div
