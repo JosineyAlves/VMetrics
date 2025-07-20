@@ -73,16 +73,28 @@ const Geographic: React.FC = () => {
       }
       const response = await api.getReport(params)
       console.log('Geografia - Resposta da API:', response)
-      // Corrigir para aceitar array direto ou objeto com .items
-      if (!response) {
-        setGeographicData([])
+      // Mapeamento dos campos do RedTrack para o frontend
+      let items = []
+      if (response && Array.isArray(response.items)) {
+        items = response.items
       } else if (Array.isArray(response)) {
-        setGeographicData(response)
-      } else if (response.items && Array.isArray(response.items)) {
-        setGeographicData(response.items)
-      } else {
-        setGeographicData([])
+        items = response
+      } else if (response && response.data && Array.isArray(response.data)) {
+        items = response.data
       }
+      const mapped = items.map((item: any) => ({
+        country: item.country,
+        region: item.region,
+        city: item.city,
+        visitors: item.clicks ?? item.visitors ?? 0,
+        conversions: item.conversions ?? 0,
+        revenue: item.revenue ?? 0,
+        spend: item.cost ?? item.spend ?? 0,
+        roi: item.roi ?? 0,
+        conversion_rate: item.cr ?? item.conversion_rate ?? (item.clicks ? (item.conversions / item.clicks) * 100 : 0),
+        cpa: item.cpa ?? 0,
+      }))
+      setGeographicData(mapped)
     } catch (error) {
       console.error('Error loading geographic data:', error)
       setGeographicData([])
