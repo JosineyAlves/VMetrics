@@ -52,12 +52,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       description: 'Log de conversões'
     },
     {
-      id: 'geographic',
-      label: 'Geografia',
-      icon: Globe,
-      description: 'Performance regional'
-    },
-    {
       id: 'settings',
       label: 'Configurações',
       icon: Settings,

@@ -5,7 +5,6 @@ import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
 import Conversions from "./components/Conversions"
-import Geographic from "./components/Geographic"
 import Settings from "./components/Settings"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
@@ -104,8 +103,6 @@ const App: React.FC = () => {
         return <Campaigns />
       case 'conversions':
         return <Conversions />
-      case 'geographic':
-        return <Geographic />
       case 'settings':
         return <Settings />
       default:
@@ -118,13 +115,12 @@ const App: React.FC = () => {
     dashboard: 'Dashboard',
     campaigns: 'Campanhas',
     conversions: 'Conversões',
-    geographic: 'Geografia',
     settings: 'Configurações'
   }
   const sectionTitle = sectionTitles[currentSection] || ''
 
   // Definir quais botões mostrar por tela
-  const showRefresh = ['dashboard', 'campaigns', 'conversions', 'geographic'].includes(currentSection)
+  const showRefresh = ['dashboard', 'campaigns', 'conversions'].includes(currentSection)
   const showAuto = currentSection === 'dashboard'
   // Filtros agora só nas telas específicas
 
