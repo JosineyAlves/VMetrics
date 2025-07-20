@@ -12,7 +12,13 @@ import {
   ChevronDown,
   Filter,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  ShoppingCart,
+  CheckCircle,
+  Clock,
+  XCircle,
+  HelpCircle,
+  Calculator
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import { Button } from './ui/button'
@@ -22,6 +28,8 @@ import RedTrackAPI from '../services/api'
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, getCurrentRedTrackDate, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
+import MetricsSelector from './MetricsSelector'
+import { useMetricsStore } from '../store/metrics'
 
 
 interface Metric {
@@ -37,6 +45,7 @@ interface Metric {
 
 const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
+  const { selectedMetrics, availableMetrics } = useMetricsStore()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
@@ -75,118 +84,7 @@ const Dashboard: React.FC = () => {
   // Função para calcular datas reais baseadas no período (não utilizada)
 
 
-  const [metrics, setMetrics] = useState<Metric[]>([
-    {
-      id: 'revenue',
-      label: 'Receita',
-      value: 0,
-      change: 0,
-      icon: <DollarSign className="w-5 h-5" />,
-      color: 'text-green-600',
-      format: 'currency',
-      visible: true
-    },
-    {
-      id: 'profit',
-      label: 'Lucro',
-      value: 0,
-      change: 0,
-      icon: <TrendingUp className="w-5 h-5" />,
-      color: 'text-blue-600',
-      format: 'currency',
-      visible: true
-    },
-    {
-      id: 'clicks',
-      label: 'Cliques',
-      value: 0,
-      change: 0,
-      icon: <BarChart3 className="w-5 h-5" />,
-      color: 'text-teal-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'unique_clicks',
-      label: 'Cliques Únicos',
-      value: 0,
-      change: 0,
-      icon: <Users className="w-5 h-5" />,
-      color: 'text-cyan-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'conversions',
-      label: 'Conversões',
-      value: 0,
-      change: 0,
-      icon: <Target className="w-5 h-5" />,
-      color: 'text-purple-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'all_conversions',
-      label: 'Todas Conversões',
-      value: 0,
-      change: 0,
-      icon: <Target className="w-5 h-5" />,
-      color: 'text-violet-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'impressions',
-      label: 'Impressões',
-      value: 0,
-      change: 0,
-      icon: <Eye className="w-5 h-5" />,
-      color: 'text-indigo-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'ctr',
-      label: 'CTR',
-      value: 0,
-      change: 0,
-      icon: <MousePointer className="w-5 h-5" />,
-      color: 'text-orange-600',
-      format: 'percentage',
-      visible: true
-    },
-    {
-      id: 'approved',
-      label: 'Aprovadas',
-      value: 0,
-      change: 0,
-      icon: <TrendingUp className="w-5 h-5" />,
-      color: 'text-green-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'pending',
-      label: 'Pendentes',
-      value: 0,
-      change: 0,
-      icon: <AlertCircle className="w-5 h-5" />,
-      color: 'text-yellow-600',
-      format: 'number',
-      visible: true
-    },
-    {
-      id: 'declined',
-      label: 'Recusadas',
-      value: 0,
-      change: 0,
-      icon: <AlertCircle className="w-5 h-5" />,
-      color: 'text-red-600',
-      format: 'number',
-      visible: true
-    }
-  ])
+  const [dashboardData, setDashboardData] = useState<any>({})
 
   // Novo estado para armazenar dados diários para o gráfico
   const [dailyData, setDailyData] = useState<any[]>([]);
@@ -209,7 +107,7 @@ const Dashboard: React.FC = () => {
     }
   }, [showPeriodDropdown])
 
-  // Carregar dados reais da API do RedTrack
+  // Modificar a função loadDashboardData para adicionar logs detalhados:
   const loadDashboardData = async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true)
@@ -224,8 +122,8 @@ const Dashboard: React.FC = () => {
       // Usar a base padronizada de datas
       const dateRange = getDateRange(selectedPeriod, customRange)
       
-      console.log('Dashboard - Timezone UTC - Data atual:', getCurrentRedTrackDate())
-      console.log('Dashboard - Timezone UTC - Parâmetros enviados:', {
+      console.log('🔍 [DASHBOARD] Timezone UTC - Data atual:', getCurrentRedTrackDate())
+      console.log('🔍 [DASHBOARD] Timezone UTC - Parâmetros enviados:', {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         timezone: 'UTC'
@@ -238,8 +136,11 @@ const Dashboard: React.FC = () => {
         ...filters
       }
       
+      console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
       const realData = await api.getReport(params)
-      console.log('Dashboard - Resposta da API:', realData)
+      console.log('🔍 [DASHBOARD] Resposta da API:', realData)
+      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
+      console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
       let summary: any = {};
       let daily: any[] = [];
@@ -253,13 +154,18 @@ const Dashboard: React.FC = () => {
           });
           return acc;
         }, {});
+        console.log('🔍 [DASHBOARD] Dados agregados:', summary)
       } else {
         summary = realData || {};
+        console.log('🔍 [DASHBOARD] Dados diretos:', summary)
       }
       setDailyData(daily);
+      setDashboardData(summary);
+      
       // Se não houver dados, usar objeto zerado
       if (!summary || Object.keys(summary).length === 0) {
-        summary = {
+        console.log('⚠️ [DASHBOARD] Nenhum dado encontrado - usando dados zerados')
+        const emptyData = {
           clicks: 0,
           conversions: 0,
           spend: 0,
@@ -271,6 +177,7 @@ const Dashboard: React.FC = () => {
           impressions: 0,
           ctr: 0,
           conversion_rate: 0,
+          visible_impressions: 0,
           unique_clicks: 0,
           prelp_views: 0,
           prelp_clicks: 0,
@@ -310,16 +217,12 @@ const Dashboard: React.FC = () => {
           conversion_profit: 0,
           epc_roi: 0
         }
+        setDashboardData(emptyData)
       }
-      const updatedMetrics = metrics.map(metric => ({
-        ...metric,
-        value: (summary as any)[metric.id] || 0,
-        change: 0 // Zerar mudança quando não há dados históricos
-      }))
-      setMetrics(updatedMetrics)
+      
       setLastUpdate(new Date())
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
+      console.error('❌ [DASHBOARD] Erro ao carregar dados:', error)
       // NÃO usar dados mock - mostrar dados reais vazios
       const emptyData = {
         clicks: 0,
@@ -373,13 +276,7 @@ const Dashboard: React.FC = () => {
         conversion_profit: 0,
         epc_roi: 0
       }
-      
-      const updatedMetrics = metrics.map(metric => ({
-        ...metric,
-        value: 0,
-        change: 0 // Zerar mudança quando há erro
-      }))
-      setMetrics(updatedMetrics)
+      setDashboardData(emptyData)
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -429,22 +326,136 @@ const Dashboard: React.FC = () => {
     setTempFilters(resetFilters)
   }
 
-  const formatValue = (value: number, format: string) => {
+  // Corrigir a função formatValue:
+  const formatValue = (value: any, format: string) => {
+    // Verificar se o valor é um número válido
+    const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
+    
     switch (format) {
       case 'currency':
         return new Intl.NumberFormat('pt-BR', {
           style: 'currency',
-          currency: 'BRL'
-        }).format(value)
+          currency: 'USD'
+        }).format(numValue)
       case 'percentage':
-        return `${value.toFixed(2)}%`
+        return `${numValue.toFixed(2)}%`
       case 'number':
-        return value.toLocaleString('pt-BR')
+        return new Intl.NumberFormat('pt-BR').format(numValue)
       default:
-        return value.toString()
+        return numValue.toString()
     }
   }
 
+  // Modificar a função getMetricsFromData para adicionar logs:
+  const getMetricsFromData = (data: any) => {
+    console.log('🔍 [METRICS] Dados recebidos:', data)
+    console.log('🔍 [METRICS] Métricas selecionadas:', selectedMetrics)
+    
+    const selectedMetricsData = selectedMetrics.map(metricId => {
+      const metric = availableMetrics.find(m => m.id === metricId)
+      if (!metric) {
+        console.warn(`⚠️ [METRICS] Métrica não encontrada: ${metricId}`)
+        return null
+      }
+
+      const value = data[metricId] || 0
+      console.log(`�� [METRICS] ${metricId}: ${value} (${typeof value})`)
+      
+      let formattedValue = value
+
+      // Formatar valor baseado no tipo
+      if (metric.unit === 'currency') {
+        formattedValue = new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(value)
+      } else if (metric.unit === 'percentage') {
+        formattedValue = `${value.toFixed(2)}%`
+      } else if (metric.format === 'integer') {
+        formattedValue = new Intl.NumberFormat('pt-BR').format(value)
+      } else {
+        formattedValue = new Intl.NumberFormat('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(value)
+      }
+
+      // Mapear para o formato esperado pelo componente
+      return {
+        id: metricId,
+        label: metric.label,
+        value: formattedValue,
+        rawValue: value,
+        description: metric.description,
+        icon: metric.icon,
+        color: metric.color,
+        unit: metric.unit,
+        format: metric.format || 'number',
+        change: 0, // Zerar mudança quando não há dados históricos
+        visible: true
+      }
+    }).filter(Boolean) as any[]
+
+    console.log('✅ [METRICS] Métricas processadas:', selectedMetricsData.length)
+    return selectedMetricsData
+  }
+
+  // Adicionar função para renderizar ícones:
+  const getIconComponent = (iconName?: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      'Target': <Target className="w-8 h-8" />,
+      'DollarSign': <DollarSign className="w-8 h-8" />,
+      'TrendingUp': <TrendingUp className="w-8 h-8" />,
+      'BarChart3': <BarChart3 className="w-8 h-8" />,
+      'MousePointer': <MousePointer className="w-8 h-8" />,
+      'Eye': <Eye className="w-8 h-8" />,
+      'ShoppingCart': <ShoppingCart className="w-8 h-8" />,
+      'CheckCircle': <CheckCircle className="w-8 h-8" />,
+      'Clock': <Clock className="w-8 h-8" />,
+      'XCircle': <XCircle className="w-8 h-8" />,
+      'HelpCircle': <HelpCircle className="w-8 h-8" />,
+      'Calculator': <Calculator className="w-8 h-8" />,
+      'Users': <Users className="w-8 h-8" />
+    }
+    return icons[iconName || 'BarChart3'] || <BarChart3 className="w-8 h-8" />
+  }
+
+  // Adicionar funções auxiliares para cores:
+  const getColorClass = (color?: string) => {
+    if (!color) return 'bg-gray-100'
+    const colorMap: Record<string, string> = {
+      'blue': 'bg-blue-100',
+      'green': 'bg-green-100', 
+      'red': 'bg-red-100',
+      'purple': 'bg-purple-100',
+      'orange': 'bg-orange-100',
+      'yellow': 'bg-yellow-100',
+      'gray': 'bg-gray-100',
+      'cyan': 'bg-cyan-100',
+      'teal': 'bg-teal-100',
+      'indigo': 'bg-indigo-100',
+      'violet': 'bg-violet-100'
+    }
+    return colorMap[color] || 'bg-gray-100'
+  }
+
+  const getTextColorClass = (color?: string) => {
+    if (!color) return 'text-gray-600'
+    const colorMap: Record<string, string> = {
+      'blue': 'text-blue-600',
+      'green': 'text-green-600',
+      'red': 'text-red-600', 
+      'purple': 'text-purple-600',
+      'orange': 'text-orange-600',
+      'yellow': 'text-yellow-600',
+      'gray': 'text-gray-600',
+      'cyan': 'text-cyan-600',
+      'teal': 'text-teal-600',
+      'indigo': 'text-indigo-600',
+      'violet': 'text-violet-600'
+    }
+    return colorMap[color] || 'text-gray-600'
+  }
 
 
   if (loading) {
@@ -455,19 +466,28 @@ const Dashboard: React.FC = () => {
     )
   }
 
+  const metrics = getMetricsFromData(dashboardData)
+
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Botão de filtros fixo, alinhado à direita */}
-      <div className="flex justify-end mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
-          className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-        >
-          <Filter className="w-4 h-4 mr-2 inline" />
-          Filtros
-        </Button>
+      {/* Header com ações */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Visão geral das suas campanhas</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <MetricsSelector />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+          >
+            <Filter className="w-4 h-4 mr-2 inline" />
+            Filtros
+          </Button>
+        </div>
       </div>
 
       {/* Filtros Avançados */}
@@ -559,7 +579,7 @@ const Dashboard: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
                 <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                  {formatValue(metric.value, metric.format)}
+                  {formatValue(metric.rawValue || metric.value, metric.format)}
                 </p>
                 <div className="flex items-center">
                   <span className={`text-sm font-semibold ${metric.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -568,9 +588,9 @@ const Dashboard: React.FC = () => {
                   <span className="text-sm text-gray-500 ml-2 truncate">vs período anterior</span>
                 </div>
               </div>
-              <div className={`p-4 rounded-2xl ${metric.color.replace('text-', 'bg-')}20 ml-4 flex-shrink-0`}>
-                <div className={`${metric.color} w-8 h-8`}>
-                  {metric.icon}
+              <div className={`p-4 rounded-2xl ${getColorClass(metric.color)} ml-4 flex-shrink-0`}>
+                <div className={`${getTextColorClass(metric.color)}`}>
+                  {getIconComponent(metric.icon)}
                 </div>
               </div>
             </div>

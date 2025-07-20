@@ -453,32 +453,32 @@ const Campaigns: React.FC = () => {
     return (
       <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
-        <div className="flex items-center justify-between mb-4">
-          {/* Tabs */}
-          <div className="flex space-x-1 bg-trackview-background rounded-lg p-1">
-            <button
-              onClick={() => setActiveTab('campaigns')}
-              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'campaigns'
-                  ? 'bg-white text-trackview-primary shadow-sm'
-                  : 'text-trackview-muted hover:text-trackview-primary'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Campanhas
-            </button>
-            <button
-              onClick={() => setActiveTab('utm')}
-              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'utm'
-                  ? 'bg-white text-trackview-primary shadow-sm'
-                  : 'text-trackview-muted hover:text-trackview-primary'
-              }`}
-            >
-              <Link className="w-4 h-4 mr-2" />
-              UTM / Criativos
-            </button>
-          </div>
+          <div className="flex items-center justify-between mb-4">
+      {/* Tabs */}
+      <div className="flex space-x-1 bg-trackview-background rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('campaigns')}
+          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'campaigns'
+              ? 'bg-white text-trackview-primary shadow-sm'
+              : 'text-trackview-muted hover:text-trackview-primary'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Campanhas
+        </button>
+        <button
+          onClick={() => setActiveTab('utm')}
+          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'utm'
+              ? 'bg-white text-trackview-primary shadow-sm'
+              : 'text-trackview-muted hover:text-trackview-primary'
+          }`}
+        >
+          <Link className="w-4 h-4 mr-2" />
+          UTM / Criativos
+        </button>
+      </div>
 
           {/* Botão de filtros alinhado à direita */}
           <Button 

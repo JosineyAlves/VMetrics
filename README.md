@@ -1,8 +1,8 @@
-# RedTrack Dashboard
+# 🚀 TrackView - Dashboard RedTrack
 
 Um dashboard profissional para análise de dados do RedTrack.io, construído com React + Vite, Tailwind CSS, shadcn/ui, Recharts, Framer Motion, Zustand e localStorage.
 
-## 🚀 Funcionalidades
+## 🎯 Funcionalidades
 
 ### ✅ Implementadas
 - **Autenticação via API Key** do RedTrack
@@ -14,235 +14,91 @@ Um dashboard profissional para análise de dados do RedTrack.io, construído com
 - **Tema claro/escuro**
 - **Dados simulados** para demonstração
 - **Integração real** com API do RedTrack
+- **Métricas personalizáveis** - Selecione quais métricas ver no dashboard
 
-### 📊 Métricas Disponíveis
+### 📊 Métricas Personalizáveis
 
-#### Métricas Principais
-- **Faturamento Bruto** - Receita total das campanhas
-- **Gasto** - Custo total das campanhas
-- **Lucro** - Diferença entre receita e custo
-- **Faturamento Líquido** - Receita após impostos
+O dashboard agora permite que cada gestor de tráfego personalize quais métricas quer ver:
 
-#### Métricas de Performance
-- **ROAS** - Return on Ad Spend
-- **ROI** - Return on Investment
-- **Margem de Lucro** - Percentual de lucro sobre receita
-- **ROI Conversão** - ROI específico para conversões
-- **EPC ROI** - Earnings per Click ROI
+#### **Métricas Básicas:**
+- Cliques, Conversões, Gasto, Receita, Lucro
+- Impressões, Impressões Visíveis, Cliques Únicos
 
-#### Métricas de Custo
-- **CPA** - Cost per Acquisition
-- **CPC** - Cost per Click
-- **Custo por Lead** - Custo por lead gerado
-- **CPA Conversão** - CPA específico para conversões
-- **CPA Total** - CPA geral
-- **CPT** - Cost per Transaction
+#### **Métricas de Performance:**
+- ROI, CPA, CPC, CTR, Taxa de Conversão
+- ROAS, ROAS Conversão, CPA Total, CPT
 
-#### Métricas de Volume
-- **Conversas** - Número de conversas
-- **Leads** - Número de leads
-- **Todas Conversões** - Total de conversões
-- **Transações** - Número de transações
+#### **Métricas de Conversão:**
+- Todas Conversões, Transações
+- Pre-LP Views/Clicks/CTR, LP CTR
+- Taxa Conversão CR, Taxa Todas Conversões
 
-#### Métricas de Impressões e Cliques
-- **Impressões** - Total de impressões
-- **Impressões Visíveis** - Impressões realmente vistas
-- **Cliques Únicos** - Cliques únicos
-- **CTR** - Click Through Rate
+#### **Métricas de Receita:**
+- Receita por Conversão, Receita Publisher
+- AOV Total, AOV Conversão
 
-#### Métricas de Landing Page
-- **Pre-LP Views** - Visualizações da pré-landing page
-- **Pre-LP Clicks** - Cliques na pré-landing page
-- **Pre-LP CTR** - Taxa de clique da pré-landing page
-- **LP CTR** - Taxa de clique da landing page
-- **LP Click CTR** - Taxa de clique para cliques da landing page
+#### **Métricas de Earnings:**
+- EPV, EPLPC, EPUC, Listicle EPV, EPC ROI
 
-#### Métricas de Conversão
-- **Taxa Conversão** - Taxa de conversão geral
-- **Taxa Todas Conversões** - Taxa de todas as conversões
-- **Taxa Transação** - Taxa de transação
+#### **Métricas de Aprovação:**
+- Aprovadas, Pendentes, Recusadas
+- Taxa Aprovação, Taxa Pendente, Taxa Recusa
 
-#### Métricas de Aprovação
-- **Aprovadas** - Conversões aprovadas
-- **Taxa Aprovação** - Taxa de aprovação
-- **Pendentes** - Conversões pendentes
-- **Taxa Pendente** - Taxa de conversões pendentes
-- **Recusadas** - Conversões recusadas
-- **Taxa Recusa** - Taxa de recusa
-- **Outras** - Outras conversões
-- **Taxa Outras** - Taxa de outras conversões
+## 🚀 Como Rodar o Projeto
 
-#### Métricas de Receita
-- **Receita Conversão** - Receita por conversão
-- **Receita Publisher** - Receita do publisher
-- **Receita Publisher Legacy** - Receita legacy do publisher
+### Pré-requisitos
+- Node.js 18+ 
+- npm ou yarn
 
-#### Métricas de Valor
-- **AOV Total** - Average Order Value total
-- **AOV Conversão** - AOV por conversão
-- **ARPU** - Average Revenue Per User
+### Instalação
 
-#### Métricas de Earnings
-- **EPV** - Earnings per View
-- **EPLPC** - Earnings per Landing Page Click
-- **EPUC** - Earnings per Unique Click
-- **Listicle EPV** - Earnings per View para listicles
+1. **Clone o repositório:**
+```bash
+git clone <url-do-repositorio>
+cd TrackView
+```
 
-#### Métricas de ROAS
-- **ROAS %** - ROAS em percentual
-- **ROAS Conversão** - ROAS por conversão
-- **ROAS Conversão %** - ROAS percentual por conversão
-- **Lucro Conversão** - Lucro por conversão
+2. **Instale as dependências:**
+```bash
+npm install
+```
 
-#### Métricas de Status
-- **Vendas Pendentes** - Vendas em análise
-- **Taxa de Reembolso** - Percentual de reembolsos
-- **Taxa de Aprovação** - Taxa geral de aprovação
+3. **Configure a API Key do RedTrack:**
+   - Acesse o RedTrack.io
+   - Vá em Settings > API
+   - Copie sua API Key
 
-#### Métricas de Análise
-- **Vendas / Produto** - Vendas por produto
-- **Vendas / Fonte** - Vendas por fonte de tráfego
-- **Vendas / País** - Vendas por país
+### Desenvolvimento
 
-### 🔍 Filtros Avançados
-- **Período** - Seleção de período (1 dia, 7 dias, 30 dias, 90 dias, 1 ano, personalizado)
-- **Data** - Filtro por data inicial e final
-- **UTM Source** - Filtro por fonte UTM
-- **País** - Filtro por país
-- **Dispositivo** - Desktop, Mobile, Tablet
-- **Navegador** - Chrome, Firefox, Safari, Edge
-- **Sistema Operacional** - Windows, macOS, Linux, Android, iOS
-
-## 🛠️ Tecnologias
-
-- **React 18** + **TypeScript**
-- **Vite** para build e desenvolvimento
-- **Tailwind CSS** para estilização
-- **shadcn/ui** para componentes
-- **Recharts** para gráficos
-- **Framer Motion** para animações
-- **Zustand** para gerenciamento de estado
-- **Lucide React** para ícones
-
-## 📦 Instalação
+Para rodar o projeto em modo de desenvolvimento com servidor de API:
 
 ```bash
-# Clone o repositório
-git clone <url-do-repositorio>
-cd MyDash
+# Instalar dependências do servidor (se necessário)
+npm install express cors concurrently
 
-# Instale as dependências
-npm install
+# Rodar servidor de API + frontend
+npm run dev:full
+```
 
-# Inicie o servidor de desenvolvimento
+Ou rodar separadamente:
+
+```bash
+# Terminal 1 - Servidor de API
+npm run dev:server
+
+# Terminal 2 - Frontend
 npm run dev
 ```
 
-## 🚀 Deploy em Produção
+### Produção
 
-### Vercel (Recomendado)
-
-1. **Instale o Vercel CLI**:
 ```bash
-npm i -g vercel
-```
-
-2. **Faça login**:
-```bash
-vercel login
-```
-
-3. **Deploy automático**:
-```bash
-vercel --prod
-```
-
-### Netlify
-
-1. **Build do projeto**:
-```bash
+# Build do projeto
 npm run build
+
+# Rodar servidor de produção
+npm run dev:server
 ```
-
-2. **Arraste a pasta `dist`** para o Netlify
-
-### GitHub Pages
-
-1. **Adicione ao package.json**:
-```json
-{
-  "homepage": "https://seu-usuario.github.io/seu-repo",
-  "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  }
-}
-```
-
-2. **Instale gh-pages**:
-```bash
-npm install --save-dev gh-pages
-```
-
-3. **Deploy**:
-```bash
-npm run deploy
-```
-
-### Firebase Hosting
-
-1. **Instale Firebase CLI**:
-```bash
-npm install -g firebase-tools
-```
-
-2. **Login e inicialize**:
-```bash
-firebase login
-firebase init hosting
-```
-
-3. **Deploy**:
-```bash
-firebase deploy
-```
-
-## 🔑 Configuração da API
-
-### Para Teste (Dados Simulados)
-Use a chave de teste: `kXlmMfpINGQqv4btkwRL`
-
-### Para API Real do RedTrack
-
-1. **Acesse sua conta** no [RedTrack.io](https://redtrack.io)
-2. **Navegue até**: Tools → Integrações → General
-3. **Copie sua API Key**
-4. **Cole no dashboard** e clique em "Conectar ao RedTrack"
-
-**⚠️ Importante**: Em produção, a API do RedTrack funcionará normalmente. O problema de CORS só ocorre em localhost.
-
-## 📡 Endpoints da API Implementados
-
-Baseado na [documentação oficial do RedTrack](https://help.redtrack.io/), implementamos:
-
-### ✅ Endpoints Funcionais
-- `GET /me/settings` - Teste de autenticação
-- `GET /report` - Dados do dashboard
-- `GET /conversions` - Log de conversões
-- `GET /campaigns` - Lista de campanhas
-- `GET /tracks` - Log de cliques
-- `GET /domains` - Domínios
-- `GET /offers` - Ofertas
-- `GET /countries` - Dados geográficos
-
-### 🔄 Endpoints Disponíveis na API
-- `POST /campaigns` - Criar campanha
-- `PUT /campaigns/{id}` - Atualizar campanha
-- `POST /conversions` - Upload de conversões
-- `GET /conversions/export` - Exportar conversões
-- `POST /export_conversions` - Exportar para AWS S3
-- `GET /tracks` - Log de cliques
-- `POST /tracks/cost` - Atualizar custos
 
 ## 🎯 Como Usar
 
@@ -250,25 +106,18 @@ Baseado na [documentação oficial do RedTrack](https://help.redtrack.io/), impl
 - Insira sua API Key do RedTrack
 - Clique em "Conectar ao RedTrack"
 
-### 2. Dashboard
-- Visualize KPIs principais
-- Analise gráficos de performance
-- Veja funil de conversão
+### 2. Dashboard Personalizado
+- Clique no botão "Métricas" no Dashboard
+- Selecione quais métricas deseja ver
+- Organize por categoria (Básicas, Performance, etc.)
+- Clique em "Aplicar"
 
-### 3. Campanhas
-- Liste todas as campanhas
-- Filtre por status e data
-- Analise métricas por campanha
-
-### 4. Conversões
-- Veja log detalhado de conversões
-- Filtre por tipo e data
-- Exporte dados
-
-### 5. Configurações
-- Atualize sua API Key
-- Teste conexão com API real
-- Configure tema claro/escuro
+### 3. Navegação
+- **Dashboard** - Visão geral com KPIs e gráficos
+- **Campanhas** - Tabela com filtros e busca
+- **Conversões** - Detalhes de conversões com exportação
+- **Geografia** - Dados geográficos
+- **Configurações** - Gerenciamento de API key
 
 ## 🔧 Estrutura do Projeto
 
@@ -281,51 +130,68 @@ src/
 │   ├── Conversions.tsx # Análise de conversões
 │   ├── Settings.tsx   # Configurações
 │   ├── Sidebar.tsx    # Navegação lateral
-│   └── LoginForm.tsx  # Formulário de login
+│   ├── LoginForm.tsx  # Formulário de login
+│   └── MetricsSelector.tsx # Seletor de métricas
 ├── store/             # Gerenciamento de estado (Zustand)
-│   └── auth.ts        # Store de autenticação
+│   ├── auth.ts        # Store de autenticação
+│   ├── dateRange.ts   # Store de datas
+│   └── metrics.ts     # Store de métricas personalizáveis
 ├── services/          # Serviços da API
 │   └── api.ts         # Cliente da API RedTrack
-└── lib/               # Utilitários
-    └── utils.ts       # Funções utilitárias
+├── lib/               # Utilitários
+│   └── utils.ts       # Funções utilitárias
+└── App.tsx           # Componente principal
+
+api/                   # Endpoints da API (proxy para RedTrack)
+├── report.js         # Relatórios
+├── campaigns.js      # Campanhas
+├── conversions.js    # Conversões
+├── tracks.js         # Cliques
+├── settings.js       # Configurações
+└── dictionaries.js   # Dicionários
+
+server.js             # Servidor de desenvolvimento
 ```
 
-## 🎨 Personalização
+## 📡 Endpoints da API
 
-### Cores e Tema
-- Modo claro/escuro
-- Cores personalizáveis via Tailwind
-- Componentes shadcn/ui customizáveis
+Baseado na [documentação oficial do RedTrack](https://help.redtrack.io/), implementamos:
 
-### Gráficos
-- Recharts para visualizações
-- Gráficos de linha, barra e pizza
-- Responsivos e interativos
+### ✅ Endpoints Funcionais
+- `GET /report` - Dados do dashboard
+- `GET /conversions` - Log de conversões
+- `GET /campaigns` - Lista de campanhas
+- `GET /tracks` - Log de cliques
+- `GET /settings` - Configurações da conta
+- `GET /dictionaries` - Dados de referência
 
-### Animações
-- Framer Motion para transições
-- Animações suaves entre páginas
-- Feedback visual para ações
+## 🎨 Design System
+
+### Cores
+- **Primária**: Azul (#3B82F6)
+- **Sucesso**: Verde (#10B981)
+- **Aviso**: Amarelo (#F59E0B)
+- **Erro**: Vermelho (#EF4444)
+
+### Componentes
+- **Border radius**: 0.5rem (8px)
+- **Shadows**: Suaves e consistentes
+- **Spacing**: Sistema 4px (0.25rem)
+
+## 🔧 Tecnologias
+
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Charts**: Recharts
+- **Animations**: Framer Motion
+- **State**: Zustand
+- **Backend**: Express.js (desenvolvimento)
+- **API**: RedTrack.io
 
 ## 📝 Licença
 
-Este projeto é para fins educacionais e de demonstração.
+Este projeto é privado e desenvolvido para uso interno.
 
-## 🤝 Contribuição
+## 🤝 Suporte
 
-1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
-5. Abra um Pull Request
-
-## 📞 Suporte
-
-Para dúvidas sobre a API do RedTrack:
-- [Documentação Oficial](https://help.redtrack.io/)
-- [Fórum da Comunidade](https://help.redtrack.io/community/)
-- Email: support@redtrack.io
-
----
-
-**Desenvolvido com ❤️ para análise de dados do RedTrack.io** 
+Para suporte técnico ou dúvidas sobre integração com RedTrack, entre em contato com a equipe de desenvolvimento. 
