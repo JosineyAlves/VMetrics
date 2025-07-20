@@ -24,23 +24,30 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' });
   }
 
-  // Monta a URL do RedTrack com todos os parâmetros recebidos, exceto api_key
+  // Detecta se é agrupamento geográfico (não é só por date)
+  const isGeoGroup = params.group_by && params.group_by !== 'date';
+
+  // Monta a URL do RedTrack
   const url = new URL('https://api.redtrack.io/report');
   Object.entries(params).forEach(([key, value]) => {
-    if (key !== 'api_key' && value !== undefined && value !== null && value !== '') {
+    if ((!isGeoGroup || key !== 'api_key') && value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, value.toString());
     }
   });
 
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'User-Agent': 'TrackView-Dashboard/1.0'
+  };
+  if (isGeoGroup) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
   try {
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0',
-        'Authorization': `Bearer ${apiKey}`
-      }
+      headers
     });
 
     if (!response.ok) {
