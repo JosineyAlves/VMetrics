@@ -73,13 +73,13 @@ const Geographic: React.FC = () => {
       }
       const response = await api.getReport(params)
       console.log('Geografia - Resposta da API:', response)
-      // Ajustar para aceitar diferentes formatos de resposta
-      if (!response || (Array.isArray(response.items) && response.items.length === 0)) {
+      // Corrigir para aceitar array direto ou objeto com .items
+      if (!response) {
         setGeographicData([])
-      } else if (response.items) {
-        setGeographicData(response.items)
       } else if (Array.isArray(response)) {
         setGeographicData(response)
+      } else if (response.items && Array.isArray(response.items)) {
+        setGeographicData(response.items)
       } else {
         setGeographicData([])
       }
