@@ -58,7 +58,13 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    res.status(200).json(data);
+    // Padroniza para sempre retornar { items: [...] }
+    if (Array.isArray(data)) {
+      res.status(200).json({ items: data });
+    } else {
+      res.status(200).json(data);
+    }
+    return;
 
   } catch (error) {
     res.status(500).json({ 
