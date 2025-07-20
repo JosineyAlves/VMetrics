@@ -430,7 +430,7 @@ const Dashboard: React.FC = () => {
 
   // (Removido: processamento antigo de sourceStats, agora é buscado via useEffect)
 
-  // Buscar distribuição por fonte (custo e receita por traffic_channel)
+  // Buscar distribuição por fonte (apenas custo por traffic_channel)
   useEffect(() => {
     const fetchSourceStats = async () => {
       if (!apiKey) return
@@ -447,9 +447,8 @@ const Dashboard: React.FC = () => {
         const mapped = items.map((item: any) => ({
           key: item.traffic_channel || item.source || item.utm_source || 'Indefinido',
           cost: item.spend ?? item.cost ?? 0,
-          revenue: item.revenue ?? 0,
         }))
-        setSourceStats(mapped.sort((a, b) => b.revenue - a.revenue))
+        setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
       } catch (err) {
         setSourceStats([])
       }
@@ -688,7 +687,7 @@ const Dashboard: React.FC = () => {
           transition={{ delay: 0.5 }}
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Distribuição por Fonte</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">Investimento por Fonte de Tráfego</h3>
           {sourceStats.length > 0 ? (
             <div className="w-full h-[320px] flex flex-col justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -701,15 +700,14 @@ const Dashboard: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
                   <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
-                  <Tooltip formatter={(v: any, n: string) => n === 'cost' ? `Custo: $${v}` : `Receita: $${v}`} />
-                  <Bar dataKey="cost" name="Custo" fill="#6366f1" radius={[0, 12, 12, 0]} />
-                  <Bar dataKey="revenue" name="Receita" fill="#22d3ee" radius={[0, 12, 12, 0]} />
+                  <Tooltip formatter={(v: any) => `Custo: $${v}`} />
+                  <Bar dataKey="cost" name="Investimento" fill="#6366f1" radius={[0, 12, 12, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="text-gray-400 text-center py-12">Sem dados de fonte para o período selecionado.</div>
+            <div className="text-gray-400 text-center py-12">Sem dados de investimento por fonte para o período selecionado ou seu plano RedTrack não permite esse relatório.</div>
           )}
         </motion.div>
 
