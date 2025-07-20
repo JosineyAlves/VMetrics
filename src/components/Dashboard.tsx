@@ -92,17 +92,33 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchCampaigns = async () => {
       if (!apiKey) return
-      const api = new RedTrackAPI(apiKey)
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      const params = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'campaign',
+      }
+      const url = new URL('/api/campaigns', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
+        }
+      })
       try {
-        const data = await api.getCampaigns?.() // Se existir getCampaigns
-        let items = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
-        setCampaigns(items.map((c: any) => ({ id: c.id, name: c.name || c.title || 'Campanha sem nome' })))
+        const response = await fetch(url.toString())
+        const data = await response.json()
+        let items = Array.isArray(data) ? data : []
+        setCampaigns(items.map((item: any) => ({
+          id: item.id,
+          name: item.title || item.campaign || item.campaign_name || item.name || 'Campanha sem nome',
+        })))
       } catch (err) {
         setCampaigns([])
       }
     }
     fetchCampaigns()
-  }, [apiKey])
+  }, [apiKey, selectedPeriod, customRange])
 
   // Buscar dados do funil ao trocar campanha
   useEffect(() => {
