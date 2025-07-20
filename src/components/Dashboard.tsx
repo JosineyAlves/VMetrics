@@ -765,7 +765,6 @@ const Dashboard: React.FC = () => {
               </select>
             </div>
           }
-          selectedCampaignName={selectedCampaign === 'all' ? 'Todas' : (campaigns.find(c => c.id === selectedCampaign)?.name || '')}
         />
       </div>
 
@@ -845,4 +844,4 @@ const Dashboard: React.FC = () => {
   )
 }
 
-export default Dashboard
+export default Dashboard 
