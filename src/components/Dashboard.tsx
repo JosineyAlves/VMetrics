@@ -16,7 +16,7 @@ import {
   HelpCircle,
   Calculator
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
@@ -29,6 +29,12 @@ import MetricsOrder from './MetricsOrder'
 import FunnelChart from './FunnelChart'
 import { useMetricsStore } from '../store/metrics'
 import type { Metric } from '../store/metrics'
+
+const metricOptions = [
+  { value: 'cost_revenue', label: 'Custo x Receita', left: 'cost', right: 'revenue' },
+  { value: 'revenue_profit', label: 'Receita x Lucro', left: 'revenue', right: 'profit' },
+  { value: 'cost_profit', label: 'Custo x Lucro', left: 'cost', right: 'profit' },
+]
 
 const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
@@ -406,6 +412,19 @@ const Dashboard: React.FC = () => {
       .filter((metric): metric is Metric => metric !== null)
   }
 
+  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
+  const [chartMode, setChartMode] = useState<'conversions' | 'cross'>('conversions')
+
+  // Calcular lucro (profit) para cada dia
+  const dailyDataWithProfit = dailyData.map((d: any) => ({
+    ...d,
+    cost: d.spend ?? d.cost ?? 0,
+    revenue: d.revenue ?? 0,
+    profit: (d.revenue ?? 0) - (d.spend ?? d.cost ?? 0)
+  }))
+
+  const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
+
 
   if (loading) {
     return (
@@ -541,34 +560,83 @@ const Dashboard: React.FC = () => {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Performance por Dia */}
+        {/* Performance por Dia e Cruzamento de Métricas */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Performance por Dia</h3>
-          {dailyData && dailyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
-                <Line type="monotone" dataKey="clicks" stroke="#6366f1" name="Cliques" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="conversions" stroke="#10b981" name="Conversões" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="revenue" stroke="#f59e42" name="Receita" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-lg font-semibold">Gráfico de Performance</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex gap-2">
+              <button
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${chartMode === 'conversions' ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-700'}`}
+                onClick={() => setChartMode('conversions')}
+              >
+                Conversões por Dia
+              </button>
+              <button
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${chartMode === 'cross' ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-700'}`}
+                onClick={() => setChartMode('cross')}
+              >
+                Cruzamento Diário
+              </button>
             </div>
+            {chartMode === 'cross' && (
+              <select
+                value={crossMetric}
+                onChange={e => setCrossMetric(e.target.value)}
+                className="rounded-xl border border-gray-300 px-4 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {metricOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            )}
           </div>
+          {chartMode === 'conversions' ? (
+            dailyData && dailyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
+                  <Bar dataKey="conversions" name="Conversões" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                  <Legend verticalAlign="top" height={36} iconType="circle"/>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📊</div>
+                  <p className="text-lg font-semibold">Conversões por Dia</p>
+                  <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+                </div>
+              </div>
+            )
+          ) : (
+            dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
+                  <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#6366f1" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#10b981" radius={[8, 8, 0, 0]} />
+                  <Legend verticalAlign="top" height={36} iconType="circle"/>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📊</div>
+                  <p className="text-lg font-semibold">Cruzamento Diário</p>
+                  <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+                </div>
+              </div>
+            )
           )}
         </motion.div>
 
