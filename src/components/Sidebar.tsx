@@ -108,11 +108,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
               {!isSidebarCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    TrackView
-                  </h1>
-                  <p className="text-sm text-gray-500 font-medium">RedTrack Dashboard</p>
-                </div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  TrackView
+                </h1>
+                <p className="text-sm text-gray-500 font-medium">RedTrack Dashboard</p>
+              </div>
               )}
               {/* Toggle Button */}
               {!isSidebarCollapsed && (
@@ -159,12 +159,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-500'} flex-shrink-0`} />
                   {!isSidebarCollapsed && (
-                    <div className="flex-1 text-left">
-                      <div className="font-semibold text-sm">{item.label}</div>
-                      <div className={`text-xs mt-1 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
-                        {item.description}
-                      </div>
+                  <div className="flex-1 text-left">
+                    <div className="font-semibold text-sm">{item.label}</div>
+                    <div className={`text-xs mt-1 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                      {item.description}
                     </div>
+                  </div>
                   )}
                 </motion.button>
               )

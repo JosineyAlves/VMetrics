@@ -424,8 +424,8 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center gap-3">
           <MetricsSelector />
           <MetricsOrder />
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
             className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
@@ -518,23 +518,23 @@ const Dashboard: React.FC = () => {
           const formattedValue = formatValue(value, metric.format || 'integer')
           
           return (
-            <motion.div
-              key={metric.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+          <motion.div
+            key={metric.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
-            >
+          >
               <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
                   <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {formattedValue}
                   </p>
                   <p className="text-xs text-gray-500 line-clamp-2">{metric.description}</p>
-                </div>
               </div>
-            </motion.div>
+            </div>
+          </motion.div>
           )
         })}
       </div>
@@ -562,13 +562,13 @@ const Dashboard: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-gray-500">
-              <div className="text-center">
-                <div className="text-4xl mb-2">📊</div>
-                <p className="text-lg font-semibold">Gráfico de Performance</p>
-                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
-              </div>
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📊</div>
+              <p className="text-lg font-semibold">Gráfico de Performance</p>
+              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
             </div>
+          </div>
           )}
         </motion.div>
 

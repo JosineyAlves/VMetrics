@@ -65,22 +65,15 @@ const Geographic: React.FC = () => {
     try {
       const api = new RedTrackAPI(apiKey)
       const dateRange = getDateRange(selectedPeriod, customRange)
-      
-      console.log('Geografia - Parâmetros enviados:', {
-        date_from: dateRange.startDate,
-        date_to: dateRange.endDate,
-        ...filters
-      })
-      
       const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
+        group_by: 'country,region,city',
         ...filters
       }
-      const response = await api.getTracks(params)
+      const response = await api.getReport(params)
       console.log('Geografia - Resposta da API:', response)
-      
-      // Se não houver dados, mostrar mensagem amigável
+      // Ajustar para aceitar diferentes formatos de resposta
       if (!response || (Array.isArray(response.items) && response.items.length === 0)) {
         setGeographicData([])
       } else if (response.items) {
@@ -92,7 +85,6 @@ const Geographic: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading geographic data:', error)
-      // NÃO usar dados mock - mostrar dados reais vazios
       setGeographicData([])
     } finally {
       setLoading(false)
@@ -197,15 +189,15 @@ const Geographic: React.FC = () => {
           />
         </div>
         
-        <Button
-          variant="outline"
-          size="sm"
+          <Button 
+            variant="outline" 
+            size="sm"
           onClick={() => setShowFilters(!showFilters)}
           className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-        >
+          >
           <Filter className="w-4 h-4 mr-2 inline" />
-          Filtros
-        </Button>
+            Filtros
+          </Button>
       </div>
 
       {/* Filtro de período padronizado */}

@@ -213,13 +213,13 @@ const Conversions: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="flex justify-end gap-3 mb-4">
-        <Button 
-          onClick={handleExport}
-          className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Exportar
-        </Button>
+          <Button 
+            onClick={handleExport}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
         <Button
           variant="outline"
           size="sm"
