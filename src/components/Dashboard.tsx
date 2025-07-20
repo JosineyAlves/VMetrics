@@ -132,6 +132,7 @@ const Dashboard: React.FC = () => {
       // Processar dados
       let summary: any = {};
       let daily: any[] = [];
+      
       if (Array.isArray(realData)) {
         daily = realData;
         summary = realData.reduce((acc: any, item: any) => {
@@ -171,133 +172,13 @@ const Dashboard: React.FC = () => {
 
       setDailyData(daily);
       setDashboardData(summary);
-      
-      // Se não houver dados, usar objeto zerado
-      if (!summary || Object.keys(summary).length === 0) {
-        console.log('⚠️ [DASHBOARD] Nenhum dado encontrado - usando dados zerados')
-        const emptyData = {
-          clicks: 0,
-          conversions: 0,
-          spend: 0,
-          revenue: 0,
-          profit: 0,
-          roi: 0,
-          cpa: 0,
-          cpl: 0,
-          impressions: 0,
-          ctr: 0,
-          conversion_rate: 0,
-          visible_impressions: 0,
-          unique_clicks: 0,
-          prelp_views: 0,
-          prelp_clicks: 0,
-          prelp_click_ctr: 0,
-          lp_views: 0,
-          lp_clicks: 0,
-          lp_ctr: 0,
-          lp_click_ctr: 0,
-          offer_views: 0,
-          offer_clicks: 0,
-          offer_ctr: 0,
-          offer_click_ctr: 0,
-          prelp_to_lp_rate: 0,
-          lp_to_offer_rate: 0,
-          offer_to_conversion_rate: 0,
-          conversion_cr: 0,
-          all_conversions: 0,
-          all_conversions_cr: 0,
-          approved: 0,
-          ar: 0,
-          pending: 0,
-          pr: 0,
-          declined: 0,
-          dr: 0,
-          other: 0,
-          or: 0,
-          transactions: 0,
-          tr: 0,
-          epv: 0,
-          conversion_revenue: 0,
-          publisher_revenue: 0,
-          publisher_revenue_legacy: 0,
-          conversion_roi: 0,
-          cpc: 0,
-          conversion_cpa: 0,
-          total_cpa: 0,
-          total_aov: 0,
-          conversion_aov: 0,
-          cpt: 0,
-          eplpc: 0,
-          epuc: 0,
-          listicle_epv: 0,
-          roas_percentage: 0,
-          conversion_roas: 0,
-          conversion_roas_percentage: 0,
-          conversion_profit: 0,
-          epc_roi: 0,
-          traffic_sources: []
-        }
-        setDashboardData(emptyData)
-      }
-      
       setLastUpdate(new Date())
+      
     } catch (error) {
       console.error('❌ [DASHBOARD] Erro ao carregar dados:', error)
-      // NÃO usar dados mock - mostrar dados reais vazios
-      const emptyData = {
-        clicks: 0,
-        conversions: 0,
-        spend: 0,
-        revenue: 0,
-        profit: 0,
-        roi: 0,
-        cpa: 0,
-        cpl: 0,
-        impressions: 0,
-        ctr: 0,
-        conversion_rate: 0,
-        visible_impressions: 0,
-        unique_clicks: 0,
-        prelp_views: 0,
-        prelp_clicks: 0,
-        prelp_click_ctr: 0,
-        lp_ctr: 0,
-        lp_click_ctr: 0,
-        conversion_cr: 0,
-        all_conversions: 0,
-        all_conversions_cr: 0,
-        approved: 0,
-        ar: 0,
-        pending: 0,
-        pr: 0,
-        declined: 0,
-        dr: 0,
-        other: 0,
-        or: 0,
-        transactions: 0,
-        tr: 0,
-        epv: 0,
-        conversion_revenue: 0,
-        publisher_revenue: 0,
-        publisher_revenue_legacy: 0,
-        conversion_roi: 0,
-        cpc: 0,
-        conversion_cpa: 0,
-        total_cpa: 0,
-        total_aov: 0,
-        conversion_aov: 0,
-        cpt: 0,
-        eplpc: 0,
-        epuc: 0,
-        listicle_epv: 0,
-        roas_percentage: 0,
-        conversion_roas: 0,
-        conversion_roas_percentage: 0,
-        conversion_profit: 0,
-        epc_roi: 0,
-        traffic_sources: []
-      }
-      setDashboardData(emptyData)
+      // Em caso de erro, mostrar dados vazios mas não zerados
+      setDashboardData({})
+      setDailyData([])
     } finally {
       setLoading(false)
       setRefreshing(false)

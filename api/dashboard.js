@@ -22,6 +22,13 @@ export default async function (req, res) {
     console.log('🔍 [DASHBOARD] Headers recebidos:', Object.keys(req.headers))
     console.log('🔍 [DASHBOARD] API Key recebida:', apiKey ? 'SIM' : 'NÃO')
 
+    // Extrair parâmetros da query
+    const dateFrom = req.query.date_from || '2024-01-01'
+    const dateTo = req.query.date_to || '2024-12-31'
+    const groupBy = req.query.group_by || 'date'
+
+    console.log('🔍 [DASHBOARD] Parâmetros:', { dateFrom, dateTo, groupBy })
+
     // Testar se a API key é válida
     console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /me/settings...')
     console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/me/settings')
@@ -48,10 +55,12 @@ export default async function (req, res) {
     console.log('🔍 [DASHBOARD] Status da resposta /me/settings:', testResponse.status)
     console.log('🔍 [DASHBOARD] Headers da resposta /me/settings:', Object.fromEntries(testResponse.headers.entries()))
 
-    // Buscar dados reais do dashboard
+    // Buscar dados reais do dashboard usando os parâmetros recebidos
+    const reportUrl = `https://api.redtrack.io/report?group_by=${groupBy}&date_from=${dateFrom}&date_to=${dateTo}`
     console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /report...')
-    console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/report?group_by=date&date_from=2024-01-01&date_to=2024-12-31')
-    const reportResponse = await fetch('https://api.redtrack.io/report?group_by=date&date_from=2024-01-01&date_to=2024-12-31', {
+    console.log('🔍 [DASHBOARD] URL:', reportUrl)
+    
+    const reportResponse = await fetch(reportUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -66,73 +75,27 @@ export default async function (req, res) {
       console.log('🔍 [DASHBOARD] Headers da resposta /report:', Object.fromEntries(reportResponse.headers.entries()))
       const reportData = await reportResponse.json()
 
-      const hasData = reportData.revenue > 0 ||
-        reportData.conversions > 0 ||
-        reportData.clicks > 0 ||
-        reportData.impressions > 0
+      console.log('🔍 [DASHBOARD] Dados recebidos do RedTrack:', reportData)
 
-      if (hasData) {
-        const dashboardData = {
-          revenue: reportData.revenue || 0,
-          conversions: reportData.conversions || 0,
-          ctr: reportData.ctr || 0,
-          profit: (reportData.revenue || 0) - (reportData.spend || 0),
-          impressions: reportData.impressions || 0,
-          clicks: reportData.clicks || 0,
-          spend: reportData.spend || 0,
-          conversion_rate: reportData.conversion_rate || 0,
-          is_demo: false,
-          message: 'Dados reais do RedTrack'
-        }
-        res.status(200).json(dashboardData)
+      // Se temos dados reais, retornar como estão
+      if (reportData && (Array.isArray(reportData) || Object.keys(reportData).length > 0)) {
+        console.log('🔍 [DASHBOARD] Retornando dados reais do RedTrack')
+        res.status(200).json(reportData)
       } else {
-        // Conta nova sem dados
-        const emptyData = {
-          revenue: 0,
-          conversions: 0,
-          ctr: 0,
-          profit: 0,
-          impressions: 0,
-          clicks: 0,
-          spend: 0,
-          conversion_rate: 0,
-          is_demo: true,
-          message: 'Conta nova - Configure suas campanhas no RedTrack para começar a ver dados reais.'
-        }
-        res.status(200).json(emptyData)
+        console.log('🔍 [DASHBOARD] Nenhum dado encontrado - retornando objeto vazio')
+        res.status(200).json({})
       }
     } else {
       console.log('🔍 [DASHBOARD] Status da resposta /report:', reportResponse.status)
       console.log('🔍 [DASHBOARD] Headers da resposta /report:', Object.fromEntries(reportResponse.headers.entries()))
-      // Fallback para dados zerados
-      const fallbackData = {
-        revenue: 0,
-        conversions: 0,
-        ctr: 0,
-        profit: 0,
-        impressions: 0,
-        clicks: 0,
-        spend: 0,
-        conversion_rate: 0,
-        is_demo: true,
-        message: 'Erro de conexão - Configure suas campanhas no RedTrack para começar a ver dados reais'
-      }
-      res.status(200).json(fallbackData)
+      
+      // Se há erro na API, retornar objeto vazio
+      console.log('🔍 [DASHBOARD] Erro na API do RedTrack - retornando objeto vazio')
+      res.status(200).json({})
     }
   } catch (error) {
-    // Fallback para dados zerados
-    const fallbackData = {
-      revenue: 0,
-      conversions: 0,
-      ctr: 0,
-      profit: 0,
-      impressions: 0,
-      clicks: 0,
-      spend: 0,
-      conversion_rate: 0,
-      is_demo: true,
-      message: 'Erro de conexão - Configure suas campanhas no RedTrack para começar a ver dados reais'
-    }
-    res.status(200).json(fallbackData)
+    console.error('🔍 [DASHBOARD] Erro:', error)
+    // Em caso de erro, retornar objeto vazio
+    res.status(200).json({})
   }
 } 

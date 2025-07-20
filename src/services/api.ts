@@ -201,66 +201,12 @@ class RedTrackAPI {
       const realData = await this.request('/dashboard', { method: 'GET' }, params)
       console.log('[DASHBOARD] Dados reais recebidos da API:', realData)
       
-      // Se a resposta for vazia ou não houver dados, retornar objeto zerado
-      if (!realData || Object.keys(realData).length === 0) {
-        console.log('[DASHBOARD] Nenhum dado encontrado - retornando dados zerados')
-        return {
-          clicks: 0,
-          conversions: 0,
-          spend: 0,
-          revenue: 0,
-          profit: 0,
-          roi: 0,
-          cpa: 0,
-          cpl: 0,
-          impressions: 0,
-          visible_impressions: 0,
-          unique_clicks: 0,
-          ctr: 0,
-          prelp_views: 0,
-          prelp_clicks: 0,
-          prelp_click_ctr: 0,
-          lp_ctr: 0,
-          lp_click_ctr: 0,
-          conversion_cr: 0,
-          all_conversions: 0,
-          all_conversions_cr: 0,
-          approved: 0,
-          ar: 0,
-          pending: 0,
-          pr: 0,
-          declined: 0,
-          dr: 0,
-          other: 0,
-          or: 0,
-          transactions: 0,
-          tr: 0,
-          epv: 0,
-          conversion_revenue: 0,
-          publisher_revenue: 0,
-          publisher_revenue_legacy: 0,
-          conversion_roi: 0,
-          cpc: 0,
-          conversion_cpa: 0,
-          total_cpa: 0,
-          total_aov: 0,
-          conversion_aov: 0,
-          cpt: 0,
-          eplpc: 0,
-          epuc: 0,
-          listicle_epv: 0,
-          roas_percentage: 0,
-          conversion_roas: 0,
-          conversion_roas_percentage: 0,
-          conversion_profit: 0,
-          epc_roi: 0
-        }
-      }
-      return realData
+      // Retornar dados reais mesmo se vazios
+      return realData || {}
     } catch (error) {
       console.error('Erro ao buscar dados do dashboard:', error)
-      // Fallback para dados simulados apenas se houver erro real
-      return this.getMockDashboardData(params)
+      // Em caso de erro, retornar objeto vazio em vez de dados mock
+      return {}
     }
   }
 
