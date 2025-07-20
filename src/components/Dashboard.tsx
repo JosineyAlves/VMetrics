@@ -14,7 +14,9 @@ import {
   Clock,
   XCircle,
   HelpCircle,
-  Calculator
+  Calculator,
+  BarChart2,
+  Shuffle
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts'
 import { Button } from './ui/button'
@@ -565,44 +567,47 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
+          className="bg-white/90 backdrop-blur-lg rounded-3xl p-10 shadow-2xl border border-blue-100 hover:shadow-3xl transition-all duration-500"
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+            <div className="flex gap-3">
               <button
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${chartMode === 'conversions' ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-700'}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'conversions' ? 'bg-blue-600 text-white border-blue-600 scale-105' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'} hover:shadow-xl`}
                 onClick={() => setChartMode('conversions')}
               >
-                Conversões por Dia
+                <BarChart2 className="w-5 h-5" /> Conversões por Dia
               </button>
               <button
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${chartMode === 'cross' ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-700'}`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'cross' ? 'bg-purple-600 text-white border-purple-600 scale-105' : 'bg-white text-purple-700 border-purple-200 hover:bg-purple-50'} hover:shadow-xl`}
                 onClick={() => setChartMode('cross')}
               >
-                Cruzamento Diário
+                <Shuffle className="w-5 h-5" /> Cruzamento Diário
               </button>
             </div>
             {chartMode === 'cross' && (
-              <select
-                value={crossMetric}
-                onChange={e => setCrossMetric(e.target.value)}
-                className="rounded-xl border border-gray-300 px-4 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {metricOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2 shadow-sm">
+                <TrendingUp className="w-4 h-4 text-purple-600" />
+                <select
+                  value={crossMetric}
+                  onChange={e => setCrossMetric(e.target.value)}
+                  className="rounded-xl border-0 bg-transparent text-base font-semibold text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                >
+                  {metricOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
             )}
           </div>
           {chartMode === 'conversions' ? (
             dailyData && dailyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
-                  <Bar dataKey="conversions" name="Conversões" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#6366f1' }} />
+                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#6366f1' }} allowDecimals={false} />
+                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
+                  <Bar dataKey="conversions" name="Conversões" fill="#6366f1" radius={[12, 12, 0, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle"/>
                 </BarChart>
               </ResponsiveContainer>
@@ -617,14 +622,14 @@ const Dashboard: React.FC = () => {
             )
           ) : (
             dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} />
-                  <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#6366f1" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#10b981" radius={[8, 8, 0, 0]} />
+                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#a21caf' }} />
+                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#a21caf' }} allowDecimals={false} />
+                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
+                  <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#6366f1" radius={[12, 12, 0, 0]} />
+                  <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#a21caf" radius={[12, 12, 0, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle"/>
                 </BarChart>
               </ResponsiveContainer>
