@@ -124,16 +124,23 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchFunnel = async () => {
       if (!apiKey) return
-      const api = new RedTrackAPI(apiKey)
       const dateRange = getDateRange(selectedPeriod, customRange)
-      try {
-        const params: any = {
-          date_from: dateRange.startDate,
-          date_to: dateRange.endDate,
-          group_by: 'date',
+      const params: any = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'date',
+      }
+      if (selectedCampaign !== 'all') params.campaign = selectedCampaign
+      const url = new URL('/api/report', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
         }
-        if (selectedCampaign !== 'all') params.campaign = selectedCampaign
-        const data = await api.getReport(params)
+      })
+      try {
+        const response = await fetch(url.toString())
+        const data = await response.json()
         // Agregar dados se for array
         let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
         const arr = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
@@ -758,6 +765,7 @@ const Dashboard: React.FC = () => {
               </select>
             </div>
           }
+          selectedCampaignName={selectedCampaign === 'all' ? 'Todas' : (campaigns.find(c => c.id === selectedCampaign)?.name || '')}
         />
       </div>
 
@@ -837,4 +845,4 @@ const Dashboard: React.FC = () => {
   )
 }
 
-export default Dashboard 
+export default Dashboard
