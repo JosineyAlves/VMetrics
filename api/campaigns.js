@@ -78,6 +78,29 @@ export default async function handler(req, res) {
     const tracksData = await tracksResponse.json();
     console.log('Campaigns API - Dados de tracks BRUTOS:', JSON.stringify(tracksData, null, 2));
     
+    // Buscar informações de campanhas do RedTrack para obter status real
+    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
+    campaignsUrl.searchParams.set('api_key', apiKey);
+    
+    console.log('Campaigns API - URL para campanhas:', campaignsUrl.toString());
+    
+    const campaignsResponse = await fetch(campaignsUrl.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'TrackView-Dashboard/1.0'
+      }
+    });
+
+    let campaignsData = null;
+    if (campaignsResponse.ok) {
+      campaignsData = await campaignsResponse.json();
+      console.log('Campaigns API - Dados de campanhas BRUTOS:', JSON.stringify(campaignsData, null, 2));
+    } else {
+      console.log('Campaigns API - Erro ao buscar campanhas:', campaignsResponse.status);
+    }
+    
     // Combinar dados de conversões e tracks para métricas completas
     // Usar nome da campanha como chave única para evitar problemas de ID
     const campaignMap = new Map();
@@ -125,6 +148,7 @@ export default async function handler(req, res) {
             id: campaignId,
             name: campaignName,
             source: track.source || track.traffic_source || '',
+            status: 'active', // Status padrão, será atualizado se encontrado nas campanhas
             clicks: 0,
             unique_clicks: 0,
             conversions: 0,
@@ -175,6 +199,7 @@ export default async function handler(req, res) {
             id: campaignId,
             name: campaignName,
             source: conversion.source || conversion.traffic_source || '',
+            status: 'active', // Status padrão, será atualizado se encontrado nas campanhas
             clicks: 0,
             unique_clicks: 0,
             conversions: 0,
@@ -213,6 +238,68 @@ export default async function handler(req, res) {
       console.log('❌ Nenhuma conversão encontrada ou dados inválidos');
     }
     
+    // Atualizar status das campanhas com dados reais do RedTrack
+    console.log('\n=== ATUALIZANDO STATUS DAS CAMPANHAS ===');
+    if (campaignsData && Array.isArray(campaignsData)) {
+      console.log(`Campaigns API - Total de campanhas encontradas: ${campaignsData.length}`);
+      
+      campaignsData.forEach((campaign, index) => {
+        console.log(`\n--- Campanha ${index + 1} ---`);
+        console.log('Campanha completa:', JSON.stringify(campaign, null, 2));
+        
+        const campaignName = campaign.name || campaign.title || campaign.campaign_name || 'Campanha sem nome';
+        const campaignKey = campaignName.toLowerCase().trim();
+        
+        console.log('Campaign name extraído:', campaignName);
+        console.log('Campaign key:', campaignKey);
+        
+        // Mapear status do RedTrack para o formato do TrackView
+        let mappedStatus = 'active';
+        if (campaign.status) {
+          const redtrackStatus = campaign.status.toLowerCase();
+          if (redtrackStatus === 'active' || redtrackStatus === 'running') {
+            mappedStatus = 'active';
+          } else if (redtrackStatus === 'paused' || redtrackStatus === 'stopped') {
+            mappedStatus = 'paused';
+          } else if (redtrackStatus === 'deleted' || redtrackStatus === 'inactive' || redtrackStatus === 'disabled') {
+            mappedStatus = 'inactive';
+          }
+        }
+        
+        console.log(`Status original: ${campaign.status}, Status mapeado: ${mappedStatus}`);
+        
+        // Atualizar status se a campanha já existe no map
+        if (campaignMap.has(campaignKey)) {
+          const existingCampaign = campaignMap.get(campaignKey);
+          existingCampaign.status = mappedStatus;
+          console.log(`✅ Status atualizado para: ${mappedStatus}`);
+        } else {
+          // Se não existe, criar com status correto
+          console.log(`🆕 Criando campanha com status: ${mappedStatus}`);
+          campaignMap.set(campaignKey, {
+            id: campaign.id || Math.random().toString(36).slice(2),
+            name: campaignName,
+            source: campaign.source || campaign.traffic_source || '',
+            status: mappedStatus,
+            clicks: 0,
+            unique_clicks: 0,
+            conversions: 0,
+            all_conversions: 0,
+            approved: 0,
+            pending: 0,
+            declined: 0,
+            revenue: 0,
+            cost: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0
+          });
+        }
+      });
+    } else {
+      console.log('❌ Nenhuma campanha encontrada ou dados inválidos');
+    }
+    
     console.log('\n=== RESULTADO FINAL ===');
     console.log('Campaigns API - Campanhas combinadas:', Array.from(campaignMap.values()));
     
@@ -226,7 +313,7 @@ export default async function handler(req, res) {
         id: campaign.id,
         title: campaign.name,
         source_title: campaign.source,
-        status: 'active',
+        status: campaign.status, // Usar status real mapeado
         stat: {
           clicks: campaign.clicks,
           unique_clicks: campaign.unique_clicks,
