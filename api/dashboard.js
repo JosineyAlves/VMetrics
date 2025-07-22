@@ -25,10 +25,9 @@ export default async function (req, res) {
     // Testar se a API key é válida
     console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /me/settings...')
     console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/me/settings')
-    const testResponse = await fetch('https://api.redtrack.io/me/settings', {
+    const testResponse = await fetch(`https://api.redtrack.io/me/settings?api_key=${apiKey}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'User-Agent': 'TrackView-Dashboard/1.0'

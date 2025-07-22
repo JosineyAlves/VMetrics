@@ -57,6 +57,9 @@ export default async function handler(req, res) {
     const todayConversionsData = await todayConversionsResponse.json();
     console.log('Campaigns API - Dados de conversões de HOJE:', JSON.stringify(todayConversionsData, null, 2));
     
+    // Delay para evitar rate limiting
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Buscar dados de HOJE (tracks)
     const todayTracksUrl = new URL('https://api.redtrack.io/tracks');
     todayTracksUrl.searchParams.set('api_key', apiKey);
@@ -77,6 +80,9 @@ export default async function handler(req, res) {
 
     const todayTracksData = await todayTracksResponse.json();
     console.log('Campaigns API - Dados de tracks de HOJE:', JSON.stringify(todayTracksData, null, 2));
+    
+    // Delay para evitar rate limiting
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Buscar dados dos ÚLTIMOS 3 DIAS para detectar campanhas deletadas
     const threeDaysAgo = new Date();

@@ -135,18 +135,8 @@ class RedTrackAPI {
       'Content-Type': 'application/json',
       ...extraHeaders
     }
-    // Se for /campaigns, envie a API Key no header Authorization
-    if (endpoint === '/campaigns' && this.apiKey) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`
-    } else if (
-      endpoint === '/report' &&
-      params &&
-      params.group_by &&
-      params.group_by !== 'date' &&
-      this.apiKey
-    ) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`
-    } else if (this.apiKey) {
+    // Sempre enviar API Key como parâmetro da query para endpoints do RedTrack
+    if (this.apiKey) {
       urlObj.searchParams.set('api_key', this.apiKey)
     }
     if (params) {

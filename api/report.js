@@ -21,31 +21,44 @@ export default async function handler(req, res) {
   // Garante que a API Key está presente
   let apiKey = params.api_key;
   let frontendAuth = req.headers['authorization'];
+  
+  console.log('🔍 [REPORT] API Key da query:', apiKey ? 'SIM' : 'NÃO');
+  console.log('🔍 [REPORT] Authorization header:', frontendAuth ? 'SIM' : 'NÃO');
+  
   if (!apiKey && !frontendAuth) {
+    console.log('❌ [REPORT] Nenhuma API Key fornecida');
     return res.status(401).json({ error: 'API Key required' });
   }
 
-  // Detecta se é agrupamento geográfico (não é só por date)
-  const isGeoGroup = params.group_by && params.group_by !== 'date';
+  // Usar API Key da query se disponível, senão do header
+  const finalApiKey = apiKey || (frontendAuth ? frontendAuth.replace('Bearer ', '') : null);
+  
+  if (!finalApiKey) {
+    console.log('❌ [REPORT] API Key final não encontrada');
+    return res.status(401).json({ error: 'API Key required' });
+  }
 
   // Monta a URL do RedTrack
   const url = new URL('https://api.redtrack.io/report');
   Object.entries(params).forEach(([key, value]) => {
-    if ((!isGeoGroup || key !== 'api_key') && value !== undefined && value !== null && value !== '') {
+    if (key !== 'api_key' && value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, value.toString());
     }
   });
+  
+  // Adicionar API Key como parâmetro da query
+  url.searchParams.set('api_key', finalApiKey);
 
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'User-Agent': 'TrackView-Dashboard/1.0'
   };
-  if (isGeoGroup) {
-    headers['Authorization'] = frontendAuth ? frontendAuth : `Bearer ${apiKey}`;
-  }
 
   try {
+    console.log('🔍 [REPORT] URL final:', url.toString());
+    console.log('🔍 [REPORT] Headers enviados:', headers);
+    
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers
@@ -56,7 +69,8 @@ export default async function handler(req, res) {
       console.error('🔴 [REPORT] Erro da RedTrack:', {
         status: response.status,
         url: url.toString(),
-        errorData
+        errorData,
+        headers: Object.fromEntries(response.headers.entries())
       });
       return res.status(response.status).json({ 
         error: errorData.error || 'Erro na API do RedTrack',
