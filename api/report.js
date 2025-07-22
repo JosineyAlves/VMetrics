@@ -1,3 +1,7 @@
+// Cache em memória para evitar múltiplas requisições
+const requestCache = new Map();
+const CACHE_DURATION = 30000; // 30 segundos
+
 export default async function handler(req, res) {
   console.log('🔍 [REPORT] Requisição recebida:', req.method, req.url)
   console.log('🔍 [REPORT] Headers recebidos:', Object.keys(req.headers))
@@ -55,9 +59,21 @@ export default async function handler(req, res) {
     'User-Agent': 'TrackView-Dashboard/1.0'
   };
 
+  // Verificar cache
+  const cacheKey = url.toString();
+  const cachedData = requestCache.get(cacheKey);
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+    console.log('✅ [REPORT] Dados retornados do cache');
+    return res.status(200).json(cachedData.data);
+  }
+
   try {
     console.log('🔍 [REPORT] URL final:', url.toString());
     console.log('🔍 [REPORT] Headers enviados:', headers);
+    
+    // Delay para evitar rate limiting (1 segundo)
+    console.log('⏳ [REPORT] Aguardando 1 segundo para evitar rate limiting...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -72,6 +88,13 @@ export default async function handler(req, res) {
         errorData,
         headers: Object.fromEntries(response.headers.entries())
       });
+      
+      // Se for rate limiting, retornar dados vazios em vez de erro
+      if (response.status === 429) {
+        console.log('⚠️ [REPORT] Rate limiting detectado - retornando dados vazios');
+        return res.status(200).json([]);
+      }
+      
       return res.status(response.status).json({ 
         error: errorData.error || 'Erro na API do RedTrack',
         status: response.status,
@@ -81,9 +104,18 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+    console.log('✅ [REPORT] Dados recebidos com sucesso');
+    
+    // Salvar no cache
+    requestCache.set(cacheKey, {
+      data: data,
+      timestamp: Date.now()
+    });
+    
     res.status(200).json(data);
 
   } catch (error) {
+    console.error('❌ [REPORT] Erro de conexão:', error);
     res.status(500).json({ 
       error: 'Erro de conexão com a API do RedTrack',
       details: error.message,

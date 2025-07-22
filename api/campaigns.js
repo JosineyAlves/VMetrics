@@ -1,3 +1,7 @@
+// Cache em memória para evitar múltiplas requisições
+const requestCache = new Map();
+const CACHE_DURATION = 30000; // 30 segundos
+
 export default async function handler(req, res) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,6 +18,14 @@ export default async function handler(req, res) {
   let apiKey = params.api_key;
   if (!apiKey) {
     return res.status(401).json({ error: 'API Key required' });
+  }
+
+  // Verificar cache
+  const cacheKey = `campaigns_${JSON.stringify(params)}`;
+  const cachedData = requestCache.get(cacheKey);
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+    console.log('✅ [CAMPAIGNS] Dados retornados do cache');
+    return res.status(200).json(cachedData.data);
   }
 
   try {
@@ -47,6 +59,13 @@ export default async function handler(req, res) {
     if (!todayConversionsResponse.ok) {
       const errorData = await todayConversionsResponse.json().catch(() => ({}));
       console.error('Campaigns API - Erro ao buscar conversões de HOJE:', errorData);
+      
+      // Se for rate limiting, retornar dados vazios
+      if (todayConversionsResponse.status === 429) {
+        console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - retornando dados vazios');
+        return res.status(200).json([]);
+      }
+      
       return res.status(todayConversionsResponse.status).json({
         error: errorData.error || 'Erro ao buscar conversões do RedTrack',
         status: todayConversionsResponse.status,
@@ -57,8 +76,9 @@ export default async function handler(req, res) {
     const todayConversionsData = await todayConversionsResponse.json();
     console.log('Campaigns API - Dados de conversões de HOJE:', JSON.stringify(todayConversionsData, null, 2));
     
-    // Delay para evitar rate limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Delay para evitar rate limiting (1 segundo)
+    console.log('⏳ [CAMPAIGNS] Aguardando 1 segundo para evitar rate limiting...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Buscar dados de HOJE (tracks)
     const todayTracksUrl = new URL('https://api.redtrack.io/tracks');
@@ -81,8 +101,9 @@ export default async function handler(req, res) {
     const todayTracksData = await todayTracksResponse.json();
     console.log('Campaigns API - Dados de tracks de HOJE:', JSON.stringify(todayTracksData, null, 2));
     
-    // Delay para evitar rate limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Delay para evitar rate limiting (1 segundo)
+    console.log('⏳ [CAMPAIGNS] Aguardando 1 segundo para evitar rate limiting...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Buscar dados dos ÚLTIMOS 3 DIAS para detectar campanhas deletadas
     const threeDaysAgo = new Date();
@@ -299,6 +320,12 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
     console.log('=== CAMPAIGNS API DEBUG END ===');
+    
+    // Salvar no cache
+    requestCache.set(cacheKey, {
+      data: processedData,
+      timestamp: Date.now()
+    });
     
     res.status(200).json(processedData);
   } catch (error) {
