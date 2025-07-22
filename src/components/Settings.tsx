@@ -14,7 +14,8 @@ import {
   RefreshCw,
   Calendar,
   DollarSign,
-  Info
+  Info,
+  ChevronDown
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -33,7 +34,7 @@ interface AccountSettings {
 
 const Settings: React.FC = () => {
   const { apiKey, setApiKey } = useAuthStore()
-  const { currency, currencySymbol, isDetecting, detectCurrency, resetCurrency, debugCurrencyDetection } = useCurrencyStore()
+  const { currency, currencySymbol, setCurrency } = useCurrencyStore()
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -65,9 +66,8 @@ const Settings: React.FC = () => {
       // Recarregar dados da conta com nova API key
       loadAccountData()
       
-      // Detectar moeda automaticamente com nova API key
-      console.log('🔄 [SETTINGS] Detectando moeda com nova API key...')
-      await detectCurrency(tempApiKey)
+      // A moeda agora é configurada manualmente
+      console.log('✅ [SETTINGS] API Key configurada com sucesso')
       
       setTimeout(() => {
         setSaved(false)
@@ -278,102 +278,80 @@ const Settings: React.FC = () => {
         transition={{ delay: 0.15 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-blue-100 rounded-2xl">
-              <DollarSign className="w-7 h-7 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">Configurações de Moeda</h3>
-              <p className="text-sm text-gray-600">
-                Moeda detectada automaticamente da sua conta RedTrack
-              </p>
-            </div>
+        <div className="flex items-center space-x-4 mb-6">
+          <div className="p-3 bg-blue-100 rounded-2xl">
+            <DollarSign className="w-7 h-7 text-blue-600" />
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={async () => {
-              if (apiKey) {
-                console.log('🔄 [SETTINGS] Iniciando detecção manual de moeda...')
-                await detectCurrency(apiKey)
-                console.log('✅ [SETTINGS] Detecção de moeda concluída')
-              }
-            }}
-            disabled={isDetecting}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isDetecting ? 'animate-spin' : ''}`} />
-            {isDetecting ? 'Detectando...' : 'Detectar Moeda'}
-          </Button>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Configuração de Moeda</h3>
+            <p className="text-sm text-gray-600">
+              Selecione a moeda configurada no seu RedTrack
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
+        {/* Dropdown de Seleção de Moeda */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600 mb-2 block">
+              Selecione a Moeda
+            </label>
+            <div className="relative">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+              >
+                {[
+                  { code: 'BRL', name: 'Real Brasileiro', symbol: 'R$' },
+                  { code: 'USD', name: 'Dólar Americano', symbol: '$' },
+                  { code: 'EUR', name: 'Euro', symbol: '€' },
+                  { code: 'GBP', name: 'Libra Esterlina', symbol: '£' },
+                  { code: 'CAD', name: 'Dólar Canadense', symbol: 'C$' },
+                  { code: 'AUD', name: 'Dólar Australiano', symbol: 'A$' },
+                  { code: 'MXN', name: 'Peso Mexicano', symbol: 'MX$' },
+                  { code: 'ARS', name: 'Peso Argentino', symbol: 'AR$' },
+                  { code: 'CLP', name: 'Peso Chileno', symbol: 'CL$' },
+                  { code: 'COP', name: 'Peso Colombiano', symbol: 'CO$' },
+                  { code: 'PEN', name: 'Sol Peruano', symbol: 'S/' },
+                  { code: 'UYU', name: 'Peso Uruguaio', symbol: 'UY$' }
+                ].map((curr) => (
+                  <option key={curr.code} value={curr.code}>
+                    {curr.symbol} - {curr.name} ({curr.code})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              </div>
+            </div>
+          </div>
+
+          {/* Status da Moeda */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div>
-              <label className="text-sm font-medium text-gray-600">Moeda Detectada</label>
+              <p className="text-sm font-medium text-gray-600">Moeda Atual</p>
               <div className="flex items-center mt-1">
                 <span className="text-2xl font-bold text-blue-600 mr-2">{currencySymbol}</span>
-                <span className="text-lg font-mono bg-blue-100 p-2 rounded">{currency}</span>
+                <span className="text-lg font-mono bg-blue-100 px-3 py-1 rounded">{currency}</span>
               </div>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Status da Detecção</label>
-              <div className="flex items-center mt-1">
-                <div className={`w-3 h-3 rounded-full mr-2 ${isDetecting ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-                <span className={`font-medium ${isDetecting ? 'text-yellow-600' : 'text-green-600'}`}>
-                  {isDetecting ? 'Detectando...' : 'Detectada'}
-                </span>
-              </div>
+            <div className="text-right">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <p className="text-xs text-gray-500 mt-1">Configurada</p>
             </div>
           </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600">Símbolo da Moeda</label>
-              <p className="text-2xl font-bold text-blue-600">{currencySymbol}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Ações</label>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => apiKey && detectCurrency(apiKey)}
-                  disabled={isDetecting}
-                  className="text-xs"
-                >
-                  Redetectar
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={resetCurrency}
-                  className="text-xs"
-                >
-                  Resetar
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => apiKey && debugCurrencyDetection(apiKey)}
-                  className="text-xs bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                >
-                  Debug
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-          <div className="flex items-start space-x-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Detecção Automática de Moeda</p>
-              <p>
-                O TrackView detecta automaticamente a moeda configurada na sua conta RedTrack. 
-                Esta moeda será usada para exibir todos os valores monetários no dashboard.
-              </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Configuração de Moeda</p>
+                <p>
+                  A moeda selecionada será usada para exibir todos os valores monetários no dashboard. 
+                  Certifique-se de escolher a mesma moeda configurada no seu RedTrack.
+                </p>
+              </div>
             </div>
           </div>
         </div>

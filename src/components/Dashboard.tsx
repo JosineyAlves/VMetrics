@@ -211,6 +211,14 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
+      // Debug: verificar campos específicos para gasto
+      if (Array.isArray(realData) && realData.length > 0) {
+        console.log('🔍 [DASHBOARD DEBUG] Primeiro item da resposta:', realData[0])
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis no primeiro item:', Object.keys(realData[0]))
+      } else if (realData && typeof realData === 'object') {
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(realData))
+      }
+      
       let summary: any = {};
       let daily: any[] = [];
       if (Array.isArray(realData)) {
@@ -224,9 +232,31 @@ const Dashboard: React.FC = () => {
           return acc;
         }, {});
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
+        
+        // Debug: verificar campos específicos após agregação
+        console.log('🔍 [DASHBOARD DEBUG] Campos após agregação:', {
+          spend: summary.spend,
+          cost: summary.cost,
+          campaign_cost: summary.campaign_cost,
+          total_spend: summary.total_spend,
+          revenue: summary.revenue,
+          income: summary.income,
+          total_revenue: summary.total_revenue
+        })
       } else {
         summary = realData || {};
         console.log('🔍 [DASHBOARD] Dados diretos:', summary)
+        
+        // Debug: verificar campos específicos em dados diretos
+        console.log('🔍 [DASHBOARD DEBUG] Campos em dados diretos:', {
+          spend: summary.spend,
+          cost: summary.cost,
+          campaign_cost: summary.campaign_cost,
+          total_spend: summary.total_spend,
+          revenue: summary.revenue,
+          income: summary.income,
+          total_revenue: summary.total_revenue
+        })
       }
       setDailyData(daily);
       setDashboardData(summary);
@@ -437,8 +467,30 @@ const Dashboard: React.FC = () => {
         return null
       }
 
-      const value = data[metricId] || 0
-      console.log(`�� [METRICS] ${metricId}: ${value} (${typeof value})`)
+      // Debug: verificar todos os campos disponíveis para spend
+      if (metricId === 'spend') {
+        console.log('🔍 [METRICS DEBUG] Campos disponíveis para spend:', {
+          spend: data.spend,
+          cost: data.cost,
+          campaign_cost: data.campaign_cost,
+          total_spend: data.total_spend
+        })
+      }
+      
+      let value = data[metricId] || 0
+      
+      // Mapeamento específico para campos que podem ter nomes diferentes
+      if (metricId === 'spend') {
+        value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+      } else if (metricId === 'revenue') {
+        value = data.revenue ?? data.income ?? data.total_revenue ?? 0
+      } else if (metricId === 'profit') {
+        const revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
+        const cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+        value = revenue - cost
+      }
+      
+      console.log(`🔍 [METRICS] ${metricId}: ${value} (${typeof value})`)
       
       let formattedValue = value
 

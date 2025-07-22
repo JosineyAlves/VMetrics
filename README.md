@@ -15,7 +15,7 @@ Um dashboard profissional para análise de dados do RedTrack.io, construído com
 - **Dados simulados** para demonstração
 - **Integração real** com API do RedTrack
 - **Métricas personalizáveis** - Selecione quais métricas ver no dashboard
-- **Detecção automática de moeda** - Identifica automaticamente a moeda configurada na conta RedTrack
+- **Configuração de moeda** - Seleção manual da moeda configurada na conta RedTrack
 
 ### 📊 Métricas Personalizáveis
 
@@ -45,15 +45,15 @@ O dashboard agora permite que cada gestor de tráfego personalize quais métrica
 - Aprovadas, Pendentes, Recusadas
 - Taxa Aprovação, Taxa Pendente, Taxa Recusa
 
-## 💰 Detecção Automática de Moeda
+## 💰 Configuração de Moeda
 
-O TrackView agora detecta automaticamente a moeda configurada na sua conta RedTrack através da API Key. Isso garante que todos os valores monetários sejam exibidos na moeda correta, independentemente do país ou configuração da conta.
+O TrackView permite configurar manualmente a moeda da sua conta RedTrack através de um dropdown simples. Isso garante que todos os valores monetários sejam exibidos na moeda correta, independentemente do país ou configuração da conta.
 
 ### 🔍 Como Funciona
-1. **Detecção Automática**: Quando você configura sua API Key, o sistema automaticamente consulta as configurações da sua conta RedTrack
-2. **Múltiplas Fontes**: O sistema verifica diferentes campos nas configurações da conta para encontrar a moeda configurada
-3. **Fallback Inteligente**: Se não conseguir detectar a moeda, usa USD como padrão
-4. **Persistência**: A moeda detectada é salva localmente e reutilizada em futuras sessões
+1. **Seleção Manual**: Escolha diretamente a moeda configurada no seu RedTrack através do dropdown
+2. **Interface Simples**: Dropdown com 12 moedas principais incluindo BRL, USD, EUR, GBP, etc.
+3. **Aplicação Imediata**: A moeda selecionada é aplicada instantaneamente em todo o dashboard
+4. **Persistência**: A moeda configurada é salva localmente e reutilizada em futuras sessões
 
 ### 🌍 Moedas Suportadas
 - **Américas**: BRL, USD, CAD, MXN, ARS, CLP, COP, PEN, UYU, VEF, VES, BOL, PYG, BOB, GTQ, HNL, NIO, CRC, PAB, DOP, HTG, JMD, TTD, BBD, XCD, ANG, AWG, SRD, GYD, SBD

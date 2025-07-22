@@ -57,6 +57,75 @@ export default async function handler(req, res) {
     console.log('✅ [SETTINGS] Dados recebidos com sucesso')
     console.log('🔍 [SETTINGS] Estrutura dos dados:', JSON.stringify(data, null, 2))
     
+    // Se o parâmetro debug=true estiver presente, adicionar análise de moeda
+    if (req.query.debug === 'true') {
+      console.log('🔍 [SETTINGS] Modo debug ativado - analisando moeda...')
+      
+      const currencyAnalysis = {
+        timestamp: new Date().toISOString(),
+        fields_count: Object.keys(data).length,
+        fields_available: Object.keys(data),
+        currency_detected: null,
+        analysis_details: {}
+      }
+
+      // 1. Verificar campos diretos
+      if (data.currency) {
+        currencyAnalysis.currency_detected = data.currency
+        currencyAnalysis.analysis_details.direct_field = 'currency'
+      } else if (data.default_currency) {
+        currencyAnalysis.currency_detected = data.default_currency
+        currencyAnalysis.analysis_details.direct_field = 'default_currency'
+      }
+
+      // 2. Verificar campos aninhados
+      if (!currencyAnalysis.currency_detected) {
+        const nestedFields = ['account', 'user', 'settings', 'preferences']
+        for (const field of nestedFields) {
+          if (data[field]?.currency) {
+            currencyAnalysis.currency_detected = data[field].currency
+            currencyAnalysis.analysis_details.nested_field = `${field}.currency`
+            break
+          }
+        }
+      }
+
+      // 3. Procurar por padrões em todos os campos
+      if (!currencyAnalysis.currency_detected) {
+        currencyAnalysis.analysis_details.pattern_search = []
+        for (const [field, value] of Object.entries(data)) {
+          if (typeof value === 'string') {
+            if (value.includes('BRL')) {
+              currencyAnalysis.currency_detected = 'BRL'
+              currencyAnalysis.analysis_details.pattern_search.push(`${field}: BRL encontrado`)
+              break
+            } else if (value.includes('USD')) {
+              currencyAnalysis.currency_detected = 'USD'
+              currencyAnalysis.analysis_details.pattern_search.push(`${field}: USD encontrado`)
+              break
+            } else if (value.includes('EUR')) {
+              currencyAnalysis.currency_detected = 'EUR'
+              currencyAnalysis.analysis_details.pattern_search.push(`${field}: EUR encontrado`)
+              break
+            }
+          }
+        }
+      }
+
+      // 4. Se não encontrou, usar USD como padrão
+      if (!currencyAnalysis.currency_detected) {
+        currencyAnalysis.currency_detected = 'USD'
+        currencyAnalysis.analysis_details.fallback = 'Nenhuma moeda detectada, usando USD como padrão'
+      }
+
+      console.log('✅ [SETTINGS] Análise de moeda concluída:', currencyAnalysis.currency_detected)
+      
+      return res.status(200).json({
+        settings: data,
+        currency_analysis: currencyAnalysis
+      })
+    }
+    
     return res.status(200).json(data)
   } catch (error) {
     console.error('❌ [SETTINGS] Erro na requisição:', error)
