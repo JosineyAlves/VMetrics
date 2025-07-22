@@ -744,6 +744,9 @@ const Campaigns: React.FC = () => {
               <thead className="bg-trackview-background">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campanha
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -794,9 +797,6 @@ const Campaigns: React.FC = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     CPA
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-trackview-background">
@@ -808,6 +808,31 @@ const Campaigns: React.FC = () => {
                     transition={{ delay: index * 0.1 }}
                     className="hover:bg-trackview-background"
                   >
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        {campaign.isUserDeleted ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => restoreCampaign(campaign.name)}
+                            className="text-green-600 hover:text-green-700"
+                            title="Restaurar campanha"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => markCampaignAsDeleted(campaign.name)}
+                            className="text-red-600 hover:text-red-700"
+                            title="Marcar como deletada"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
                     </td>
@@ -861,31 +886,6 @@ const Campaigns: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">${campaign.cpa}</div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        {campaign.isUserDeleted ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => restoreCampaign(campaign.name)}
-                            className="text-green-600 hover:text-green-700"
-                            title="Restaurar campanha"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => markCampaignAsDeleted(campaign.name)}
-                            className="text-red-600 hover:text-red-700"
-                            title="Marcar como deletada"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
                     </td>
                   </motion.tr>
                 ))}

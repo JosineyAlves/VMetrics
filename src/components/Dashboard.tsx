@@ -232,13 +232,35 @@ const Dashboard: React.FC = () => {
       let summary: any = {};
       let daily: any[] = [];
       if (Array.isArray(realData)) {
-        // Filtrar dados de campanhas deletadas
+        // Filtrar dados de campanhas deletadas e apenas campanhas ativas
         const filteredData = realData.filter((item: any) => {
           const campaignName = item.campaign || item.campaign_name || item.title || '';
-          return !deletedCampaigns.has(campaignName.toLowerCase().trim());
+          const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
+          
+          // Verificar se a campanha tem status ativo (baseado em conversões hoje)
+          const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
+          const isActive = hasConversionsToday;
+          
+          return !isDeleted && isActive;
         });
         
-        console.log('🔍 [DASHBOARD] Dados filtrados (removidas campanhas deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas ativas e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        
+        // Log detalhado das campanhas filtradas
+        realData.forEach((item: any) => {
+          const campaignName = item.campaign || item.campaign_name || item.title || '';
+          const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
+          const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
+          const isActive = hasConversionsToday;
+          
+          if (isDeleted) {
+            console.log(`❌ [DASHBOARD] Campanha deletada ignorada: ${campaignName}`);
+          } else if (!isActive) {
+            console.log(`⏸️ [DASHBOARD] Campanha inativa ignorada: ${campaignName} (conversões: ${item.conversions || 0})`);
+          } else {
+            console.log(`✅ [DASHBOARD] Campanha ativa incluída: ${campaignName} (conversões: ${item.conversions || 0})`);
+          }
+        });
         
         daily = filteredData;
         summary = filteredData.reduce((acc: any, item: any) => {
