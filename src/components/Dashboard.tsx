@@ -206,7 +206,19 @@ const Dashboard: React.FC = () => {
       }
       
       console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
-      const realData = await api.getReport(params)
+      
+      // Usar o novo endpoint específico para dashboard que combina dados como a tela de Campanhas
+      const url = new URL('/api/dashboard', window.location.origin);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString());
+        }
+      });
+      
+      console.log('🔍 [DASHBOARD] URL da requisição:', url.toString());
+      
+      const response = await fetch(url.toString());
+      const realData = await response.json();
       console.log('🔍 [DASHBOARD] Resposta da API:', realData)
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
