@@ -130,54 +130,26 @@ const Dashboard: React.FC = () => {
         api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
+        group_by: 'date',
       }
       if (selectedCampaign !== 'all') params.campaign_id = selectedCampaign
-      
+      const url = new URL('/api/report', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
+        }
+      })
       try {
-        // Usar tracks para obter dados de funnel
-        const tracksUrl = new URL('/api/tracks', window.location.origin)
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            tracksUrl.searchParams.set(key, value.toString())
-          }
-        })
-        
-        const tracksResponse = await fetch(tracksUrl.toString())
-        const tracksData = await tracksResponse.json()
-        
+        const response = await fetch(url.toString())
+        const data = await response.json()
         let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
-        
-        // Processar tracks para obter views
-        if (tracksData && tracksData.items && Array.isArray(tracksData.items)) {
-          tracksData.items.forEach((track: any) => {
-            // Filtrar fraud
-            if (track.fraud && track.fraud.is_ok === 0) {
-              return
-            }
-            
-            funnel.prelp_views += track.prelp_views ?? 0
-            funnel.lp_views += track.lp_views ?? 0
-            funnel.offer_views += track.offer_views ?? 0
-          })
-        }
-        
-        // Usar conversions para obter conversões
-        const conversionsUrl = new URL('/api/conversions', window.location.origin)
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            conversionsUrl.searchParams.set(key, value.toString())
-          }
+        const arr = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
+        arr.forEach((d: any) => {
+          funnel.prelp_views += d.prelp_views ?? 0
+          funnel.lp_views += d.lp_views ?? 0
+          funnel.offer_views += d.offer_views ?? 0
+          funnel.conversions += d.conversions ?? 0
         })
-        
-        const conversionsResponse = await fetch(conversionsUrl.toString())
-        const conversionsData = await conversionsResponse.json()
-        
-        if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
-          conversionsData.items.forEach((conversion: any) => {
-            funnel.conversions += 1
-          })
-        }
-        
         setFunnelData(funnel)
       } catch (err) {
         setFunnelData({})
@@ -214,6 +186,7 @@ const Dashboard: React.FC = () => {
 
     try {
       if (!apiKey) throw new Error('API Key não definida')
+      const api = new RedTrackAPI(apiKey)
       
       // Usar a base padronizada de datas
       const dateRange = getDateRange(selectedPeriod, customRange)
@@ -225,128 +198,207 @@ const Dashboard: React.FC = () => {
         timezone: 'UTC'
       })
 
-      // Usar a mesma abordagem das campanhas - combinar tracks e conversions
       const params = {
-        api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
+        group_by: 'date', // Agrupamento por data para dashboard
         ...filters
       }
       
       console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
+      const realData = await api.getReport(params)
+      console.log('🔍 [DASHBOARD] Resposta da API:', realData)
+      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
+      console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
-      // Buscar tracks (cliques) para obter cost
-      const tracksUrl = new URL('/api/tracks', window.location.origin)
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          tracksUrl.searchParams.set(key, value.toString())
+      // Debug: verificar campos específicos para gasto
+      if (Array.isArray(realData) && realData.length > 0) {
+        console.log('🔍 [DASHBOARD DEBUG] Primeiro item da resposta:', realData[0])
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis no primeiro item:', Object.keys(realData[0]))
+      } else if (realData && typeof realData === 'object') {
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(realData))
+      }
+      
+      let summary: any = {};
+      let daily: any[] = [];
+      if (Array.isArray(realData)) {
+        daily = realData;
+        summary = realData.reduce((acc: any, item: any) => {
+          // Processar campos diretos
+          Object.keys(item).forEach(key => {
+            if (key !== 'stat' && typeof item[key] === 'number') {
+              acc[key] = (acc[key] || 0) + item[key];
+            }
+          });
+          
+          // Processar estrutura stat se existir
+          if (item.stat && typeof item.stat === 'object') {
+            Object.keys(item.stat).forEach(key => {
+              if (typeof item.stat[key] === 'number') {
+                acc[key] = (acc[key] || 0) + item.stat[key];
+              }
+            });
+          }
+          
+          return acc;
+        }, {});
+        console.log('🔍 [DASHBOARD] Dados agregados:', summary)
+        
+        // Debug: verificar campos específicos após agregação
+        console.log('🔍 [DASHBOARD DEBUG] Campos após agregação:', {
+          spend: summary.spend,
+          cost: summary.cost,
+          campaign_cost: summary.campaign_cost,
+          total_spend: summary.total_spend,
+          revenue: summary.revenue,
+          income: summary.income,
+          total_revenue: summary.total_revenue
+        })
+      } else {
+        summary = realData || {};
+        console.log('🔍 [DASHBOARD] Dados diretos:', summary)
+        
+        // Debug: verificar campos específicos em dados diretos
+        console.log('🔍 [DASHBOARD DEBUG] Campos em dados diretos:', {
+          spend: summary.spend,
+          cost: summary.cost,
+          campaign_cost: summary.campaign_cost,
+          total_spend: summary.total_spend,
+          revenue: summary.revenue,
+          income: summary.income,
+          total_revenue: summary.total_revenue
+        })
+      }
+      setDailyData(daily);
+      setDashboardData(summary);
+      
+      // Se não houver dados, usar objeto zerado
+      if (!summary || Object.keys(summary).length === 0) {
+        console.log('⚠️ [DASHBOARD] Nenhum dado encontrado - usando dados zerados')
+        const emptyData = {
+          clicks: 0,
+          conversions: 0,
+          spend: 0,
+          revenue: 0,
+          profit: 0,
+          roi: 0,
+          cpa: 0,
+          cpl: 0,
+          impressions: 0,
+          ctr: 0,
+          conversion_rate: 0,
+          visible_impressions: 0,
+          unique_clicks: 0,
+          prelp_views: 0,
+          prelp_clicks: 0,
+          prelp_click_ctr: 0,
+          lp_views: 0,
+          lp_clicks: 0,
+          lp_ctr: 0,
+          lp_click_ctr: 0,
+          offer_views: 0,
+          offer_clicks: 0,
+          offer_ctr: 0,
+          offer_click_ctr: 0,
+          prelp_to_lp_rate: 0,
+          lp_to_offer_rate: 0,
+          offer_to_conversion_rate: 0,
+          conversion_cr: 0,
+          all_conversions: 0,
+          all_conversions_cr: 0,
+          approved: 0,
+          ar: 0,
+          pending: 0,
+          pr: 0,
+          declined: 0,
+          dr: 0,
+          other: 0,
+          or: 0,
+          transactions: 0,
+          tr: 0,
+          epv: 0,
+          conversion_revenue: 0,
+          publisher_revenue: 0,
+          publisher_revenue_legacy: 0,
+          conversion_roi: 0,
+          cpc: 0,
+          conversion_cpa: 0,
+          total_cpa: 0,
+          total_aov: 0,
+          conversion_aov: 0,
+          cpt: 0,
+          eplpc: 0,
+          epuc: 0,
+          listicle_epv: 0,
+          roas_percentage: 0,
+          conversion_roas: 0,
+          conversion_roas_percentage: 0,
+          conversion_profit: 0,
+          epc_roi: 0
         }
-      })
+        setDashboardData(emptyData)
+      }
       
-      console.log('🔍 [DASHBOARD] URL para tracks:', tracksUrl.toString())
-      
-      const tracksResponse = await fetch(tracksUrl.toString())
-      const tracksData = await tracksResponse.json()
-      console.log('🔍 [DASHBOARD] Dados de tracks:', tracksData)
-      
-      // Buscar conversions para obter revenue
-      const conversionsUrl = new URL('/api/conversions', window.location.origin)
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          conversionsUrl.searchParams.set(key, value.toString())
-        }
-      })
-      
-      console.log('🔍 [DASHBOARD] URL para conversions:', conversionsUrl.toString())
-      
-      const conversionsResponse = await fetch(conversionsUrl.toString())
-      const conversionsData = await conversionsResponse.json()
-      console.log('🔍 [DASHBOARD] Dados de conversions:', conversionsData)
-      
-      // Combinar dados como no endpoint de campanhas
-      let summary: any = {
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('❌ [DASHBOARD] Erro ao carregar dados:', error)
+      // NÃO usar dados mock - mostrar dados reais vazios
+      const emptyData = {
         clicks: 0,
-        unique_clicks: 0,
         conversions: 0,
-        all_conversions: 0,
-        approved: 0,
-        pending: 0,
-        declined: 0,
+        spend: 0,
         revenue: 0,
-        cost: 0,
+        profit: 0,
+        roi: 0,
+        cpa: 0,
+        cpl: 0,
         impressions: 0,
         ctr: 0,
-        conversion_rate: 0
+        conversion_rate: 0,
+        visible_impressions: 0,
+        unique_clicks: 0,
+        prelp_views: 0,
+        prelp_clicks: 0,
+        prelp_click_ctr: 0,
+        lp_ctr: 0,
+        lp_click_ctr: 0,
+        conversion_cr: 0,
+        all_conversions: 0,
+        all_conversions_cr: 0,
+        approved: 0,
+        ar: 0,
+        pending: 0,
+        pr: 0,
+        declined: 0,
+        dr: 0,
+        other: 0,
+        or: 0,
+        transactions: 0,
+        tr: 0,
+        epv: 0,
+        conversion_revenue: 0,
+        publisher_revenue: 0,
+        publisher_revenue_legacy: 0,
+        conversion_roi: 0,
+        cpc: 0,
+        conversion_cpa: 0,
+        total_cpa: 0,
+        total_aov: 0,
+        conversion_aov: 0,
+        cpt: 0,
+        eplpc: 0,
+        epuc: 0,
+        listicle_epv: 0,
+        roas_percentage: 0,
+        conversion_roas: 0,
+        conversion_roas_percentage: 0,
+        conversion_profit: 0,
+        epc_roi: 0
       }
-      
-      // Processar tracks para obter cliques e cost
-      if (tracksData && tracksData.items && Array.isArray(tracksData.items)) {
-        console.log(`🔍 [DASHBOARD] Total de tracks encontrados: ${tracksData.items.length}`)
-        
-        tracksData.items.forEach((track: any) => {
-          // Filtrar fraud como no endpoint de campanhas
-          if (track.fraud && track.fraud.is_ok === 0) {
-            return
-          }
-          
-          summary.clicks += 1
-          summary.unique_clicks += 1
-          summary.cost += track.cost || 0
-        })
-      }
-      
-      // Processar conversions para obter revenue
-      if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
-        console.log(`🔍 [DASHBOARD] Total de conversions encontradas: ${conversionsData.items.length}`)
-        
-        conversionsData.items.forEach((conversion: any) => {
-          summary.all_conversions += 1
-          summary.conversions += 1
-          summary.revenue += conversion.payout || conversion.revenue || 0
-          
-          // Classificar por status
-          const status = conversion.status || conversion.conversion_status || 'approved'
-          if (status === 'approved') {
-            summary.approved += 1
-          } else if (status === 'pending') {
-            summary.pending += 1
-          } else if (status === 'declined') {
-            summary.declined += 1
-          }
-        })
-      }
-      
-      // Calcular métricas derivadas
-      summary.profit = summary.revenue - summary.cost
-      summary.roi = summary.cost > 0 ? ((summary.revenue - summary.cost) / summary.cost) * 100 : 0
-      summary.cpa = summary.cost > 0 && summary.conversions > 0 ? summary.cost / summary.conversions : 0
-      summary.ctr = summary.impressions > 0 ? (summary.clicks / summary.impressions) * 100 : 0
-      summary.conversion_rate = summary.clicks > 0 ? (summary.conversions / summary.clicks) * 100 : 0
-      
-      console.log('🔍 [DASHBOARD] Dados combinados:', summary)
-      
-      // Debug: verificar campos específicos após agregação
-      console.log('🔍 [DASHBOARD DEBUG] Campos após agregação:', {
-        spend: summary.cost,
-        cost: summary.cost,
-        campaign_cost: summary.cost,
-        total_spend: summary.cost,
-        revenue: summary.revenue,
-        income: summary.revenue,
-        total_revenue: summary.revenue
-      })
-      
-      setDailyData([]) // Não temos dados diários com esta abordagem
-      setDashboardData(summary)
-      
-    } catch (error) {
-      console.error('Error loading dashboard data:', error)
+      setDashboardData(emptyData)
     } finally {
-      if (isRefresh) {
-        setRefreshing(false)
-      } else {
-        setLoading(false)
-      }
+      setLoading(false)
+      setRefreshing(false)
     }
   }
 
@@ -434,18 +486,45 @@ const Dashboard: React.FC = () => {
           campaign_cost: data.campaign_cost,
           total_spend: data.total_spend
         })
+        console.log('🔍 [METRICS DEBUG] Dados completos para debug:', data)
+        console.log('🔍 [METRICS DEBUG] Chaves disponíveis:', Object.keys(data))
+        
+        // Verificar se há estrutura stat como na tela de Campanhas
+        if (data.stat) {
+          console.log('🔍 [METRICS DEBUG] Estrutura stat encontrada:', data.stat)
+          console.log('🔍 [METRICS DEBUG] Campos em stat:', Object.keys(data.stat))
+        }
       }
       
       let value = data[metricId] || 0
       
       // Mapeamento específico para campos que podem ter nomes diferentes
       if (metricId === 'spend') {
-        value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          value = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
+        } else {
+          value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+        }
       } else if (metricId === 'revenue') {
-        value = data.revenue ?? data.income ?? data.total_revenue ?? 0
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          value = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
+        } else {
+          value = data.revenue ?? data.income ?? data.total_revenue ?? 0
+        }
       } else if (metricId === 'profit') {
-        const revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
-        const cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+        let revenue = 0
+        let cost = 0
+        
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
+          cost = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
+        } else {
+          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
+          cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+        }
         value = revenue - cost
       }
       
@@ -519,30 +598,19 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchSourceStats = async () => {
       if (!apiKey) return
+      const api = new RedTrackAPI(apiKey)
       const dateRange = getDateRange(selectedPeriod, customRange)
       try {
         const params = {
-          api_key: apiKey,
           date_from: dateRange.startDate,
           date_to: dateRange.endDate,
           group_by: 'traffic_channel',
         }
-        
-        // Usar tracks para obter dados de custo por fonte
-        const tracksUrl = new URL('/api/tracks', window.location.origin)
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            tracksUrl.searchParams.set(key, value.toString())
-          }
-        })
-        
-        const tracksResponse = await fetch(tracksUrl.toString())
-        const tracksData = await tracksResponse.json()
-        
-        let items = Array.isArray(tracksData.items) ? tracksData.items : []
+        const data = await api.getReport(params)
+        let items = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
         const mapped = items.map((item: any) => ({
           key: item.traffic_channel || item.source || item.utm_source || 'Indefinido',
-          cost: item.cost || 0,
+          cost: item.spend ?? item.cost ?? 0,
         }))
         setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
       } catch (err) {
