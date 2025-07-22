@@ -33,7 +33,7 @@ interface AccountSettings {
 
 const Settings: React.FC = () => {
   const { apiKey, setApiKey } = useAuthStore()
-  const { currency, currencySymbol, isDetecting, detectCurrency, resetCurrency } = useCurrencyStore()
+  const { currency, currencySymbol, isDetecting, detectCurrency, resetCurrency, debugCurrencyDetection } = useCurrencyStore()
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -64,6 +64,10 @@ const Settings: React.FC = () => {
       
       // Recarregar dados da conta com nova API key
       loadAccountData()
+      
+      // Detectar moeda automaticamente com nova API key
+      console.log('🔄 [SETTINGS] Detectando moeda com nova API key...')
+      await detectCurrency(tempApiKey)
       
       setTimeout(() => {
         setSaved(false)
@@ -289,7 +293,13 @@ const Settings: React.FC = () => {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => apiKey && detectCurrency(apiKey)}
+            onClick={async () => {
+              if (apiKey) {
+                console.log('🔄 [SETTINGS] Iniciando detecção manual de moeda...')
+                await detectCurrency(apiKey)
+                console.log('✅ [SETTINGS] Detecção de moeda concluída')
+              }
+            }}
             disabled={isDetecting}
             className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
           >
@@ -341,6 +351,14 @@ const Settings: React.FC = () => {
                   className="text-xs"
                 >
                   Resetar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => apiKey && debugCurrencyDetection(apiKey)}
+                  className="text-xs bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                >
+                  Debug
                 </Button>
               </div>
             </div>

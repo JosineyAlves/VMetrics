@@ -55,6 +55,7 @@ export default async function handler(req, res) {
 
     const data = await response.json()
     console.log('✅ [SETTINGS] Dados recebidos com sucesso')
+    console.log('🔍 [SETTINGS] Estrutura dos dados:', JSON.stringify(data, null, 2))
     
     return res.status(200).json(data)
   } catch (error) {
