@@ -48,13 +48,20 @@ export default async function (req, res) {
     console.log('🔍 [DASHBOARD] Status da resposta /me/settings:', testResponse.status)
     console.log('🔍 [DASHBOARD] Headers da resposta /me/settings:', Object.fromEntries(testResponse.headers.entries()))
 
-    // Buscar dados reais do dashboard
+    // Buscar dados reais do dashboard usando parâmetros de data
+    const { date_from, date_to } = req.query;
+    const dateFrom = date_from || new Date().toISOString().split('T')[0];
+    const dateTo = date_to || dateFrom;
+    
     console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /report...')
-    console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/report?group_by=date&date_from=2024-01-01&date_to=2024-12-31')
-    const reportResponse = await fetch('https://api.redtrack.io/report?group_by=date&date_from=2024-01-01&date_to=2024-12-31', {
+    console.log('🔍 [DASHBOARD] Data solicitada:', { dateFrom, dateTo });
+    
+    const reportUrl = `https://api.redtrack.io/report?api_key=${apiKey}&group_by=date&date_from=${dateFrom}&date_to=${dateTo}`;
+    console.log('🔍 [DASHBOARD] URL:', reportUrl);
+    
+    const reportResponse = await fetch(reportUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'User-Agent': 'TrackView-Dashboard/1.0'

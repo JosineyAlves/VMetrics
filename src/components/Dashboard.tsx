@@ -94,6 +94,11 @@ const Dashboard: React.FC = () => {
     const fetchCampaigns = async () => {
       if (!apiKey) return
       const dateRange = getDateRange(selectedPeriod, customRange)
+      
+      // Carregar campanhas deletadas do localStorage
+      const savedDeletedCampaigns = localStorage.getItem('deletedCampaigns')
+      const deletedCampaigns = savedDeletedCampaigns ? new Set(JSON.parse(savedDeletedCampaigns)) : new Set()
+      
       const params = {
         api_key: apiKey,
         date_from: dateRange.startDate,
@@ -211,6 +216,11 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
+      // Carregar campanhas deletadas do localStorage para filtrar dados
+      const savedDeletedCampaigns = localStorage.getItem('deletedCampaigns')
+      const deletedCampaigns = savedDeletedCampaigns ? new Set(JSON.parse(savedDeletedCampaigns)) : new Set()
+      console.log('🔍 [DASHBOARD] Campanhas deletadas carregadas:', Array.from(deletedCampaigns))
+      
       // Debug: verificar campos específicos para gasto
       if (Array.isArray(realData) && realData.length > 0) {
         console.log('🔍 [DASHBOARD DEBUG] Primeiro item da resposta:', realData[0])
@@ -222,8 +232,16 @@ const Dashboard: React.FC = () => {
       let summary: any = {};
       let daily: any[] = [];
       if (Array.isArray(realData)) {
-        daily = realData;
-        summary = realData.reduce((acc: any, item: any) => {
+        // Filtrar dados de campanhas deletadas
+        const filteredData = realData.filter((item: any) => {
+          const campaignName = item.campaign || item.campaign_name || item.title || '';
+          return !deletedCampaigns.has(campaignName.toLowerCase().trim());
+        });
+        
+        console.log('🔍 [DASHBOARD] Dados filtrados (removidas campanhas deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        
+        daily = filteredData;
+        summary = filteredData.reduce((acc: any, item: any) => {
           // Processar campos diretos
           Object.keys(item).forEach(key => {
             if (key !== 'stat' && typeof item[key] === 'number') {
