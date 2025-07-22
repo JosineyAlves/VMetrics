@@ -350,8 +350,16 @@ const Campaigns: React.FC = () => {
     }
   }, [showPeriodDropdown])
 
-  // Função handlePeriodChange removida - não está sendo usada
-  // O PeriodDropdown já gerencia as mudanças de período automaticamente
+  const handlePeriodChange = (period: string) => {
+    setSelectedPeriod(period)
+    setShowPeriodDropdown(false)
+    if (period !== 'custom') {
+      setCustomRange({ from: '', to: '' })
+    }
+    // Atualizar filtros para buscar campanhas
+    // O cálculo do range já é feito no onChange do PeriodDropdown
+    // Esta função pode ser removida ou mantida apenas para compatibilidade
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -360,9 +368,7 @@ const Campaigns: React.FC = () => {
       case 'paused':
         return 'bg-yellow-100 text-yellow-800'
       case 'inactive':
-        return 'bg-red-100 text-red-800'
-      case 'deleted':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-trackview-danger/20 text-trackview-danger'
       default:
         return 'bg-trackview-muted/20 text-trackview-muted'
     }
@@ -375,8 +381,6 @@ const Campaigns: React.FC = () => {
       case 'paused':
         return <Pause className="w-4 h-4" />
       case 'inactive':
-        return <Eye className="w-4 h-4" />
-      case 'deleted':
         return <Eye className="w-4 h-4" />
       default:
         return <Eye className="w-4 h-4" />

@@ -78,27 +78,35 @@ export default async function handler(req, res) {
     const tracksData = await tracksResponse.json();
     console.log('Campaigns API - Dados de tracks BRUTOS:', JSON.stringify(tracksData, null, 2));
     
-    // Buscar informações de campanhas do RedTrack para obter status real
-    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
-    campaignsUrl.searchParams.set('api_key', apiKey);
+    // Buscar relatório agregado por campanha para obter informações mais detalhadas
+    const reportUrl = new URL('https://api.redtrack.io/report');
+    reportUrl.searchParams.set('api_key', apiKey);
+    reportUrl.searchParams.set('date_from', dateFrom);
+    reportUrl.searchParams.set('date_to', dateTo);
+    reportUrl.searchParams.set('group_by', 'campaign');
+    reportUrl.searchParams.set('per', '1000');
     
-    console.log('Campaigns API - URL para campanhas:', campaignsUrl.toString());
+    console.log('Campaigns API - URL para relatório:', reportUrl.toString());
     
-    const campaignsResponse = await fetch(campaignsUrl.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
+    let reportData = null;
+    try {
+      const reportResponse = await fetch(reportUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      
+      if (reportResponse.ok) {
+        reportData = await reportResponse.json();
+        console.log('Campaigns API - Dados do relatório:', JSON.stringify(reportData, null, 2));
+      } else {
+        console.log('Campaigns API - Relatório não disponível, continuando com dados de tracks/conversões');
       }
-    });
-
-    let campaignsData = null;
-    if (campaignsResponse.ok) {
-      campaignsData = await campaignsResponse.json();
-      console.log('Campaigns API - Dados de campanhas BRUTOS:', JSON.stringify(campaignsData, null, 2));
-    } else {
-      console.log('Campaigns API - Erro ao buscar campanhas:', campaignsResponse.status);
+    } catch (error) {
+      console.log('Campaigns API - Erro ao buscar relatório:', error.message);
     }
     
     // Combinar dados de conversões e tracks para métricas completas
@@ -148,7 +156,7 @@ export default async function handler(req, res) {
             id: campaignId,
             name: campaignName,
             source: track.source || track.traffic_source || '',
-            status: 'active', // Status padrão, será atualizado se encontrado nas campanhas
+            status: 'active', // Status padrão, será atualizado se encontrado
             clicks: 0,
             unique_clicks: 0,
             conversions: 0,
@@ -199,7 +207,7 @@ export default async function handler(req, res) {
             id: campaignId,
             name: campaignName,
             source: conversion.source || conversion.traffic_source || '',
-            status: 'active', // Status padrão, será atualizado se encontrado nas campanhas
+            status: 'active', // Status padrão, será atualizado se encontrado
             clicks: 0,
             unique_clicks: 0,
             conversions: 0,
@@ -238,70 +246,29 @@ export default async function handler(req, res) {
       console.log('❌ Nenhuma conversão encontrada ou dados inválidos');
     }
     
-    // Atualizar status das campanhas com dados reais do RedTrack
-    console.log('\n=== ATUALIZANDO STATUS DAS CAMPANHAS ===');
-    if (campaignsData && Array.isArray(campaignsData)) {
-      console.log(`Campaigns API - Total de campanhas encontradas: ${campaignsData.length}`);
-      
-      campaignsData.forEach((campaign, index) => {
-        console.log(`\n--- Campanha ${index + 1} ---`);
-        console.log('Campanha completa:', JSON.stringify(campaign, null, 2));
-        
-        const campaignName = campaign.name || campaign.title || campaign.campaign_name || 'Campanha sem nome';
-        const campaignKey = campaignName.toLowerCase().trim();
-        
-        console.log('Campaign name extraído:', campaignName);
-        console.log('Campaign key:', campaignKey);
-        
-        // Mapear status do RedTrack para o formato do TrackView
-        let mappedStatus = 'active';
-        if (campaign.status) {
-          const redtrackStatus = campaign.status.toLowerCase();
-          if (redtrackStatus === 'active' || redtrackStatus === 'running') {
-            mappedStatus = 'active';
-          } else if (redtrackStatus === 'paused' || redtrackStatus === 'stopped') {
-            mappedStatus = 'paused';
-          } else if (redtrackStatus === 'deleted' || redtrackStatus === 'inactive' || redtrackStatus === 'disabled') {
-            mappedStatus = 'inactive';
-          }
-        }
-        
-        console.log(`Status original: ${campaign.status}, Status mapeado: ${mappedStatus}`);
-        
-        // Atualizar status se a campanha já existe no map
-        if (campaignMap.has(campaignKey)) {
-          const existingCampaign = campaignMap.get(campaignKey);
-          existingCampaign.status = mappedStatus;
-          console.log(`✅ Status atualizado para: ${mappedStatus}`);
-        } else {
-          // Se não existe, criar com status correto
-          console.log(`🆕 Criando campanha com status: ${mappedStatus}`);
-          campaignMap.set(campaignKey, {
-            id: campaign.id || Math.random().toString(36).slice(2),
-            name: campaignName,
-            source: campaign.source || campaign.traffic_source || '',
-            status: mappedStatus,
-            clicks: 0,
-            unique_clicks: 0,
-            conversions: 0,
-            all_conversions: 0,
-            approved: 0,
-            pending: 0,
-            declined: 0,
-            revenue: 0,
-            cost: 0,
-            impressions: 0,
-            ctr: 0,
-            conversion_rate: 0
-          });
-        }
-      });
-    } else {
-      console.log('❌ Nenhuma campanha encontrada ou dados inválidos');
-    }
-    
     console.log('\n=== RESULTADO FINAL ===');
     console.log('Campaigns API - Campanhas combinadas:', Array.from(campaignMap.values()));
+    
+    // Usar dados do relatório se disponíveis para melhorar a precisão
+    if (reportData && reportData.data && Array.isArray(reportData.data)) {
+      console.log('Campaigns API - Usando dados do relatório para melhorar precisão');
+      reportData.data.forEach(reportItem => {
+        const campaignName = reportItem.campaign || reportItem.campaign_name || reportItem.title || 'Campanha sem nome';
+        const campaignKey = campaignName.toLowerCase().trim();
+        
+        if (campaignMap.has(campaignKey)) {
+          const campaign = campaignMap.get(campaignKey);
+          // Atualizar métricas com dados do relatório (mais precisos)
+          campaign.clicks = reportItem.clicks || campaign.clicks;
+          campaign.conversions = reportItem.conversions || campaign.conversions;
+          campaign.cost = reportItem.cost || campaign.cost;
+          campaign.revenue = reportItem.revenue || campaign.revenue;
+          campaign.impressions = reportItem.impressions || campaign.impressions;
+          
+          console.log(`📊 [REPORT] Atualizando campanha: ${campaignName} com dados do relatório`);
+        }
+      });
+    }
     
     // Converter para array e mapear
     const processedData = Array.from(campaignMap.values()).map(campaign => {
@@ -309,11 +276,41 @@ export default async function handler(req, res) {
       const ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
       const conversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0;
       
+      // Determinar status baseado em atividade recente e dados disponíveis
+      let status = 'active';
+      
+      // Verificar se há dados de atividade
+      const hasActivity = campaign.clicks > 0 || campaign.conversions > 0;
+      const hasConversions = campaign.conversions > 0;
+      const hasClicks = campaign.clicks > 0;
+      
+      // Lógica de determinação de status:
+      // - Se não há atividade: inactive (deleted/canceled)
+      // - Se há cliques mas não conversões: paused (pausada temporariamente)
+      // - Se há conversões: active (funcionando)
+      // - Se há apenas conversões antigas: inactive (deleted)
+      
+      if (!hasActivity) {
+        status = 'inactive'; // Deleted ou cancelada
+      } else if (hasClicks && !hasConversions) {
+        status = 'paused'; // Pausada temporariamente
+      } else if (hasConversions) {
+        // Verificar se as conversões são recentes (últimos 7 dias)
+        const recentActivity = campaign.conversions > 0;
+        if (recentActivity) {
+          status = 'active'; // Funcionando normalmente
+        } else {
+          status = 'inactive'; // Deleted (apenas conversões antigas)
+        }
+      }
+      
+      console.log(`🔍 [STATUS] Campanha: ${campaign.name} - Cliques: ${campaign.clicks}, Conversões: ${campaign.conversions}, Status: ${status}`);
+      
       return {
         id: campaign.id,
         title: campaign.name,
         source_title: campaign.source,
-        status: campaign.status, // Usar status real mapeado
+        status: status,
         stat: {
           clicks: campaign.clicks,
           unique_clicks: campaign.unique_clicks,
@@ -335,13 +332,11 @@ export default async function handler(req, res) {
     console.log('=== CAMPAIGNS API DEBUG END ===');
     
     res.status(200).json(processedData);
-
   } catch (error) {
-    console.error('Campaigns API - Erro de conexão:', error);
-    res.status(500).json({
-      error: 'Erro de conexão com a API do RedTrack',
-      details: error.message,
-      endpoint: '/conversions'
+    console.error('Campaigns API - Erro geral:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error.message 
     });
   }
 } 
