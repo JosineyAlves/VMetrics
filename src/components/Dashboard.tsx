@@ -30,6 +30,7 @@ import MetricsSelector from './MetricsSelector'
 import MetricsOrder from './MetricsOrder'
 import FunnelChart from './FunnelChart'
 import { useMetricsStore } from '../store/metrics'
+import { useCurrencyStore } from '../store/currency'
 import type { Metric } from '../store/metrics'
 
 const metricOptions = [
@@ -404,6 +405,7 @@ const Dashboard: React.FC = () => {
   }
 
   // Corrigir a função formatValue:
+  const { currency } = useCurrencyStore()
   const formatValue = (value: any, format: string) => {
     // Verificar se o valor é um número válido
     const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
@@ -412,7 +414,7 @@ const Dashboard: React.FC = () => {
       case 'currency':
         return new Intl.NumberFormat('pt-BR', {
           style: 'currency',
-          currency: 'USD'
+          currency: currency
         }).format(numValue)
       case 'percentage':
         return `${numValue.toFixed(2)}%`
@@ -444,7 +446,7 @@ const Dashboard: React.FC = () => {
       if (metric.unit === 'currency') {
         formattedValue = new Intl.NumberFormat('pt-BR', {
           style: 'currency',
-          currency: 'USD'
+          currency: currency
         }).format(value)
       } else if (metric.unit === 'percentage') {
         formattedValue = `${value.toFixed(2)}%`
@@ -704,18 +706,18 @@ const Dashboard: React.FC = () => {
             dailyData && dailyData.length > 0 ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#6366f1' }} />
                   <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#6366f1' }} allowDecimals={false} />
                   <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
                   <Bar dataKey="conversions" name="Conversões" fill="#6366f1" radius={[12, 12, 0, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle"/>
                 </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">📊</div>
+            </ResponsiveContainer>
+          ) : (
+          <div className="flex items-center justify-center h-64 text-gray-500">
+            <div className="text-center">
+              <div className="text-4xl mb-2">📊</div>
                   <p className="text-lg font-semibold">Conversões por Dia</p>
                   <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
                 </div>
@@ -739,9 +741,9 @@ const Dashboard: React.FC = () => {
                 <div className="text-center">
                   <div className="text-4xl mb-2">📊</div>
                   <p className="text-lg font-semibold">Cruzamento Diário</p>
-                  <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
-                </div>
-              </div>
+              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+            </div>
+          </div>
             )
           )}
         </motion.div>

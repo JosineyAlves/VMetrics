@@ -15,6 +15,7 @@ Um dashboard profissional para análise de dados do RedTrack.io, construído com
 - **Dados simulados** para demonstração
 - **Integração real** com API do RedTrack
 - **Métricas personalizáveis** - Selecione quais métricas ver no dashboard
+- **Detecção automática de moeda** - Identifica automaticamente a moeda configurada na conta RedTrack
 
 ### 📊 Métricas Personalizáveis
 
@@ -43,6 +44,24 @@ O dashboard agora permite que cada gestor de tráfego personalize quais métrica
 #### **Métricas de Aprovação:**
 - Aprovadas, Pendentes, Recusadas
 - Taxa Aprovação, Taxa Pendente, Taxa Recusa
+
+## 💰 Detecção Automática de Moeda
+
+O TrackView agora detecta automaticamente a moeda configurada na sua conta RedTrack através da API Key. Isso garante que todos os valores monetários sejam exibidos na moeda correta, independentemente do país ou configuração da conta.
+
+### 🔍 Como Funciona
+1. **Detecção Automática**: Quando você configura sua API Key, o sistema automaticamente consulta as configurações da sua conta RedTrack
+2. **Múltiplas Fontes**: O sistema verifica diferentes campos nas configurações da conta para encontrar a moeda configurada
+3. **Fallback Inteligente**: Se não conseguir detectar a moeda, usa USD como padrão
+4. **Persistência**: A moeda detectada é salva localmente e reutilizada em futuras sessões
+
+### 🌍 Moedas Suportadas
+- **Américas**: BRL, USD, CAD, MXN, ARS, CLP, COP, PEN, UYU, VEF, VES, BOL, PYG, BOB, GTQ, HNL, NIO, CRC, PAB, DOP, HTG, JMD, TTD, BBD, XCD, ANG, AWG, SRD, GYD, SBD
+- **Europa**: EUR, GBP, GIP, FKP, SHP, IMP, JEP, GGP
+- **Ásia**: JPY, CNY, KRW, THB, MYR, IDR, PHP, VND, KHR, LAK, MMK, BDT, LKR, NPR, PKR, AFN, IRR, IQD, JOD, KWD, LBP, OMR, QAR, SAR, SYP, AED, YER
+- **África**: EGP, DZD, MAD, TND, LYD, SDG, ETB, KES, TZS, UGX, NGN, GHS, ZAR, BWP, NAD, ZMW, MWK, ZWL, MUR, SCR, SZL, LSL, MZN, CVE, STD, XOF, XAF, XPF, GMD, GNF, SLL, LRD, SLE, AOA, CDF
+- **Oceania**: AUD, FJD, NZD
+- **Outros**: SGD, HKD, TWD, INR
 
 ## 🚀 Como Rodar o Projeto
 

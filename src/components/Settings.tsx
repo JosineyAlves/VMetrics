@@ -12,12 +12,15 @@ import {
   Shield,
   Database,
   RefreshCw,
-  Calendar
+  Calendar,
+  DollarSign,
+  Info
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
+import { useCurrencyStore } from '../store/currency'
 
 interface AccountSettings {
   id: string
@@ -30,6 +33,7 @@ interface AccountSettings {
 
 const Settings: React.FC = () => {
   const { apiKey, setApiKey } = useAuthStore()
+  const { currency, currencySymbol, isDetecting, detectCurrency, resetCurrency } = useCurrencyStore()
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -262,6 +266,100 @@ const Settings: React.FC = () => {
           )}
         </motion.div>
       )}
+
+      {/* Currency Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-blue-100 rounded-2xl">
+              <DollarSign className="w-7 h-7 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Configurações de Moeda</h3>
+              <p className="text-sm text-gray-600">
+                Moeda detectada automaticamente da sua conta RedTrack
+              </p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => apiKey && detectCurrency(apiKey)}
+            disabled={isDetecting}
+            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isDetecting ? 'animate-spin' : ''}`} />
+            {isDetecting ? 'Detectando...' : 'Detectar Moeda'}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-600">Moeda Detectada</label>
+              <div className="flex items-center mt-1">
+                <span className="text-2xl font-bold text-blue-600 mr-2">{currencySymbol}</span>
+                <span className="text-lg font-mono bg-blue-100 p-2 rounded">{currency}</span>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Status da Detecção</label>
+              <div className="flex items-center mt-1">
+                <div className={`w-3 h-3 rounded-full mr-2 ${isDetecting ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
+                <span className={`font-medium ${isDetecting ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {isDetecting ? 'Detectando...' : 'Detectada'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-600">Símbolo da Moeda</label>
+              <p className="text-2xl font-bold text-blue-600">{currencySymbol}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Ações</label>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => apiKey && detectCurrency(apiKey)}
+                  disabled={isDetecting}
+                  className="text-xs"
+                >
+                  Redetectar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={resetCurrency}
+                  className="text-xs"
+                >
+                  Resetar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+          <div className="flex items-start space-x-3">
+            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">Detecção Automática de Moeda</p>
+              <p>
+                O TrackView detecta automaticamente a moeda configurada na sua conta RedTrack. 
+                Esta moeda será usada para exibir todos os valores monetários no dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* API Status */}
       <motion.div

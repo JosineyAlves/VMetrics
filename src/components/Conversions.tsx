@@ -17,6 +17,7 @@ import RedTrackAPI from '../services/api'
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
+import { useCurrencyStore } from '../store/currency'
 
 interface Conversion {
   id: string
@@ -190,10 +191,11 @@ const Conversions: React.FC = () => {
     setTempFilters(resetFilters)
   }
 
+  const { currency } = useCurrencyStore()
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: currency
     }).format(value)
   }
 

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useCurrencyStore } from './currency'
 
 interface AuthState {
   apiKey: string | null
@@ -21,6 +22,11 @@ export const useAuthStore = create<AuthState>()(
       setApiKey: (key: string) => {
         console.log('[AUTH] Salvando API Key:', key)
         set({ apiKey: key, isAuthenticated: true })
+        
+        // Detectar moeda automaticamente quando API Key for configurada
+        const { detectCurrency } = useCurrencyStore.getState()
+        detectCurrency(key)
+        
         // Verificar se foi salvo no localStorage
         setTimeout(() => {
           const persisted = localStorage.getItem('auth-storage')
