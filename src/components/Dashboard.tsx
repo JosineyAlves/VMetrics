@@ -202,26 +202,27 @@ const Dashboard: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         group_by: 'date', // Agrupamento por data para dashboard
+        metrics: 'clicks,conversions,cost,revenue,impressions', // Especificar métricas conforme documentação
         ...filters
       }
       
       console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
-      
-      // Usar o novo endpoint específico para dashboard que combina dados como a tela de Campanhas
-      const url = new URL('/api/dashboard', window.location.origin);
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          url.searchParams.set(key, value.toString());
-        }
-      });
-      
-      console.log('🔍 [DASHBOARD] URL da requisição:', url.toString());
-      
-      const response = await fetch(url.toString());
-      const realData = await response.json();
+      const realData = await api.getReport(params)
       console.log('🔍 [DASHBOARD] Resposta da API:', realData)
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
+      
+      // Verificar estrutura da resposta conforme documentação
+      if (realData && typeof realData === 'object') {
+        console.log('🔍 [DASHBOARD DEBUG] Estrutura da resposta:', {
+          hasData: !!realData.data,
+          hasTotal: !!realData.total,
+          hasMeta: !!realData.meta,
+          dataIsArray: Array.isArray(realData.data),
+          totalKeys: realData.total ? Object.keys(realData.total) : [],
+          dataKeys: realData.data && realData.data.length > 0 ? Object.keys(realData.data[0]) : []
+        })
+      }
       
       // Debug: verificar campos específicos para gasto
       if (Array.isArray(realData) && realData.length > 0) {
@@ -233,7 +234,31 @@ const Dashboard: React.FC = () => {
       
       let summary: any = {};
       let daily: any[] = [];
-      if (Array.isArray(realData)) {
+      
+      // Processar dados conforme estrutura da documentação
+      if (realData && realData.data && Array.isArray(realData.data)) {
+        // Estrutura conforme documentação: { data: [...], total: {...}, meta: {...} }
+        daily = realData.data;
+        summary = realData.total || {};
+        
+        console.log('🔍 [DASHBOARD] Dados processados conforme documentação:', {
+          dailyItems: daily.length,
+          summaryKeys: Object.keys(summary),
+          summaryValues: summary
+        })
+        
+        // Debug: verificar campos específicos após processamento
+        console.log('🔍 [DASHBOARD DEBUG] Campos após processamento:', {
+          spend: summary.spend,
+          cost: summary.cost,
+          campaign_cost: summary.campaign_cost,
+          total_spend: summary.total_spend,
+          revenue: summary.revenue,
+          income: summary.income,
+          total_revenue: summary.total_revenue
+        })
+      } else if (Array.isArray(realData)) {
+        // Fallback para estrutura antiga (array direto)
         daily = realData;
         summary = realData.reduce((acc: any, item: any) => {
           // Processar campos diretos
@@ -254,32 +279,11 @@ const Dashboard: React.FC = () => {
           
           return acc;
         }, {});
-        console.log('🔍 [DASHBOARD] Dados agregados:', summary)
-        
-        // Debug: verificar campos específicos após agregação
-        console.log('🔍 [DASHBOARD DEBUG] Campos após agregação:', {
-          spend: summary.spend,
-          cost: summary.cost,
-          campaign_cost: summary.campaign_cost,
-          total_spend: summary.total_spend,
-          revenue: summary.revenue,
-          income: summary.income,
-          total_revenue: summary.total_revenue
-        })
+        console.log('🔍 [DASHBOARD] Dados agregados (fallback):', summary)
       } else {
+        // Fallback para dados diretos
         summary = realData || {};
-        console.log('🔍 [DASHBOARD] Dados diretos:', summary)
-        
-        // Debug: verificar campos específicos em dados diretos
-        console.log('🔍 [DASHBOARD DEBUG] Campos em dados diretos:', {
-          spend: summary.spend,
-          cost: summary.cost,
-          campaign_cost: summary.campaign_cost,
-          total_spend: summary.total_spend,
-          revenue: summary.revenue,
-          income: summary.income,
-          total_revenue: summary.total_revenue
-        })
+        console.log('🔍 [DASHBOARD] Dados diretos (fallback):', summary)
       }
       setDailyData(daily);
       setDashboardData(summary);
@@ -490,53 +494,29 @@ const Dashboard: React.FC = () => {
         return null
       }
 
-      // Debug: verificar todos os campos disponíveis para spend
+      // Debug: verificar campos específicos para gasto
       if (metricId === 'spend') {
         console.log('🔍 [METRICS DEBUG] Campos disponíveis para spend:', {
-          spend: data.spend,
           cost: data.cost,
+          spend: data.spend,
           campaign_cost: data.campaign_cost,
           total_spend: data.total_spend
         })
-        console.log('🔍 [METRICS DEBUG] Dados completos para debug:', data)
-        console.log('🔍 [METRICS DEBUG] Chaves disponíveis:', Object.keys(data))
-        
-        // Verificar se há estrutura stat como na tela de Campanhas
-        if (data.stat) {
-          console.log('🔍 [METRICS DEBUG] Estrutura stat encontrada:', data.stat)
-          console.log('🔍 [METRICS DEBUG] Campos em stat:', Object.keys(data.stat))
-        }
       }
       
       let value = data[metricId] || 0
       
       // Mapeamento específico para campos que podem ter nomes diferentes
       if (metricId === 'spend') {
-        // Verificar se há estrutura stat (como na tela de Campanhas)
-        if (data.stat) {
-          value = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
-        } else {
-          value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
-        }
+        // Conforme documentação, o campo é 'cost' no endpoint /report
+        value = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0
       } else if (metricId === 'revenue') {
-        // Verificar se há estrutura stat (como na tela de Campanhas)
-        if (data.stat) {
-          value = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
-        } else {
-          value = data.revenue ?? data.income ?? data.total_revenue ?? 0
-        }
+        // Conforme documentação, o campo é 'revenue' no endpoint /report
+        value = data.revenue ?? data.income ?? data.total_revenue ?? 0
       } else if (metricId === 'profit') {
-        let revenue = 0
-        let cost = 0
-        
-        // Verificar se há estrutura stat (como na tela de Campanhas)
-        if (data.stat) {
-          revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
-          cost = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
-        } else {
-          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
-          cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
-        }
+        // Calcular lucro: receita - custo
+        const revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
+        const cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0
         value = revenue - cost
       }
       
