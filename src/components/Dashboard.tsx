@@ -42,6 +42,17 @@ const metricOptions = [
 const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
   const { selectedMetrics, availableMetrics } = useMetricsStore()
+  const { currency } = useCurrencyStore()
+  
+  // Função para formatar moeda
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2
+    }).format(value)
+  }
+  
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
@@ -486,7 +497,6 @@ const Dashboard: React.FC = () => {
   }
 
   // Corrigir a função formatValue:
-  const { currency } = useCurrencyStore()
   const formatValue = (value: any, format: string) => {
     // Verificar se o valor é um número válido
     const numValue = typeof value === 'number' ? value : parseFloat(value) || 0
@@ -921,7 +931,7 @@ const Dashboard: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
                   <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
-                  <Tooltip formatter={(v: any) => `Custo: $${v}`} />
+                  <Tooltip formatter={(v: any) => `Custo: ${formatCurrency(v)}`} />
                   <Bar dataKey="cost" name="Investimento" fill="#6366f1" radius={[0, 12, 12, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
                 </BarChart>

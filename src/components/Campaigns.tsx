@@ -25,6 +25,7 @@ import { addDays, format, subDays, startOfMonth, endOfMonth, startOfYear, endOfY
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
+import { useCurrencyStore } from '../store/currency'
 
 interface UTMCreative {
   id: string
@@ -67,6 +68,16 @@ const mapRedTrackCampaign = (item: any) => ({
 const Campaigns: React.FC = () => {
   console.log('Montou Campanhas')
   const { apiKey } = useAuthStore()
+  const { currency } = useCurrencyStore()
+  
+  // Função para formatar moeda
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2
+    }).format(value)
+  }
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [utmCreatives, setUtmCreatives] = useState<UTMCreative[]>([])
   const [loading, setLoading] = useState(true)
@@ -876,16 +887,16 @@ const Campaigns: React.FC = () => {
                       <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">${campaign.spend.toLocaleString()}</div>
+                      <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">${campaign.revenue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{campaign.roi}%</div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">${campaign.cpa}</div>
+                      <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
                     </td>
                   </motion.tr>
                 ))}
@@ -918,7 +929,7 @@ const Campaigns: React.FC = () => {
                         <tr key={idx}>
                           <td>{idx + 1}.</td>
                           <td>{item.campaign || item.title || item.name || '-'} </td>
-                          <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
+                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
                           <td className="text-right">{item.conversions || 0}</td>
                         </tr>
                 ))}
@@ -944,7 +955,7 @@ const Campaigns: React.FC = () => {
                         <tr key={idx}>
                           <td>{idx + 1}.</td>
                           <td>{item.ad || item.rt_ad || item.title || item.name || '-'} </td>
-                          <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
+                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
                           <td className="text-right">{item.conversions || 0}</td>
                         </tr>
                       ))}
@@ -970,7 +981,7 @@ const Campaigns: React.FC = () => {
                         <tr key={idx}>
                           <td>{idx + 1}.</td>
                           <td>{item.offer || item.rt_offer || item.title || item.name || '-'}</td>
-                          <td className="text-right">R$ {item.revenue?.toLocaleString('pt-BR', {minimumFractionDigits:2}) || '0,00'}</td>
+                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
                           <td className="text-right">{item.conversions || 0}</td>
                         </tr>
                       ))}
