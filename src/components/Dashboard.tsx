@@ -613,6 +613,14 @@ const Dashboard: React.FC = () => {
         } else {
           value = data.initiate_checkout ?? data.checkout_events ?? data.checkout_initiated ?? 0
         }
+        
+        // Debug: verificar se há dados de InitiateCheckout
+        console.log('🔍 [METRICS DEBUG] InitiateCheckout value:', value);
+        console.log('🔍 [METRICS DEBUG] InitiateCheckout data fields:', {
+          initiate_checkout: data.initiate_checkout,
+          checkout_events: data.checkout_events,
+          checkout_initiated: data.checkout_initiated
+        });
       }
       
       console.log(`🔍 [METRICS] ${metricId}: ${value} (${typeof value})`)

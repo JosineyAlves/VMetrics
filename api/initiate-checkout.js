@@ -139,7 +139,7 @@ export default async function handler(req, res) {
     url.searchParams.set('api_key', apiKey);
     url.searchParams.set('date_from', date_from);
     url.searchParams.set('date_to', date_to);
-    url.searchParams.set('type', 'InitiateCheckout'); // Filtrar por tipo específico
+    // Não filtrar por type, pois vamos processar localmente para pegar convtype1 = 1
     
     // Adicionar parâmetros opcionais se fornecidos
     if (req.query.campaign) {
@@ -170,10 +170,32 @@ export default async function handler(req, res) {
     });
 
     console.log('🔍 [INITIATE-CHECKOUT] Dados recebidos com sucesso');
-    console.log('🔍 [INITIATE-CHECKOUT] Total de conversões InitiateCheckout:', data?.items?.length || 0);
+    console.log('🔍 [INITIATE-CHECKOUT] Total de conversões recebidas:', data?.items?.length || 0);
+    
+    // Filtrar conversões que são InitiateCheckout (convtype1 = 1)
+    let initiateCheckoutConversions = [];
+    if (data && data.items && Array.isArray(data.items)) {
+      initiateCheckoutConversions = data.items.filter(conversion => {
+        // Verificar se é InitiateCheckout baseado em convtype1 = 1
+        const isInitiateCheckout = conversion.convtype1 === 1 || conversion.convtype1 === '1';
+        console.log(`🔍 [INITIATE-CHECKOUT] Conversão ${conversion.id}: convtype1 = ${conversion.convtype1}, isInitiateCheckout = ${isInitiateCheckout}`);
+        return isInitiateCheckout;
+      });
+    }
+    
+    console.log('🔍 [INITIATE-CHECKOUT] Total de conversões InitiateCheckout filtradas:', initiateCheckoutConversions.length);
+    
+    // Criar resposta com conversões filtradas
+    const filteredData = {
+      items: initiateCheckoutConversions,
+      total: initiateCheckoutConversions.length,
+      message: initiateCheckoutConversions.length > 0 
+        ? `Encontradas ${initiateCheckoutConversions.length} conversões InitiateCheckout` 
+        : 'Nenhuma conversão InitiateCheckout encontrada para o período.'
+    };
     
     // Se resposta vazia, retornar mensagem amigável
-    if (Array.isArray(data) && data.length === 0) {
+    if (initiateCheckoutConversions.length === 0) {
       const emptyData = { items: [], total: 0, message: 'Nenhuma conversão InitiateCheckout encontrada para o período.' };
       
       // Salvar no cache
@@ -184,17 +206,14 @@ export default async function handler(req, res) {
       
       return res.status(200).json(emptyData);
     }
-    if (data && data.items && data.items.length === 0) {
-      data.message = 'Nenhuma conversão InitiateCheckout encontrada para o período.';
-    }
     
     // Salvar no cache
     requestCache.set(cacheKey, {
-      data: data,
+      data: filteredData,
       timestamp: Date.now()
     });
     
-    res.status(200).json(data);
+    res.status(200).json(filteredData);
   } catch (error) {
     console.error('❌ [INITIATE-CHECKOUT] Erro ao conectar com RedTrack:', error)
     res.status(500).json({ 
