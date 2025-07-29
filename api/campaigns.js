@@ -358,26 +358,27 @@ export default async function handler(req, res) {
       const ctr = campaign.impressions > 0 ? (totalClicks / campaign.impressions) * 100 : 0;
       const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
       
-      return {
-        id: campaign.id,
-        title: campaign.name,
-        source_title: campaign.source,
-        status: status,
-        stat: {
-          clicks: totalClicks,
-          unique_clicks: totalClicks, // Simplificado
-          conversions: totalConversions,
-          all_conversions: totalConversions,
-          approved: totalConversions,
-          pending: 0,
-          declined: 0,
-          revenue: totalRevenue,
-          cost: totalCost,
-          impressions: campaign.impressions,
-          ctr: ctr,
-          conversion_rate: conversionRate
-        }
-      };
+              return {
+          id: campaign.id,
+          title: campaign.name,
+          source_title: campaign.source,
+          status: status,
+          stat: {
+            clicks: totalClicks,
+            unique_clicks: totalClicks, // Simplificado
+            conversions: totalConversions,
+            all_conversions: totalConversions,
+            approved: totalConversions,
+            pending: 0,
+            declined: 0,
+            revenue: totalRevenue,
+            cost: totalCost,
+            impressions: campaign.impressions,
+            ctr: ctr,
+            conversion_rate: conversionRate,
+            initiate_checkout: 0 // Campo para eventos de checkout (pode ser mapeado de dados específicos do RedTrack)
+          }
+        };
     });
     
     console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));

@@ -93,6 +93,7 @@ export interface ReportData {
   conversion_roas_percentage: number
   conversion_profit: number
   epc_roi: number
+  initiate_checkout: number
 }
 
 export interface CountryData {

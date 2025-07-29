@@ -640,6 +640,16 @@ const allMetrics: Metric[] = [
     format: 'percentage',
     icon: 'ArrowRight',
     color: 'purple'
+  },
+  {
+    id: 'initiate_checkout',
+    label: 'Initiate Checkout',
+    description: 'Inícios de checkout (eventos de início de compra)',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'ShoppingCart',
+    color: 'orange'
   }
 ]
 

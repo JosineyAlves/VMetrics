@@ -578,6 +578,13 @@ const Dashboard: React.FC = () => {
           cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
         }
         value = revenue - cost
+      } else if (metricId === 'initiate_checkout') {
+        // Mapear para campos relacionados a checkout do RedTrack
+        if (data.stat) {
+          value = data.stat.initiate_checkout ?? data.stat.checkout_events ?? data.stat.checkout_initiated ?? 0
+        } else {
+          value = data.initiate_checkout ?? data.checkout_events ?? data.checkout_initiated ?? 0
+        }
       }
       
       console.log(`🔍 [METRICS] ${metricId}: ${value} (${typeof value})`)
