@@ -227,6 +227,16 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
+      // Buscar dados de InitiateCheckout
+      console.log('🔍 [DASHBOARD] Buscando dados de InitiateCheckout...')
+      let initiateCheckoutData = { items: [], total: 0 }
+      try {
+        initiateCheckoutData = await api.getInitiateCheckout(params)
+        console.log('🔍 [DASHBOARD] Dados InitiateCheckout:', initiateCheckoutData)
+      } catch (error) {
+        console.log('⚠️ [DASHBOARD] Erro ao buscar InitiateCheckout:', error)
+      }
+      
       // Carregar campanhas deletadas do localStorage para filtrar dados
       const savedDeletedCampaigns = localStorage.getItem('deletedCampaigns')
       const deletedCampaigns = savedDeletedCampaigns ? new Set(JSON.parse(savedDeletedCampaigns)) : new Set()
@@ -295,6 +305,14 @@ const Dashboard: React.FC = () => {
           
           return acc;
         }, {});
+        
+        // Adicionar dados de InitiateCheckout ao summary
+        if (initiateCheckoutData && initiateCheckoutData.items && Array.isArray(initiateCheckoutData.items)) {
+          summary.initiate_checkout = initiateCheckoutData.items.length;
+          console.log('🔍 [DASHBOARD] InitiateCheckout adicionado ao summary:', summary.initiate_checkout);
+        } else {
+          summary.initiate_checkout = 0;
+        }
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
         
         // Debug: verificar campos específicos após agregação
@@ -321,6 +339,14 @@ const Dashboard: React.FC = () => {
           income: summary.income,
           total_revenue: summary.total_revenue
         })
+        
+        // Adicionar dados de InitiateCheckout ao summary para dados diretos
+        if (initiateCheckoutData && initiateCheckoutData.items && Array.isArray(initiateCheckoutData.items)) {
+          summary.initiate_checkout = initiateCheckoutData.items.length;
+          console.log('🔍 [DASHBOARD] InitiateCheckout adicionado ao summary (dados diretos):', summary.initiate_checkout);
+        } else {
+          summary.initiate_checkout = 0;
+        }
       }
       setDailyData(daily);
       setDashboardData(summary);
@@ -387,7 +413,8 @@ const Dashboard: React.FC = () => {
           conversion_roas: 0,
           conversion_roas_percentage: 0,
           conversion_profit: 0,
-          epc_roi: 0
+          epc_roi: 0,
+          initiate_checkout: 0
         }
         setDashboardData(emptyData)
       }
@@ -446,7 +473,8 @@ const Dashboard: React.FC = () => {
         conversion_roas: 0,
         conversion_roas_percentage: 0,
         conversion_profit: 0,
-        epc_roi: 0
+        epc_roi: 0,
+        initiate_checkout: 0
       }
       setDashboardData(emptyData)
     } finally {

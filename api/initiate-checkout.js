@@ -25,7 +25,7 @@ async function processRequestQueue() {
         await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
       }
       
-      console.log('⏳ [CONVERSIONS] Processando requisição da fila...');
+      console.log('⏳ [INITIATE-CHECKOUT] Processando requisição da fila...');
       const response = await fetch(url, {
         method: 'GET',
         headers
@@ -35,7 +35,7 @@ async function processRequestQueue() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('🔴 [CONVERSIONS] Erro da RedTrack:', {
+        console.error('🔴 [INITIATE-CHECKOUT] Erro da RedTrack:', {
           status: response.status,
           url: url,
           errorData,
@@ -44,7 +44,7 @@ async function processRequestQueue() {
         
         // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [CONVERSIONS] Rate limiting detectado - aguardando 5 segundos...');
+          console.log('⚠️ [INITIATE-CHECKOUT] Rate limiting detectado - aguardando 5 segundos...');
           await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Tentar novamente uma vez
@@ -54,7 +54,7 @@ async function processRequestQueue() {
           });
           
           if (!retryResponse.ok) {
-            console.log('⚠️ [CONVERSIONS] Rate limiting persistente - retornando dados vazios');
+            console.log('⚠️ [INITIATE-CHECKOUT] Rate limiting persistente - retornando dados vazios');
             resolve({ items: [], total: 0, message: 'Rate limiting - tente novamente em alguns segundos.' });
             continue;
           }
@@ -69,7 +69,7 @@ async function processRequestQueue() {
         resolve(data);
       }
     } catch (error) {
-      console.error('❌ [CONVERSIONS] Erro de conexão:', error);
+      console.error('❌ [INITIATE-CHECKOUT] Erro de conexão:', error);
       reject(error);
     }
   }
@@ -78,9 +78,9 @@ async function processRequestQueue() {
 }
 
 export default async function handler(req, res) {
-  console.log('🔍 [CONVERSIONS] Requisição recebida:', req.method, req.url)
-  console.log('🔍 [CONVERSIONS] Headers recebidos:', Object.keys(req.headers))
-  console.log('🔍 [CONVERSIONS] Authorization header:', req.headers['authorization'])
+  console.log('🔍 [INITIATE-CHECKOUT] Requisição recebida:', req.method, req.url)
+  console.log('🔍 [INITIATE-CHECKOUT] Headers recebidos:', Object.keys(req.headers))
+  console.log('🔍 [INITIATE-CHECKOUT] Authorization header:', req.headers['authorization'])
 
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
 
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('🔍 [CONVERSIONS] Preflight request - retornando 200')
+    console.log('🔍 [INITIATE-CHECKOUT] Preflight request - retornando 200')
     res.status(200).end()
     return
   }
@@ -109,10 +109,10 @@ export default async function handler(req, res) {
     }
   }
 
-  console.log('🔍 [CONVERSIONS] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
+  console.log('🔍 [INITIATE-CHECKOUT] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
 
   if (!apiKey) {
-    console.log('❌ [CONVERSIONS] API Key não fornecida')
+    console.log('❌ [INITIATE-CHECKOUT] API Key não fornecida')
     return res.status(401).json({ error: 'API Key required' })
   }
 
@@ -124,28 +124,24 @@ export default async function handler(req, res) {
   }
 
   // Verificar cache
-  const cacheKey = `conversions_${JSON.stringify(req.query)}`;
+  const cacheKey = `initiate_checkout_${JSON.stringify(req.query)}`;
   const cachedData = requestCache.get(cacheKey);
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
-    console.log('✅ [CONVERSIONS] Dados retornados do cache');
+    console.log('✅ [INITIATE-CHECKOUT] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
   }
 
   try {
-    console.log('🔍 [CONVERSIONS] Fazendo requisição para RedTrack /conversions...')
-    console.log('🔍 [CONVERSIONS] URL:', `https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=${date_from}&date_to=${date_to}`)
-    console.log('🔍 [CONVERSIONS] API Key sendo testada:', apiKey)
-
-    // Construir URL com parâmetros opcionais
+    console.log('🔍 [INITIATE-CHECKOUT] Fazendo requisição para RedTrack /conversions com tipo InitiateCheckout...')
+    
+    // Construir URL com parâmetros para buscar conversões do tipo InitiateCheckout
     const url = new URL('https://api.redtrack.io/conversions');
     url.searchParams.set('api_key', apiKey);
     url.searchParams.set('date_from', date_from);
     url.searchParams.set('date_to', date_to);
+    url.searchParams.set('type', 'InitiateCheckout'); // Filtrar por tipo específico
     
     // Adicionar parâmetros opcionais se fornecidos
-    if (req.query.type) {
-      url.searchParams.set('type', req.query.type);
-    }
     if (req.query.campaign) {
       url.searchParams.set('campaign', req.query.campaign);
     }
@@ -153,8 +149,9 @@ export default async function handler(req, res) {
       url.searchParams.set('country', req.query.country);
     }
     
-    console.log('🔍 [CONVERSIONS] URL final:', url.toString());
-    
+    console.log('🔍 [INITIATE-CHECKOUT] URL final:', url.toString());
+    console.log('🔍 [INITIATE-CHECKOUT] API Key sendo testada:', apiKey)
+
     const data = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
@@ -172,11 +169,12 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
 
-    console.log('🔍 [CONVERSIONS] Dados recebidos com sucesso');
+    console.log('🔍 [INITIATE-CHECKOUT] Dados recebidos com sucesso');
+    console.log('🔍 [INITIATE-CHECKOUT] Total de conversões InitiateCheckout:', data?.items?.length || 0);
     
     // Se resposta vazia, retornar mensagem amigável
     if (Array.isArray(data) && data.length === 0) {
-      const emptyData = { items: [], total: 0, message: 'Nenhuma conversão encontrada para o período.' };
+      const emptyData = { items: [], total: 0, message: 'Nenhuma conversão InitiateCheckout encontrada para o período.' };
       
       // Salvar no cache
       requestCache.set(cacheKey, {
@@ -187,7 +185,7 @@ export default async function handler(req, res) {
       return res.status(200).json(emptyData);
     }
     if (data && data.items && data.items.length === 0) {
-      data.message = 'Nenhuma conversão encontrada para o período.';
+      data.message = 'Nenhuma conversão InitiateCheckout encontrada para o período.';
     }
     
     // Salvar no cache
@@ -198,11 +196,11 @@ export default async function handler(req, res) {
     
     res.status(200).json(data);
   } catch (error) {
-    console.error('❌ [CONVERSIONS] Erro ao conectar com RedTrack:', error)
+    console.error('❌ [INITIATE-CHECKOUT] Erro ao conectar com RedTrack:', error)
     res.status(500).json({ 
       error: 'Erro de conexão com a API do RedTrack',
       details: error.message,
-      endpoint: '/conversions'
+      endpoint: '/initiate-checkout'
     })
   }
 } 
