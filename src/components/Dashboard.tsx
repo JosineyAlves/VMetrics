@@ -310,8 +310,11 @@ const Dashboard: React.FC = () => {
         if (initiateCheckoutData && initiateCheckoutData.items && Array.isArray(initiateCheckoutData.items)) {
           summary.initiate_checkout = initiateCheckoutData.items.length;
           console.log('🔍 [DASHBOARD] InitiateCheckout adicionado ao summary:', summary.initiate_checkout);
+          console.log('🔍 [DASHBOARD] Total de conversões InitiateCheckout encontradas:', initiateCheckoutData.items.length);
+          console.log('🔍 [DASHBOARD] IDs das conversões InitiateCheckout:', initiateCheckoutData.items.map((item: any) => item.id));
         } else {
           summary.initiate_checkout = 0;
+          console.log('🔍 [DASHBOARD] Nenhuma conversão InitiateCheckout encontrada');
         }
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
         
@@ -350,6 +353,13 @@ const Dashboard: React.FC = () => {
       }
       setDailyData(daily);
       setDashboardData(summary);
+      
+      // Debug: verificar se initiate_checkout está no summary
+      console.log('🔍 [DASHBOARD] Summary final com initiate_checkout:', {
+        initiate_checkout: summary.initiate_checkout,
+        total_fields: Object.keys(summary).length,
+        all_fields: Object.keys(summary)
+      });
       
       // Se não houver dados, usar objeto zerado
       if (!summary || Object.keys(summary).length === 0) {
@@ -550,6 +560,7 @@ const Dashboard: React.FC = () => {
   const getMetricsFromData = (data: any) => {
     console.log('🔍 [METRICS] Dados recebidos:', data)
     console.log('🔍 [METRICS] Métricas selecionadas:', selectedMetrics)
+    console.log('🔍 [METRICS] Campo initiate_checkout nos dados:', data.initiate_checkout)
     
     const selectedMetricsData = selectedMetrics.map(metricId => {
       const metric = availableMetrics.find(m => m.id === metricId)
@@ -668,10 +679,17 @@ const Dashboard: React.FC = () => {
 
   const getSelectedMetricsInOrder = () => {
     const { selectedMetrics, metricsOrder, availableMetrics } = useMetricsStore.getState()
-    return metricsOrder
+    const metrics = metricsOrder
       .filter(metricId => selectedMetrics.includes(metricId))
       .map(metricId => availableMetrics.find(m => m.id === metricId))
       .filter((metric): metric is Metric => metric !== null)
+    
+    // Debug: verificar se InitiateCheckout está incluído
+    console.log('🔍 [METRICS] Métricas selecionadas:', selectedMetrics);
+    console.log('🔍 [METRICS] InitiateCheckout incluído:', selectedMetrics.includes('initiate_checkout'));
+    console.log('🔍 [METRICS] Métricas finais:', metrics.map(m => m.id));
+    
+    return metrics
   }
 
   const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)

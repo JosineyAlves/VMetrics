@@ -662,7 +662,8 @@ const defaultSelectedMetrics = [
   'profit',
   'roi',
   'cpa',
-  'ctr'
+  'ctr',
+  'initiate_checkout'
 ]
 
 export const useMetricsStore = create<MetricsState>()(

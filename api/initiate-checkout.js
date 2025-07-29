@@ -171,6 +171,12 @@ export default async function handler(req, res) {
 
     console.log('🔍 [INITIATE-CHECKOUT] Dados recebidos com sucesso');
     console.log('🔍 [INITIATE-CHECKOUT] Total de conversões recebidas:', data?.items?.length || 0);
+    console.log('🔍 [INITIATE-CHECKOUT] Estrutura dos dados recebidos:', {
+      isArray: Array.isArray(data),
+      hasItems: data && data.items,
+      itemsLength: data?.items?.length,
+      firstItem: data?.items?.[0]
+    });
     
     // Filtrar conversões que são InitiateCheckout (convtype1 = 1)
     let initiateCheckoutConversions = [];
