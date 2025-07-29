@@ -1,6 +1,81 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 30000; // 30 segundos
+const CACHE_DURATION = 60000; // 60 segundos (aumentado de 30s)
+
+// Controle de rate limiting
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
+let requestQueue = [];
+let isProcessingQueue = false;
+
+// Função para processar fila de requisições
+async function processRequestQueue() {
+  if (isProcessingQueue || requestQueue.length === 0) return;
+  
+  isProcessingQueue = true;
+  
+  while (requestQueue.length > 0) {
+    const { resolve, reject, url, headers } = requestQueue.shift();
+    
+    try {
+      // Aguardar intervalo mínimo entre requisições
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+      }
+      
+      console.log('⏳ [REPORT] Processando requisição da fila...');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
+      
+      lastRequestTime = Date.now();
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🔴 [REPORT] Erro da RedTrack:', {
+          status: response.status,
+          url: url,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // Se for rate limiting, aguardar e tentar novamente
+        if (response.status === 429) {
+          console.log('⚠️ [REPORT] Rate limiting detectado - aguardando 5 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          // Tentar novamente uma vez
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers
+          });
+          
+          if (!retryResponse.ok) {
+            console.log('⚠️ [REPORT] Rate limiting persistente - retornando dados vazios');
+            resolve([]);
+            continue;
+          }
+          
+          const retryData = await retryResponse.json();
+          resolve(retryData);
+        } else {
+          reject(new Error(errorData.error || 'Erro na API do RedTrack'));
+        }
+      } else {
+        const data = await response.json();
+        resolve(data);
+      }
+    } catch (error) {
+      console.error('❌ [REPORT] Erro de conexão:', error);
+      reject(error);
+    }
+  }
+  
+  isProcessingQueue = false;
+}
 
 export default async function handler(req, res) {
   console.log('🔍 [REPORT] Requisição recebida:', req.method, req.url)
@@ -71,48 +146,21 @@ export default async function handler(req, res) {
     console.log('🔍 [REPORT] URL final:', url.toString());
     console.log('🔍 [REPORT] Headers enviados:', headers);
     
-    // Delay para evitar rate limiting (1 segundo)
-    console.log('⏳ [REPORT] Aguardando 1 segundo para evitar rate limiting...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers
+    // Adicionar requisição à fila
+    const responseData = await new Promise((resolve, reject) => {
+      requestQueue.push({ resolve, reject, url: url.toString(), headers });
+      processRequestQueue();
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('🔴 [REPORT] Erro da RedTrack:', {
-        status: response.status,
-        url: url.toString(),
-        errorData,
-        headers: Object.fromEntries(response.headers.entries())
-      });
-      
-      // Se for rate limiting, retornar dados vazios em vez de erro
-      if (response.status === 429) {
-        console.log('⚠️ [REPORT] Rate limiting detectado - retornando dados vazios');
-        return res.status(200).json([]);
-      }
-      
-      return res.status(response.status).json({ 
-        error: errorData.error || 'Erro na API do RedTrack',
-        status: response.status,
-        endpoint: '/report',
-        redtrack: errorData
-      });
-    }
-
-    const data = await response.json();
+    
     console.log('✅ [REPORT] Dados recebidos com sucesso');
     
     // Salvar no cache
     requestCache.set(cacheKey, {
-      data: data,
+      data: responseData,
       timestamp: Date.now()
     });
     
-    res.status(200).json(data);
+    res.status(200).json(responseData);
 
   } catch (error) {
     console.error('❌ [REPORT] Erro de conexão:', error);

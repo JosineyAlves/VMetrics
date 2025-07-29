@@ -1,3 +1,82 @@
+// Cache em memória para evitar múltiplas requisições
+const requestCache = new Map();
+const CACHE_DURATION = 60000; // 60 segundos
+
+// Controle de rate limiting
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
+let requestQueue = [];
+let isProcessingQueue = false;
+
+// Função para processar fila de requisições
+async function processRequestQueue() {
+  if (isProcessingQueue || requestQueue.length === 0) return;
+  
+  isProcessingQueue = true;
+  
+  while (requestQueue.length > 0) {
+    const { resolve, reject, url, headers } = requestQueue.shift();
+    
+    try {
+      // Aguardar intervalo mínimo entre requisições
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+      }
+      
+      console.log('⏳ [DASHBOARD] Processando requisição da fila...');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
+      
+      lastRequestTime = Date.now();
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🔴 [DASHBOARD] Erro da RedTrack:', {
+          status: response.status,
+          url: url,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // Se for rate limiting, aguardar e tentar novamente
+        if (response.status === 429) {
+          console.log('⚠️ [DASHBOARD] Rate limiting detectado - aguardando 5 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          // Tentar novamente uma vez
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers
+          });
+          
+          if (!retryResponse.ok) {
+            console.log('⚠️ [DASHBOARD] Rate limiting persistente - retornando dados vazios');
+            resolve(null);
+            continue;
+          }
+          
+          const retryData = await retryResponse.json();
+          resolve(retryData);
+        } else {
+          reject(new Error(errorData.error || 'Erro na API do RedTrack'));
+        }
+      } else {
+        const data = await response.json();
+        resolve(data);
+      }
+    } catch (error) {
+      console.error('❌ [DASHBOARD] Erro de conexão:', error);
+      reject(error);
+    }
+  }
+  
+  isProcessingQueue = false;
+}
+
 export default async function (req, res) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -22,30 +101,40 @@ export default async function (req, res) {
     console.log('🔍 [DASHBOARD] Headers recebidos:', Object.keys(req.headers))
     console.log('🔍 [DASHBOARD] API Key recebida:', apiKey ? 'SIM' : 'NÃO')
 
-    // Testar se a API key é válida
-    console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /me/settings...')
-    console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/me/settings')
-    const testResponse = await fetch(`https://api.redtrack.io/me/settings?api_key=${apiKey}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
-    })
-
-    if (!testResponse.ok) {
-      console.log('🔍 [DASHBOARD] Status da resposta /me/settings:', testResponse.status)
-      console.log('🔍 [DASHBOARD] Headers da resposta /me/settings:', Object.fromEntries(testResponse.headers.entries()))
-      const errorData = await testResponse.json().catch(() => ({}))
-      return res.status(testResponse.status).json({
-        error: 'API Key inválida ou erro na API do RedTrack',
-        details: errorData
-      })
+    // Verificar cache
+    const cacheKey = `dashboard_${JSON.stringify(req.query)}`;
+    const cachedData = requestCache.get(cacheKey);
+    if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+      console.log('✅ [DASHBOARD] Dados retornados do cache');
+      return res.status(200).json(cachedData.data);
     }
 
-    console.log('🔍 [DASHBOARD] Status da resposta /me/settings:', testResponse.status)
-    console.log('🔍 [DASHBOARD] Headers da resposta /me/settings:', Object.fromEntries(testResponse.headers.entries()))
+    // Testar se a API key é válida usando fila
+    console.log('🔍 [DASHBOARD] Fazendo requisição para RedTrack /me/settings...')
+    console.log('🔍 [DASHBOARD] URL:', 'https://api.redtrack.io/me/settings')
+    
+    const testData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: `https://api.redtrack.io/me/settings?api_key=${apiKey}`, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
+
+    if (!testData) {
+      console.log('🔍 [DASHBOARD] API Key inválida ou erro na API do RedTrack');
+      return res.status(401).json({
+        error: 'API Key inválida ou erro na API do RedTrack'
+      });
+    }
+
+    console.log('🔍 [DASHBOARD] API Key válida - buscando dados do dashboard');
 
     // Buscar dados reais do dashboard usando parâmetros de data
     const { date_from, date_to } = req.query;
@@ -58,19 +147,22 @@ export default async function (req, res) {
     const reportUrl = `https://api.redtrack.io/report?api_key=${apiKey}&group_by=date&date_from=${dateFrom}&date_to=${dateTo}`;
     console.log('🔍 [DASHBOARD] URL:', reportUrl);
     
-    const reportResponse = await fetch(reportUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
-    })
+    const reportData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: reportUrl, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
 
-    if (reportResponse.ok) {
-      console.log('🔍 [DASHBOARD] Status da resposta /report:', reportResponse.status)
-      console.log('🔍 [DASHBOARD] Headers da resposta /report:', Object.fromEntries(reportResponse.headers.entries()))
-      const reportData = await reportResponse.json()
+    if (reportData) {
+      console.log('🔍 [DASHBOARD] Dados recebidos com sucesso');
 
       const hasData = reportData.revenue > 0 ||
         reportData.conversions > 0 ||
@@ -90,6 +182,13 @@ export default async function (req, res) {
           is_demo: false,
           message: 'Dados reais do RedTrack'
         }
+        
+        // Salvar no cache
+        requestCache.set(cacheKey, {
+          data: dashboardData,
+          timestamp: Date.now()
+        });
+        
         res.status(200).json(dashboardData)
       } else {
         // Conta nova sem dados
@@ -105,11 +204,17 @@ export default async function (req, res) {
           is_demo: true,
           message: 'Conta nova - Configure suas campanhas no RedTrack para começar a ver dados reais.'
         }
+        
+        // Salvar no cache
+        requestCache.set(cacheKey, {
+          data: emptyData,
+          timestamp: Date.now()
+        });
+        
         res.status(200).json(emptyData)
       }
     } else {
-      console.log('🔍 [DASHBOARD] Status da resposta /report:', reportResponse.status)
-      console.log('🔍 [DASHBOARD] Headers da resposta /report:', Object.fromEntries(reportResponse.headers.entries()))
+      console.log('🔍 [DASHBOARD] Erro ao buscar dados do report');
       // Fallback para dados zerados
       const fallbackData = {
         revenue: 0,
@@ -123,9 +228,17 @@ export default async function (req, res) {
         is_demo: true,
         message: 'Erro de conexão - Configure suas campanhas no RedTrack para começar a ver dados reais'
       }
+      
+      // Salvar no cache
+      requestCache.set(cacheKey, {
+        data: fallbackData,
+        timestamp: Date.now()
+      });
+      
       res.status(200).json(fallbackData)
     }
   } catch (error) {
+    console.error('❌ [DASHBOARD] Erro geral:', error);
     // Fallback para dados zerados
     const fallbackData = {
       revenue: 0,

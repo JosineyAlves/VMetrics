@@ -1,3 +1,82 @@
+// Cache em memória para evitar múltiplas requisições
+const requestCache = new Map();
+const CACHE_DURATION = 60000; // 60 segundos
+
+// Controle de rate limiting
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
+let requestQueue = [];
+let isProcessingQueue = false;
+
+// Função para processar fila de requisições
+async function processRequestQueue() {
+  if (isProcessingQueue || requestQueue.length === 0) return;
+  
+  isProcessingQueue = true;
+  
+  while (requestQueue.length > 0) {
+    const { resolve, reject, url, headers } = requestQueue.shift();
+    
+    try {
+      // Aguardar intervalo mínimo entre requisições
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+      }
+      
+      console.log('⏳ [SETTINGS] Processando requisição da fila...');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
+      
+      lastRequestTime = Date.now();
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🔴 [SETTINGS] Erro da RedTrack:', {
+          status: response.status,
+          url: url,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // Se for rate limiting, aguardar e tentar novamente
+        if (response.status === 429) {
+          console.log('⚠️ [SETTINGS] Rate limiting detectado - aguardando 5 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          // Tentar novamente uma vez
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers
+          });
+          
+          if (!retryResponse.ok) {
+            console.log('⚠️ [SETTINGS] Rate limiting persistente - retornando dados vazios');
+            resolve(null);
+            continue;
+          }
+          
+          const retryData = await retryResponse.json();
+          resolve(retryData);
+        } else {
+          reject(new Error(errorData.error || 'Erro na API do RedTrack'));
+        }
+      } else {
+        const data = await response.json();
+        resolve(data);
+      }
+    } catch (error) {
+      console.error('❌ [SETTINGS] Erro de conexão:', error);
+      reject(error);
+    }
+  }
+  
+  isProcessingQueue = false;
+}
+
 export default async function handler(req, res) {
   console.log('🔍 [SETTINGS] Requisição recebida:', req.method, req.url)
   console.log('🔍 [SETTINGS] Headers recebidos:', Object.keys(req.headers))
@@ -27,33 +106,41 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key não fornecida' })
   }
 
+  // Verificar cache
+  const cacheKey = `settings_${apiKey}_${req.query.debug || 'false'}`;
+  const cachedData = requestCache.get(cacheKey);
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+    console.log('✅ [SETTINGS] Dados retornados do cache');
+    return res.status(200).json(cachedData.data);
+  }
+
   try {
     console.log('🔍 [SETTINGS] Fazendo requisição para RedTrack /me/settings...')
     console.log('🔍 [SETTINGS] URL:', 'https://api.redtrack.io/me/settings')
     console.log('🔍 [SETTINGS] API Key sendo testada:', apiKey)
 
-    const response = await fetch(`https://api.redtrack.io/me/settings?api_key=${apiKey}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0 (https://my-dash-two.vercel.app)',
-        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    })
+    const data = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: `https://api.redtrack.io/me/settings?api_key=${apiKey}`, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0 (https://my-dash-two.vercel.app)',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      processRequestQueue();
+    });
 
-    console.log('🔍 [SETTINGS] Status da resposta:', response.status)
-    console.log('🔍 [SETTINGS] Headers da resposta:', Object.fromEntries(response.headers.entries()))
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      console.log('❌ [SETTINGS] Erro na resposta:', errorData)
-      return res.status(response.status).json(errorData)
+    if (!data) {
+      console.log('❌ [SETTINGS] Erro na resposta da API');
+      return res.status(500).json({ error: 'Erro na API do RedTrack' });
     }
 
-    const data = await response.json()
     console.log('✅ [SETTINGS] Dados recebidos com sucesso')
     console.log('🔍 [SETTINGS] Estrutura dos dados:', JSON.stringify(data, null, 2))
     
@@ -120,11 +207,25 @@ export default async function handler(req, res) {
 
       console.log('✅ [SETTINGS] Análise de moeda concluída:', currencyAnalysis.currency_detected)
       
-      return res.status(200).json({
+      const responseData = {
         settings: data,
         currency_analysis: currencyAnalysis
-      })
+      };
+      
+      // Salvar no cache
+      requestCache.set(cacheKey, {
+        data: responseData,
+        timestamp: Date.now()
+      });
+      
+      return res.status(200).json(responseData)
     }
+    
+    // Salvar no cache
+    requestCache.set(cacheKey, {
+      data: data,
+      timestamp: Date.now()
+    });
     
     return res.status(200).json(data)
   } catch (error) {

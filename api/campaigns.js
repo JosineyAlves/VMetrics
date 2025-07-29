@@ -1,6 +1,81 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 30000; // 30 segundos
+const CACHE_DURATION = 60000; // 60 segundos (aumentado de 30s)
+
+// Controle de rate limiting
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
+let requestQueue = [];
+let isProcessingQueue = false;
+
+// Função para processar fila de requisições
+async function processRequestQueue() {
+  if (isProcessingQueue || requestQueue.length === 0) return;
+  
+  isProcessingQueue = true;
+  
+  while (requestQueue.length > 0) {
+    const { resolve, reject, url, headers } = requestQueue.shift();
+    
+    try {
+      // Aguardar intervalo mínimo entre requisições
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+      }
+      
+      console.log('⏳ [CAMPAIGNS] Processando requisição da fila...');
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
+      
+      lastRequestTime = Date.now();
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('🔴 [CAMPAIGNS] Erro da RedTrack:', {
+          status: response.status,
+          url: url,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // Se for rate limiting, aguardar e tentar novamente
+        if (response.status === 429) {
+          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 5 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          
+          // Tentar novamente uma vez
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers
+          });
+          
+          if (!retryResponse.ok) {
+            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
+            resolve([]);
+            continue;
+          }
+          
+          const retryData = await retryResponse.json();
+          resolve(retryData);
+        } else {
+          reject(new Error(errorData.error || 'Erro na API do RedTrack'));
+        }
+      } else {
+        const data = await response.json();
+        resolve(data);
+      }
+    } catch (error) {
+      console.error('❌ [CAMPAIGNS] Erro de conexão:', error);
+      reject(error);
+    }
+  }
+  
+  isProcessingQueue = false;
+}
 
 export default async function handler(req, res) {
   // Configurar CORS
@@ -38,7 +113,7 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - Data solicitada:', { dateFrom, dateTo });
     
-    // Buscar dados de HOJE (data específica)
+    // Buscar dados de HOJE (data específica) usando fila
     const todayConversionsUrl = new URL('https://api.redtrack.io/conversions');
     todayConversionsUrl.searchParams.set('api_key', apiKey);
     todayConversionsUrl.searchParams.set('per', '1000');
@@ -47,40 +122,23 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - URL para conversões de HOJE:', todayConversionsUrl.toString());
     
-    const todayConversionsResponse = await fetch(todayConversionsUrl.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
-    });
-
-    if (!todayConversionsResponse.ok) {
-      const errorData = await todayConversionsResponse.json().catch(() => ({}));
-      console.error('Campaigns API - Erro ao buscar conversões de HOJE:', errorData);
-      
-      // Se for rate limiting, retornar dados vazios
-      if (todayConversionsResponse.status === 429) {
-        console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - retornando dados vazios');
-        return res.status(200).json([]);
-      }
-      
-      return res.status(todayConversionsResponse.status).json({
-        error: errorData.error || 'Erro ao buscar conversões do RedTrack',
-        status: todayConversionsResponse.status,
-        endpoint: '/conversions'
+    const todayConversionsData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: todayConversionsUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
       });
-    }
-
-    const todayConversionsData = await todayConversionsResponse.json();
+      processRequestQueue();
+    });
+    
     console.log('Campaigns API - Dados de conversões de HOJE:', JSON.stringify(todayConversionsData, null, 2));
     
-    // Delay para evitar rate limiting (1 segundo)
-    console.log('⏳ [CAMPAIGNS] Aguardando 1 segundo para evitar rate limiting...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Buscar dados de HOJE (tracks)
+    // Buscar dados de HOJE (tracks) usando fila
     const todayTracksUrl = new URL('https://api.redtrack.io/tracks');
     todayTracksUrl.searchParams.set('api_key', apiKey);
     todayTracksUrl.searchParams.set('per', '1000');
@@ -89,23 +147,23 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - URL para tracks de HOJE:', todayTracksUrl.toString());
     
-    const todayTracksResponse = await fetch(todayTracksUrl.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
+    const todayTracksData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: todayTracksUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
     });
-
-    const todayTracksData = await todayTracksResponse.json();
+    
     console.log('Campaigns API - Dados de tracks de HOJE:', JSON.stringify(todayTracksData, null, 2));
     
-    // Delay para evitar rate limiting (1 segundo)
-    console.log('⏳ [CAMPAIGNS] Aguardando 1 segundo para evitar rate limiting...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Buscar dados dos ÚLTIMOS 3 DIAS para detectar campanhas deletadas
+    // Buscar dados dos ÚLTIMOS 3 DIAS para detectar campanhas deletadas usando fila
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
@@ -118,16 +176,20 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - URL para tracks dos últimos 3 dias:', recentTracksUrl.toString());
     
-    const recentTracksResponse = await fetch(recentTracksUrl.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
+    const recentTracksData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: recentTracksUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
     });
-
-    const recentTracksData = await recentTracksResponse.json();
+    
     console.log('Campaigns API - Dados de tracks dos últimos 3 dias:', JSON.stringify(recentTracksData, null, 2));
     
     // Combinar dados para determinar status real das campanhas
