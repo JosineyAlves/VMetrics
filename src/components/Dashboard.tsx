@@ -243,33 +243,35 @@ const Dashboard: React.FC = () => {
       let summary: any = {};
       let daily: any[] = [];
       if (Array.isArray(realData)) {
-        // Filtrar dados de campanhas deletadas e apenas campanhas ativas
+        // Filtrar dados de campanhas deletadas e apenas campanhas com atividade (cliques ou conversões)
         const filteredData = realData.filter((item: any) => {
           const campaignName = item.campaign || item.campaign_name || item.title || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           
-          // Verificar se a campanha tem status ativo (baseado em conversões hoje)
+          // Verificar se a campanha tem atividade (cliques ou conversões)
+          const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
           const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
-          const isActive = hasConversionsToday;
+          const hasActivity = hasClicks || hasConversionsToday;
           
-          return !isDeleted && isActive;
+          return !isDeleted && hasActivity;
         });
         
-        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas ativas e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
         
         // Log detalhado das campanhas filtradas
         realData.forEach((item: any) => {
           const campaignName = item.campaign || item.campaign_name || item.title || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
+          const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
           const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
-          const isActive = hasConversionsToday;
+          const hasActivity = hasClicks || hasConversionsToday;
           
           if (isDeleted) {
             console.log(`❌ [DASHBOARD] Campanha deletada ignorada: ${campaignName}`);
-          } else if (!isActive) {
-            console.log(`⏸️ [DASHBOARD] Campanha inativa ignorada: ${campaignName} (conversões: ${item.conversions || 0})`);
+          } else if (!hasActivity) {
+            console.log(`⏸️ [DASHBOARD] Campanha sem atividade ignorada: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`);
           } else {
-            console.log(`✅ [DASHBOARD] Campanha ativa incluída: ${campaignName} (conversões: ${item.conversions || 0})`);
+            console.log(`✅ [DASHBOARD] Campanha com atividade incluída: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`);
           }
         });
         
