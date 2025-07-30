@@ -820,7 +820,7 @@ const Dashboard: React.FC = () => {
             console.log('🔍 [SOURCE STATS] Dados das campanhas recebidos:', campaignsData)
             
             // Verificar se há dados válidos nas campanhas
-            let campaignsArray = []
+            let campaignsArray: any[] = []
             if (campaignsData && campaignsData.data && campaignsData.data.length > 0) {
               campaignsArray = campaignsData.data
             } else if (Array.isArray(campaignsData)) {
@@ -831,21 +831,36 @@ const Dashboard: React.FC = () => {
               console.log('✅ [SOURCE STATS] Usando dados das campanhas como fallback')
               console.log('🔍 [SOURCE STATS] Campanhas disponíveis:', campaignsArray)
               
-              // Agrupar campanhas por source
+              // Agrupar campanhas por source_title (que é o nome da fonte de tráfego)
               const sourceGroups = campaignsArray.reduce((acc: any, campaign: any) => {
-                const source = campaign.source || campaign.traffic_source || campaign.media_source || campaign.name || 'Indefinido'
+                // Usar source_title que é o nome da fonte de tráfego (Taboola, Facebook, etc.)
+                const source = campaign.source_title || campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+                
                 if (!acc[source]) {
                   acc[source] = { cost: 0, count: 0 }
                 }
-                acc[source].cost += campaign.spend || campaign.cost || 0
+                
+                // Usar o custo do stat da campanha
+                const campaignCost = campaign.stat?.cost || campaign.cost || campaign.spend || 0
+                acc[source].cost += campaignCost
                 acc[source].count += 1
+                
+                console.log('🔍 [SOURCE STATS] Processando campanha:', {
+                  source,
+                  campaignCost,
+                  campaign: campaign.title,
+                  stat: campaign.stat
+                })
+                
                 return acc
               }, {})
               
-              const mapped = Object.entries(sourceGroups).map(([source, data]: [string, any]) => ({
-                key: source,
-                cost: data.cost
-              }))
+              const mapped = Object.entries(sourceGroups)
+                .filter(([source, data]: [string, any]) => data.cost > 0) // Filtrar apenas fontes com custo
+                .map(([source, data]: [string, any]) => ({
+                  key: source,
+                  cost: data.cost
+                }))
               
               console.log('🔍 [SOURCE STATS] Dados mapeados das campanhas:', mapped)
               setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
@@ -859,6 +874,7 @@ const Dashboard: React.FC = () => {
           setSourceStats([])
           return
         }
+        
         console.log('🔍 [SOURCE STATS] Dados recebidos:', data)
         console.log('🔍 [SOURCE STATS] Estrutura dos dados:', {
           isArray: Array.isArray(data),
@@ -936,6 +952,7 @@ const Dashboard: React.FC = () => {
         
         setSourceStats(filteredMapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
       } catch (err) {
+        console.error('❌ [SOURCE STATS] Erro geral:', err)
         setSourceStats([])
       }
     }
