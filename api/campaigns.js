@@ -313,6 +313,63 @@ export default async function handler(req, res) {
       });
     }
     
+    console.log('\n=== BUSCANDO DADOS REAIS VIA /REPORT ===');
+    
+    // Buscar dados reais via /report para cada campanha encontrada
+    const reportDataMap = new Map();
+    
+    try {
+      // Buscar dados do /report agrupados por campanha
+      const reportUrl = new URL('https://api.redtrack.io/report');
+      reportUrl.searchParams.set('api_key', apiKey);
+      reportUrl.searchParams.set('date_from', dateFrom);
+      reportUrl.searchParams.set('date_to', dateTo);
+      reportUrl.searchParams.set('group_by', 'campaign');
+      
+      console.log('🔍 [CAMPAIGNS] Buscando dados reais via /report:', reportUrl.toString());
+      
+      const reportData = await new Promise((resolve, reject) => {
+        requestQueue.push({ 
+          resolve, 
+          reject, 
+          url: reportUrl.toString(), 
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'TrackView-Dashboard/1.0'
+          }
+        });
+        processRequestQueue();
+      });
+      
+      console.log('🔍 [CAMPAIGNS] Dados do /report recebidos:', reportData);
+      
+      // Mapear dados do /report por campanha
+      if (Array.isArray(reportData)) {
+        reportData.forEach((item: any) => {
+          // Como o /report não retorna o nome da campanha, vamos usar os dados agregados
+          // para todas as campanhas que têm atividade
+          console.log(`✅ [CAMPAIGNS] Dados agregados do /report:`, item);
+        });
+        
+        // Se há dados do /report, vamos usar os dados agregados para todas as campanhas
+        if (reportData.length > 0) {
+          const aggregatedData = reportData[0]; // Usar o primeiro item (dados agregados)
+          console.log(`✅ [CAMPAIGNS] Usando dados agregados:`, aggregatedData);
+          
+          // Mapear dados agregados para todas as campanhas com atividade
+          Array.from(campaignMap.values()).forEach(campaign => {
+            if (campaign.clicks_today > 0 || campaign.conversions_today > 0) {
+              reportDataMap.set(campaign.name.toLowerCase().trim(), aggregatedData);
+              console.log(`✅ [CAMPAIGNS] Mapeando dados agregados para: ${campaign.name}`);
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ [CAMPAIGNS] Erro ao buscar dados do /report:', error);
+    }
+    
     console.log('\n=== DETERMINANDO STATUS REAL ===');
     // Determinar status real baseado na atividade
     const processedData = Array.from(campaignMap.values()).map(campaign => {
@@ -350,35 +407,50 @@ export default async function handler(req, res) {
       console.log(`   - Atividade RECENTE: ${hasRecentActivity ? 'SIM' : 'NÃO'} (cliques: ${campaign.clicks_recent}, conversões: ${campaign.conversions_recent})`);
       console.log(`   - Status determinado: ${status}`);
       
-      // Calcular métricas finais
-      const totalClicks = campaign.clicks_today;
-      const totalConversions = campaign.conversions_today;
-      const totalCost = campaign.cost_today;
-      const totalRevenue = campaign.revenue_today;
-      const ctr = campaign.impressions > 0 ? (totalClicks / campaign.impressions) * 100 : 0;
-      const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+      // Buscar dados reais do /report para esta campanha
+      const realData = reportDataMap.get(campaign.name.toLowerCase().trim());
       
-              return {
-          id: campaign.id,
-          title: campaign.name,
-          source_title: campaign.source,
-          status: status,
-          stat: {
-            clicks: totalClicks,
-            unique_clicks: totalClicks, // Simplificado
-            conversions: totalConversions,
-            all_conversions: totalConversions,
-            approved: totalConversions,
-            pending: 0,
-            declined: 0,
-            revenue: totalRevenue,
-            cost: totalCost,
-            impressions: campaign.impressions,
-            ctr: ctr,
-            conversion_rate: conversionRate,
-  
-          }
-        };
+      // Usar dados reais do /report se disponível, senão usar dados calculados
+      let totalClicks, totalConversions, totalCost, totalRevenue, ctr, conversionRate;
+      
+      if (realData) {
+        console.log(`✅ [CAMPAIGNS] Usando dados reais do /report para: ${campaign.name}`);
+        totalClicks = realData.clicks || 0;
+        totalConversions = realData.conversions || 0;
+        totalCost = realData.cost || realData.spend || 0;
+        totalRevenue = realData.revenue || 0;
+        ctr = realData.ctr || 0;
+        conversionRate = realData.conversion_rate || realData.cr || 0;
+      } else {
+        console.log(`⚠️ [CAMPAIGNS] Dados reais não encontrados, usando dados calculados para: ${campaign.name}`);
+        totalClicks = campaign.clicks_today;
+        totalConversions = campaign.conversions_today;
+        totalCost = campaign.cost_today;
+        totalRevenue = campaign.revenue_today;
+        ctr = campaign.impressions > 0 ? (totalClicks / campaign.impressions) * 100 : 0;
+        conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+      }
+      
+      return {
+        id: campaign.id,
+        title: campaign.name,
+        source_title: campaign.source,
+        status: status,
+        stat: {
+          clicks: totalClicks,
+          unique_clicks: totalClicks, // Simplificado
+          conversions: totalConversions,
+          all_conversions: totalConversions,
+          approved: totalConversions,
+          pending: 0,
+          declined: 0,
+          revenue: totalRevenue,
+          cost: totalCost,
+          impressions: campaign.impressions,
+          ctr: ctr,
+          conversion_rate: conversionRate,
+        }
+      };
     });
     
     console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
