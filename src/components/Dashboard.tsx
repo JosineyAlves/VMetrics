@@ -761,17 +761,119 @@ const Dashboard: React.FC = () => {
       const api = new RedTrackAPI(apiKey)
       const dateRange = getDateRange(selectedPeriod, customRange)
       try {
-        const params = {
-          date_from: dateRange.startDate,
-          date_to: dateRange.endDate,
-          group_by: 'traffic_channel',
+        // Tentar diferentes valores de group_by para encontrar o que funciona
+        const groupByOptions = ['source', 'traffic_channel', 'campaign_source', 'media_source', 'network']
+        let data = null
+        let workingGroupBy = null
+        
+        for (const groupBy of groupByOptions) {
+          try {
+            console.log(`🔍 [SOURCE STATS] Tentando group_by: ${groupBy}`)
+            const testParams = {
+              date_from: dateRange.startDate,
+              date_to: dateRange.endDate,
+              group_by: groupBy,
+            }
+            const testData = await api.getReport(testParams)
+            
+            if (testData && testData.items && testData.items.length > 0) {
+              console.log(`✅ [SOURCE STATS] group_by ${groupBy} funcionou com ${testData.items.length} itens`)
+              data = testData
+              workingGroupBy = groupBy
+              break
+            }
+          } catch (err) {
+            console.log(`❌ [SOURCE STATS] group_by ${groupBy} falhou:`, err)
+          }
         }
-        const data = await api.getReport(params)
+        
+        if (!data) {
+          console.log('⚠️ [SOURCE STATS] Nenhum group_by funcionou, tentando buscar dados das campanhas...')
+          
+          // Fallback: buscar dados das campanhas e agrupar por source
+          try {
+            const campaignsData = await api.getCampaigns({
+              date_from: dateRange.startDate,
+              date_to: dateRange.endDate
+            })
+            
+            if (campaignsData && campaignsData.data && campaignsData.data.length > 0) {
+              console.log('✅ [SOURCE STATS] Usando dados das campanhas como fallback')
+              
+              // Agrupar campanhas por source
+              const sourceGroups = campaignsData.data.reduce((acc: any, campaign: any) => {
+                const source = campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+                if (!acc[source]) {
+                  acc[source] = { cost: 0, count: 0 }
+                }
+                acc[source].cost += campaign.spend || campaign.cost || 0
+                acc[source].count += 1
+                return acc
+              }, {})
+              
+              const mapped = Object.entries(sourceGroups).map(([source, data]: [string, any]) => ({
+                key: source,
+                cost: data.cost
+              }))
+              
+              console.log('🔍 [SOURCE STATS] Dados mapeados das campanhas:', mapped)
+              setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
+              return
+            }
+          } catch (campaignErr) {
+            console.log('❌ [SOURCE STATS] Erro ao buscar dados das campanhas:', campaignErr)
+          }
+          
+          console.log('⚠️ [SOURCE STATS] Nenhuma fonte de dados funcionou, usando dados vazios')
+          setSourceStats([])
+          return
+        }
+        console.log('🔍 [SOURCE STATS] Dados recebidos:', data)
+        console.log('🔍 [SOURCE STATS] Estrutura dos dados:', {
+          isArray: Array.isArray(data),
+          hasItems: data && data.items,
+          itemsIsArray: data && data.items && Array.isArray(data.items),
+          keys: data ? Object.keys(data) : []
+        })
+        
         let items = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
-        const mapped = items.map((item: any) => ({
-          key: item.traffic_channel || item.source || item.utm_source || 'Indefinido',
-          cost: item.spend ?? item.cost ?? 0,
-        }))
+        console.log('🔍 [SOURCE STATS] Items processados:', items.length)
+        console.log('🔍 [SOURCE STATS] Primeiro item:', items[0])
+        
+        const mapped = items.map((item: any) => {
+          // Usar o campo correspondente ao group_by que funcionou
+          let key = 'Indefinido'
+          if (workingGroupBy === 'source') {
+            key = item.source || item.traffic_channel || item.campaign_source || item.media_source || item.network || 'Indefinido'
+          } else if (workingGroupBy === 'traffic_channel') {
+            key = item.traffic_channel || item.source || item.campaign_source || item.media_source || item.network || 'Indefinido'
+          } else if (workingGroupBy === 'campaign_source') {
+            key = item.campaign_source || item.source || item.traffic_channel || item.media_source || item.network || 'Indefinido'
+          } else if (workingGroupBy === 'media_source') {
+            key = item.media_source || item.source || item.traffic_channel || item.campaign_source || item.network || 'Indefinido'
+          } else if (workingGroupBy === 'network') {
+            key = item.network || item.source || item.traffic_channel || item.campaign_source || item.media_source || 'Indefinido'
+          } else {
+            key = item.traffic_channel || item.source || item.utm_source || item.campaign_source || item.media_source || item.network || 'Indefinido'
+          }
+          
+          const cost = item.spend ?? item.cost ?? 0
+          
+          console.log('🔍 [SOURCE STATS] Mapeando item:', {
+            original: item,
+            workingGroupBy,
+            key,
+            cost,
+            available_fields: Object.keys(item)
+          })
+          
+          return {
+            key,
+            cost,
+          }
+        })
+        
+        console.log('🔍 [SOURCE STATS] Dados mapeados:', mapped)
         setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
       } catch (err) {
         setSourceStats([])
