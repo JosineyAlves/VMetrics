@@ -173,7 +173,7 @@ export default async function handler(req, res) {
     // Mapear dados de performance por campanha
     const performanceMap = new Map();
     if (Array.isArray(reportData)) {
-      reportData.forEach((item: any) => {
+      reportData.forEach((item) => {
         if (item.campaign || item.campaign_name) {
           const campaignName = item.campaign || item.campaign_name;
           performanceMap.set(campaignName.toLowerCase().trim(), item);
@@ -185,7 +185,7 @@ export default async function handler(req, res) {
     const processedCampaigns = [];
     
     if (Array.isArray(campaignsData)) {
-      campaignsData.forEach((campaign: any) => {
+      campaignsData.forEach((campaign) => {
         console.log('🔍 [CAMPAIGNS-DIRECT] Processando campanha:', campaign);
         
         // Mapear status numérico para string conforme documentação
