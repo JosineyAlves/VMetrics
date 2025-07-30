@@ -137,9 +137,17 @@ export default async function handler(req, res) {
     // Construir URL com parâmetros para buscar conversões do tipo InitiateCheckout
     const url = new URL('https://api.redtrack.io/conversions');
     url.searchParams.set('api_key', apiKey);
-    url.searchParams.set('date_from', date_from);
-    url.searchParams.set('date_to', date_to);
+    
+    // Para teste, buscar conversões de 22 e 23 de julho onde sabemos que há InitiateCheckout
+    const testDateFrom = '2025-07-22';
+    const testDateTo = '2025-07-23';
+    
+    url.searchParams.set('date_from', testDateFrom);
+    url.searchParams.set('date_to', testDateTo);
     // Não filtrar por type, pois vamos processar localmente para pegar convtype1 = 1
+    
+    console.log('🔍 [INITIATE-CHECKOUT] Buscando conversões de:', testDateFrom, 'até:', testDateTo);
+    console.log('🔍 [INITIATE-CHECKOUT] Período de teste: 22-23 de julho (onde sabemos que há InitiateCheckout)');
     
     // Adicionar parâmetros opcionais se fornecidos
     if (req.query.campaign) {
@@ -170,24 +178,48 @@ export default async function handler(req, res) {
     });
 
     console.log('🔍 [INITIATE-CHECKOUT] Dados recebidos com sucesso');
-    console.log('🔍 [INITIATE-CHECKOUT] Total de conversões recebidas:', data?.items?.length || 0);
-    console.log('🔍 [INITIATE-CHECKOUT] Estrutura dos dados recebidos:', {
+    console.log('🔍 [INITIATE-CHECKOUT] Tipo de dados:', typeof data);
+    console.log('🔍 [INITIATE-CHECKOUT] É array?', Array.isArray(data));
+    console.log('🔍 [INITIATE-CHECKOUT] Estrutura dos dados:', {
       isArray: Array.isArray(data),
       hasItems: data && data.items,
       itemsLength: data?.items?.length,
-      firstItem: data?.items?.[0]
+      firstItem: data?.items?.[0],
+      dataKeys: data ? Object.keys(data) : 'null'
     });
+    console.log('🔍 [INITIATE-CHECKOUT] Dados completos:', JSON.stringify(data, null, 2));
     
     // Filtrar conversões que são InitiateCheckout (convtype1 = 1)
     let initiateCheckoutConversions = [];
+    let allConversions = [];
+    
+    // Extrair todas as conversões
     if (data && data.items && Array.isArray(data.items)) {
-      initiateCheckoutConversions = data.items.filter(conversion => {
-        // Verificar se é InitiateCheckout baseado em convtype1 = 1
-        const isInitiateCheckout = conversion.convtype1 === 1 || conversion.convtype1 === '1';
-        console.log(`🔍 [INITIATE-CHECKOUT] Conversão ${conversion.id}: convtype1 = ${conversion.convtype1}, isInitiateCheckout = ${isInitiateCheckout}`);
-        return isInitiateCheckout;
-      });
+      allConversions = data.items;
+    } else if (Array.isArray(data)) {
+      allConversions = data;
     }
+    
+    console.log('🔍 [INITIATE-CHECKOUT] Total de conversões encontradas:', allConversions.length);
+    
+    // Log das primeiras conversões para debug
+    if (allConversions.length > 0) {
+      console.log('🔍 [INITIATE-CHECKOUT] Primeiras 3 conversões:', allConversions.slice(0, 3).map(c => ({
+        id: c.id,
+        type: c.type,
+        convtype1: c.convtype1,
+        campaign: c.campaign,
+        conv_time: c.conv_time
+      })));
+    }
+    
+    // Filtrar conversões InitiateCheckout
+    initiateCheckoutConversions = allConversions.filter(conversion => {
+      // Verificar se é InitiateCheckout baseado em convtype1 = 1 ou type = "InitiateCheckout"
+      const isInitiateCheckout = conversion.convtype1 === 1 || conversion.convtype1 === '1' || conversion.type === 'InitiateCheckout';
+      console.log(`🔍 [INITIATE-CHECKOUT] Conversão ${conversion.id}: convtype1 = ${conversion.convtype1}, type = ${conversion.type}, isInitiateCheckout = ${isInitiateCheckout}`);
+      return isInitiateCheckout;
+    });
     
     console.log('🔍 [INITIATE-CHECKOUT] Total de conversões InitiateCheckout filtradas:', initiateCheckoutConversions.length);
     
