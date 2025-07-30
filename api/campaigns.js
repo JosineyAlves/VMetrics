@@ -347,13 +347,19 @@ export default async function handler(req, res) {
       // Mapear dados do /report por campanha
       if (Array.isArray(reportData)) {
         reportData.forEach((item: any) => {
-          // Como o /report não retorna o nome da campanha, vamos usar os dados agregados
-          // para todas as campanhas que têm atividade
-          console.log(`✅ [CAMPAIGNS] Dados agregados do /report:`, item);
+          // O /report retorna dados agregados por campanha
+          console.log(`✅ [CAMPAIGNS] Dados do /report:`, item);
+          
+          // Se há dados de campanha específica, mapear
+          if (item.campaign || item.campaign_name) {
+            const campaignName = item.campaign || item.campaign_name;
+            reportDataMap.set(campaignName.toLowerCase().trim(), item);
+            console.log(`✅ [CAMPAIGNS] Mapeando dados para campanha: ${campaignName}`);
+          }
         });
         
-        // Se há dados do /report, vamos usar os dados agregados para todas as campanhas
-        if (reportData.length > 0) {
+        // Se não há dados específicos por campanha, usar dados agregados
+        if (reportData.length > 0 && !reportData[0].campaign) {
           const aggregatedData = reportData[0]; // Usar o primeiro item (dados agregados)
           console.log(`✅ [CAMPAIGNS] Usando dados agregados:`, aggregatedData);
           
@@ -373,32 +379,31 @@ export default async function handler(req, res) {
     console.log('\n=== DETERMINANDO STATUS REAL ===');
     // Determinar status real baseado na atividade
     const processedData = Array.from(campaignMap.values()).map(campaign => {
-      // Lógica de status baseada em tráfego vs conversões:
-      // - Se tem tráfego HOJE mas não tem conversões HOJE: pode ser deletada
-      // - Se tem conversões HOJE: active (funcionando)
-      // - Se não tem atividade HOJE mas tem atividade recente: paused
-      // - Se não tem atividade recente: inactive (deletada)
+      // Lógica de status baseada na documentação da API RedTrack:
+      // Status 1: Active (Ativa)
+      // Status 2: Pause (Pausada) 
+      // Status 3: Delete (Deletada)
       
+      // Determinar status baseado na atividade e dados do RedTrack
       const hasTrafficToday = campaign.clicks_today > 0;
       const hasConversionsToday = campaign.conversions_today > 0;
       const hasRecentActivity = campaign.clicks_recent > 0 || campaign.conversions_recent > 0;
       
-      let status = 'inactive';
+      let status = 'inactive'; // Status 3 (Delete)
       
       if (hasConversionsToday) {
-        // Se tem conversões hoje, está funcionando
-        status = 'active';
+        // Se tem conversões hoje, está ativa
+        status = 'active'; // Status 1 (Active)
       } else if (hasTrafficToday && !hasConversionsToday) {
-        // Se tem tráfego mas não conversões, pode ser deletada
-        // Verificar se o tráfego é consistente com conversões recentes
+        // Se tem tráfego mas não conversões, verificar se é pausada ou deletada
         const trafficToConversionRatio = campaign.clicks_recent > 0 ? campaign.conversions_recent / campaign.clicks_recent : 0;
         if (trafficToConversionRatio > 0.01) { // Se tinha conversões recentes
-          status = 'paused'; // Pausada temporariamente
+          status = 'paused'; // Status 2 (Pause)
         } else {
-          status = 'inactive'; // Provavelmente deletada
+          status = 'inactive'; // Status 3 (Delete)
         }
       } else if (hasRecentActivity && !hasTrafficToday) {
-        status = 'paused'; // Pausada temporariamente
+        status = 'paused'; // Status 2 (Pause)
       }
       
       console.log(`🔍 [STATUS] Campanha: ${campaign.name}`);
