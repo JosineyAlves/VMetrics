@@ -257,6 +257,16 @@ const allMetrics: Metric[] = [
     color: 'green'
   },
   {
+    id: 'epc',
+    label: 'EPC',
+    description: 'Earnings per Click',
+    category: 'earnings',
+    unit: 'currency',
+    format: 'currency',
+    icon: 'DollarSign',
+    color: 'green'
+  },
+  {
     id: 'listicle_epv',
     label: 'Listicle EPV',
     description: 'Earnings per View para listicles',
@@ -663,6 +673,7 @@ const defaultSelectedMetrics = [
   'roi',
   'cpa',
   'ctr',
+  'epc',
   'initiate_checkout'
 ]
 

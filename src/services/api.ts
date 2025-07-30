@@ -86,6 +86,7 @@ export interface ReportData {
   cpt: number
   eplpc: number
   epuc: number
+  epc: number
   listicle_epv: number
   // ROAS variations
   roas_percentage: number
@@ -242,6 +243,7 @@ class RedTrackAPI {
           cpt: 0,
           eplpc: 0,
           epuc: 0,
+          epc: 0,
           listicle_epv: 0,
           roas_percentage: 0,
           conversion_roas: 0,

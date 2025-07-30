@@ -179,6 +179,7 @@ export default async function (req, res) {
           clicks: reportData.clicks || 0,
           spend: reportData.spend || 0,
           conversion_rate: reportData.conversion_rate || 0,
+          epc: reportData.epc || 0,
   
           is_demo: false,
           message: 'Dados reais do RedTrack'
@@ -202,6 +203,7 @@ export default async function (req, res) {
           clicks: 0,
           spend: 0,
           conversion_rate: 0,
+          epc: 0,
           is_demo: true,
           message: 'Conta nova - Configure suas campanhas no RedTrack para começar a ver dados reais.'
         }
@@ -226,6 +228,7 @@ export default async function (req, res) {
         clicks: 0,
         spend: 0,
         conversion_rate: 0,
+        epc: 0,
         is_demo: true,
         message: 'Erro de conexão - Configure suas campanhas no RedTrack para começar a ver dados reais'
       }
@@ -250,6 +253,7 @@ export default async function (req, res) {
       clicks: 0,
       spend: 0,
       conversion_rate: 0,
+      epc: 0,
       is_demo: true,
       message: 'Erro de conexão - Configure suas campanhas no RedTrack para começar a ver dados reais'
     }

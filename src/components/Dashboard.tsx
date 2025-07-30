@@ -304,6 +304,16 @@ const Dashboard: React.FC = () => {
         }, 0);
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
         
+        // Debug: verificar se EPC está sendo agregado
+        console.log('🔍 [DASHBOARD DEBUG] EPC nos dados filtrados:', {
+          epc_in_summary: summary.epc,
+          epc_in_items: filteredData.map((item: any) => ({
+            epc: item.epc,
+            stat_epc: item.stat?.epc,
+            campaign: item.campaign || item.campaign_name || item.title
+          }))
+        });
+        
         // Garantir que o campo cost seja mapeado para spend se não existir
         if (!summary.spend && summary.cost) {
           summary.spend = summary.cost;
@@ -347,6 +357,12 @@ const Dashboard: React.FC = () => {
         // Adicionar dados de InitiateCheckout do campo convtype1 para dados diretos
         summary.initiate_checkout = realData.convtype1 || 0;
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary (dados diretos):', summary.initiate_checkout);
+        
+        // Debug: verificar se EPC está sendo processado em dados diretos
+        console.log('🔍 [DASHBOARD DEBUG] EPC em dados diretos:', {
+          epc_in_summary: summary.epc,
+          epc_in_realData: realData.epc
+        });
         
         // Garantir que o campo cost seja mapeado para spend se não existir (dados diretos)
         if (!summary.spend && summary.cost) {
@@ -421,6 +437,7 @@ const Dashboard: React.FC = () => {
           cpt: 0,
           eplpc: 0,
           epuc: 0,
+          epc: 0,
           listicle_epv: 0,
           roas_percentage: 0,
           conversion_roas: 0,
@@ -480,6 +497,7 @@ const Dashboard: React.FC = () => {
         cpt: 0,
         eplpc: 0,
         epuc: 0,
+        epc: 0,
         listicle_epv: 0,
         roas_percentage: 0,
         conversion_roas: 0,
@@ -644,6 +662,23 @@ const Dashboard: React.FC = () => {
           convtype1: data.convtype1,
           initiate_checkout: data.initiate_checkout
         });
+      } else if (metricId === 'epc') {
+        // Debug: verificar dados de EPC
+        console.log('🔍 [METRICS DEBUG] EPC data fields:', {
+          epc: data.epc,
+          stat_epc: data.stat?.epc,
+          revenue: data.revenue,
+          clicks: data.clicks
+        });
+        
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          value = data.stat.epc ?? 0
+        } else {
+          value = data.epc ?? 0
+        }
+        
+        console.log('🔍 [METRICS DEBUG] EPC final value:', value);
       }
       
       console.log(`🔍 [METRICS] ${metricId}: ${value} (${typeof value})`)
