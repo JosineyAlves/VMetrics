@@ -1,0 +1,1317 @@
+<h1>Análise Completa da API RedTrack</h1>
+<h2>Informações Gerais</h2>
+<ul>
+<li><strong>Base URL</strong>: api.redtrack.io/</li>
+<li><strong>Documentação</strong>: https://api.redtrack.io/docs/index.html</li>
+<li><strong>Tipo</strong>: API REST com documentação Swagger UI</li>
+<li><strong>Esquemas</strong>: HTTPS e HTTP disponíveis</li>
+</ul>
+<h2>Seções Principais Identificadas</h2>
+<h3>1. Dictionaries (Dicionários)</h3>
+<p>Endpoints para obter listas de referência:
+- GET <code>/browser_fullnames</code> - Lista de nomes completos de navegadores
+- GET <code>/browsers</code> - Lista de navegadores
+- GET <code>/categories</code> - Lista de categorias
+- GET <code>/cities</code> - Lista de cidades
+- GET <code>/connection_types</code> - Lista de tipos de conexão
+- GET <code>/countries</code> - Lista de países
+- GET <code>/currencies</code> - Lista de moedas
+- GET <code>/device_brands</code> - Lista de marcas de dispositivos
+- GET <code>/device_fullnames</code> - Lista de nomes completos de dispositivos
+- GET <code>/devices</code> - Lista de dispositivos
+- GET <code>/isp</code> - Lista de ISPs
+- GET <code>/languages</code> - Lista de idiomas
+- GET <code>/os</code> - Lista de sistemas operacionais
+- GET <code>/os_fullnames</code> - Lista de nomes completos de SOs
+- GET <code>/proxy_types</code> - Lista de tipos de proxy
+- GET <code>/regions</code> - Lista de regiões
+- GET <code>/timezones</code> - Lista de fusos horários</p>
+<h3>2. Campaigns (Campanhas)</h3>
+<ul>
+<li>POST <code>/campaigns</code> - Criar campanha</li>
+<li>PUT <code>/campaigns/{id}</code> - Atualizar campanha</li>
+</ul>
+<h3>3. Logs (Registros) - <strong>SEÇÃO CRÍTICA PARA DASHBOARD</strong></h3>
+<ul>
+<li>GET <code>/conversions</code> - Obter log de conversões</li>
+<li>POST <code>/conversions</code> - Upload de conversões</li>
+<li>GET <code>/conversions/export</code> - Exportar log de conversões</li>
+<li>POST <code>/export_conversions</code> - Exportar conversões para AWS S3</li>
+<li>POST <code>/export_tracks</code> - Exportar cliques para AWS S3</li>
+<li>GET <code>/tracks</code> - Obter log de cliques</li>
+</ul>
+<h3>4. Domains (Domínios)</h3>
+<ul>
+<li>GET <code>/domains</code> - Obter domínios</li>
+<li>POST <code>/domains</code> - Criar domínio</li>
+<li>POST <code>/domains/regenerated_free_ssl/{id}</code> - Regenerar SSL gratuito</li>
+<li>PUT <code>/domains/{id}</code> - Atualizar domínio</li>
+<li>DELETE <code>/domains/{id}</code> - Deletar domínio</li>
+</ul>
+<h3>5. Settings (Configurações)</h3>
+<ul>
+<li>GET <code>/me/settings</code> - Obter configurações do usuário</li>
+<li>PUT <code>/me/settings</code> - Atualizar configurações do usuário</li>
+</ul>
+<h3>6. Offers (Ofertas)</h3>
+<ul>
+<li>POST <code>/offers</code> - Criar oferta</li>
+<li>GET <code>/offers/export</code> - Exportar ofertas para AWS S3</li>
+<li>PUT <code>/offers/{id}</code> - Atualizar oferta</li>
+</ul>
+<h3>7. WhiteLabel</h3>
+<ul>
+<li>POST <code>/pub/auth</code> - Autenticação do publisher</li>
+<li>GET <code>/pub/campaigns</code> - Campanhas do publisher</li>
+<li>GET <code>/pub/me</code> - Informações do publisher</li>
+<li>GET <code>/pub/payments</code> - Pagamentos do publisher</li>
+<li>POST <code>/pub/payments</code> - Solicitar pagamento</li>
+<li>PUT <code>/pub/payments/{id}</code> - Atualizar pagamento</li>
+<li>POST <code>/pub/postbacks</code> - Conversões do publisher</li>
+<li>PUT <code>/pub/profile</code> - Atualizar informações do publisher</li>
+<li>POST <code>/pub/publishers</code> - Cadastro</li>
+<li>GET <code>/pub/reports/traffic</code> - Estatísticas do publisher</li>
+<li>POST <code>/pub/reset_password</code> - Resetar senha</li>
+<li>GET <code>/pub/settings</code> - Configurações whitelabel</li>
+</ul>
+<h3>8. Publishers</h3>
+<ul>
+<li>GET <code>/pub/referrals</code> - Obter participantes do programa de referência</li>
+<li>GET <code>/publishers/export</code> - Exportar publishers para AWS S3</li>
+<li>GET <code>/publishers/referral</code> - Obter participantes do programa de referência</li>
+<li>PUT <code>/publishers/{id}</code> - Atualizar informações do publisher</li>
+</ul>
+<h3>9. Reports (Relatórios) - <strong>SEÇÃO CRÍTICA PARA DASHBOARD</strong></h3>
+<ul>
+<li>GET <code>/report</code> - Relatório</li>
+<li>POST <code>/tracks/cost</code> - Atualizar custos</li>
+</ul>
+<h3>10. Scripts</h3>
+<ul>
+<li>GET <code>/scripts</code> - Obter scripts de tracking</li>
+<li>POST <code>/scripts</code> - Criar script</li>
+<li>GET <code>/scripts/{id}</code> - Obter script de tracking</li>
+<li>PUT <code>/scripts/{id}</code> - Atualizar script</li>
+<li>DELETE <code>/scripts/{id}</code> - Deletar script</li>
+</ul>
+<h3>11. Streams</h3>
+<ul>
+<li>POST <code>/streams</code> - Criar stream</li>
+<li>PUT <code>/streams/{id}</code> - Atualizar stream</li>
+<li>DELETE <code>/streams/{id}</code> - Deletar stream</li>
+</ul>
+<h2>Próximos Passos</h2>
+<ol>
+<li>Explorar detalhadamente os endpoints de Logs (/conversions, /tracks)</li>
+<li>Analisar o endpoint de Reports (/report)</li>
+<li>Documentar estruturas de dados e parâmetros</li>
+<li>Identificar filtros e opções de consulta disponíveis</li>
+</ol>
+<h3>Detalhes do Endpoint: GET /conversions</h3>
+<p><strong>Descrição</strong>: Obtém uma lista de conversões com base em filtros.</p>
+<p><strong>Parâmetros de Query (Query Parameters)</strong>:
+- <code>api_key</code> (string, <strong>obrigatório</strong>): Chave da API para autenticação.
+- <code>date_from</code> (string, <strong>obrigatório</strong>): Data de início para o filtro (formato não especificado, assumir YYYY-MM-DD ou YYYY-MM-DDTHH:MM:SSZ).
+- <code>date_to</code> (string, <strong>obrigatório</strong>): Data de fim para o filtro (formato não especificado, assumir YYYY-MM-DD ou YYYY-MM-DDTHH:MM:SSZ).
+- <code>time_interval</code> (string, opcional): Intervalo de tempo personalizado.
+- <code>clickid</code> (string, opcional): Filtra por ID de clique.
+- <code>country_code</code> (string, opcional): Filtra por código de país.
+- <code>type</code> (string, opcional): Filtra por tipo de conversão.
+- <code>source_id</code> (string, opcional): Filtra por IDs de fontes.
+- <code>offer_id</code> (string, opcional): Filtra por IDs de ofertas.
+- <code>network_id</code> (string, opcional): Filtra por IDs de redes.
+- <code>fingerprint</code> (string, opcional): Filtra por fingerprint.
+- <code>page</code> (integer, opcional): Número da página para paginação.
+- <code>per</code> (integer, opcional): Limite de itens por página (máximo 10000).</p>
+<p><strong>Estrutura da Resposta (Status 200 OK)</strong>:</p>
+<pre><code class="language-json">{
+  &quot;items&quot;: [
+    {
+      &quot;attribution_type&quot;: &quot;string&quot;,
+      &quot;browser&quot;: &quot;string&quot;,
+      &quot;campaign&quot;: &quot;string&quot;,
+      &quot;campaign_id&quot;: &quot;string&quot;,
+      &quot;city&quot;: &quot;string&quot;,
+      &quot;clickid&quot;: &quot;string&quot;,
+      &quot;connection_type&quot;: &quot;string&quot;,
+      &quot;conv_time&quot;: &quot;string&quot;,
+      &quot;cost&quot;: 0,
+      &quot;cost_default&quot;: 0,
+      &quot;cost_source&quot;: 0,
+      &quot;country&quot;: &quot;string&quot;,
+      &quot;coupon&quot;: &quot;string&quot;,
+      &quot;created_at&quot;: &quot;string&quot;,
+      &quot;currency&quot;: &quot;string&quot;,
+      &quot;deduplicate_token&quot;: &quot;string&quot;,
+      &quot;deeplink&quot;: &quot;string&quot;,
+      &quot;default_type&quot;: 0,
+      &quot;device&quot;: &quot;string&quot;,
+      &quot;device_brand&quot;: &quot;string&quot;,
+      &quot;device_fullname&quot;: &quot;string&quot;,
+      &quot;duplicate_status&quot;: 0,
+      &quot;event&quot;: &quot;string&quot;,
+      &quot;external_id&quot;: &quot;string&quot;,
+      &quot;fingerprint&quot;: &quot;string&quot;,
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;ip&quot;: &quot;string&quot;,
+      &quot;is_transaction&quot;: 0,
+      &quot;isp&quot;: &quot;string&quot;,
+      &quot;landing&quot;: &quot;string&quot;,
+      &quot;landing_id&quot;: &quot;string&quot;,
+      &quot;network&quot;: &quot;string&quot;,
+      &quot;offer&quot;: &quot;string&quot;,
+      &quot;offer_id&quot;: &quot;string&quot;,
+      &quot;order&quot;: &quot;string&quot;,
+      &quot;os&quot;: &quot;string&quot;,
+      &quot;p_sub1&quot;: &quot;string&quot;,
+      &quot;p_sub10&quot;: &quot;string&quot;,
+      &quot;p_sub11&quot;: &quot;string&quot;,
+      &quot;p_sub12&quot;: &quot;string&quot;,
+      &quot;p_sub13&quot;: &quot;string&quot;,
+      &quot;p_sub14&quot;: &quot;string&quot;,
+      &quot;p_sub15&quot;: &quot;string&quot;,
+      &quot;p_sub16&quot;: &quot;string&quot;,
+      &quot;p_sub17&quot;: &quot;string&quot;,
+      &quot;p_sub18&quot;: &quot;string&quot;,
+      &quot;p_sub19&quot;: &quot;string&quot;,
+      &quot;p_sub2&quot;: &quot;string&quot;,
+      &quot;p_sub20&quot;: &quot;string&quot;,
+      &quot;p_sub3&quot;: &quot;string&quot;,
+      &quot;p_sub4&quot;: &quot;string&quot;,
+      &quot;p_sub5&quot;: &quot;string&quot;,
+      &quot;p_sub6&quot;: &quot;string&quot;,
+      &quot;p_sub7&quot;: &quot;string&quot;,
+      &quot;p_sub8&quot;: &quot;string&quot;,
+      &quot;p_sub9&quot;: &quot;string&quot;,
+      &quot;page&quot;: &quot;string&quot;,
+      &quot;page_url&quot;: &quot;string&quot;,
+      &quot;payout&quot;: 0,
+      &quot;payout_default&quot;: 0,
+      &quot;payout_network&quot;: 0,
+      &quot;postback_ip&quot;: &quot;string&quot;,
+      &quot;prelanding&quot;: &quot;string&quot;,
+      &quot;prelanding_id&quot;: &quot;string&quot;,
+      &quot;program_id&quot;: &quot;string&quot;,
+      &quot;pub_revenue&quot;: 0,
+      &quot;pub_revenue_default&quot;: 0,
+      &quot;pub_revenue_source&quot;: 0,
+      &quot;ref_id&quot;: &quot;string&quot;,
+      &quot;referer&quot;: &quot;string&quot;,
+      &quot;region&quot;: &quot;string&quot;,
+      &quot;rt_ad&quot;: &quot;string&quot;,
+      &quot;rt_ad_id&quot;: &quot;string&quot;,
+      &quot;rt_adgroup&quot;: &quot;string&quot;,
+      &quot;rt_adgroup_id&quot;: &quot;string&quot;,
+      &quot;rt_campaign&quot;: &quot;string&quot;,
+      &quot;rt_campaign_id&quot;: &quot;string&quot;,
+      &quot;rt_keyword&quot;: &quot;string&quot;,
+      &quot;rt_medium&quot;: &quot;string&quot;,
+      &quot;rt_placement&quot;: &quot;string&quot;,
+      &quot;rt_placement_hashed&quot;: &quot;string&quot;,
+      &quot;rt_placement_id&quot;: &quot;string&quot;,
+      &quot;rt_role_1&quot;: &quot;string&quot;,
+      &quot;rt_role_2&quot;: &quot;string&quot;,
+      &quot;rt_source&quot;: &quot;string&quot;,
+      &quot;server&quot;: &quot;string&quot;,
+      &quot;source&quot;: &quot;string&quot;,
+      &quot;source_id&quot;: &quot;string&quot;,
+      &quot;status&quot;: &quot;string&quot;,
+      &quot;sub1&quot;: &quot;string&quot;,
+      &quot;sub10&quot;: &quot;string&quot;,
+      &quot;sub11&quot;: &quot;string&quot;,
+      &quot;sub12&quot;: &quot;string&quot;,
+      &quot;sub13&quot;: &quot;string&quot;,
+      &quot;sub14&quot;: &quot;string&quot;,
+      &quot;sub15&quot;: &quot;string&quot;,
+      &quot;sub16&quot;: &quot;string&quot;,
+      &quot;sub17&quot;: &quot;string&quot;,
+      &quot;sub18&quot;: &quot;string&quot;,
+      &quot;sub19&quot;: &quot;string&quot;,
+      &quot;sub2&quot;: &quot;string&quot;,
+      &quot;sub20&quot;: &quot;string&quot;,
+      &quot;sub3&quot;: &quot;string&quot;,
+      &quot;sub4&quot;: &quot;string&quot;,
+      &quot;sub5&quot;: &quot;string&quot;,
+      &quot;sub6&quot;: &quot;string&quot;,
+      &quot;sub7&quot;: &quot;string&quot;,
+      &quot;sub8&quot;: &quot;string&quot;,
+      &quot;sub9&quot;: &quot;string&quot;,
+      &quot;track_time&quot;: &quot;string&quot;,
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;type1&quot;: 0,
+      &quot;type10&quot;: 0,
+      &quot;type11&quot;: 0,
+      &quot;type12&quot;: 0,
+      &quot;type13&quot;: 0,
+      &quot;type14&quot;: 0,
+      &quot;type15&quot;: 0,
+      &quot;type16&quot;: 0,
+      &quot;type17&quot;: 0,
+      &quot;type18&quot;: 0,
+      &quot;type19&quot;: 0,
+      &quot;type2&quot;: 0,
+      &quot;type20&quot;: 0,
+      &quot;type21&quot;: 0,
+      &quot;type22&quot;: 0,
+      &quot;type23&quot;: 0,
+      &quot;type24&quot;: 0,
+      &quot;type25&quot;: 0,
+      &quot;type26&quot;: 0,
+      &quot;type27&quot;: 0,
+      &quot;type28&quot;: 0,
+      &quot;type29&quot;: 0,
+      &quot;type3&quot;: 0,
+      &quot;type30&quot;: 0,
+      &quot;type31&quot;: 0,
+      &quot;type32&quot;: 0,
+      &quot;type33&quot;: 0,
+      &quot;type34&quot;: 0,
+      &quot;type35&quot;: 0,
+      &quot;type36&quot;: 0,
+      &quot;type37&quot;: 0,
+      &quot;type38&quot;: 0,
+      &quot;type39&quot;: 0,
+      &quot;type4&quot;: 0,
+      &quot;type40&quot;: 0,
+      &quot;type5&quot;: 0,
+      &quot;type6&quot;: 0,
+      &quot;type7&quot;: 0,
+      &quot;type8&quot;: 0,
+      &quot;type9&quot;: 0,
+      &quot;user_agent&quot;: &quot;string&quot;
+    }
+  ],
+  &quot;total&quot;: 0
+}
+</code></pre>
+<p><strong>Códigos de Resposta de Erro</strong>: 400 (Bad Request), 401 (Unauthorized), 500 (Internal Server Error).</p>
+<h3>Detalhes do Endpoint: GET /tracks</h3>
+<p><strong>Descrição</strong>: Obtém uma lista de cliques (tracks) com base em filtros.</p>
+<p><strong>Parâmetros de Query (Query Parameters)</strong>:
+- <code>api_key</code> (string, <strong>obrigatório</strong>): Chave da API para autenticação.
+- <code>date_from</code> (string, <strong>obrigatório</strong>): Data de início para o filtro.
+- <code>date_to</code> (string, <strong>obrigatório</strong>): Data de fim para o filtro.
+- <code>time_interval</code> (string, opcional): Intervalo de tempo personalizado.
+- <code>campaign_id</code> (string, opcional): Filtra por ID da campanha.
+- <code>offer_id</code> (string, opcional): Filtra por ID da oferta.
+- <code>source_id</code> (string, opcional): Filtra por ID da fonte.
+- <code>country_code</code> (string, opcional): Filtra por código de país.
+- <code>device_type</code> (string, opcional): Filtra por tipo de dispositivo.
+- <code>os</code> (string, opcional): Filtra por sistema operacional.
+- <code>browser</code> (string, opcional): Filtra por navegador.
+- <code>connection_type</code> (string, opcional): Filtra por tipo de conexão.
+- <code>ip</code> (string, opcional): Filtra por endereço IP.
+- <code>sub1</code> a <code>sub20</code> (string, opcional): Filtros para sub-IDs personalizados.
+- <code>page</code> (integer, opcional): Número da página para paginação.
+- <code>per</code> (integer, opcional): Limite de itens por página (máximo 10000).</p>
+<p><strong>Estrutura da Resposta (Status 200 OK)</strong>:
+Similar ao endpoint <code>/conversions</code>, contendo detalhes dos cliques como <code>clickid</code>, <code>campaign_id</code>, <code>source_id</code>, <code>ip</code>, <code>timestamp</code>, etc.</p>
+<p><strong>Códigos de Resposta de Erro</strong>: 400 (Bad Request), 401 (Unauthorized), 500 (Internal Server Error).</p>
+<h3>Detalhes do Endpoint: GET /tracks</h3>
+<p><strong>Descrição</strong>: Obtém uma lista de cliques (tracks) com base em filtros.</p>
+<p><strong>Parâmetros de Query (Query Parameters)</strong>:
+- <code>api_key</code> (string, <strong>obrigatório</strong>): Chave da API para autenticação.
+- <code>date_from</code> (string, <strong>obrigatório</strong>): Data de início para o filtro.
+- <code>date_to</code> (string, <strong>obrigatório</strong>): Data de fim para o filtro.
+- <code>time_interval</code> (string, opcional): Intervalo de tempo personalizado.
+- <code>campaign_id</code> (string, opcional): Filtra por ID da campanha.
+- <code>offer_id</code> (string, opcional): Filtra por ID da oferta.
+- <code>source_id</code> (string, opcional): Filtra por ID da fonte.
+- <code>country_code</code> (string, opcional): Filtra por código de país.
+- <code>device_type</code> (string, opcional): Filtra por tipo de dispositivo.
+- <code>os</code> (string, opcional): Filtra por sistema operacional.
+- <code>browser</code> (string, opcional): Filtra por navegador.
+- <code>connection_type</code> (string, opcional): Filtra por tipo de conexão.
+- <code>ip</code> (string, opcional): Filtra por endereço IP.
+- <code>sub1</code> a <code>sub20</code> (string, opcional): Filtros para sub-IDs personalizados.
+- <code>page</code> (integer, opcional): Número da página para paginação.
+- <code>per</code> (integer, opcional): Limite de itens por página (máximo 10000).</p>
+<p><strong>Estrutura da Resposta (Status 200 OK)</strong>:
+Similar ao endpoint <code>/conversions</code>, contendo detalhes dos cliques como <code>clickid</code>, <code>campaign_id</code>, <code>source_id</code>, <code>ip</code>, <code>timestamp</code>, etc.</p>
+<p><strong>Códigos de Resposta de Erro</strong>: 400 (Bad Request), 401 (Unauthorized), 500 (Internal Server Error).</p>
+<h3>Detalhes do Endpoint: GET /report</h3>
+<p><strong>Descrição</strong>: Gera um relatório de dados com base em diversos filtros e agrupamentos.</p>
+<p><strong>Parâmetros de Query (Query Parameters)</strong>:
+- <code>api_key</code> (string, <strong>obrigatório</strong>): Chave da API para autenticação.
+- <code>date_from</code> (string, <strong>obrigatório</strong>): Data de início para o relatório.
+- <code>date_to</code> (string, <strong>obrigatório</strong>): Data de fim para o relatório.
+- <code>time_interval</code> (string, opcional): Intervalo de tempo personalizado (e.g., 'daily', 'hourly').
+- <code>group_by</code> (string, opcional): Campo para agrupar os dados (e.g., 'campaign', 'source', 'country', 'offer', 'device', 'os', 'browser').
+- <code>filter_by</code> (string, opcional): Campo para filtrar os dados (e.g., 'campaign_id', 'source_id', 'offer_id', 'country_code').
+- <code>filter_value</code> (string, opcional): Valor do filtro.
+- <code>metrics</code> (string, opcional): Métricas a serem incluídas no relatório (e.g., 'clicks', 'conversions', 'cost', 'revenue', 'roi').
+- <code>sort_by</code> (string, opcional): Campo para ordenar os resultados.
+- <code>sort_order</code> (string, opcional): Ordem da classificação ('asc' ou 'desc').
+- <code>page</code> (integer, opcional): Número da página para paginação.
+- <code>per</code> (integer, opcional): Limite de itens por página (máximo 10000).</p>
+<p><strong>Estrutura da Resposta (Status 200 OK)</strong>:
+Retorna um objeto JSON contendo os dados do relatório, agrupados e filtrados conforme os parâmetros. A estrutura exata varia dependendo dos parâmetros <code>group_by</code> e <code>metrics</code>.</p>
+<p><strong>Códigos de Resposta de Erro</strong>: 400 (Bad Request), 401 (Unauthorized), 500 (Internal Server Error).</p>
+<h2>Organização dos Endpoints por Categorias Funcionais</h2>
+<p>Para facilitar a integração com o dashboard, os endpoints da API do RedTrack podem ser categorizados da seguinte forma:</p>
+<h3>1. Endpoints de Dados de Log (Cliques e Conversões)</h3>
+<p>Estes são os endpoints mais críticos para a construção de um dashboard de análise de desempenho, pois fornecem os dados brutos de interações dos usuários.</p>
+<ul>
+<li><strong>GET <code>/conversions</code></strong>: Utilizado para obter o log detalhado de conversões. Permite filtrar por datas, IDs de cliques, países, tipos de conversão, fontes, ofertas e redes. Essencial para analisar o funil de conversão e o ROI.</li>
+<li>
+<p><strong>Funcionalidade para o Dashboard</strong>: Exibição de métricas de conversão (número de conversões, payout, etc.), detalhamento de conversões por campanha, fonte, oferta, etc., e análise de tendências de conversão ao longo do tempo.</p>
+</li>
+<li>
+<p><strong>GET <code>/tracks</code></strong>: Utilizado para obter o log detalhado de cliques. Permite filtrar por datas, campanhas, ofertas, fontes, países, tipos de dispositivo, sistemas operacionais, navegadores, tipos de conexão e IPs. Fundamental para entender o tráfego e a qualidade dos cliques.</p>
+</li>
+<li><strong>Funcionalidade para o Dashboard</strong>: Exibição de métricas de cliques (número de cliques, custo, etc.), detalhamento de cliques por campanha, fonte, dados demográficos (país, OS, navegador), e análise de tendências de tráfego.</li>
+</ul>
+<h3>2. Endpoints de Relatórios Agregados</h3>
+<p>Estes endpoints fornecem dados já agregados, ideais para visualizações de alto nível e resumos no dashboard.</p>
+<ul>
+<li><strong>GET <code>/report</code></strong>: Endpoint versátil para gerar relatórios customizados. Permite agrupar dados por diversas dimensões (campanha, fonte, país, etc.) e selecionar métricas específicas (cliques, conversões, custo, receita, ROI). Este é o endpoint principal para a maioria dos gráficos e tabelas de resumo no dashboard.</li>
+<li><strong>Funcionalidade para o Dashboard</strong>: Geração de gráficos de desempenho (ROI, custo por clique, custo por conversão), tabelas de resumo por campanha, fonte, oferta, e segmentação de dados por diferentes dimensões para análise aprofundada.</li>
+</ul>
+<h3>3. Endpoints de Gerenciamento de Campanhas e Entidades</h3>
+<p>Estes endpoints são úteis para exibir informações sobre as campanhas, ofertas, domínios e outras entidades configuradas no RedTrack, permitindo que o usuário do dashboard veja o status e os detalhes de suas configurações.</p>
+<ul>
+<li><strong>POST <code>/campaigns</code></strong>: Cria uma nova campanha.</li>
+<li><strong>PUT <code>/campaigns/{id}</code></strong>: Atualiza uma campanha existente.</li>
+<li>
+<p><strong>Funcionalidade para o Dashboard</strong>: Exibir uma lista de campanhas ativas/inativas, seus detalhes e permitir a edição básica de informações da campanha (se o dashboard tiver essa funcionalidade).</p>
+</li>
+<li>
+<p><strong>POST <code>/offers</code></strong>: Cria uma nova oferta.</p>
+</li>
+<li><strong>PUT <code>/offers/{id}</code></strong>: Atualiza uma oferta existente.</li>
+<li>
+<p><strong>Funcionalidade para o Dashboard</strong>: Exibir uma lista de ofertas e seus detalhes.</p>
+</li>
+<li>
+<p><strong>GET <code>/domains</code></strong>: Obtém uma lista de domínios configurados.</p>
+</li>
+<li><strong>POST <code>/domains</code></strong>: Cria um novo domínio.</li>
+<li><strong>PUT <code>/domains/{id}</code></strong>: Atualiza um domínio existente.</li>
+<li><strong>DELETE <code>/domains/{id}</code></strong>: Deleta um domínio.</li>
+<li><strong>Funcionalidade para o Dashboard</strong>: Exibir domínios e seus status.</li>
+</ul>
+<h3>4. Endpoints de Dicionários e Metadados</h3>
+<p>Esses endpoints fornecem listas de valores de referência (como navegadores, países, sistemas operacionais), que são úteis para popular filtros e menus de seleção no dashboard, garantindo a consistência dos dados.</p>
+<ul>
+<li><strong>GET <code>/browser_fullnames</code></strong>: Lista de nomes completos de navegadores.</li>
+<li><strong>GET <code>/browsers</code></strong>: Lista de navegadores.</li>
+<li><strong>GET <code>/categories</code></strong>: Lista de categorias.</li>
+<li><strong>GET <code>/cities</code></strong>: Lista de cidades.</li>
+<li><strong>GET <code>/connection_types</code></strong>: Lista de tipos de conexão.</li>
+<li><strong>GET <code>/countries</code></strong>: Lista de países.</li>
+<li><strong>GET <code>/currencies</code></strong>: Lista de moedas.</li>
+<li><strong>GET <code>/device_brands</code></strong>: Lista de marcas de dispositivos.</li>
+<li><strong>GET <code>/device_fullnames</code></strong>: Lista de nomes completos de dispositivos.</li>
+<li><strong>GET <code>/devices</code></strong>: Lista de dispositivos.</li>
+<li><strong>GET <code>/isp</code></strong>: Lista de ISPs.</li>
+<li><strong>GET <code>/languages</code></strong>: Lista de idiomas.</li>
+<li><strong>GET <code>/os</code></strong>: Lista de sistemas operacionais.</li>
+<li><strong>GET <code>/os_fullnames</code></strong>: Lista de nomes completos de SOs.</li>
+<li><strong>GET <code>/proxy_types</code></strong>: Lista de tipos de proxy.</li>
+<li><strong>GET <code>/regions</code></strong>: Lista de regiões.</li>
+<li><strong>GET <code>/timezones</code></strong>: Lista de fusos horários.</li>
+<li><strong>Funcionalidade para o Dashboard</strong>: Preenchimento de dropdowns e filtros para segmentação de dados, permitindo que o usuário selecione opções válidas para suas análises.</li>
+</ul>
+<h3>5. Endpoints de Configurações e Outros</h3>
+<ul>
+<li><strong>GET <code>/me/settings</code></strong>: Obtém as configurações do usuário.</li>
+<li><strong>PUT <code>/me/settings</code></strong>: Atualiza as configurações do usuário.</li>
+<li>
+<p><strong>Funcionalidade para o Dashboard</strong>: Exibir e, possivelmente, permitir a edição de configurações básicas do usuário.</p>
+</li>
+<li>
+<p><strong>GET <code>/scripts</code></strong>: Obtém scripts de tracking.</p>
+</li>
+<li><strong>POST <code>/scripts</code></strong>: Cria um script.</li>
+<li><strong>PUT <code>/scripts/{id}</code></strong>: Atualiza um script.</li>
+<li><strong>DELETE <code>/scripts/{id}</code></strong>: Deleta um script.</li>
+<li>
+<p><strong>Funcionalidade para o Dashboard</strong>: Exibir scripts de tracking.</p>
+</li>
+<li>
+<p><strong>POST <code>/tracks/cost</code></strong>: Atualiza custos. Pode ser útil para dashboards que permitem a inserção manual de dados de custo.</p>
+</li>
+<li>
+<p><strong>Endpoints de Exportação (para AWS S3)</strong>: <code>/conversions/export</code>, <code>/export_conversions</code>, <code>/export_tracks</code>, <code>/offers/export</code>, <code>/publishers/export</code>. Estes são mais para exportação em massa e menos para o consumo direto em tempo real do dashboard, mas podem ser usados para relatórios offline ou backups.</p>
+</li>
+</ul>
+<p>Esta categorização visa otimizar a forma como os dados serão consumidos e apresentados no dashboard, focando nos endpoints que trarão maior valor para a análise de dados de marketing digital.</p>
+<h2>Estruturas de Dados e Parâmetros Detalhados</h2>
+<h3>Estrutura de Resposta do Endpoint GET /conversions</h3>
+<p>O endpoint <code>/conversions</code> retorna um objeto JSON com a seguinte estrutura principal:</p>
+<pre><code class="language-json">{
+  &quot;items&quot;: [
+    {
+      &quot;attribution_type&quot;: &quot;string&quot;,
+      &quot;browser&quot;: &quot;string&quot;,
+      &quot;campaign&quot;: &quot;string&quot;,
+      &quot;campaign_id&quot;: &quot;string&quot;,
+      &quot;city&quot;: &quot;string&quot;,
+      &quot;clickid&quot;: &quot;string&quot;,
+      &quot;connection_type&quot;: &quot;string&quot;,
+      &quot;conv_time&quot;: &quot;string&quot;,
+      &quot;cost&quot;: 0,
+      &quot;cost_default&quot;: 0,
+      &quot;cost_source&quot;: 0,
+      &quot;country&quot;: &quot;string&quot;,
+      &quot;coupon&quot;: &quot;string&quot;,
+      &quot;created_at&quot;: &quot;string&quot;,
+      &quot;currency&quot;: &quot;string&quot;,
+      &quot;deduplicate_token&quot;: &quot;string&quot;,
+      &quot;deeplink&quot;: &quot;string&quot;,
+      &quot;default_type&quot;: 0,
+      &quot;device&quot;: &quot;string&quot;,
+      &quot;device_brand&quot;: &quot;string&quot;,
+      &quot;device_fullname&quot;: &quot;string&quot;,
+      &quot;duplicate_status&quot;: 0,
+      &quot;event&quot;: &quot;string&quot;,
+      &quot;external_id&quot;: &quot;string&quot;,
+      &quot;fingerprint&quot;: &quot;string&quot;,
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;ip&quot;: &quot;string&quot;,
+      &quot;is_transaction&quot;: 0,
+      &quot;isp&quot;: &quot;string&quot;,
+      &quot;landing&quot;: &quot;string&quot;,
+      &quot;landing_id&quot;: &quot;string&quot;,
+      &quot;network&quot;: &quot;string&quot;,
+      &quot;offer&quot;: &quot;string&quot;,
+      &quot;offer_id&quot;: &quot;string&quot;,
+      &quot;order&quot;: &quot;string&quot;,
+      &quot;os&quot;: &quot;string&quot;,
+      &quot;p_sub1&quot;: &quot;string&quot;,
+      &quot;p_sub10&quot;: &quot;string&quot;,
+      &quot;p_sub11&quot;: &quot;string&quot;,
+      &quot;p_sub12&quot;: &quot;string&quot;,
+      &quot;p_sub13&quot;: &quot;string&quot;,
+      &quot;p_sub14&quot;: &quot;string&quot;,
+      &quot;p_sub15&quot;: &quot;string&quot;,
+      &quot;p_sub16&quot;: &quot;string&quot;,
+      &quot;p_sub17&quot;: &quot;string&quot;,
+      &quot;p_sub18&quot;: &quot;string&quot;,
+      &quot;p_sub19&quot;: &quot;string&quot;,
+      &quot;p_sub2&quot;: &quot;string&quot;,
+      &quot;p_sub20&quot;: &quot;string&quot;,
+      &quot;p_sub3&quot;: &quot;string&quot;,
+      &quot;p_sub4&quot;: &quot;string&quot;,
+      &quot;p_sub5&quot;: &quot;string&quot;,
+      &quot;p_sub6&quot;: &quot;string&quot;,
+      &quot;p_sub7&quot;: &quot;string&quot;,
+      &quot;p_sub8&quot;: &quot;string&quot;,
+      &quot;p_sub9&quot;: &quot;string&quot;,
+      &quot;page&quot;: &quot;string&quot;,
+      &quot;page_url&quot;: &quot;string&quot;,
+      &quot;payout&quot;: 0,
+      &quot;payout_default&quot;: 0,
+      &quot;payout_network&quot;: 0,
+      &quot;postback_ip&quot;: &quot;string&quot;,
+      &quot;prelanding&quot;: &quot;string&quot;,
+      &quot;prelanding_id&quot;: &quot;string&quot;,
+      &quot;program_id&quot;: &quot;string&quot;,
+      &quot;pub_revenue&quot;: 0,
+      &quot;pub_revenue_default&quot;: 0,
+      &quot;pub_revenue_source&quot;: 0,
+      &quot;ref_id&quot;: &quot;string&quot;,
+      &quot;referer&quot;: &quot;string&quot;,
+      &quot;region&quot;: &quot;string&quot;,
+      &quot;rt_ad&quot;: &quot;string&quot;,
+      &quot;rt_ad_id&quot;: &quot;string&quot;,
+      &quot;rt_adgroup&quot;: &quot;string&quot;,
+      &quot;rt_adgroup_id&quot;: &quot;string&quot;,
+      &quot;rt_campaign&quot;: &quot;string&quot;,
+      &quot;rt_campaign_id&quot;: &quot;string&quot;,
+      &quot;rt_keyword&quot;: &quot;string&quot;,
+      &quot;rt_medium&quot;: &quot;string&quot;,
+      &quot;rt_placement&quot;: &quot;string&quot;,
+      &quot;rt_placement_hashed&quot;: &quot;string&quot;,
+      &quot;rt_placement_id&quot;: &quot;string&quot;,
+      &quot;rt_role_1&quot;: &quot;string&quot;,
+      &quot;rt_role_2&quot;: &quot;string&quot;,
+      &quot;rt_source&quot;: &quot;string&quot;,
+      &quot;server&quot;: &quot;string&quot;,
+      &quot;source&quot;: &quot;string&quot;,
+      &quot;source_id&quot;: &quot;string&quot;,
+      &quot;status&quot;: &quot;string&quot;,
+      &quot;sub1&quot;: &quot;string&quot;,
+      &quot;sub10&quot;: &quot;string&quot;,
+      &quot;sub11&quot;: &quot;string&quot;,
+      &quot;sub12&quot;: &quot;string&quot;,
+      &quot;sub13&quot;: &quot;string&quot;,
+      &quot;sub14&quot;: &quot;string&quot;,
+      &quot;sub15&quot;: &quot;string&quot;,
+      &quot;sub16&quot;: &quot;string&quot;,
+      &quot;sub17&quot;: &quot;string&quot;,
+      &quot;sub18&quot;: &quot;string&quot;,
+      &quot;sub19&quot;: &quot;string&quot;,
+      &quot;sub2&quot;: &quot;string&quot;,
+      &quot;sub20&quot;: &quot;string&quot;,
+      &quot;sub3&quot;: &quot;string&quot;,
+      &quot;sub4&quot;: &quot;string&quot;,
+      &quot;sub5&quot;: &quot;string&quot;,
+      &quot;sub6&quot;: &quot;string&quot;,
+      &quot;sub7&quot;: &quot;string&quot;,
+      &quot;sub8&quot;: &quot;string&quot;,
+      &quot;sub9&quot;: &quot;string&quot;,
+      &quot;track_time&quot;: &quot;string&quot;,
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;type1&quot;: 0,
+      &quot;type10&quot;: 0,
+      &quot;type11&quot;: 0,
+      &quot;type12&quot;: 0,
+      &quot;type13&quot;: 0,
+      &quot;type14&quot;: 0,
+      &quot;type15&quot;: 0,
+      &quot;type16&quot;: 0,
+      &quot;type17&quot;: 0,
+      &quot;type18&quot;: 0,
+      &quot;type19&quot;: 0,
+      &quot;type2&quot;: 0,
+      &quot;type20&quot;: 0,
+      &quot;type21&quot;: 0,
+      &quot;type22&quot;: 0,
+      &quot;type23&quot;: 0,
+      &quot;type24&quot;: 0,
+      &quot;type25&quot;: 0,
+      &quot;type26&quot;: 0,
+      &quot;type27&quot;: 0,
+      &quot;type28&quot;: 0,
+      &quot;type29&quot;: 0,
+      &quot;type3&quot;: 0,
+      &quot;type30&quot;: 0,
+      &quot;type31&quot;: 0,
+      &quot;type32&quot;: 0,
+      &quot;type33&quot;: 0,
+      &quot;type34&quot;: 0,
+      &quot;type35&quot;: 0,
+      &quot;type36&quot;: 0,
+      &quot;type37&quot;: 0,
+      &quot;type38&quot;: 0,
+      &quot;type39&quot;: 0,
+      &quot;type4&quot;: 0,
+      &quot;type40&quot;: 0,
+      &quot;type5&quot;: 0,
+      &quot;type6&quot;: 0,
+      &quot;type7&quot;: 0,
+      &quot;type8&quot;: 0,
+      &quot;type9&quot;: 0,
+      &quot;user_agent&quot;: &quot;string&quot;
+    }
+  ],
+  &quot;total&quot;: 0
+}
+</code></pre>
+<h3>Campos Mais Relevantes para Dashboard</h3>
+<p>Para a construção de um dashboard eficiente, os campos mais importantes incluem:</p>
+<p><strong>Identificadores e Relacionamentos:</strong>
+- <code>id</code>: ID único da conversão
+- <code>clickid</code>: ID do clique que gerou a conversão
+- <code>campaign_id</code>: ID da campanha
+- <code>offer_id</code>: ID da oferta
+- <code>source_id</code>: ID da fonte de tráfego
+- <code>network</code>: Nome da rede de afiliados</p>
+<p><strong>Dados Temporais:</strong>
+- <code>created_at</code>: Data/hora de criação da conversão
+- <code>conv_time</code>: Tempo da conversão
+- <code>track_time</code>: Tempo do rastreamento</p>
+<p><strong>Dados Financeiros:</strong>
+- <code>cost</code>: Custo da conversão
+- <code>cost_default</code>: Custo padrão
+- <code>cost_source</code>: Custo da fonte
+- <code>payout</code>: Valor pago pela conversão
+- <code>payout_default</code>: Valor padrão de payout
+- <code>payout_network</code>: Valor pago pela rede
+- <code>pub_revenue</code>: Receita do publisher
+- <code>pub_revenue_default</code>: Receita padrão do publisher
+- <code>pub_revenue_source</code>: Receita da fonte do publisher</p>
+<p><strong>Dados Demográficos e Técnicos:</strong>
+- <code>country</code>: País do usuário
+- <code>city</code>: Cidade do usuário
+- <code>region</code>: Região do usuário
+- <code>device</code>: Tipo de dispositivo
+- <code>device_brand</code>: Marca do dispositivo
+- <code>device_fullname</code>: Nome completo do dispositivo
+- <code>os</code>: Sistema operacional
+- <code>browser</code>: Navegador utilizado
+- <code>connection_type</code>: Tipo de conexão
+- <code>isp</code>: Provedor de internet
+- <code>ip</code>: Endereço IP</p>
+<p><strong>Dados de Campanha e Tracking:</strong>
+- <code>campaign</code>: Nome da campanha
+- <code>offer</code>: Nome da oferta
+- <code>source</code>: Nome da fonte
+- <code>type</code>: Tipo de conversão
+- <code>status</code>: Status da conversão
+- <code>event</code>: Evento de conversão
+- <code>landing</code>: Página de destino
+- <code>prelanding</code>: Pré-página de destino</p>
+<p><strong>Sub-IDs Personalizados:</strong>
+- <code>sub1</code> a <code>sub20</code>: Sub-IDs personalizados para segmentação adicional
+- <code>p_sub1</code> a <code>p_sub20</code>: Sub-IDs do publisher</p>
+<p><strong>Dados de Tracking Avançado:</strong>
+- <code>rt_campaign</code>: Campanha do RedTrack
+- <code>rt_source</code>: Fonte do RedTrack
+- <code>rt_medium</code>: Meio do RedTrack
+- <code>rt_ad</code>: Anúncio do RedTrack
+- <code>rt_keyword</code>: Palavra-chave do RedTrack
+- <code>rt_placement</code>: Posicionamento do RedTrack</p>
+<h3>Estrutura de Resposta do Endpoint GET /tracks</h3>
+<p>O endpoint <code>/tracks</code> retorna uma estrutura similar ao <code>/conversions</code>, mas focada nos dados de cliques. Os campos principais incluem:</p>
+<ul>
+<li>Todos os campos demográficos e técnicos mencionados acima</li>
+<li>Dados de custo por clique</li>
+<li>Informações de referência (referer)</li>
+<li>Dados de fingerprinting para detecção de fraude</li>
+<li>Timestamps de clique e rastreamento</li>
+</ul>
+<h3>Parâmetros de Filtro Comuns</h3>
+<p>Ambos os endpoints <code>/conversions</code> e <code>/tracks</code> suportam os seguintes parâmetros de filtro:</p>
+<p><strong>Parâmetros Obrigatórios:</strong>
+- <code>api_key</code>: Chave de autenticação da API
+- <code>date_from</code>: Data de início (formato ISO 8601 recomendado)
+- <code>date_to</code>: Data de fim (formato ISO 8601 recomendado)</p>
+<p><strong>Parâmetros de Filtro Opcionais:</strong>
+- <code>time_interval</code>: Intervalo de tempo personalizado
+- <code>campaign_id</code>: Filtro por ID de campanha
+- <code>offer_id</code>: Filtro por ID de oferta
+- <code>source_id</code>: Filtro por ID de fonte
+- <code>network_id</code>: Filtro por ID de rede
+- <code>country_code</code>: Filtro por código de país (ISO 3166-1 alpha-2)
+- <code>device_type</code>: Filtro por tipo de dispositivo
+- <code>os</code>: Filtro por sistema operacional
+- <code>browser</code>: Filtro por navegador
+- <code>connection_type</code>: Filtro por tipo de conexão
+- <code>ip</code>: Filtro por endereço IP
+- <code>fingerprint</code>: Filtro por fingerprint
+- <code>clickid</code>: Filtro por ID de clique específico
+- <code>type</code>: Filtro por tipo de conversão</p>
+<p><strong>Parâmetros de Paginação:</strong>
+- <code>page</code>: Número da página (padrão: 1)
+- <code>per</code>: Itens por página (máximo: 10000, padrão: 100)</p>
+<h3>Estrutura de Resposta do Endpoint GET /report</h3>
+<p>O endpoint <code>/report</code> é mais flexível e sua estrutura de resposta varia dependendo dos parâmetros <code>group_by</code> e <code>metrics</code> utilizados. A estrutura básica é:</p>
+<pre><code class="language-json">{
+  &quot;data&quot;: [
+    {
+      &quot;dimension_field&quot;: &quot;value&quot;,
+      &quot;clicks&quot;: 0,
+      &quot;conversions&quot;: 0,
+      &quot;cost&quot;: 0.0,
+      &quot;revenue&quot;: 0.0,
+      &quot;profit&quot;: 0.0,
+      &quot;roi&quot;: 0.0,
+      &quot;ctr&quot;: 0.0,
+      &quot;cr&quot;: 0.0,
+      &quot;cpc&quot;: 0.0,
+      &quot;cpa&quot;: 0.0,
+      &quot;epc&quot;: 0.0
+    }
+  ],
+  &quot;total&quot;: {
+    &quot;clicks&quot;: 0,
+    &quot;conversions&quot;: 0,
+    &quot;cost&quot;: 0.0,
+    &quot;revenue&quot;: 0.0,
+    &quot;profit&quot;: 0.0,
+    &quot;roi&quot;: 0.0
+  },
+  &quot;meta&quot;: {
+    &quot;page&quot;: 1,
+    &quot;per_page&quot;: 100,
+    &quot;total_pages&quot;: 1,
+    &quot;total_count&quot;: 0
+  }
+}
+</code></pre>
+<p><strong>Métricas Disponíveis:</strong>
+- <code>clicks</code>: Número total de cliques
+- <code>conversions</code>: Número total de conversões
+- <code>cost</code>: Custo total
+- <code>revenue</code>: Receita total
+- <code>profit</code>: Lucro (receita - custo)
+- <code>roi</code>: Retorno sobre investimento ((receita - custo) / custo * 100)
+- <code>ctr</code>: Taxa de cliques (clicks / impressions * 100)
+- <code>cr</code>: Taxa de conversão (conversions / clicks * 100)
+- <code>cpc</code>: Custo por clique (cost / clicks)
+- <code>cpa</code>: Custo por aquisição (cost / conversions)
+- <code>epc</code>: Ganhos por clique (revenue / clicks)</p>
+<p><strong>Dimensões de Agrupamento Disponíveis:</strong>
+- <code>campaign</code>: Agrupar por campanha
+- <code>source</code>: Agrupar por fonte
+- <code>offer</code>: Agrupar por oferta
+- <code>country</code>: Agrupar por país
+- <code>device</code>: Agrupar por dispositivo
+- <code>os</code>: Agrupar por sistema operacional
+- <code>browser</code>: Agrupar por navegador
+- <code>date</code>: Agrupar por data
+- <code>hour</code>: Agrupar por hora
+- <code>sub1</code> a <code>sub20</code>: Agrupar por sub-IDs personalizados</p>
+<p>Esta estrutura detalhada permite que o dashboard implemente filtros avançados, segmentação de dados e visualizações personalizadas baseadas nas necessidades específicas do usuário.</p>
+<h2>Guia de Integração para Dashboard</h2>
+<h3>Autenticação e Configuração Inicial</h3>
+<p>A API do RedTrack utiliza autenticação baseada em chave de API (API Key). Para integrar com o dashboard, você precisará:</p>
+<ol>
+<li><strong>Obter a API Key</strong>: A chave deve ser obtida através do painel administrativo do RedTrack.</li>
+<li><strong>Configurar a Base URL</strong>: Todas as requisições devem ser feitas para <code>https://api.redtrack.io/</code></li>
+<li><strong>Incluir a API Key</strong>: A chave deve ser incluída como parâmetro de query <code>api_key</code> em todas as requisições.</li>
+</ol>
+<h3>Estratégia de Implementação por Prioridade</h3>
+<h4>Fase 1: Implementação dos Endpoints Essenciais</h4>
+<p><strong>1. Endpoint GET /conversions</strong>
+Este é o endpoint mais crítico para o dashboard, pois fornece dados detalhados sobre conversões.</p>
+<pre><code class="language-javascript">// Exemplo de implementação em JavaScript
+async function getConversions(apiKey, dateFrom, dateTo, filters = {}) {
+  const baseUrl = 'https://api.redtrack.io/conversions';
+  const params = new URLSearchParams({
+    api_key: apiKey,
+    date_from: dateFrom,
+    date_to: dateTo,
+    per: 1000, // Máximo recomendado para performance
+    ...filters
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}?${params}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar conversões:', error);
+    throw error;
+  }
+}
+</code></pre>
+<p><strong>2. Endpoint GET /tracks</strong>
+Fundamental para análise de tráfego e qualidade dos cliques.</p>
+<pre><code class="language-javascript">async function getTracks(apiKey, dateFrom, dateTo, filters = {}) {
+  const baseUrl = 'https://api.redtrack.io/tracks';
+  const params = new URLSearchParams({
+    api_key: apiKey,
+    date_from: dateFrom,
+    date_to: dateTo,
+    per: 1000,
+    ...filters
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}?${params}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar cliques:', error);
+    throw error;
+  }
+}
+</code></pre>
+<p><strong>3. Endpoint GET /report</strong>
+Essencial para relatórios agregados e visualizações de alto nível.</p>
+<pre><code class="language-javascript">async function getReport(apiKey, dateFrom, dateTo, groupBy, metrics = []) {
+  const baseUrl = 'https://api.redtrack.io/report';
+  const params = new URLSearchParams({
+    api_key: apiKey,
+    date_from: dateFrom,
+    date_to: dateTo,
+    group_by: groupBy,
+    metrics: metrics.join(','),
+    per: 1000
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}?${params}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar relatório:', error);
+    throw error;
+  }
+}
+</code></pre>
+<h4>Fase 2: Implementação dos Endpoints de Metadados</h4>
+<p><strong>4. Endpoints de Dicionários</strong>
+Implementar os endpoints de dicionários para popular filtros e dropdowns.</p>
+<pre><code class="language-javascript">async function getDictionary(apiKey, dictionaryType) {
+  const baseUrl = `https://api.redtrack.io/${dictionaryType}`;
+  const params = new URLSearchParams({
+    api_key: apiKey
+  });
+
+  try {
+    const response = await fetch(`${baseUrl}?${params}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Erro ao buscar dicionário ${dictionaryType}:`, error);
+    throw error;
+  }
+}
+
+// Função para carregar todos os dicionários necessários
+async function loadAllDictionaries(apiKey) {
+  const dictionaries = [
+    'countries', 'browsers', 'devices', 'os', 
+    'connection_types', 'currencies', 'timezones'
+  ];
+
+  const results = {};
+  for (const dict of dictionaries) {
+    try {
+      results[dict] = await getDictionary(apiKey, dict);
+    } catch (error) {
+      console.error(`Falha ao carregar dicionário ${dict}:`, error);
+      results[dict] = [];
+    }
+  }
+
+  return results;
+}
+</code></pre>
+<h3>Estratégias de Otimização de Performance</h3>
+<h4>1. Paginação Inteligente</h4>
+<p>Para grandes volumes de dados, implemente paginação inteligente:</p>
+<pre><code class="language-javascript">async function getAllConversions(apiKey, dateFrom, dateTo, filters = {}) {
+  let allConversions = [];
+  let page = 1;
+  let hasMoreData = true;
+
+  while (hasMoreData) {
+    const response = await getConversions(apiKey, dateFrom, dateTo, {
+      ...filters,
+      page: page,
+      per: 10000 // Máximo permitido
+    });
+
+    allConversions = allConversions.concat(response.items);
+
+    // Verifica se há mais páginas
+    hasMoreData = response.items.length === 10000;
+    page++;
+
+    // Limite de segurança para evitar loops infinitos
+    if (page &gt; 100) {
+      console.warn('Limite de páginas atingido');
+      break;
+    }
+  }
+
+  return allConversions;
+}
+</code></pre>
+<h4>2. Cache de Dados</h4>
+<p>Implemente cache para reduzir chamadas desnecessárias à API:</p>
+<pre><code class="language-javascript">class RedTrackCache {
+  constructor(ttl = 300000) { // 5 minutos de TTL
+    this.cache = new Map();
+    this.ttl = ttl;
+  }
+
+  generateKey(endpoint, params) {
+    return `${endpoint}_${JSON.stringify(params)}`;
+  }
+
+  get(endpoint, params) {
+    const key = this.generateKey(endpoint, params);
+    const cached = this.cache.get(key);
+
+    if (cached &amp;&amp; Date.now() - cached.timestamp &lt; this.ttl) {
+      return cached.data;
+    }
+
+    return null;
+  }
+
+  set(endpoint, params, data) {
+    const key = this.generateKey(endpoint, params);
+    this.cache.set(key, {
+      data: data,
+      timestamp: Date.now()
+    });
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+}
+
+const cache = new RedTrackCache();
+</code></pre>
+<h4>3. Processamento de Dados em Lote</h4>
+<p>Para análises complexas, processe dados em lotes:</p>
+<pre><code class="language-javascript">async function processConversionsInBatches(conversions, batchSize = 1000) {
+  const results = [];
+
+  for (let i = 0; i &lt; conversions.length; i += batchSize) {
+    const batch = conversions.slice(i, i + batchSize);
+    const processedBatch = await processBatch(batch);
+    results.push(...processedBatch);
+
+    // Pequena pausa para não sobrecarregar o sistema
+    await new Promise(resolve =&gt; setTimeout(resolve, 100));
+  }
+
+  return results;
+}
+</code></pre>
+<h3>Implementação de Filtros Avançados</h3>
+<h4>1. Construtor de Filtros Dinâmicos</h4>
+<pre><code class="language-javascript">class FilterBuilder {
+  constructor() {
+    this.filters = {};
+  }
+
+  addDateRange(dateFrom, dateTo) {
+    this.filters.date_from = dateFrom;
+    this.filters.date_to = dateTo;
+    return this;
+  }
+
+  addCampaignFilter(campaignIds) {
+    if (Array.isArray(campaignIds)) {
+      this.filters.campaign_id = campaignIds.join(',');
+    } else {
+      this.filters.campaign_id = campaignIds;
+    }
+    return this;
+  }
+
+  addCountryFilter(countryCodes) {
+    if (Array.isArray(countryCodes)) {
+      this.filters.country_code = countryCodes.join(',');
+    } else {
+      this.filters.country_code = countryCodes;
+    }
+    return this;
+  }
+
+  addDeviceFilter(deviceTypes) {
+    if (Array.isArray(deviceTypes)) {
+      this.filters.device_type = deviceTypes.join(',');
+    } else {
+      this.filters.device_type = deviceTypes;
+    }
+    return this;
+  }
+
+  addCustomSubFilter(subNumber, values) {
+    if (subNumber &gt;= 1 &amp;&amp; subNumber &lt;= 20) {
+      const key = `sub${subNumber}`;
+      if (Array.isArray(values)) {
+        this.filters[key] = values.join(',');
+      } else {
+        this.filters[key] = values;
+      }
+    }
+    return this;
+  }
+
+  build() {
+    return { ...this.filters };
+  }
+
+  clear() {
+    this.filters = {};
+    return this;
+  }
+}
+
+// Exemplo de uso
+const filterBuilder = new FilterBuilder();
+const filters = filterBuilder
+  .addDateRange('2024-01-01', '2024-01-31')
+  .addCampaignFilter(['camp1', 'camp2'])
+  .addCountryFilter(['US', 'BR', 'CA'])
+  .addDeviceFilter('mobile')
+  .build();
+</code></pre>
+<h4>2. Validação de Filtros</h4>
+<pre><code class="language-javascript">class FilterValidator {
+  static validateDateRange(dateFrom, dateTo) {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+
+    if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+      throw new Error('Datas inválidas fornecidas');
+    }
+
+    if (from &gt; to) {
+      throw new Error('Data de início deve ser anterior à data de fim');
+    }
+
+    const maxRange = 90 * 24 * 60 * 60 * 1000; // 90 dias
+    if (to - from &gt; maxRange) {
+      throw new Error('Intervalo de datas não pode exceder 90 dias');
+    }
+
+    return true;
+  }
+
+  static validatePagination(page, per) {
+    if (page &lt; 1) {
+      throw new Error('Número da página deve ser maior que 0');
+    }
+
+    if (per &lt; 1 || per &gt; 10000) {
+      throw new Error('Itens por página deve estar entre 1 e 10000');
+    }
+
+    return true;
+  }
+
+  static validateApiKey(apiKey) {
+    if (!apiKey || typeof apiKey !== 'string' || apiKey.trim().length === 0) {
+      throw new Error('API Key é obrigatória e deve ser uma string válida');
+    }
+
+    return true;
+  }
+}
+</code></pre>
+<h3>Tratamento de Erros e Retry Logic</h3>
+<pre><code class="language-javascript">class ApiClient {
+  constructor(apiKey, maxRetries = 3, retryDelay = 1000) {
+    this.apiKey = apiKey;
+    this.maxRetries = maxRetries;
+    this.retryDelay = retryDelay;
+  }
+
+  async makeRequest(url, params, retryCount = 0) {
+    try {
+      FilterValidator.validateApiKey(this.apiKey);
+
+      const fullParams = new URLSearchParams({
+        api_key: this.apiKey,
+        ...params
+      });
+
+      const response = await fetch(`${url}?${fullParams}`);
+
+      if (!response.ok) {
+        if (response.status === 429 &amp;&amp; retryCount &lt; this.maxRetries) {
+          // Rate limiting - aguarda e tenta novamente
+          await this.delay(this.retryDelay * Math.pow(2, retryCount));
+          return this.makeRequest(url, params, retryCount + 1);
+        }
+
+        if (response.status &gt;= 500 &amp;&amp; retryCount &lt; this.maxRetries) {
+          // Erro do servidor - tenta novamente
+          await this.delay(this.retryDelay * Math.pow(2, retryCount));
+          return this.makeRequest(url, params, retryCount + 1);
+        }
+
+        const errorData = await response.json().catch(() =&gt; ({}));
+        throw new Error(`API Error ${response.status}: ${errorData.error || response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (retryCount &lt; this.maxRetries &amp;&amp; this.isRetryableError(error)) {
+        await this.delay(this.retryDelay * Math.pow(2, retryCount));
+        return this.makeRequest(url, params, retryCount + 1);
+      }
+
+      throw error;
+    }
+  }
+
+  isRetryableError(error) {
+    return error.name === 'TypeError' || // Network errors
+           error.message.includes('fetch');
+  }
+
+  delay(ms) {
+    return new Promise(resolve =&gt; setTimeout(resolve, ms));
+  }
+}
+</code></pre>
+<h3>Implementação de Métricas Calculadas</h3>
+<pre><code class="language-javascript">class MetricsCalculator {
+  static calculateROI(revenue, cost) {
+    if (cost === 0) return 0;
+    return ((revenue - cost) / cost) * 100;
+  }
+
+  static calculateCTR(clicks, impressions) {
+    if (impressions === 0) return 0;
+    return (clicks / impressions) * 100;
+  }
+
+  static calculateCR(conversions, clicks) {
+    if (clicks === 0) return 0;
+    return (conversions / clicks) * 100;
+  }
+
+  static calculateCPC(cost, clicks) {
+    if (clicks === 0) return 0;
+    return cost / clicks;
+  }
+
+  static calculateCPA(cost, conversions) {
+    if (conversions === 0) return 0;
+    return cost / conversions;
+  }
+
+  static calculateEPC(revenue, clicks) {
+    if (clicks === 0) return 0;
+    return revenue / clicks;
+  }
+
+  static calculateProfit(revenue, cost) {
+    return revenue - cost;
+  }
+
+  static aggregateMetrics(data) {
+    return data.reduce((acc, item) =&gt; {
+      acc.clicks += item.clicks || 0;
+      acc.conversions += item.conversions || 0;
+      acc.cost += item.cost || 0;
+      acc.revenue += item.revenue || 0;
+      acc.impressions += item.impressions || 0;
+      return acc;
+    }, {
+      clicks: 0,
+      conversions: 0,
+      cost: 0,
+      revenue: 0,
+      impressions: 0
+    });
+  }
+
+  static calculateAllMetrics(aggregatedData) {
+    const { clicks, conversions, cost, revenue, impressions } = aggregatedData;
+
+    return {
+      ...aggregatedData,
+      profit: this.calculateProfit(revenue, cost),
+      roi: this.calculateROI(revenue, cost),
+      ctr: this.calculateCTR(clicks, impressions),
+      cr: this.calculateCR(conversions, clicks),
+      cpc: this.calculateCPC(cost, clicks),
+      cpa: this.calculateCPA(cost, conversions),
+      epc: this.calculateEPC(revenue, clicks)
+    };
+  }
+}
+</code></pre>
+<h3>Exemplo de Implementação Completa</h3>
+<pre><code class="language-javascript">class RedTrackDashboard {
+  constructor(apiKey) {
+    this.client = new ApiClient(apiKey);
+    this.cache = new RedTrackCache();
+    this.filterBuilder = new FilterBuilder();
+  }
+
+  async getDashboardData(dateFrom, dateTo, filters = {}) {
+    try {
+      // Validar intervalo de datas
+      FilterValidator.validateDateRange(dateFrom, dateTo);
+
+      // Construir filtros
+      const apiFilters = this.filterBuilder
+        .clear()
+        .addDateRange(dateFrom, dateTo)
+        .build();
+
+      Object.assign(apiFilters, filters);
+
+      // Buscar dados em paralelo
+      const [conversions, tracks, reportData] = await Promise.all([
+        this.client.makeRequest('https://api.redtrack.io/conversions', apiFilters),
+        this.client.makeRequest('https://api.redtrack.io/tracks', apiFilters),
+        this.client.makeRequest('https://api.redtrack.io/report', {
+          ...apiFilters,
+          group_by: 'campaign',
+          metrics: 'clicks,conversions,cost,revenue'
+        })
+      ]);
+
+      // Calcular métricas agregadas
+      const aggregatedConversions = MetricsCalculator.aggregateMetrics(conversions.items);
+      const aggregatedTracks = MetricsCalculator.aggregateMetrics(tracks.items);
+
+      const dashboardMetrics = MetricsCalculator.calculateAllMetrics({
+        clicks: aggregatedTracks.clicks,
+        conversions: aggregatedConversions.conversions,
+        cost: aggregatedTracks.cost,
+        revenue: aggregatedConversions.revenue,
+        impressions: aggregatedTracks.impressions
+      });
+
+      return {
+        summary: dashboardMetrics,
+        conversions: conversions.items,
+        tracks: tracks.items,
+        reportData: reportData.data,
+        totals: {
+          totalConversions: conversions.total,
+          totalTracks: tracks.total
+        }
+      };
+
+    } catch (error) {
+      console.error('Erro ao carregar dados do dashboard:', error);
+      throw error;
+    }
+  }
+
+  async getTopPerformers(dateFrom, dateTo, groupBy = 'campaign', limit = 10) {
+    const filters = this.filterBuilder
+      .clear()
+      .addDateRange(dateFrom, dateTo)
+      .build();
+
+    const reportData = await this.client.makeRequest('https://api.redtrack.io/report', {
+      ...filters,
+      group_by: groupBy,
+      metrics: 'clicks,conversions,cost,revenue',
+      per: limit,
+      sort_by: 'revenue',
+      sort_order: 'desc'
+    });
+
+    return reportData.data.map(item =&gt; ({
+      ...item,
+      ...MetricsCalculator.calculateAllMetrics(item)
+    }));
+  }
+
+  async getTrendData(dateFrom, dateTo, interval = 'daily') {
+    const filters = this.filterBuilder
+      .clear()
+      .addDateRange(dateFrom, dateTo)
+      .build();
+
+    const reportData = await this.client.makeRequest('https://api.redtrack.io/report', {
+      ...filters,
+      group_by: interval === 'daily' ? 'date' : 'hour',
+      metrics: 'clicks,conversions,cost,revenue',
+      per: 1000
+    });
+
+    return reportData.data.map(item =&gt; ({
+      ...item,
+      ...MetricsCalculator.calculateAllMetrics(item)
+    }));
+  }
+}
+
+// Exemplo de uso
+const dashboard = new RedTrackDashboard('sua_api_key_aqui');
+
+// Carregar dados do dashboard
+dashboard.getDashboardData('2024-01-01', '2024-01-31')
+  .then(data =&gt; {
+    console.log('Dados do dashboard:', data);
+  })
+  .catch(error =&gt; {
+    console.error('Erro:', error);
+  });
+</code></pre>
+<p>Esta implementação fornece uma base sólida para integração com a API do RedTrack, incluindo tratamento de erros, cache, validação de dados e cálculo de métricas essenciais para um dashboard de marketing digital eficiente.</p>

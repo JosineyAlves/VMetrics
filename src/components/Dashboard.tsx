@@ -762,7 +762,7 @@ const Dashboard: React.FC = () => {
       const dateRange = getDateRange(selectedPeriod, customRange)
       try {
         // Tentar diferentes valores de group_by para encontrar o que funciona
-        const groupByOptions = ['source', 'traffic_channel', 'campaign_source', 'media_source', 'network']
+        const groupByOptions = ['source', 'campaign', 'offer', 'network']
         let data = null
         let workingGroupBy = null
         
@@ -773,11 +773,21 @@ const Dashboard: React.FC = () => {
               date_from: dateRange.startDate,
               date_to: dateRange.endDate,
               group_by: groupBy,
+              metrics: 'clicks,conversions,cost,revenue',
+              per: 1000
             }
             const testData = await api.getReport(testParams)
             
-            if (testData && testData.items && testData.items.length > 0) {
-              console.log(`✅ [SOURCE STATS] group_by ${groupBy} funcionou com ${testData.items.length} itens`)
+            console.log(`🔍 [SOURCE STATS] Resposta para ${groupBy}:`, testData)
+            
+            // Verificar se há dados na resposta
+            if (testData && testData.data && testData.data.length > 0) {
+              console.log(`✅ [SOURCE STATS] group_by ${groupBy} funcionou com ${testData.data.length} itens`)
+              data = testData
+              workingGroupBy = groupBy
+              break
+            } else if (testData && testData.items && testData.items.length > 0) {
+              console.log(`✅ [SOURCE STATS] group_by ${groupBy} funcionou com ${testData.items.length} itens (formato items)`)
               data = testData
               workingGroupBy = groupBy
               break
@@ -832,32 +842,56 @@ const Dashboard: React.FC = () => {
         console.log('🔍 [SOURCE STATS] Estrutura dos dados:', {
           isArray: Array.isArray(data),
           hasItems: data && data.items,
+          hasData: data && data.data,
           itemsIsArray: data && data.items && Array.isArray(data.items),
+          dataIsArray: data && data.data && Array.isArray(data.data),
           keys: data ? Object.keys(data) : []
         })
         
-        let items = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
+        // Determinar qual array usar baseado na estrutura da resposta
+        let items = []
+        if (data && data.data && Array.isArray(data.data)) {
+          items = data.data
+          console.log('🔍 [SOURCE STATS] Usando data.data')
+        } else if (data && data.items && Array.isArray(data.items)) {
+          items = data.items
+          console.log('🔍 [SOURCE STATS] Usando data.items')
+        } else if (Array.isArray(data)) {
+          items = data
+          console.log('🔍 [SOURCE STATS] Usando data diretamente')
+        }
+        
         console.log('🔍 [SOURCE STATS] Items processados:', items.length)
         console.log('🔍 [SOURCE STATS] Primeiro item:', items[0])
+        
+        // Verificar se temos dados válidos
+        if (items.length === 0) {
+          console.log('⚠️ [SOURCE STATS] Nenhum item encontrado nos dados')
+          setSourceStats([])
+          return
+        }
         
         const mapped = items.map((item: any) => {
           // Usar o campo correspondente ao group_by que funcionou
           let key = 'Indefinido'
+          
+          // O campo de agrupamento será o nome do campo usado no group_by
           if (workingGroupBy === 'source') {
-            key = item.source || item.traffic_channel || item.campaign_source || item.media_source || item.network || 'Indefinido'
-          } else if (workingGroupBy === 'traffic_channel') {
-            key = item.traffic_channel || item.source || item.campaign_source || item.media_source || item.network || 'Indefinido'
-          } else if (workingGroupBy === 'campaign_source') {
-            key = item.campaign_source || item.source || item.traffic_channel || item.media_source || item.network || 'Indefinido'
-          } else if (workingGroupBy === 'media_source') {
-            key = item.media_source || item.source || item.traffic_channel || item.campaign_source || item.network || 'Indefinido'
+            key = item.source || item.source_name || item.source_id || 'Indefinido'
+          } else if (workingGroupBy === 'campaign') {
+            key = item.campaign || item.campaign_name || item.campaign_id || 'Indefinido'
+          } else if (workingGroupBy === 'offer') {
+            key = item.offer || item.offer_name || item.offer_id || 'Indefinido'
           } else if (workingGroupBy === 'network') {
-            key = item.network || item.source || item.traffic_channel || item.campaign_source || item.media_source || 'Indefinido'
+            key = item.network || item.network_name || item.network_id || 'Indefinido'
           } else {
-            key = item.traffic_channel || item.source || item.utm_source || item.campaign_source || item.media_source || item.network || 'Indefinido'
+            // Fallback para outros campos
+            key = item.source || item.campaign || item.offer || item.network || 
+                  item.traffic_channel || item.campaign_source || item.media_source || 'Indefinido'
           }
           
-          const cost = item.spend ?? item.cost ?? 0
+          // O campo de custo pode ser 'cost' ou 'spend'
+          const cost = item.cost ?? item.spend ?? 0
           
           console.log('🔍 [SOURCE STATS] Mapeando item:', {
             original: item,
@@ -874,7 +908,12 @@ const Dashboard: React.FC = () => {
         })
         
         console.log('🔍 [SOURCE STATS] Dados mapeados:', mapped)
-        setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
+        
+        // Filtrar apenas itens com custo maior que zero
+        const filteredMapped = mapped.filter((item: any) => item.cost > 0)
+        console.log('🔍 [SOURCE STATS] Dados filtrados (apenas com custo > 0):', filteredMapped)
+        
+        setSourceStats(filteredMapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
       } catch (err) {
         setSourceStats([])
       }
