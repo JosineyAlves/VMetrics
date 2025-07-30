@@ -1,10 +1,10 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 60000; // 60 segundos (aumentado de 30s)
+const CACHE_DURATION = 30000; // 30 segundos para dados mais atualizados
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
+const MIN_REQUEST_INTERVAL = 3000; // 3 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -107,9 +107,17 @@ export default async function handler(req, res) {
     console.log('=== CAMPAIGNS API DEBUG START ===');
     console.log('Campaigns API - Buscando dados de campanhas para data específica...');
     
-    // Usar apenas a data específica solicitada pelo usuário
+    // Usar a data específica solicitada pelo usuário, ou buscar últimos 7 dias se não especificada
     const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
     const dateTo = params.date_to || dateFrom;
+    
+    // Para estatísticas, buscar um período mais amplo (últimos 7 dias) para ter dados
+    const statsDateFrom = params.date_from || (() => {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return sevenDaysAgo.toISOString().split('T')[0];
+    })();
+    const statsDateTo = params.date_to || new Date().toISOString().split('T')[0];
     
     console.log('Campaigns API - Data solicitada:', { dateFrom, dateTo });
     
@@ -136,13 +144,14 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - Dados de campanhas:', JSON.stringify(campaignsData, null, 2));
     
-    // Buscar estatísticas detalhadas usando /report com group_by=campaign
+    // Buscar estatísticas usando /report sem group_by para obter dados totais
     const reportUrl = new URL('https://api.redtrack.io/report');
     reportUrl.searchParams.set('api_key', apiKey);
-    reportUrl.searchParams.set('date_from', dateFrom);
-    reportUrl.searchParams.set('date_to', dateTo);
-    reportUrl.searchParams.set('group_by', 'campaign');
+    reportUrl.searchParams.set('date_from', statsDateFrom);
+    reportUrl.searchParams.set('date_to', statsDateTo);
     reportUrl.searchParams.set('per', '1000');
+    
+    console.log('Campaigns API - Período para estatísticas:', { statsDateFrom, statsDateTo });
     
     console.log('Campaigns API - URL para relatório:', reportUrl.toString());
     
