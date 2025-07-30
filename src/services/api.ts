@@ -291,13 +291,26 @@ class RedTrackAPI {
       const realData = await this.request('/campaigns', { method: 'GET' }, params)
       console.log('📊 Campanhas reais carregadas:', realData)
       
-      // Se não há dados ou dados vazios, retornar array vazio
-      if (!realData || !realData.data || realData.data.length === 0) {
+      // Verificar se os dados vêm como array direto (proxy) ou com estrutura { data: [], total: number }
+      let campaigns = []
+      let total = 0
+      
+      if (Array.isArray(realData)) {
+        // Dados vêm como array direto do proxy
+        campaigns = realData
+        total = realData.length
+        console.log('📊 Dados recebidos como array direto:', campaigns.length, 'campanhas')
+      } else if (realData && realData.data && Array.isArray(realData.data)) {
+        // Dados vêm com estrutura { data: [], total: number }
+        campaigns = realData.data
+        total = realData.total || realData.data.length
+        console.log('📊 Dados recebidos com estrutura data/total:', campaigns.length, 'campanhas')
+      } else {
         console.log('📊 Nenhuma campanha encontrada - retornando dados vazios')
         return { data: [], total: 0 }
       }
       
-      return realData
+      return { data: campaigns, total }
     } catch (error) {
       console.error('Erro ao buscar campanhas:', error)
       // NÃO retornar dados mock - retornar dados vazios

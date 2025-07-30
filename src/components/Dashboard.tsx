@@ -96,6 +96,11 @@ const Dashboard: React.FC = () => {
   // Novo estado para armazenar dados diários para o gráfico
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [sourceStats, setSourceStats] = useState<any[]>([])
+  
+  // Debug: monitorar mudanças no sourceStats
+  useEffect(() => {
+    console.log('🔍 [SOURCE STATS DEBUG] sourceStats atualizado:', sourceStats)
+  }, [sourceStats])
   const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([])
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all')
   const [funnelData, setFunnelData] = useState<any>({})
@@ -777,8 +782,11 @@ const Dashboard: React.FC = () => {
         // Agrupar campanhas por source_title e somar os custos
         const sourceGroups: { [key: string]: number } = {}
         
-        if (Array.isArray(data)) {
-          data.forEach((campaign: any) => {
+        // Verificar se os dados vêm em data.data (estrutura do getCampaigns) ou data direto
+        const campaigns = data?.data || data || []
+        
+        if (Array.isArray(campaigns)) {
+          campaigns.forEach((campaign: any) => {
             const sourceTitle = campaign.source_title || 'Indefinido'
             const cost = campaign.stat?.cost || 0
             
@@ -799,7 +807,11 @@ const Dashboard: React.FC = () => {
         
         console.log('🔍 [SOURCE STATS] Dados mapeados para o gráfico:', mapped)
         
-        setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
+        const sortedData = mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
+        console.log('🔍 [SOURCE STATS] Dados ordenados:', sortedData)
+        
+        setSourceStats(sortedData)
+        console.log('🔍 [SOURCE STATS] Estado sourceStats atualizado com:', sortedData.length, 'itens')
         
       } catch (err) {
         console.error('❌ [SOURCE STATS] Erro ao buscar dados de fontes:', err)
