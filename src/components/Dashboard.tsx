@@ -779,6 +779,11 @@ const Dashboard: React.FC = () => {
             const testData = await api.getReport(testParams)
             
             console.log(`🔍 [SOURCE STATS] Resposta para ${groupBy}:`, testData)
+            console.log(`🔍 [SOURCE STATS] Tipo da resposta para ${groupBy}:`, typeof testData)
+            console.log(`🔍 [SOURCE STATS] É array para ${groupBy}?`, Array.isArray(testData))
+            if (testData && typeof testData === 'object') {
+              console.log(`🔍 [SOURCE STATS] Chaves da resposta para ${groupBy}:`, Object.keys(testData))
+            }
             
             // Verificar se há dados na resposta
             if (testData && testData.data && testData.data.length > 0) {
@@ -789,6 +794,11 @@ const Dashboard: React.FC = () => {
             } else if (testData && testData.items && testData.items.length > 0) {
               console.log(`✅ [SOURCE STATS] group_by ${groupBy} funcionou com ${testData.items.length} itens (formato items)`)
               data = testData
+              workingGroupBy = groupBy
+              break
+            } else if (Array.isArray(testData) && testData.length > 0) {
+              console.log(`✅ [SOURCE STATS] group_by ${groupBy} funcionou com ${testData.length} itens (formato array direto)`)
+              data = { data: testData } // Converter para formato padrão
               workingGroupBy = groupBy
               break
             }
@@ -807,12 +817,23 @@ const Dashboard: React.FC = () => {
               date_to: dateRange.endDate
             })
             
+            console.log('🔍 [SOURCE STATS] Dados das campanhas recebidos:', campaignsData)
+            
+            // Verificar se há dados válidos nas campanhas
+            let campaignsArray = []
             if (campaignsData && campaignsData.data && campaignsData.data.length > 0) {
+              campaignsArray = campaignsData.data
+            } else if (Array.isArray(campaignsData)) {
+              campaignsArray = campaignsData
+            }
+            
+            if (campaignsArray.length > 0) {
               console.log('✅ [SOURCE STATS] Usando dados das campanhas como fallback')
+              console.log('🔍 [SOURCE STATS] Campanhas disponíveis:', campaignsArray)
               
               // Agrupar campanhas por source
-              const sourceGroups = campaignsData.data.reduce((acc: any, campaign: any) => {
-                const source = campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+              const sourceGroups = campaignsArray.reduce((acc: any, campaign: any) => {
+                const source = campaign.source || campaign.traffic_source || campaign.media_source || campaign.name || 'Indefinido'
                 if (!acc[source]) {
                   acc[source] = { cost: 0, count: 0 }
                 }
