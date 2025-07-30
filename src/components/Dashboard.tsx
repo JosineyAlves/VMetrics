@@ -762,7 +762,7 @@ const Dashboard: React.FC = () => {
       const dateRange = getDateRange(selectedPeriod, customRange)
       
       try {
-        console.log('🔍 [SOURCE STATS] Buscando dados de fontes de tráfego...')
+        console.log('🔍 [SOURCE STATS] Buscando dados de campanhas para fontes de tráfego...')
         
         const params = {
           date_from: dateRange.startDate,
@@ -774,20 +774,17 @@ const Dashboard: React.FC = () => {
         const data = await api.getCampaigns(params)
         console.log('🔍 [SOURCE STATS] Dados recebidos:', data)
         
-        // Processar dados de fontes de tráfego (não campanhas individuais)
+        // Agrupar campanhas por source_title e somar os custos
         const sourceGroups: { [key: string]: number } = {}
         
-        // Verificar se os dados vêm em data.items (estrutura do RedTrack) ou data.data (estrutura do nosso proxy)
-        const items = (data as any)?.items || (data as any)?.data || []
-        
-        if (Array.isArray(items)) {
-          items.forEach((source: any) => {
-            const sourceTitle = source.title || 'Indefinido'
-            const cost = source.stat?.cost || 0
+        if (Array.isArray(data)) {
+          data.forEach((campaign: any) => {
+            const sourceTitle = campaign.source_title || 'Indefinido'
+            const cost = campaign.stat?.cost || 0
             
             if (cost > 0) {
               sourceGroups[sourceTitle] = (sourceGroups[sourceTitle] || 0) + cost
-              console.log(`🔍 [SOURCE STATS] Fonte: ${sourceTitle}, Custo: ${cost}, Campanhas: ${source.campaign_count}`)
+              console.log(`🔍 [SOURCE STATS] Campanha: ${campaign.title}, Fonte: ${sourceTitle}, Custo: ${cost}`)
             }
           })
         }
