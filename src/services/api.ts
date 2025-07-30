@@ -287,9 +287,9 @@ class RedTrackAPI {
     group_by?: string
   }): Promise<{ data: Campaign[], total: number }> {
     try {
-      // Usar o novo endpoint que busca campanhas diretamente do RedTrack
-      const realData = await this.request('/campaigns-direct', { method: 'GET' }, params)
-      console.log('📊 Campanhas reais carregadas via campaigns-direct:', realData)
+      // Sempre tentar buscar dados reais primeiro
+      const realData = await this.request('/campaigns', { method: 'GET' }, params)
+      console.log('📊 Campanhas reais carregadas:', realData)
       
       // Verificar se os dados vêm como array direto (proxy) ou com estrutura { data: [], total: number }
       let campaigns = []
