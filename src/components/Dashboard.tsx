@@ -303,6 +303,12 @@ const Dashboard: React.FC = () => {
           return total + (item.convtype1 || 0);
         }, 0);
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
+        
+        // Garantir que o campo cost seja mapeado para spend se não existir
+        if (!summary.spend && summary.cost) {
+          summary.spend = summary.cost;
+          console.log('🔍 [DASHBOARD] Campo cost mapeado para spend:', summary.spend);
+        }
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
         
         // Debug: verificar campos específicos após agregação
@@ -315,6 +321,14 @@ const Dashboard: React.FC = () => {
           income: summary.income,
           total_revenue: summary.total_revenue
         })
+        
+        // Debug: verificar se cost está sendo agregado
+        console.log('🔍 [DASHBOARD DEBUG] Verificação específica do cost:', {
+          summary_has_cost: 'cost' in summary,
+          summary_cost_value: summary.cost,
+          summary_spend_value: summary.spend,
+          all_summary_keys: Object.keys(summary)
+        });
       } else {
         summary = realData || {};
         console.log('🔍 [DASHBOARD] Dados diretos:', summary)
@@ -333,6 +347,12 @@ const Dashboard: React.FC = () => {
         // Adicionar dados de InitiateCheckout do campo convtype1 para dados diretos
         summary.initiate_checkout = realData.convtype1 || 0;
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary (dados diretos):', summary.initiate_checkout);
+        
+        // Garantir que o campo cost seja mapeado para spend se não existir (dados diretos)
+        if (!summary.spend && summary.cost) {
+          summary.spend = summary.cost;
+          console.log('🔍 [DASHBOARD] Campo cost mapeado para spend (dados diretos):', summary.spend);
+        }
       }
       setDailyData(daily);
       setDashboardData(summary);
@@ -577,6 +597,22 @@ const Dashboard: React.FC = () => {
           value = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
         } else {
           value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+        }
+        
+        // Debug: verificar valores de gasto/cost
+        console.log('🔍 [METRICS DEBUG] Spend/Cost mapping:', {
+          metricId,
+          data_spend: data.spend,
+          data_cost: data.cost,
+          data_campaign_cost: data.campaign_cost,
+          data_total_spend: data.total_spend,
+          final_value: value
+        });
+        
+        // Garantir que o valor seja um número válido
+        if (typeof value !== 'number' || isNaN(value)) {
+          console.warn('⚠️ [METRICS DEBUG] Valor inválido para spend/cost:', value);
+          value = 0;
         }
       } else if (metricId === 'revenue') {
         // Verificar se há estrutura stat (como na tela de Campanhas)
