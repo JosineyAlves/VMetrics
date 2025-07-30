@@ -1,10 +1,10 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 30000; // 30 segundos para dados mais atualizados
+const CACHE_DURATION = 60000; // 60 segundos (aumentado de 30s)
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições (mais conservador)
+const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -42,10 +42,10 @@ async function processRequestQueue() {
           headers: Object.fromEntries(response.headers.entries())
         });
         
-        // Se for rate limiting, aguardar mais tempo e tentar novamente
+        // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 10 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 10000));
+          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 5 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Tentar novamente uma vez
           const retryResponse = await fetch(url, {
@@ -54,26 +54,13 @@ async function processRequestQueue() {
           });
           
           if (!retryResponse.ok) {
-            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - aguardando mais 15 segundos...');
-            await new Promise(resolve => setTimeout(resolve, 15000));
-            
-            const secondRetryResponse = await fetch(url, {
-              method: 'GET',
-              headers
-            });
-            
-            if (!secondRetryResponse.ok) {
-              console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
-              resolve([]);
-              continue;
-            }
-            
-            const secondRetryData = await secondRetryResponse.json();
-            resolve(secondRetryData);
-          } else {
-            const retryData = await retryResponse.json();
-            resolve(retryData);
+            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
+            resolve([]);
+            continue;
           }
+          
+          const retryData = await retryResponse.json();
+          resolve(retryData);
         } else {
           reject(new Error(errorData.error || 'Erro na API do RedTrack'));
         }
@@ -120,32 +107,26 @@ export default async function handler(req, res) {
     console.log('=== CAMPAIGNS API DEBUG START ===');
     console.log('Campaigns API - Buscando dados de campanhas para data específica...');
     
-    // Usar a data específica solicitada pelo usuário, ou buscar últimos 7 dias se não especificada
+    // Usar apenas a data específica solicitada pelo usuário
     const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
     const dateTo = params.date_to || dateFrom;
     
-    // Para estatísticas, buscar um período mais amplo (últimos 7 dias) para ter dados
-    const statsDateFrom = params.date_from || (() => {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      return sevenDaysAgo.toISOString().split('T')[0];
-    })();
-    const statsDateTo = params.date_to || new Date().toISOString().split('T')[0];
-    
     console.log('Campaigns API - Data solicitada:', { dateFrom, dateTo });
     
-    // Buscar campanhas diretamente da API do RedTrack
-    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
-    campaignsUrl.searchParams.set('api_key', apiKey);
-    campaignsUrl.searchParams.set('per', '1000');
+    // Buscar dados de HOJE (data específica) usando fila
+    const todayConversionsUrl = new URL('https://api.redtrack.io/conversions');
+    todayConversionsUrl.searchParams.set('api_key', apiKey);
+    todayConversionsUrl.searchParams.set('per', '1000');
+    todayConversionsUrl.searchParams.set('date_from', dateFrom);
+    todayConversionsUrl.searchParams.set('date_to', dateTo);
     
-    console.log('Campaigns API - URL para campanhas:', campaignsUrl.toString());
+    console.log('Campaigns API - URL para conversões de HOJE:', todayConversionsUrl.toString());
     
-    const campaignsData = await new Promise((resolve, reject) => {
+    const todayConversionsData = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
         reject, 
-        url: campaignsUrl.toString(), 
+        url: todayConversionsUrl.toString(), 
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -155,24 +136,22 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
     
-    console.log('Campaigns API - Dados de campanhas:', JSON.stringify(campaignsData, null, 2));
+    console.log('Campaigns API - Dados de conversões de HOJE:', JSON.stringify(todayConversionsData, null, 2));
     
-    // Buscar estatísticas usando /report sem group_by para obter dados totais
-    const reportUrl = new URL('https://api.redtrack.io/report');
-    reportUrl.searchParams.set('api_key', apiKey);
-    reportUrl.searchParams.set('date_from', statsDateFrom);
-    reportUrl.searchParams.set('date_to', statsDateTo);
-    reportUrl.searchParams.set('per', '1000');
+    // Buscar dados de HOJE (tracks) usando fila
+    const todayTracksUrl = new URL('https://api.redtrack.io/tracks');
+    todayTracksUrl.searchParams.set('api_key', apiKey);
+    todayTracksUrl.searchParams.set('per', '1000');
+    todayTracksUrl.searchParams.set('date_from', dateFrom);
+    todayTracksUrl.searchParams.set('date_to', dateTo);
     
-    console.log('Campaigns API - Período para estatísticas:', { statsDateFrom, statsDateTo });
+    console.log('Campaigns API - URL para tracks de HOJE:', todayTracksUrl.toString());
     
-    console.log('Campaigns API - URL para relatório:', reportUrl.toString());
-    
-    const reportData = await new Promise((resolve, reject) => {
+    const todayTracksData = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
         reject, 
-        url: reportUrl.toString(), 
+        url: todayTracksUrl.toString(), 
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -182,63 +161,224 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
     
-    console.log('Campaigns API - Dados do relatório:', JSON.stringify(reportData, null, 2));
+    console.log('Campaigns API - Dados de tracks de HOJE:', JSON.stringify(todayTracksData, null, 2));
     
-    // Criar mapa de estatísticas por campanha
-    const statsMap = new Map();
-    if (Array.isArray(reportData)) {
-      reportData.forEach((item) => {
-        const campaignId = item.campaign_id || item.campaign;
-        if (campaignId) {
-          statsMap.set(campaignId, {
-            clicks: item.clicks || 0,
-            unique_clicks: item.unique_clicks || item.clicks || 0,
-            conversions: item.conversions || 0,
-            all_conversions: item.all_conversions || item.conversions || 0,
-            approved: item.approved || 0,
-            pending: item.pending || 0,
-            declined: item.declined || 0,
-            revenue: item.revenue || 0,
-            cost: item.cost || 0,
-            impressions: item.impressions || 0,
-            ctr: item.ctr || 0,
-            conversion_rate: item.conversion_rate || 0
+    // Buscar dados dos ÚLTIMOS 3 DIAS para detectar campanhas deletadas usando fila
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
+    
+    const recentTracksUrl = new URL('https://api.redtrack.io/tracks');
+    recentTracksUrl.searchParams.set('api_key', apiKey);
+    recentTracksUrl.searchParams.set('per', '1000');
+    recentTracksUrl.searchParams.set('date_from', threeDaysAgoStr);
+    recentTracksUrl.searchParams.set('date_to', dateTo);
+    
+    console.log('Campaigns API - URL para tracks dos últimos 3 dias:', recentTracksUrl.toString());
+    
+    const recentTracksData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: recentTracksUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
+    
+    console.log('Campaigns API - Dados de tracks dos últimos 3 dias:', JSON.stringify(recentTracksData, null, 2));
+    
+    // Combinar dados para determinar status real das campanhas
+    const campaignMap = new Map();
+    const uniqueClicks = new Set();
+    
+    console.log('=== PROCESSANDO DADOS DE HOJE ===');
+    // Processar dados de HOJE primeiro
+    if (todayTracksData && todayTracksData.items && Array.isArray(todayTracksData.items)) {
+      console.log(`Campaigns API - Total de tracks de HOJE: ${todayTracksData.items.length}`);
+      
+      todayTracksData.items.forEach((track, index) => {
+        const campaignName = track.campaign || track.campaign_name || track.title || 'Campanha sem nome';
+        const campaignId = track.campaign_id || track.id || Math.random().toString(36).slice(2);
+        
+        // Filtrar cliques duplicados
+        const clickKey = `${campaignName.toLowerCase().trim()}_${track.ip}_${track.track_time}_${track.user_agent}`;
+        if (uniqueClicks.has(clickKey)) {
+          return;
+        }
+        uniqueClicks.add(clickKey);
+        
+        if (!campaignMap.has(campaignName.toLowerCase().trim())) {
+          console.log(`🆕 Criando nova campanha: ${campaignName}`);
+          campaignMap.set(campaignName.toLowerCase().trim(), {
+            id: campaignId,
+            name: campaignName,
+            source: track.source || track.traffic_source || '',
+            status: 'active', // Será determinado depois
+            clicks_today: 0,
+            conversions_today: 0,
+            cost_today: 0,
+            revenue_today: 0,
+            clicks_recent: 0,
+            conversions_recent: 0,
+            cost_recent: 0,
+            revenue_recent: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0
           });
         }
+        
+        const campaign = campaignMap.get(campaignName.toLowerCase().trim());
+        campaign.clicks_today += 1;
+        campaign.cost_today += track.cost || 0;
+        console.log(`✅ Track de HOJE: ${campaignName} - Cliques: ${campaign.clicks_today}, Cost: ${campaign.cost_today}`);
       });
     }
     
-    console.log('Campaigns API - Mapa de estatísticas:', statsMap);
+    // Processar conversões de HOJE
+    if (todayConversionsData && todayConversionsData.items && Array.isArray(todayConversionsData.items)) {
+      console.log(`Campaigns API - Total de conversões de HOJE: ${todayConversionsData.items.length}`);
+      
+      todayConversionsData.items.forEach((conversion, index) => {
+        const campaignName = conversion.campaign || conversion.campaign_name || conversion.title || 'Campanha sem nome';
+        const campaignKey = campaignName.toLowerCase().trim();
+        
+        if (!campaignMap.has(campaignKey)) {
+          console.log(`🆕 Criando nova campanha: ${campaignName}`);
+          campaignMap.set(campaignKey, {
+            id: conversion.campaign_id || conversion.id || Math.random().toString(36).slice(2),
+            name: campaignName,
+            source: conversion.source || conversion.traffic_source || '',
+            status: 'active',
+            clicks_today: 0,
+            conversions_today: 0,
+            cost_today: 0,
+            revenue_today: 0,
+            clicks_recent: 0,
+            conversions_recent: 0,
+            cost_recent: 0,
+            revenue_recent: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0
+          });
+        }
+        
+        const campaign = campaignMap.get(campaignKey);
+        campaign.conversions_today += 1;
+        campaign.revenue_today += conversion.payout || conversion.revenue || 0;
+        console.log(`✅ Conversão de HOJE: ${campaignName} - Conversões: ${campaign.conversions_today}, Revenue: ${campaign.revenue_today}`);
+      });
+    }
     
-    // Processar campanhas e combinar com estatísticas
-    const processedData = campaignsData.map((campaign) => {
-      const stats = statsMap.get(campaign.id) || {
-        clicks: 0,
-        unique_clicks: 0,
-        conversions: 0,
-        all_conversions: 0,
-        approved: 0,
-        pending: 0,
-        declined: 0,
-        revenue: 0,
-        cost: 0,
-        impressions: 0,
-        ctr: 0,
-        conversion_rate: 0
-      };
+    console.log('=== PROCESSANDO DADOS RECENTES (3 DIAS) ===');
+    // Processar dados dos últimos 3 dias para detectar campanhas deletadas
+    if (recentTracksData && recentTracksData.items && Array.isArray(recentTracksData.items)) {
+      console.log(`Campaigns API - Total de tracks dos últimos 3 dias: ${recentTracksData.items.length}`);
       
-      // Determinar status baseado no status da campanha
+      recentTracksData.items.forEach((track, index) => {
+        const campaignName = track.campaign || track.campaign_name || track.title || 'Campanha sem nome';
+        const campaignKey = campaignName.toLowerCase().trim();
+        
+        if (!campaignMap.has(campaignKey)) {
+          console.log(`🆕 Criando nova campanha: ${campaignName}`);
+          campaignMap.set(campaignKey, {
+            id: track.campaign_id || track.id || Math.random().toString(36).slice(2),
+            name: campaignName,
+            source: track.source || track.traffic_source || '',
+            status: 'active',
+            clicks_today: 0,
+            conversions_today: 0,
+            cost_today: 0,
+            revenue_today: 0,
+            clicks_recent: 0,
+            conversions_recent: 0,
+            cost_recent: 0,
+            revenue_recent: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0
+          });
+        }
+        
+        const campaign = campaignMap.get(campaignKey);
+        campaign.clicks_recent += 1;
+        campaign.cost_recent += track.cost || 0;
+        console.log(`✅ Track RECENTE: ${campaignName} - Cliques: ${campaign.clicks_recent}, Cost: ${campaign.cost_recent}`);
+      });
+    }
+    
+    console.log('\n=== DETERMINANDO STATUS REAL ===');
+    // Determinar status real baseado na atividade
+    const processedData = Array.from(campaignMap.values()).map(campaign => {
+      // Lógica de status baseada em tráfego vs conversões:
+      // - Se tem tráfego HOJE mas não tem conversões HOJE: pode ser deletada
+      // - Se tem conversões HOJE: active (funcionando)
+      // - Se não tem atividade HOJE mas tem atividade recente: paused
+      // - Se não tem atividade recente: inactive (deletada)
+      
+      const hasTrafficToday = campaign.clicks_today > 0;
+      const hasConversionsToday = campaign.conversions_today > 0;
+      const hasRecentActivity = campaign.clicks_recent > 0 || campaign.conversions_recent > 0;
+      
       let status = 'inactive';
-      if (campaign.status === 2) status = 'active';
-      else if (campaign.status === 3) status = 'paused';
       
-      return {
-        id: campaign.id,
-        title: campaign.title,
-        source_title: campaign.source_title,
-        status: status,
-        stat: stats
-      };
+      if (hasConversionsToday) {
+        // Se tem conversões hoje, está funcionando
+        status = 'active';
+      } else if (hasTrafficToday && !hasConversionsToday) {
+        // Se tem tráfego mas não conversões, pode ser deletada
+        // Verificar se o tráfego é consistente com conversões recentes
+        const trafficToConversionRatio = campaign.clicks_recent > 0 ? campaign.conversions_recent / campaign.clicks_recent : 0;
+        if (trafficToConversionRatio > 0.01) { // Se tinha conversões recentes
+          status = 'paused'; // Pausada temporariamente
+        } else {
+          status = 'inactive'; // Provavelmente deletada
+        }
+      } else if (hasRecentActivity && !hasTrafficToday) {
+        status = 'paused'; // Pausada temporariamente
+      }
+      
+      console.log(`🔍 [STATUS] Campanha: ${campaign.name}`);
+      console.log(`   - Tráfego HOJE: ${hasTrafficToday ? 'SIM' : 'NÃO'} (cliques: ${campaign.clicks_today})`);
+      console.log(`   - Conversões HOJE: ${hasConversionsToday ? 'SIM' : 'NÃO'} (conversões: ${campaign.conversions_today})`);
+      console.log(`   - Atividade RECENTE: ${hasRecentActivity ? 'SIM' : 'NÃO'} (cliques: ${campaign.clicks_recent}, conversões: ${campaign.conversions_recent})`);
+      console.log(`   - Status determinado: ${status}`);
+      
+      // Calcular métricas finais
+      const totalClicks = campaign.clicks_today;
+      const totalConversions = campaign.conversions_today;
+      const totalCost = campaign.cost_today;
+      const totalRevenue = campaign.revenue_today;
+      const ctr = campaign.impressions > 0 ? (totalClicks / campaign.impressions) * 100 : 0;
+      const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+      
+              return {
+          id: campaign.id,
+          title: campaign.name,
+          source_title: campaign.source,
+          status: status,
+          stat: {
+            clicks: totalClicks,
+            unique_clicks: totalClicks, // Simplificado
+            conversions: totalConversions,
+            all_conversions: totalConversions,
+            approved: totalConversions,
+            pending: 0,
+            declined: 0,
+            revenue: totalRevenue,
+            cost: totalCost,
+            impressions: campaign.impressions,
+            ctr: ctr,
+            conversion_rate: conversionRate,
+  
+          }
+        };
     });
     
     console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
