@@ -143,12 +143,70 @@ export default async function handler(req, res) {
     // Processar dados do relatório
     let processedData = [];
     
-    if (reportData && reportData.data && Array.isArray(reportData.data)) {
+    // A estrutura real da resposta da RedTrack é um array direto, não {data: [...]}
+    if (reportData && Array.isArray(reportData)) {
+      console.log(`Campaigns API - Total de campanhas encontradas: ${reportData.length}`);
+      
+      processedData = reportData.map((item, index) => {
+        // Como não há campo 'campaign' específico, vamos usar a data como identificador
+        // ou criar um identificador baseado no índice
+        const campaignName = item.campaign || `Campanha ${index + 1}`;
+        const campaignId = item.campaign_id || `camp_${index + 1}`;
+        
+        // Calcular métricas derivadas
+        const clicks = item.clicks || 0;
+        const conversions = item.conversions || 0;
+        const cost = item.cost || 0;
+        const revenue = item.revenue || 0;
+        const impressions = item.impressions || 0;
+        
+        // Usar métricas já calculadas pela RedTrack quando disponíveis
+        const roi = item.roi !== undefined ? item.roi : (cost > 0 ? ((revenue - cost) / cost) * 100 : 0);
+        const ctr = item.ctr !== undefined ? item.ctr : (impressions > 0 ? (clicks / impressions) * 100 : 0);
+        const conversionRate = item.cr !== undefined ? item.cr * 100 : (clicks > 0 ? (conversions / clicks) * 100 : 0);
+        const cpc = item.cpc !== undefined ? item.cpc : (clicks > 0 ? cost / clicks : 0);
+        const cpa = item.cpa !== undefined ? item.cpa : (conversions > 0 ? cost / conversions : 0);
+        const epc = item.epc !== undefined ? item.epc : (clicks > 0 ? revenue / clicks : 0);
+        
+        console.log(`✅ Campanha processada: ${campaignName}`);
+        console.log(`   - Cliques: ${clicks}, Conversões: ${conversions}`);
+        console.log(`   - Custo: ${cost}, Receita: ${revenue}`);
+        console.log(`   - ROI: ${roi}%, CTR: ${ctr}%`);
+        
+        return {
+          id: campaignId,
+          title: campaignName,
+          source_title: item.source || item.source_name || '',
+          status: 'active', // Status será determinado pelo frontend baseado na atividade
+          stat: {
+            clicks: clicks,
+            unique_clicks: item.unique_clicks || clicks, // Usar unique_clicks se disponível
+            conversions: conversions,
+            all_conversions: item.total_conversions || conversions, // Usar total_conversions se disponível
+            approved: item.approved || conversions, // Usar approved se disponível
+            pending: item.pending || 0,
+            declined: item.declined || 0,
+            revenue: revenue,
+            cost: cost,
+            impressions: impressions,
+            ctr: ctr,
+            conversion_rate: conversionRate,
+            // Métricas calculadas adicionais
+            profit: item.profit !== undefined ? item.profit : (revenue - cost),
+            roi: roi,
+            cpc: cpc,
+            cpa: cpa,
+            epc: epc
+          }
+        };
+      });
+    } else if (reportData && reportData.data && Array.isArray(reportData.data)) {
+      // Fallback para estrutura {data: [...]} se existir
       console.log(`Campaigns API - Total de campanhas encontradas: ${reportData.data.length}`);
       
       processedData = reportData.data.map((item, index) => {
-        const campaignName = item.campaign || item.campaign_name || item.title || 'Campanha sem nome';
-        const campaignId = item.campaign_id || item.id || Math.random().toString(36).slice(2);
+        const campaignName = item.campaign || item.campaign_name || item.title || `Campanha ${index + 1}`;
+        const campaignId = item.campaign_id || item.id || `camp_${index + 1}`;
         
         // Calcular métricas derivadas
         const clicks = item.clicks || 0;
@@ -200,6 +258,7 @@ export default async function handler(req, res) {
       });
     } else {
       console.log('Campaigns API - Nenhum dado encontrado ou estrutura inesperada');
+      console.log('Campaigns API - Estrutura recebida:', typeof reportData, Array.isArray(reportData));
     }
     
     console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
