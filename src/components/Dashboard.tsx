@@ -760,20 +760,52 @@ const Dashboard: React.FC = () => {
       if (!apiKey) return
       const api = new RedTrackAPI(apiKey)
       const dateRange = getDateRange(selectedPeriod, customRange)
+      
       try {
+        console.log('🔍 [SOURCE STATS] Buscando dados de fontes de tráfego...')
+        
         const params = {
           date_from: dateRange.startDate,
           date_to: dateRange.endDate,
-          group_by: 'traffic_channel',
+          group_by: 'rt_source',
         }
-        const data = await api.getReport(params)
-        let items = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
-        const mapped = items.map((item: any) => ({
-          key: item.traffic_channel || item.source || item.utm_source || 'Indefinido',
-          cost: item.spend ?? item.cost ?? 0,
+        
+        console.log('🔍 [SOURCE STATS] Parâmetros:', params)
+        const data = await api.getCampaigns(params)
+        console.log('🔍 [SOURCE STATS] Dados recebidos:', data)
+        
+        // Processar dados de fontes de tráfego (não campanhas individuais)
+        const sourceGroups: { [key: string]: number } = {}
+        
+        // Verificar se os dados vêm em data.items (estrutura do RedTrack) ou data.data (estrutura do nosso proxy)
+        const items = (data as any)?.items || (data as any)?.data || []
+        
+        if (Array.isArray(items)) {
+          items.forEach((source: any) => {
+            const sourceTitle = source.title || 'Indefinido'
+            const cost = source.stat?.cost || 0
+            
+            if (cost > 0) {
+              sourceGroups[sourceTitle] = (sourceGroups[sourceTitle] || 0) + cost
+              console.log(`🔍 [SOURCE STATS] Fonte: ${sourceTitle}, Custo: ${cost}, Campanhas: ${source.campaign_count}`)
+            }
+          })
+        }
+        
+        console.log('🔍 [SOURCE STATS] Agrupamento por fonte:', sourceGroups)
+        
+        // Converter para o formato esperado pelo gráfico
+        const mapped = Object.entries(sourceGroups).map(([sourceName, totalCost]) => ({
+          key: sourceName,
+          cost: totalCost,
         }))
+        
+        console.log('🔍 [SOURCE STATS] Dados mapeados para o gráfico:', mapped)
+        
         setSourceStats(mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost))
+        
       } catch (err) {
+        console.error('❌ [SOURCE STATS] Erro ao buscar dados de fontes:', err)
         setSourceStats([])
       }
     }

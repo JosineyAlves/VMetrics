@@ -284,6 +284,7 @@ class RedTrackAPI {
     status?: string
     page?: number
     limit?: number
+    group_by?: string
   }): Promise<{ data: Campaign[], total: number }> {
     try {
       // Sempre tentar buscar dados reais primeiro
