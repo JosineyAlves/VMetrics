@@ -165,7 +165,7 @@ export default async function handler(req, res) {
     // Criar mapa de estatísticas por campanha
     const statsMap = new Map();
     if (Array.isArray(reportData)) {
-      reportData.forEach((item: any) => {
+      reportData.forEach((item) => {
         const campaignId = item.campaign_id || item.campaign;
         if (campaignId) {
           statsMap.set(campaignId, {
@@ -189,7 +189,7 @@ export default async function handler(req, res) {
     console.log('Campaigns API - Mapa de estatísticas:', statsMap);
     
     // Processar campanhas e combinar com estatísticas
-    const processedData = campaignsData.map((campaign: any) => {
+    const processedData = campaignsData.map((campaign) => {
       const stats = statsMap.get(campaign.id) || {
         clicks: 0,
         unique_clicks: 0,
