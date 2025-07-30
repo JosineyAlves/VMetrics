@@ -4,7 +4,7 @@ const CACHE_DURATION = 30000; // 30 segundos para dados mais atualizados
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 3000; // 3 segundos entre requisições
+const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições (mais conservador)
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -42,10 +42,10 @@ async function processRequestQueue() {
           headers: Object.fromEntries(response.headers.entries())
         });
         
-        // Se for rate limiting, aguardar e tentar novamente
+        // Se for rate limiting, aguardar mais tempo e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 5 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 10 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 10000));
           
           // Tentar novamente uma vez
           const retryResponse = await fetch(url, {
@@ -54,13 +54,26 @@ async function processRequestQueue() {
           });
           
           if (!retryResponse.ok) {
-            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
-            resolve([]);
-            continue;
+            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - aguardando mais 15 segundos...');
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            
+            const secondRetryResponse = await fetch(url, {
+              method: 'GET',
+              headers
+            });
+            
+            if (!secondRetryResponse.ok) {
+              console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
+              resolve([]);
+              continue;
+            }
+            
+            const secondRetryData = await secondRetryResponse.json();
+            resolve(secondRetryData);
+          } else {
+            const retryData = await retryResponse.json();
+            resolve(retryData);
           }
-          
-          const retryData = await retryResponse.json();
-          resolve(retryData);
         } else {
           reject(new Error(errorData.error || 'Erro na API do RedTrack'));
         }
