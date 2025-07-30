@@ -93,7 +93,6 @@ export interface ReportData {
   conversion_roas_percentage: number
   conversion_profit: number
   epc_roi: number
-  initiate_checkout: number
 }
 
 export interface CountryData {
@@ -274,19 +273,7 @@ class RedTrackAPI {
     }
   }
 
-  async getInitiateCheckout(params: { date_from: string; date_to: string; [key: string]: any }): Promise<any> {
-    if (!params?.date_from || !params?.date_to) {
-      throw new Error('Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD')
-    }
-    try {
-      const realData = await this.request('/initiate-checkout', { method: 'GET' }, params)
-      console.log('📊 Conversões InitiateCheckout carregadas:', realData)
-      return realData
-    } catch (error) {
-      console.error('Erro ao buscar conversões InitiateCheckout:', error)
-      throw error
-    }
-  }
+
 
   // Get campaigns
   async getCampaigns(params?: {

@@ -227,15 +227,7 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
-      // Buscar dados de InitiateCheckout
-      console.log('🔍 [DASHBOARD] Buscando dados de InitiateCheckout...')
-      let initiateCheckoutData = { items: [], total: 0 }
-      try {
-        initiateCheckoutData = await api.getInitiateCheckout(params)
-        console.log('🔍 [DASHBOARD] Dados InitiateCheckout:', initiateCheckoutData)
-      } catch (error) {
-        console.log('⚠️ [DASHBOARD] Erro ao buscar InitiateCheckout:', error)
-      }
+
       
       // Carregar campanhas deletadas do localStorage para filtrar dados
       const savedDeletedCampaigns = localStorage.getItem('deletedCampaigns')
@@ -306,16 +298,11 @@ const Dashboard: React.FC = () => {
           return acc;
         }, {});
         
-        // Adicionar dados de InitiateCheckout ao summary
-        if (initiateCheckoutData && initiateCheckoutData.items && Array.isArray(initiateCheckoutData.items)) {
-          summary.initiate_checkout = initiateCheckoutData.items.length;
-          console.log('🔍 [DASHBOARD] InitiateCheckout adicionado ao summary:', summary.initiate_checkout);
-          console.log('🔍 [DASHBOARD] Total de conversões InitiateCheckout encontradas:', initiateCheckoutData.items.length);
-          console.log('🔍 [DASHBOARD] IDs das conversões InitiateCheckout:', initiateCheckoutData.items.map((item: any) => item.id));
-        } else {
-          summary.initiate_checkout = 0;
-          console.log('🔍 [DASHBOARD] Nenhuma conversão InitiateCheckout encontrada');
-        }
+        // Adicionar dados de InitiateCheckout do campo convtype1
+        summary.initiate_checkout = filteredData.reduce((total: number, item: any) => {
+          return total + (item.convtype1 || 0);
+        }, 0);
+        console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
         
         // Debug: verificar campos específicos após agregação
@@ -343,13 +330,9 @@ const Dashboard: React.FC = () => {
           total_revenue: summary.total_revenue
         })
         
-        // Adicionar dados de InitiateCheckout ao summary para dados diretos
-        if (initiateCheckoutData && initiateCheckoutData.items && Array.isArray(initiateCheckoutData.items)) {
-          summary.initiate_checkout = initiateCheckoutData.items.length;
-          console.log('🔍 [DASHBOARD] InitiateCheckout adicionado ao summary (dados diretos):', summary.initiate_checkout);
-        } else {
-          summary.initiate_checkout = 0;
-        }
+        // Adicionar dados de InitiateCheckout do campo convtype1 para dados diretos
+        summary.initiate_checkout = realData.convtype1 || 0;
+        console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary (dados diretos):', summary.initiate_checkout);
       }
       setDailyData(daily);
       setDashboardData(summary);
@@ -423,8 +406,7 @@ const Dashboard: React.FC = () => {
           conversion_roas: 0,
           conversion_roas_percentage: 0,
           conversion_profit: 0,
-          epc_roi: 0,
-          initiate_checkout: 0
+          epc_roi: 0
         }
         setDashboardData(emptyData)
       }
@@ -483,8 +465,7 @@ const Dashboard: React.FC = () => {
         conversion_roas: 0,
         conversion_roas_percentage: 0,
         conversion_profit: 0,
-        epc_roi: 0,
-        initiate_checkout: 0
+        epc_roi: 0
       }
       setDashboardData(emptyData)
     } finally {
@@ -618,19 +599,14 @@ const Dashboard: React.FC = () => {
         }
         value = revenue - cost
       } else if (metricId === 'initiate_checkout') {
-        // Mapear para campos relacionados a checkout do RedTrack
-        if (data.stat) {
-          value = data.stat.initiate_checkout ?? data.stat.checkout_events ?? data.stat.checkout_initiated ?? 0
-        } else {
-          value = data.initiate_checkout ?? data.checkout_events ?? data.checkout_initiated ?? 0
-        }
+        // Mapear para o campo convtype1 do RedTrack
+        value = data.convtype1 ?? data.initiate_checkout ?? 0;
         
         // Debug: verificar se há dados de InitiateCheckout
-        console.log('🔍 [METRICS DEBUG] InitiateCheckout value:', value);
+        console.log('🔍 [METRICS DEBUG] InitiateCheckout (convtype1) value:', value);
         console.log('🔍 [METRICS DEBUG] InitiateCheckout data fields:', {
-          initiate_checkout: data.initiate_checkout,
-          checkout_events: data.checkout_events,
-          checkout_initiated: data.checkout_initiated
+          convtype1: data.convtype1,
+          initiate_checkout: data.initiate_checkout
         });
       }
       

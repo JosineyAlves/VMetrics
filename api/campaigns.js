@@ -376,7 +376,7 @@ export default async function handler(req, res) {
             impressions: campaign.impressions,
             ctr: ctr,
             conversion_rate: conversionRate,
-            initiate_checkout: 0 // Campo para eventos de checkout (pode ser mapeado de dados específicos do RedTrack)
+  
           }
         };
     });
