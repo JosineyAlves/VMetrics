@@ -154,16 +154,19 @@ export default async function handler(req, res) {
 
     // Função para extrair métricas de um período
     function extractPeriodMetrics(data) {
-      // Verificar se data é um objeto com a propriedade stat
-      if (data && data.stat) {
-        return {
-          ad_spend: data.stat.cost || 0,
-          revenue: data.stat.revenue || 0,
-          roas: data.stat.roas || 0
-        };
+      // O endpoint /report retorna um array com os dados agregados
+      if (Array.isArray(data)) {
+        // Somar todas as métricas do período
+        return data.reduce((acc, item) => {
+          acc.ad_spend += item.cost || 0;
+          acc.revenue += item.revenue || 0;
+          // ROAS é calculado como revenue/cost
+          acc.roas = acc.ad_spend > 0 ? (acc.revenue / acc.ad_spend) * 100 : 0;
+          return acc;
+        }, { ad_spend: 0, revenue: 0, roas: 0 });
       }
       
-      // Se não tiver stat, retornar zeros
+      // Se não for array ou estiver vazio, retornar zeros
       return {
         ad_spend: 0,
         revenue: 0,
@@ -172,20 +175,20 @@ export default async function handler(req, res) {
     }
 
     // Extrair métricas para cada período
-    const todayMetrics = extractPeriodMetrics(todayData);
-    const yesterdayMetrics = extractPeriodMetrics(yesterdayData);
-    const thisMonthMetrics = extractPeriodMetrics(thisMonthData);
-    const lastMonthMetrics = extractPeriodMetrics(lastMonthData);
+    const todayMetrics = extractPeriodMetrics(todayData.data || []);
+    const yesterdayMetrics = extractPeriodMetrics(yesterdayData.data || []);
+    const thisMonthMetrics = extractPeriodMetrics(thisMonthData.data || []);
+    const lastMonthMetrics = extractPeriodMetrics(lastMonthData.data || []);
 
     // Função para obter top 3 campanhas de um período
     function getTopCampaigns(data) {
-      if (!data || !Array.isArray(data)) {
+      if (!data || !data.data || !Array.isArray(data.data)) {
         return [];
       }
       
-      return data
+      return data.data
         .map(campaign => ({
-          name: campaign.campaign || campaign.title || '',
+          name: campaign.campaign || '',
           conversions: campaign.conversions || 0,
           revenue: campaign.revenue || 0
         }))
@@ -279,11 +282,11 @@ export default async function handler(req, res) {
         }
       ],
       // Manter a lista completa de campanhas para compatibilidade
-      campaigns: todayData.map(campaign => ({
-        id: campaign.campaign_id || campaign.id || '',
-        title: campaign.campaign || campaign.title || '',
-        source_title: campaign.source || campaign.source_title || '',
-        status: campaign.status || 'active',
+      campaigns: (todayData.data || []).map(campaign => ({
+        id: campaign.campaign_id || '',
+        title: campaign.campaign || '',
+        source_title: campaign.source || '',
+        status: 'active', // O endpoint /report não retorna status
         stat: {
           clicks: campaign.clicks || 0,
           unique_clicks: campaign.unique_clicks || 0,
