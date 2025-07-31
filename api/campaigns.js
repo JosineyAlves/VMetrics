@@ -83,166 +83,6 @@ async function processRequestQueue() {
   isProcessingQueue = false;
 }
 
-// Função otimizada para buscar dados de múltiplas campanhas em paralelo
-async function getCampaignsDataParallel(apiKey, campaigns, dateFrom, dateTo) {
-  console.log(`Campaigns API - Buscando dados para ${campaigns.length} campanhas em paralelo...`);
-  
-  // Preparar todas as URLs de uma vez
-  const allUrls = [];
-  const campaignIds = campaigns.map(c => c.id);
-  
-  // URL para buscar todos os tracks de uma vez
-  const tracksUrl = new URL('https://api.redtrack.io/tracks');
-  tracksUrl.searchParams.set('api_key', apiKey);
-  tracksUrl.searchParams.set('date_from', dateFrom);
-  tracksUrl.searchParams.set('date_to', dateTo);
-  tracksUrl.searchParams.set('per', '10000'); // Aumentar limite
-  
-  // URL para buscar todas as conversões de uma vez
-  const conversionsUrl = new URL('https://api.redtrack.io/conversions');
-  conversionsUrl.searchParams.set('api_key', apiKey);
-  conversionsUrl.searchParams.set('date_from', dateFrom);
-  conversionsUrl.searchParams.set('date_to', dateTo);
-  conversionsUrl.searchParams.set('per', '10000'); // Aumentar limite
-  
-  allUrls.push({ url: tracksUrl.toString(), type: 'tracks' });
-  allUrls.push({ url: conversionsUrl.toString(), type: 'conversions' });
-  
-  // Fazer requisições em paralelo
-  const promises = allUrls.map(({ url, type }) => 
-    new Promise((resolve, reject) => {
-      requestQueue.push({ 
-        resolve, 
-        reject, 
-        url, 
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent': 'TrackView-Dashboard/1.0'
-        }
-      });
-      processRequestQueue();
-    })
-  );
-  
-  // Aguardar todas as requisições
-  const [tracksData, conversionsData] = await Promise.all(promises);
-  
-  // Processar dados em memória (muito mais rápido que múltiplas requisições)
-  const tracksArray = tracksData.items || tracksData.data || tracksData || [];
-  const conversionsArray = conversionsData.items || conversionsData.data || conversionsData || [];
-  
-  console.log(`Campaigns API - Dados obtidos: ${tracksArray.length} tracks, ${conversionsArray.length} conversões`);
-  
-  // Processar cada campanha usando os dados já carregados
-  const processedData = campaigns.map(campaign => {
-    const campaignId = campaign.id;
-    
-    // Filtrar tracks para esta campanha
-    const campaignTracks = Array.isArray(tracksArray) ? 
-      tracksArray.filter(track => track.campaign_id === campaignId) : [];
-    
-    // Filtrar conversões para esta campanha
-    const campaignConversions = Array.isArray(conversionsArray) ? 
-      conversionsArray.filter(conv => conv.campaign_id === campaignId) : [];
-    
-    // Calcular métricas
-    const clicks = campaignTracks.length;
-    
-    // Calcular unique_clicks
-    let uniqueClicks = 0;
-    if (campaignTracks.length > 0) {
-      const uniqueIdentifiers = new Set();
-      campaignTracks.forEach(track => {
-        const identifier = track.clickid || track.fingerprint || track.ip;
-        if (identifier) {
-          uniqueIdentifiers.add(identifier);
-        }
-      });
-      uniqueClicks = uniqueIdentifiers.size;
-    }
-    
-    const conversions = campaignConversions.length;
-    
-    // Calcular custo total
-    const totalCost = campaignTracks.reduce((sum, track) => sum + (track.cost || 0), 0);
-    
-    // Calcular receita total
-    const totalRevenue = campaignConversions.reduce((sum, conv) => sum + (conv.payout || 0), 0);
-    
-    // Calcular status das conversões
-    const statusCounts = {
-      approved: 0,
-      pending: 0,
-      declined: 0,
-      other: 0
-    };
-    
-    campaignConversions.forEach(conv => {
-      const status = conv.status || 'other';
-      if (status === 'approved' || status === 'approve') {
-        statusCounts.approved++;
-      } else if (status === 'pending' || status === 'pend') {
-        statusCounts.pending++;
-      } else if (status === 'declined' || status === 'decline') {
-        statusCounts.declined++;
-      } else {
-        statusCounts.other++;
-      }
-    });
-    
-    // Calcular métricas derivadas
-    const profit = totalRevenue - totalCost;
-    const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
-    const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0;
-    const cpc = clicks > 0 ? totalCost / clicks : 0;
-    const cpa = conversions > 0 ? totalCost / conversions : 0;
-    const epc = clicks > 0 ? totalRevenue / clicks : 0;
-    const epl = clicks > 0 ? profit / clicks : 0;
-    const roas = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0;
-    
-    // Mapear status numérico para string
-    let statusString = 'inactive';
-    if (campaign.status === 1) {
-      statusString = 'active';
-    } else if (campaign.status === 2) {
-      statusString = 'paused';
-    } else if (campaign.status === 3) {
-      statusString = 'deleted';
-    }
-    
-    return {
-      id: campaign.id,
-      title: campaign.title,
-      source_title: campaign.source_title || '',
-      status: statusString,
-      stat: {
-        clicks,
-        unique_clicks: uniqueClicks,
-        conversions,
-        all_conversions: conversions,
-        approved: statusCounts.approved,
-        pending: statusCounts.pending,
-        declined: statusCounts.declined,
-        revenue: totalRevenue,
-        cost: totalCost,
-        impressions: 0,
-        ctr: 0,
-        conversion_rate: conversionRate,
-        profit,
-        roi,
-        cpc,
-        cpa,
-        epc,
-        epl,
-        roas
-      }
-    };
-  });
-  
-  return processedData;
-}
-
 export default async function handler(req, res) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -271,7 +111,7 @@ export default async function handler(req, res) {
 
   try {
     console.log('=== CAMPAIGNS API DEBUG START ===');
-    console.log('Campaigns API - Nova abordagem otimizada: obter campanhas e dados em paralelo...');
+    console.log('Campaigns API - Nova abordagem: usar endpoint /report com group_by=campaign...');
     
     const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
     const dateTo = params.date_to || dateFrom;
@@ -313,10 +153,85 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - Campanhas obtidas:', campaignsData.length);
     
-    // PASSO 2: Buscar dados de todas as campanhas em paralelo (otimização principal)
-    console.log('Campaigns API - Passo 2: Buscando dados de todas as campanhas em paralelo...');
+    // PASSO 2: Buscar dados agregados por campanha usando /report
+    console.log('Campaigns API - Passo 2: Buscando dados por campanha usando /report...');
     
-    const processedData = await getCampaignsDataParallel(apiKey, campaignsData, dateFrom, dateTo);
+    const reportUrl = new URL('https://api.redtrack.io/report');
+    reportUrl.searchParams.set('api_key', apiKey);
+    reportUrl.searchParams.set('date_from', dateFrom);
+    reportUrl.searchParams.set('date_to', dateTo);
+    reportUrl.searchParams.set('group_by', 'campaign');
+    
+    console.log('Campaigns API - URL do report:', reportUrl.toString());
+    
+    const reportData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: reportUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
+    
+    console.log('Campaigns API - Dados do report recebidos:', reportData);
+    
+    // PASSO 3: Combinar dados das campanhas com dados do report
+    console.log('Campaigns API - Passo 3: Combinando dados...');
+    
+    const processedData = campaignsData.map(campaign => {
+      // Buscar dados específicos desta campanha no report
+      const campaignReportData = Array.isArray(reportData) ? 
+        reportData.find(item => item.campaign_id === campaign.id || item.campaign === campaign.title) : 
+        null;
+      
+      console.log(`Campaigns API - Dados para campanha ${campaign.title}:`, campaignReportData);
+      
+      // Mapear status numérico para string
+      let statusString = 'inactive';
+      if (campaign.status === 1) {
+        statusString = 'active';
+      } else if (campaign.status === 2) {
+        statusString = 'paused';
+      } else if (campaign.status === 3) {
+        statusString = 'deleted';
+      }
+      
+      // Usar dados do report se disponíveis, senão usar dados da campanha
+      const stat = campaignReportData || campaign.stat || {};
+      
+      return {
+        id: campaign.id,
+        title: campaign.title,
+        source_title: campaign.source_title || '',
+        status: statusString,
+        stat: {
+          clicks: stat.clicks || 0,
+          unique_clicks: stat.unique_clicks || 0,
+          conversions: stat.conversions || 0,
+          all_conversions: stat.conversions || 0,
+          approved: stat.approved || 0,
+          pending: stat.pending || 0,
+          declined: stat.declined || 0,
+          revenue: stat.revenue || 0,
+          cost: stat.cost || 0,
+          impressions: stat.impressions || 0,
+          ctr: stat.ctr || 0,
+          conversion_rate: stat.conversion_rate || 0,
+          profit: (stat.revenue || 0) - (stat.cost || 0),
+          roi: stat.cost > 0 ? (((stat.revenue || 0) - (stat.cost || 0)) / (stat.cost || 0)) * 100 : 0,
+          cpc: stat.cpc || 0,
+          cpa: stat.cpa || 0,
+          epc: stat.epc || 0,
+          epl: stat.epc || 0,
+          roas: stat.cost > 0 ? ((stat.revenue || 0) / (stat.cost || 0)) * 100 : 0
+        }
+      };
+    });
     
     console.log('Campaigns API - Dados processados finais:', processedData.length, 'campanhas');
     console.log('=== CAMPAIGNS API DEBUG END ===');

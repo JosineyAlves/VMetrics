@@ -14,7 +14,6 @@ import {
   Target,
   Link,
   Palette,
-  Trash2,
   Settings
 } from 'lucide-react'
 import { Button } from './ui/button'
@@ -109,38 +108,9 @@ const Campaigns: React.FC = () => {
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
   const [totalCampaigns, setTotalCampaigns] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
-  const [deletedCampaigns, setDeletedCampaigns] = useState<Set<string>>(new Set())
 
   // Date range picker state
   const [dateRange, setDateRange] = useState({ from: '', to: '' })
-
-  // Carregar campanhas deletadas do localStorage
-  useEffect(() => {
-    const savedDeletedCampaigns = localStorage.getItem('deletedCampaigns')
-    if (savedDeletedCampaigns) {
-      setDeletedCampaigns(new Set(JSON.parse(savedDeletedCampaigns)))
-    }
-  }, [])
-
-  // Salvar campanhas deletadas no localStorage
-  const saveDeletedCampaigns = (deletedSet: Set<string>) => {
-    localStorage.setItem('deletedCampaigns', JSON.stringify(Array.from(deletedSet)))
-    setDeletedCampaigns(deletedSet)
-  }
-
-  // Função para marcar campanha como deletada
-  const markCampaignAsDeleted = (campaignName: string) => {
-    const newDeletedCampaigns = new Set(deletedCampaigns)
-    newDeletedCampaigns.add(campaignName.toLowerCase().trim())
-    saveDeletedCampaigns(newDeletedCampaigns)
-  }
-
-  // Função para restaurar campanha
-  const restoreCampaign = (campaignName: string) => {
-    const newDeletedCampaigns = new Set(deletedCampaigns)
-    newDeletedCampaigns.delete(campaignName.toLowerCase().trim())
-    saveDeletedCampaigns(newDeletedCampaigns)
-  }
 
   // Função utilitária para obter datas do período
   // Atualizar filtros ao selecionar um preset
@@ -213,14 +183,11 @@ const Campaigns: React.FC = () => {
           const stat = item.stat || {}
           const campaignName = item.title || 'Campanha sem nome'
           
-          // Verificar se a campanha foi marcada como deletada pelo usuário
-          const isUserDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim())
-          
           return {
             id: item.id,
             name: campaignName,
             source: item.source_title || '',
-            status: isUserDeleted ? 'inactive' : (item.status || 'active'),
+            status: item.status || 'active',
             spend: stat.cost || 0,
             revenue: stat.revenue || 0,
             cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
@@ -234,8 +201,7 @@ const Campaigns: React.FC = () => {
             pending: stat.pending || 0,
             declined: stat.declined || 0,
             ctr: stat.ctr || 0,
-            conversion_rate: stat.conversion_rate || 0,
-            isUserDeleted: isUserDeleted
+            conversion_rate: stat.conversion_rate || 0
           }
         })
       }
@@ -371,7 +337,7 @@ const Campaigns: React.FC = () => {
       }
     }
     // eslint-disable-next-line
-  }, [apiKey, selectedPeriod, filters, activeTab, customRange, deletedCampaigns])
+  }, [apiKey, selectedPeriod, filters, activeTab, customRange])
 
   // useEffect para buscar os blocos de performance ao trocar filtros/aba
   useEffect(() => {
@@ -425,7 +391,7 @@ const Campaigns: React.FC = () => {
       case 'paused':
         return <Pause className="w-4 h-4" />
       case 'deleted':
-        return <Trash2 className="w-4 h-4" />
+        return <Eye className="w-4 h-4" />
       case 'inactive':
         return <Eye className="w-4 h-4" />
       default:
@@ -776,9 +742,6 @@ const Campaigns: React.FC = () => {
               <thead className="bg-trackview-background">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campanha
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -846,7 +809,7 @@ const Campaigns: React.FC = () => {
               <tbody className="bg-white divide-y divide-trackview-background">
                 {filteredCampaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={23} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={22} className="px-4 py-8 text-center text-gray-500">
                       {searchTerm || Object.values(filters).some(v => v) ? 
                         'Nenhuma campanha encontrada com os filtros aplicados.' :
                         'Nenhuma campanha encontrada para o período selecionado.'
@@ -862,31 +825,6 @@ const Campaigns: React.FC = () => {
                       transition={{ delay: index * 0.05 }}
                       className="hover:bg-trackview-background"
                     >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          {campaign.isUserDeleted ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => restoreCampaign(campaign.name)}
-                              className="text-green-600 hover:text-green-700"
-                              title="Restaurar campanha"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => markCampaignAsDeleted(campaign.name)}
-                              className="text-red-600 hover:text-red-700"
-                              title="Marcar como deletada"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
                       </td>
