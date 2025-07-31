@@ -388,6 +388,19 @@ const Campaigns: React.FC = () => {
   // Store para métricas das campanhas
   const { metrics: campaignMetrics, reorderMetrics } = useCampaignMetricsStore()
   
+  // Debug: verificar se o store está funcionando
+  console.log('Campaigns - campaignMetrics:', campaignMetrics)
+  
+  // Verificação de segurança para garantir que campaignMetrics existe
+  const safeMetrics = campaignMetrics || []
+  
+  // Verificação adicional para garantir que o store está funcionando
+  useEffect(() => {
+    if (!campaignMetrics || campaignMetrics.length === 0) {
+      console.log('Campaigns - Store não inicializado, usando fallback')
+    }
+  }, [campaignMetrics])
+  
   // Função para renderizar células da tabela baseada na métrica
   const renderMetricCell = (campaign: any, metric: any) => {
     switch (metric.key) {
@@ -702,7 +715,7 @@ const Campaigns: React.FC = () => {
             </div>
             
             <MetricsOrder
-              metrics={campaignMetrics}
+              metrics={safeMetrics}
               onMetricsChange={reorderMetrics}
               className="mb-4"
             />
@@ -954,17 +967,50 @@ const Campaigns: React.FC = () => {
             <table className="w-full">
               <thead className="bg-trackview-background">
                 <tr>
-                  {campaignMetrics
-                    .filter(metric => metric.visible)
-                    .sort((a, b) => (a.order || 0) - (b.order || 0))
-                    .map(metric => (
-                      <th 
-                        key={metric.id}
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        {metric.label}
+                  {safeMetrics.length > 0 ? (
+                    safeMetrics
+                      .filter(metric => metric.visible)
+                      .sort((a, b) => (a.order || 0) - (b.order || 0))
+                      .map(metric => (
+                        <th 
+                          key={metric.id}
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {metric.label}
+                        </th>
+                      ))
+                  ) : (
+                    // Fallback para quando não há métricas configuradas
+                    <>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ações
                       </th>
-                    ))}
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Campanha
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fonte
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cliques
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Conversões
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Gasto
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Receita
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ROI
+                      </th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-trackview-background">
@@ -976,14 +1022,72 @@ const Campaigns: React.FC = () => {
                     transition={{ delay: index * 0.1 }}
                     className="hover:bg-trackview-background"
                   >
-                    {campaignMetrics
-                      .filter(metric => metric.visible)
-                      .sort((a, b) => (a.order || 0) - (b.order || 0))
-                      .map(metric => (
-                        <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                          {renderMetricCell(campaign, metric)}
+                    {safeMetrics.length > 0 ? (
+                      safeMetrics
+                        .filter(metric => metric.visible)
+                        .sort((a, b) => (a.order || 0) - (b.order || 0))
+                        .map(metric => (
+                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
+                            {renderMetricCell(campaign, metric)}
+                          </td>
+                        ))
+                    ) : (
+                      // Fallback para quando não há métricas configuradas
+                      <>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            {campaign.isUserDeleted ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => restoreCampaign(campaign.name)}
+                                className="text-green-600 hover:text-green-700"
+                                title="Restaurar campanha"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => markCampaignAsDeleted(campaign.name)}
+                                className="text-red-600 hover:text-red-700"
+                                title="Marcar como deletada"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
-                      ))}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{campaign.source}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                            {getStatusIcon(campaign.status)}
+                            <span className="ml-1">{campaign.status}</span>
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{campaign.roi}%</div>
+                        </td>
+                      </>
+                    )}
                   </motion.tr>
                 ))}
               </tbody>
