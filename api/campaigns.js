@@ -18,12 +18,14 @@ async function processRequestQueue() {
     const { resolve, reject, url, headers } = requestQueue.shift();
     
     try {
-      // Aguardar intervalo mínimo entre requisições
-      const now = Date.now();
-      const timeSinceLastRequest = now - lastRequestTime;
-      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-        await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
-      }
+                // Aguardar intervalo mínimo entre requisições
+          const now = Date.now();
+          const timeSinceLastRequest = now - lastRequestTime;
+          if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+            const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+            console.log(`⏳ [CAMPAIGNS] Aguardando ${waitTime}ms para rate limiting...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
       
       console.log('⏳ [CAMPAIGNS] Processando requisição da fila...');
       const response = await fetch(url, {
@@ -89,6 +91,8 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   tracksUrl.searchParams.set('campaign_id', campaignId);
   tracksUrl.searchParams.set('per', '1000');
   
+  console.log(`Campaigns API - URL tracks para campanha ${campaignId}:`, tracksUrl.toString());
+  
   const tracksData = await new Promise((resolve, reject) => {
     requestQueue.push({ 
       resolve, 
@@ -111,6 +115,8 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   conversionsUrl.searchParams.set('campaign_id', campaignId);
   conversionsUrl.searchParams.set('per', '1000');
   
+  console.log(`Campaigns API - URL conversions para campanha ${campaignId}:`, conversionsUrl.toString());
+  
   const conversionsData = await new Promise((resolve, reject) => {
     requestQueue.push({ 
       resolve, 
@@ -130,17 +136,20 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   const tracksArray = tracksData.items || tracksData.data || tracksData;
   const conversionsArray = conversionsData.items || conversionsData.data || conversionsData;
   
+  // FILTRAGEM MANUAL: Garantir que apenas conversões da campanha específica sejam contadas
+  const filteredConversions = Array.isArray(conversionsArray) ? 
+    conversionsArray.filter(conv => conv.campaign_id === campaignId) : [];
+  
   const clicks = Array.isArray(tracksArray) ? tracksArray.length : 0;
   const uniqueClicks = Array.isArray(tracksArray) ? new Set(tracksArray.map(track => track.clickid)).size : 0;
-  const conversions = Array.isArray(conversionsArray) ? conversionsArray.length : 0;
+  const conversions = filteredConversions.length;
   
   // Calcular custo total (soma dos custos dos cliques)
   const totalCost = Array.isArray(tracksArray) ? 
     tracksArray.reduce((sum, track) => sum + (track.cost || 0), 0) : 0;
   
   // Calcular receita total (soma das receitas das conversões)
-  const totalRevenue = Array.isArray(conversionsArray) ? 
-    conversionsArray.reduce((sum, conv) => sum + (conv.payout || 0), 0) : 0;
+  const totalRevenue = filteredConversions.reduce((sum, conv) => sum + (conv.payout || 0), 0);
   
   // Calcular métricas derivadas
   const profit = totalRevenue - totalCost;
@@ -158,6 +167,18 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   console.log(`   - conversionsData keys:`, Object.keys(conversionsData || {}));
   console.log(`   - tracksArray length:`, Array.isArray(tracksArray) ? tracksArray.length : 'não é array');
   console.log(`   - conversionsArray length:`, Array.isArray(conversionsArray) ? conversionsArray.length : 'não é array');
+  
+  // Log dos primeiros itens para debug
+  if (Array.isArray(tracksArray) && tracksArray.length > 0) {
+    console.log(`   - Primeiro track campaign_id:`, tracksArray[0].campaign_id);
+  }
+  if (Array.isArray(conversionsArray) && conversionsArray.length > 0) {
+    console.log(`   - Primeira conversão campaign_id:`, conversionsArray[0].campaign_id);
+  }
+  
+  // Log da filtragem manual
+  console.log(`   - Conversões antes da filtragem:`, conversionsArray.length);
+  console.log(`   - Conversões após filtragem para campanha ${campaignId}:`, filteredConversions.length);
   console.log(`   - Cliques: ${clicks}, Únicos: ${uniqueClicks}`);
   console.log(`   - Conversões: ${conversions}`);
   console.log(`   - Custo: ${totalCost}, Receita: ${totalRevenue}`);
