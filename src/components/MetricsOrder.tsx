@@ -1,115 +1,162 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, Reorder } from 'framer-motion'
-import { Settings, X, GripVertical } from 'lucide-react'
+import { GripVertical, Settings, X } from 'lucide-react'
 import { Button } from './ui/button'
-import { useMetricsStore } from '../store/metrics'
 
-const MetricsOrder: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const { selectedMetrics, metricsOrder, setMetricsOrder, availableMetrics } = useMetricsStore()
+interface Metric {
+  id: string
+  label: string
+  key: string
+  visible: boolean
+}
 
-  const getSelectedMetricsInOrder = () => {
-    return metricsOrder
-      .filter(metricId => selectedMetrics.includes(metricId))
-      .map(metricId => availableMetrics.find(m => m.id === metricId))
-      .filter(Boolean)
+interface MetricsOrderProps {
+  metrics: Metric[]
+  onOrderChange: (metrics: Metric[]) => void
+  onClose: () => void
+}
+
+const MetricsOrder: React.FC<MetricsOrderProps> = ({ metrics, onOrderChange, onClose }) => {
+  const [orderedMetrics, setOrderedMetrics] = useState<Metric[]>(metrics)
+
+  useEffect(() => {
+    setOrderedMetrics(metrics)
+  }, [metrics])
+
+  const handleReorder = (newOrder: Metric[]) => {
+    setOrderedMetrics(newOrder)
+    onOrderChange(newOrder)
   }
 
-  const handleReorder = (newOrder: any[]) => {
-    const newOrderIds = newOrder.map(item => item.id)
-    setMetricsOrder(newOrderIds)
+  const toggleMetricVisibility = (metricId: string) => {
+    const updatedMetrics = orderedMetrics.map(metric =>
+      metric.id === metricId ? { ...metric, visible: !metric.visible } : metric
+    )
+    setOrderedMetrics(updatedMetrics)
+    onOrderChange(updatedMetrics)
   }
 
-  if (selectedMetrics.length === 0) {
-    return null
+  const resetToDefault = () => {
+    const defaultOrder = [
+      { id: 'name', label: 'Campanha', key: 'name', visible: true },
+      { id: 'source', label: 'Fonte', key: 'source', visible: true },
+      { id: 'status', label: 'Status', key: 'status', visible: true },
+      { id: 'clicks', label: 'Cliques', key: 'clicks', visible: true },
+      { id: 'unique_clicks', label: 'Cliques Únicos', key: 'unique_clicks', visible: true },
+      { id: 'impressions', label: 'Impressões', key: 'impressions', visible: true },
+      { id: 'conversions', label: 'Conversões', key: 'conversions', visible: true },
+      { id: 'all_conversions', label: 'Todas Conversões', key: 'all_conversions', visible: true },
+      { id: 'approved', label: 'Aprovadas', key: 'approved', visible: true },
+      { id: 'pending', label: 'Pendentes', key: 'pending', visible: true },
+      { id: 'declined', label: 'Recusadas', key: 'declined', visible: true },
+      { id: 'ctr', label: 'CTR', key: 'ctr', visible: true },
+      { id: 'conversion_rate', label: 'Taxa Conv.', key: 'conversion_rate', visible: true },
+      { id: 'spend', label: 'Gasto', key: 'spend', visible: true },
+      { id: 'revenue', label: 'Receita', key: 'revenue', visible: true },
+      { id: 'roi', label: 'ROI', key: 'roi', visible: true },
+      { id: 'cpa', label: 'CPA', key: 'cpa', visible: true },
+      { id: 'cpc', label: 'CPC', key: 'cpc', visible: true },
+      { id: 'epc', label: 'EPC', key: 'epc', visible: true },
+      { id: 'epl', label: 'EPL', key: 'epl', visible: true },
+      { id: 'roas', label: 'ROAS', key: 'roas', visible: true }
+    ]
+    setOrderedMetrics(defaultOrder)
+    onOrderChange(defaultOrder)
   }
 
   return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setIsOpen(true)}
-        className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
+        className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
-        <Settings className="w-4 h-4 mr-2" />
-        Ordenar Métricas
-      </Button>
-
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl w-full max-w-md mx-auto shadow-2xl flex flex-col max-h-[90vh]"
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Personalizar Colunas</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Arraste para reordenar e clique para mostrar/ocultar colunas
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Ordenar Métricas</h2>
-              <Button
-                size="sm"
-                onClick={() => setIsOpen(false)}
-                className="p-2 bg-transparent hover:bg-gray-100"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-hidden">
-              <div className="p-6 pb-4">
-                <p className="text-sm text-gray-600 mb-4">
-                  Arraste as métricas para reordenar. A ordem será aplicada no dashboard.
-                </p>
-              </div>
-
-              <div className="px-6 pb-4 overflow-y-auto max-h-[50vh]">
-                <Reorder.Group
-                  axis="y"
-                  values={getSelectedMetricsInOrder()}
-                  onReorder={handleReorder}
-                  className="space-y-2"
-                >
-                  {getSelectedMetricsInOrder().map((metric) => (
-                    <Reorder.Item
-                      key={metric?.id}
-                      value={metric}
-                      className="bg-gray-50 rounded-lg p-3 border border-gray-200 cursor-move hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 truncate">{metric?.label}</h3>
-                          <p className="text-sm text-gray-500 line-clamp-2">{metric?.description}</p>
-                        </div>
-                      </div>
-                    </Reorder.Item>
-                  ))}
-                </Reorder.Group>
-              </div>
-            </div>
-
-            {/* Footer com botões sempre visíveis */}
-            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-              <Button
-                variant="outline"
-                onClick={() => setIsOpen(false)}
-                className="px-6 py-2"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => setIsOpen(false)}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Salvar Ordem
-              </Button>
-            </div>
-          </motion.div>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
-      )}
-    </>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="mb-4 flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-700">
+              {orderedMetrics.filter(m => m.visible).length} de {orderedMetrics.length} colunas visíveis
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetToDefault}
+              className="text-xs"
+            >
+              Restaurar Padrão
+            </Button>
+          </div>
+
+          <Reorder.Group
+            axis="y"
+            values={orderedMetrics}
+            onReorder={handleReorder}
+            className="space-y-2"
+          >
+            {orderedMetrics.map((metric) => (
+              <Reorder.Item
+                key={metric.id}
+                value={metric}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                  <span className="text-sm font-medium text-gray-700">
+                    {metric.label}
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={metric.visible ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleMetricVisibility(metric.id)}
+                    className={`text-xs ${metric.visible ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  >
+                    {metric.visible ? 'Visível' : 'Oculta'}
+                  </Button>
+                </div>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={onClose}>
+            Aplicar
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 
