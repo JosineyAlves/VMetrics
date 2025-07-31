@@ -126,17 +126,21 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   });
   
   // Calcular métricas baseadas nos dados brutos
-  const clicks = Array.isArray(tracksData) ? tracksData.length : 0;
-  const uniqueClicks = Array.isArray(tracksData) ? new Set(tracksData.map(track => track.clickid)).size : 0;
-  const conversions = Array.isArray(conversionsData) ? conversionsData.length : 0;
+  // Verificar se os dados estão em tracksData.data ou tracksData diretamente
+  const tracksArray = tracksData.data || tracksData;
+  const conversionsArray = conversionsData.data || conversionsData;
+  
+  const clicks = Array.isArray(tracksArray) ? tracksArray.length : 0;
+  const uniqueClicks = Array.isArray(tracksArray) ? new Set(tracksArray.map(track => track.clickid)).size : 0;
+  const conversions = Array.isArray(conversionsArray) ? conversionsArray.length : 0;
   
   // Calcular custo total (soma dos custos dos cliques)
-  const totalCost = Array.isArray(tracksData) ? 
-    tracksData.reduce((sum, track) => sum + (track.cost || 0), 0) : 0;
+  const totalCost = Array.isArray(tracksArray) ? 
+    tracksArray.reduce((sum, track) => sum + (track.cost || 0), 0) : 0;
   
   // Calcular receita total (soma das receitas das conversões)
-  const totalRevenue = Array.isArray(conversionsData) ? 
-    conversionsData.reduce((sum, conv) => sum + (conv.payout || 0), 0) : 0;
+  const totalRevenue = Array.isArray(conversionsArray) ? 
+    conversionsArray.reduce((sum, conv) => sum + (conv.payout || 0), 0) : 0;
   
   // Calcular métricas derivadas
   const profit = totalRevenue - totalCost;
@@ -148,6 +152,8 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   const epc = clicks > 0 ? totalRevenue / clicks : 0;
   
   console.log(`Campaigns API - Dados calculados para campanha ${campaignId}:`);
+  console.log(`   - Estrutura tracksData:`, typeof tracksData, tracksData.data ? 'com .data' : 'sem .data');
+  console.log(`   - Estrutura conversionsData:`, typeof conversionsData, conversionsData.data ? 'com .data' : 'sem .data');
   console.log(`   - Cliques: ${clicks}, Únicos: ${uniqueClicks}`);
   console.log(`   - Conversões: ${conversions}`);
   console.log(`   - Custo: ${totalCost}, Receita: ${totalRevenue}`);
