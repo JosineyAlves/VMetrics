@@ -105,30 +105,23 @@ export default async function handler(req, res) {
 
   try {
     console.log('=== CAMPAIGNS API DEBUG START ===');
-    console.log('Campaigns API - Buscando dados de campanhas usando endpoint /report...');
+    console.log('Campaigns API - Nova abordagem: obter campanhas e dados específicos...');
     
-    // Usar apenas a data específica solicitada pelo usuário
     const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
     const dateTo = params.date_to || dateFrom;
     
     console.log('Campaigns API - Data solicitada:', { dateFrom, dateTo });
     
-    // USAR O ENDPOINT CORRETO: /report com group_by=campaign
-    const reportUrl = new URL('https://api.redtrack.io/report');
-    reportUrl.searchParams.set('api_key', apiKey);
-    reportUrl.searchParams.set('date_from', dateFrom);
-    reportUrl.searchParams.set('date_to', dateTo);
-    reportUrl.searchParams.set('group_by', 'campaign');
-    reportUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue,impressions');
-    reportUrl.searchParams.set('per', '1000');
+    // PASSO 1: Obter lista de campanhas
+    console.log('Campaigns API - Passo 1: Obtendo lista de campanhas...');
+    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
+    campaignsUrl.searchParams.set('api_key', apiKey);
     
-    console.log('Campaigns API - URL para relatório de campanhas:', reportUrl.toString());
-    
-    const reportData = await new Promise((resolve, reject) => {
+    const campaignsData = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
         reject, 
-        url: reportUrl.toString(), 
+        url: campaignsUrl.toString(), 
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -138,127 +131,153 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
     
-    console.log('Campaigns API - Dados do relatório:', JSON.stringify(reportData, null, 2));
+    console.log('Campaigns API - Campanhas obtidas:', campaignsData.length);
     
-    // Processar dados do relatório
+    // PASSO 2: Para cada campanha, buscar dados específicos
+    console.log('Campaigns API - Passo 2: Buscando dados específicos para cada campanha...');
+    
     let processedData = [];
     
-    // A estrutura real da resposta da RedTrack é um array direto, não {data: [...]}
-    if (reportData && Array.isArray(reportData)) {
-      console.log(`Campaigns API - Total de campanhas encontradas: ${reportData.length}`);
-      
-      processedData = reportData.map((item, index) => {
-        // Como não há campo 'campaign' específico, vamos usar a data como identificador
-        // ou criar um identificador baseado no índice
-        const campaignName = item.campaign || `Campanha ${index + 1}`;
-        const campaignId = item.campaign_id || `camp_${index + 1}`;
+    for (const campaign of campaignsData) {
+      try {
+        console.log(`Campaigns API - Processando campanha: ${campaign.title} (ID: ${campaign.id})`);
         
-        // Calcular métricas derivadas
-        const clicks = item.clicks || 0;
-        const conversions = item.conversions || 0;
-        const cost = item.cost || 0;
-        const revenue = item.revenue || 0;
-        const impressions = item.impressions || 0;
+        // Buscar dados específicos da campanha
+        const reportUrl = new URL('https://api.redtrack.io/report');
+        reportUrl.searchParams.set('api_key', apiKey);
+        reportUrl.searchParams.set('date_from', dateFrom);
+        reportUrl.searchParams.set('date_to', dateTo);
+        reportUrl.searchParams.set('filter_by', 'campaign_id');
+        reportUrl.searchParams.set('filter_value', campaign.id);
+        reportUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue,impressions');
+        reportUrl.searchParams.set('per', '1000');
         
-        // Usar métricas já calculadas pela RedTrack quando disponíveis
-        const roi = item.roi !== undefined ? item.roi : (cost > 0 ? ((revenue - cost) / cost) * 100 : 0);
-        const ctr = item.ctr !== undefined ? item.ctr : (impressions > 0 ? (clicks / impressions) * 100 : 0);
-        const conversionRate = item.cr !== undefined ? item.cr * 100 : (clicks > 0 ? (conversions / clicks) * 100 : 0);
-        const cpc = item.cpc !== undefined ? item.cpc : (clicks > 0 ? cost / clicks : 0);
-        const cpa = item.cpa !== undefined ? item.cpa : (conversions > 0 ? cost / conversions : 0);
-        const epc = item.epc !== undefined ? item.epc : (clicks > 0 ? revenue / clicks : 0);
+        const campaignReportData = await new Promise((resolve, reject) => {
+          requestQueue.push({ 
+            resolve, 
+            reject, 
+            url: reportUrl.toString(), 
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'TrackView-Dashboard/1.0'
+            }
+          });
+          processRequestQueue();
+        });
         
-        console.log(`✅ Campanha processada: ${campaignName}`);
-        console.log(`   - Cliques: ${clicks}, Conversões: ${conversions}`);
-        console.log(`   - Custo: ${cost}, Receita: ${revenue}`);
-        console.log(`   - ROI: ${roi}%, CTR: ${ctr}%`);
+        console.log(`Campaigns API - Dados da campanha ${campaign.title}:`, JSON.stringify(campaignReportData, null, 2));
         
-        return {
-          id: campaignId,
-          title: campaignName,
-          source_title: item.source || item.source_name || '',
-          status: 'active', // Status será determinado pelo frontend baseado na atividade
+        // Processar dados da campanha
+        if (campaignReportData && Array.isArray(campaignReportData) && campaignReportData.length > 0) {
+          const item = campaignReportData[0]; // Pegar o primeiro item (deve ser único por campanha)
+          
+          const clicks = item.clicks || 0;
+          const conversions = item.conversions || 0;
+          const cost = item.cost || 0;
+          const revenue = item.revenue || 0;
+          const impressions = item.impressions || 0;
+          
+          // Usar métricas já calculadas pela RedTrack quando disponíveis
+          const roi = item.roi !== undefined ? item.roi : (cost > 0 ? ((revenue - cost) / cost) * 100 : 0);
+          const ctr = item.ctr !== undefined ? item.ctr : (impressions > 0 ? (clicks / impressions) * 100 : 0);
+          const conversionRate = item.cr !== undefined ? item.cr * 100 : (clicks > 0 ? (conversions / clicks) * 100 : 0);
+          const cpc = item.cpc !== undefined ? item.cpc : (clicks > 0 ? cost / clicks : 0);
+          const cpa = item.cpa !== undefined ? item.cpa : (conversions > 0 ? cost / conversions : 0);
+          const epc = item.epc !== undefined ? item.epc : (clicks > 0 ? revenue / clicks : 0);
+          
+          console.log(`✅ Campanha processada: ${campaign.title}`);
+          console.log(`   - Cliques: ${clicks}, Conversões: ${conversions}`);
+          console.log(`   - Custo: ${cost}, Receita: ${revenue}`);
+          console.log(`   - ROI: ${roi}%, CTR: ${ctr}%`);
+          
+          processedData.push({
+            id: campaign.id,
+            title: campaign.title,
+            source_title: campaign.source_title || '',
+            status: campaign.status === 3 ? 'active' : 'inactive',
+            stat: {
+              clicks: clicks,
+              unique_clicks: item.unique_clicks || clicks,
+              conversions: conversions,
+              all_conversions: item.total_conversions || conversions,
+              approved: item.approved || conversions,
+              pending: item.pending || 0,
+              declined: item.declined || 0,
+              revenue: revenue,
+              cost: cost,
+              impressions: impressions,
+              ctr: ctr,
+              conversion_rate: conversionRate,
+              profit: item.profit !== undefined ? item.profit : (revenue - cost),
+              roi: roi,
+              cpc: cpc,
+              cpa: cpa,
+              epc: epc
+            }
+          });
+        } else {
+          console.log(`⚠️ Campanha ${campaign.title} não tem dados para o período`);
+          // Adicionar campanha com dados zerados
+          processedData.push({
+            id: campaign.id,
+            title: campaign.title,
+            source_title: campaign.source_title || '',
+            status: campaign.status === 3 ? 'active' : 'inactive',
+            stat: {
+              clicks: 0,
+              unique_clicks: 0,
+              conversions: 0,
+              all_conversions: 0,
+              approved: 0,
+              pending: 0,
+              declined: 0,
+              revenue: 0,
+              cost: 0,
+              impressions: 0,
+              ctr: 0,
+              conversion_rate: 0,
+              profit: 0,
+              roi: 0,
+              cpc: 0,
+              cpa: 0,
+              epc: 0
+            }
+          });
+        }
+        
+        // Aguardar um pouco entre as requisições para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+      } catch (error) {
+        console.error(`❌ Erro ao processar campanha ${campaign.title}:`, error);
+        // Adicionar campanha com dados zerados em caso de erro
+        processedData.push({
+          id: campaign.id,
+          title: campaign.title,
+          source_title: campaign.source_title || '',
+          status: campaign.status === 3 ? 'active' : 'inactive',
           stat: {
-            clicks: clicks,
-            unique_clicks: item.unique_clicks || clicks, // Usar unique_clicks se disponível
-            conversions: conversions,
-            all_conversions: item.total_conversions || conversions, // Usar total_conversions se disponível
-            approved: item.approved || conversions, // Usar approved se disponível
-            pending: item.pending || 0,
-            declined: item.declined || 0,
-            revenue: revenue,
-            cost: cost,
-            impressions: impressions,
-            ctr: ctr,
-            conversion_rate: conversionRate,
-            // Métricas calculadas adicionais
-            profit: item.profit !== undefined ? item.profit : (revenue - cost),
-            roi: roi,
-            cpc: cpc,
-            cpa: cpa,
-            epc: epc
+            clicks: 0,
+            unique_clicks: 0,
+            conversions: 0,
+            all_conversions: 0,
+            approved: 0,
+            pending: 0,
+            declined: 0,
+            revenue: 0,
+            cost: 0,
+            impressions: 0,
+            ctr: 0,
+            conversion_rate: 0,
+            profit: 0,
+            roi: 0,
+            cpc: 0,
+            cpa: 0,
+            epc: 0
           }
-        };
-      });
-    } else if (reportData && reportData.data && Array.isArray(reportData.data)) {
-      // Fallback para estrutura {data: [...]} se existir
-      console.log(`Campaigns API - Total de campanhas encontradas: ${reportData.data.length}`);
-      
-      processedData = reportData.data.map((item, index) => {
-        const campaignName = item.campaign || item.campaign_name || item.title || `Campanha ${index + 1}`;
-        const campaignId = item.campaign_id || item.id || `camp_${index + 1}`;
-        
-        // Calcular métricas derivadas
-        const clicks = item.clicks || 0;
-        const conversions = item.conversions || 0;
-        const cost = item.cost || 0;
-        const revenue = item.revenue || 0;
-        const impressions = item.impressions || 0;
-        
-        // Calcular métricas calculadas
-        const profit = revenue - cost;
-        const roi = cost > 0 ? (profit / cost) * 100 : 0;
-        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-        const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0;
-        const cpc = clicks > 0 ? cost / clicks : 0;
-        const cpa = conversions > 0 ? cost / conversions : 0;
-        const epc = clicks > 0 ? revenue / clicks : 0;
-        
-        console.log(`✅ Campanha processada: ${campaignName}`);
-        console.log(`   - Cliques: ${clicks}, Conversões: ${conversions}`);
-        console.log(`   - Custo: ${cost}, Receita: ${revenue}`);
-        console.log(`   - ROI: ${roi}%, CTR: ${ctr}%`);
-        
-        return {
-          id: campaignId,
-          title: campaignName,
-          source_title: item.source || item.source_name || '',
-          status: 'active', // Status será determinado pelo frontend baseado na atividade
-          stat: {
-            clicks: clicks,
-            unique_clicks: clicks, // Simplificado - usar mesmo valor
-            conversions: conversions,
-            all_conversions: conversions, // Simplificado - usar mesmo valor
-            approved: conversions, // Simplificado - usar mesmo valor
-            pending: 0, // Não disponível no relatório
-            declined: 0, // Não disponível no relatório
-            revenue: revenue,
-            cost: cost,
-            impressions: impressions,
-            ctr: ctr,
-            conversion_rate: conversionRate,
-            // Métricas calculadas adicionais
-            profit: profit,
-            roi: roi,
-            cpc: cpc,
-            cpa: cpa,
-            epc: epc
-          }
-        };
-      });
-    } else {
-      console.log('Campaigns API - Nenhum dado encontrado ou estrutura inesperada');
-      console.log('Campaigns API - Estrutura recebida:', typeof reportData, Array.isArray(reportData));
+        });
+      }
     }
     
     console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
