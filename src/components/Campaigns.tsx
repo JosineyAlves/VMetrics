@@ -62,7 +62,11 @@ const mapRedTrackCampaign = (item: any) => ({
   pending: item.pending || 0,
   declined: item.declined || 0,
   ctr: item.ctr || 0,
-  conversion_rate: item.conversion_rate || 0
+  conversion_rate: item.conversion_rate || 0,
+  cpc: item.cpc || 0,
+  epc: item.epc || 0,
+  epl: item.epl || 0,
+  roas: item.roas || 0
 })
 
 const Campaigns: React.FC = () => {
@@ -402,6 +406,8 @@ const Campaigns: React.FC = () => {
         return 'bg-trackview-success/20 text-trackview-success'
       case 'paused':
         return 'bg-yellow-100 text-yellow-800'
+      case 'deleted':
+        return 'bg-red-100 text-red-800'
       case 'inactive':
         return 'bg-trackview-danger/20 text-trackview-danger'
       default:
@@ -415,6 +421,8 @@ const Campaigns: React.FC = () => {
         return <Play className="w-4 h-4" />
       case 'paused':
         return <Pause className="w-4 h-4" />
+      case 'deleted':
+        return <Trash2 className="w-4 h-4" />
       case 'inactive':
         return <Eye className="w-4 h-4" />
       default:
@@ -808,6 +816,18 @@ const Campaigns: React.FC = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     CPA
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CPC
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    EPC
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    EPL
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ROAS
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-trackview-background">
@@ -897,6 +917,18 @@ const Campaigns: React.FC = () => {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
                     </td>
                   </motion.tr>
                 ))}

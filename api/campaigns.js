@@ -141,7 +141,21 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
     conversionsArray.filter(conv => conv.campaign_id === campaignId) : [];
   
   const clicks = Array.isArray(tracksArray) ? tracksArray.length : 0;
-  const uniqueClicks = Array.isArray(tracksArray) ? new Set(tracksArray.map(track => track.clickid)).size : 0;
+  
+  // CORREÇÃO: Calcular unique_clicks baseado em fingerprint ou IP quando clickid não estiver disponível
+  let uniqueClicks = 0;
+  if (Array.isArray(tracksArray) && tracksArray.length > 0) {
+    // Tentar usar clickid primeiro, depois fingerprint, depois IP
+    const uniqueIdentifiers = new Set();
+    tracksArray.forEach(track => {
+      const identifier = track.clickid || track.fingerprint || track.ip;
+      if (identifier) {
+        uniqueIdentifiers.add(identifier);
+      }
+    });
+    uniqueClicks = uniqueIdentifiers.size;
+  }
+  
   const conversions = filteredConversions.length;
   
   // Calcular custo total (soma dos custos dos cliques)
@@ -151,6 +165,27 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   // Calcular receita total (soma das receitas das conversões)
   const totalRevenue = filteredConversions.reduce((sum, conv) => sum + (conv.payout || 0), 0);
   
+  // CORREÇÃO: Calcular status das conversões
+  const statusCounts = {
+    approved: 0,
+    pending: 0,
+    declined: 0,
+    other: 0
+  };
+  
+  filteredConversions.forEach(conv => {
+    const status = conv.status || 'other';
+    if (status === 'approved' || status === 'approve') {
+      statusCounts.approved++;
+    } else if (status === 'pending' || status === 'pend') {
+      statusCounts.pending++;
+    } else if (status === 'declined' || status === 'decline') {
+      statusCounts.declined++;
+    } else {
+      statusCounts.other++;
+    }
+  });
+  
   // Calcular métricas derivadas
   const profit = totalRevenue - totalCost;
   const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
@@ -159,6 +194,8 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   const cpc = clicks > 0 ? totalCost / clicks : 0;
   const cpa = conversions > 0 ? totalCost / conversions : 0;
   const epc = clicks > 0 ? totalRevenue / clicks : 0;
+  const epl = clicks > 0 ? profit / clicks : 0; // Earnings per lead
+  const roas = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0; // Return on Ad Spend
   
   console.log(`Campaigns API - Dados calculados para campanha ${campaignId}:`);
   console.log(`   - Estrutura tracksData:`, typeof tracksData, tracksData.items ? 'com .items' : tracksData.data ? 'com .data' : 'sem .items/.data');
@@ -171,9 +208,13 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   // Log dos primeiros itens para debug
   if (Array.isArray(tracksArray) && tracksArray.length > 0) {
     console.log(`   - Primeiro track campaign_id:`, tracksArray[0].campaign_id);
+    console.log(`   - Primeiro track clickid:`, tracksArray[0].clickid);
+    console.log(`   - Primeiro track fingerprint:`, tracksArray[0].fingerprint);
+    console.log(`   - Primeiro track ip:`, tracksArray[0].ip);
   }
   if (Array.isArray(conversionsArray) && conversionsArray.length > 0) {
     console.log(`   - Primeira conversão campaign_id:`, conversionsArray[0].campaign_id);
+    console.log(`   - Primeira conversão status:`, conversionsArray[0].status);
   }
   
   // Log da filtragem manual
@@ -181,17 +222,19 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   console.log(`   - Conversões após filtragem para campanha ${campaignId}:`, filteredConversions.length);
   console.log(`   - Cliques: ${clicks}, Únicos: ${uniqueClicks}`);
   console.log(`   - Conversões: ${conversions}`);
+  console.log(`   - Status: Aprovadas: ${statusCounts.approved}, Pendentes: ${statusCounts.pending}, Recusadas: ${statusCounts.declined}, Outros: ${statusCounts.other}`);
   console.log(`   - Custo: ${totalCost}, Receita: ${totalRevenue}`);
   console.log(`   - ROI: ${roi}%, Taxa de conversão: ${conversionRate}%`);
+  console.log(`   - CPC: $${cpc}, CPA: $${cpa}, EPC: $${epc}, EPL: $${epl}, ROAS: ${roas}%`);
   
   return {
     clicks,
     unique_clicks: uniqueClicks,
     conversions,
     all_conversions: conversions,
-    approved: conversions, // Assumindo que todas as conversões são aprovadas
-    pending: 0,
-    declined: 0,
+    approved: statusCounts.approved,
+    pending: statusCounts.pending,
+    declined: statusCounts.declined,
     revenue: totalRevenue,
     cost: totalCost,
     impressions: 0,
@@ -201,7 +244,9 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
     roi,
     cpc,
     cpa,
-    epc
+    epc,
+    epl,
+    roas
   };
 }
 
@@ -273,11 +318,21 @@ export default async function handler(req, res) {
         // Buscar dados específicos da campanha
         const campaignStats = await getCampaignData(apiKey, campaign.id, dateFrom, dateTo);
         
+        // Mapear status numérico para string baseado na documentação do RedTrack
+        let statusString = 'inactive';
+        if (campaign.status === 1) {
+          statusString = 'active';
+        } else if (campaign.status === 2) {
+          statusString = 'paused';
+        } else if (campaign.status === 3) {
+          statusString = 'deleted';
+        }
+        
         processedData.push({
           id: campaign.id,
           title: campaign.title,
           source_title: campaign.source_title || '',
-          status: campaign.status === 3 ? 'active' : 'inactive',
+          status: statusString,
           stat: campaignStats
         });
         
@@ -286,12 +341,22 @@ export default async function handler(req, res) {
         
       } catch (error) {
         console.error(`❌ Erro ao processar campanha ${campaign.title}:`, error);
+        // Mapear status numérico para string baseado na documentação do RedTrack
+        let statusString = 'inactive';
+        if (campaign.status === 1) {
+          statusString = 'active';
+        } else if (campaign.status === 2) {
+          statusString = 'paused';
+        } else if (campaign.status === 3) {
+          statusString = 'deleted';
+        }
+        
         // Adicionar campanha com dados zerados em caso de erro
         processedData.push({
           id: campaign.id,
           title: campaign.title,
           source_title: campaign.source_title || '',
-          status: campaign.status === 3 ? 'active' : 'inactive',
+          status: statusString,
           stat: {
             clicks: 0,
             unique_clicks: 0,
