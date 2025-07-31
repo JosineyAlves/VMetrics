@@ -4,7 +4,7 @@ const CACHE_DURATION = 60000; // 60 segundos
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
+const MIN_REQUEST_INTERVAL = 3000; // 3 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -55,7 +55,7 @@ async function processRequestQueue() {
           
           if (!retryResponse.ok) {
             console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
-            resolve([]);
+            resolve({ data: [], total: 0 });
             continue;
           }
           
@@ -154,6 +154,10 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   console.log(`Campaigns API - Dados calculados para campanha ${campaignId}:`);
   console.log(`   - Estrutura tracksData:`, typeof tracksData, tracksData.data ? 'com .data' : 'sem .data');
   console.log(`   - Estrutura conversionsData:`, typeof conversionsData, conversionsData.data ? 'com .data' : 'sem .data');
+  console.log(`   - tracksData keys:`, Object.keys(tracksData || {}));
+  console.log(`   - conversionsData keys:`, Object.keys(conversionsData || {}));
+  console.log(`   - tracksArray length:`, Array.isArray(tracksArray) ? tracksArray.length : 'não é array');
+  console.log(`   - conversionsArray length:`, Array.isArray(conversionsArray) ? conversionsArray.length : 'não é array');
   console.log(`   - Cliques: ${clicks}, Únicos: ${uniqueClicks}`);
   console.log(`   - Conversões: ${conversions}`);
   console.log(`   - Custo: ${totalCost}, Receita: ${totalRevenue}`);
