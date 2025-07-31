@@ -15,79 +15,68 @@ import {
   Link,
   Palette,
   Trash2,
-  Settings
+  Settings,
+  X
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
-import { useCurrencyStore } from '../store/currency'
+import RedTrackAPI from '../services/api'
+import { addDays, format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
+import PeriodDropdown from './ui/PeriodDropdown'
+import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
+import { useCurrencyStore } from '../store/currency'
+import { useCampaignMetricsStore } from '../store/campaignMetrics'
 import MetricsOrder from './MetricsOrder'
 
-interface Campaign {
+interface UTMCreative {
   id: string
-  name: string
-  source: string
-  status: string
+  utm_source: string
+  utm_medium: string
+  utm_campaign: string
+  utm_term: string
+  utm_content: string
   spend: number
   revenue: number
-  cpa: number
-  roi: number
   conversions: number
   clicks: number
-  unique_clicks: number
   impressions: number
-  all_conversions: number
-  approved: number
-  pending: number
-  declined: number
   ctr: number
-  conversion_rate: number
-  cpc: number
-  epc: number
-  epl: number
-  roas: number
-  isUserDeleted: boolean
+  cpa: number
+  roi: number
 }
 
+const mapRedTrackCampaign = (item: any) => ({
+  id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
+  name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
+  source: item.source || item.traffic_source || item.media_source || '',
+  status: item.status || item.campaign_status || 'active',
+  spend: item.cost || item.spend || item.campaign_cost || 0,
+  revenue: item.revenue || item.campaign_revenue || item.earnings || 0,
+  cpa: item.cpa || item.cost_per_acquisition || 0,
+  roi: item.roi || item.return_on_investment || 0,
+  conversions: item.conversions || item.approved || item.total_conversions || 0,
+  clicks: item.clicks || item.total_clicks || 0,
+  unique_clicks: item.unique_clicks || 0,
+  impressions: item.impressions || item.total_impressions || 0,
+  all_conversions: item.all_conversions || 0,
+  approved: item.approved || 0,
+  pending: item.pending || 0,
+  declined: item.declined || 0,
+  ctr: item.ctr || 0,
+  conversion_rate: item.conversion_rate || 0,
+  cpc: item.cpc || 0,
+  epc: item.epc || 0,
+  epl: item.epl || 0,
+  roas: item.roas || 0
+})
+
 const Campaigns: React.FC = () => {
+  console.log('Montou Campanhas')
   const { apiKey } = useAuthStore()
   const { currency } = useCurrencyStore()
-  const { selectedPeriod, customRange } = useDateRangeStore()
   
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [showMetricsOrder, setShowMetricsOrder] = useState(false)
-  const [deletedCampaigns, setDeletedCampaigns] = useState<Set<string>>(new Set())
-
-  // Estado para ordem das métricas
-  const [metricsOrder, setMetricsOrder] = useState([
-    { id: 'actions', label: 'Ações', key: 'actions', visible: true },
-    { id: 'name', label: 'Campanha', key: 'name', visible: true },
-    { id: 'source', label: 'Fonte', key: 'source', visible: true },
-    { id: 'status', label: 'Status', key: 'status', visible: true },
-    { id: 'clicks', label: 'Cliques', key: 'clicks', visible: true },
-    { id: 'unique_clicks', label: 'Cliques Únicos', key: 'unique_clicks', visible: true },
-    { id: 'impressions', label: 'Impressões', key: 'impressions', visible: true },
-    { id: 'conversions', label: 'Conversões', key: 'conversions', visible: true },
-    { id: 'all_conversions', label: 'Todas Conversões', key: 'all_conversions', visible: true },
-    { id: 'approved', label: 'Aprovadas', key: 'approved', visible: true },
-    { id: 'pending', label: 'Pendentes', key: 'pending', visible: true },
-    { id: 'declined', label: 'Recusadas', key: 'declined', visible: true },
-    { id: 'ctr', label: 'CTR', key: 'ctr', visible: true },
-    { id: 'conversion_rate', label: 'Taxa Conv.', key: 'conversion_rate', visible: true },
-    { id: 'spend', label: 'Gasto', key: 'spend', visible: true },
-    { id: 'revenue', label: 'Receita', key: 'revenue', visible: true },
-    { id: 'roi', label: 'ROI', key: 'roi', visible: true },
-    { id: 'cpa', label: 'CPA', key: 'cpa', visible: true },
-    { id: 'cpc', label: 'CPC', key: 'cpc', visible: true },
-    { id: 'epc', label: 'EPC', key: 'epc', visible: true },
-    { id: 'epl', label: 'EPL', key: 'epl', visible: true },
-    { id: 'roas', label: 'ROAS', key: 'roas', visible: true }
-  ])
-
   // Função para formatar moeda
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -96,6 +85,37 @@ const Campaigns: React.FC = () => {
       minimumFractionDigits: 2
     }).format(value)
   }
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [utmCreatives, setUtmCreatives] = useState<UTMCreative[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'utm'>('campaigns')
+  const [filters, setFilters] = useState({
+    status: '',
+    dateFrom: '',
+    dateTo: '',
+    source: '',
+    minSpend: '',
+    maxSpend: '',
+    minRoi: '',
+    maxRoi: '',
+    utm_source: '',
+    utm_medium: '',
+    utm_campaign: '',
+    utm_term: '',
+    utm_content: ''
+  })
+  const [tempFilters, setTempFilters] = useState(filters)
+  const { selectedPeriod, customRange } = useDateRangeStore()
+  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
+  const [totalCampaigns, setTotalCampaigns] = useState(0)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [deletedCampaigns, setDeletedCampaigns] = useState<Set<string>>(new Set())
+  const [showMetricsOrder, setShowMetricsOrder] = useState(false)
+
+  // Date range picker state
+  const [dateRange, setDateRange] = useState({ from: '', to: '' })
 
   // Carregar campanhas deletadas do localStorage
   useEffect(() => {
@@ -105,19 +125,98 @@ const Campaigns: React.FC = () => {
     }
   }, [])
 
-  // Função para carregar campanhas
+  // Salvar campanhas deletadas no localStorage
+  const saveDeletedCampaigns = (deletedSet: Set<string>) => {
+    localStorage.setItem('deletedCampaigns', JSON.stringify(Array.from(deletedSet)))
+    setDeletedCampaigns(deletedSet)
+  }
+
+  // Função para marcar campanha como deletada
+  const markCampaignAsDeleted = (campaignName: string) => {
+    const newDeletedCampaigns = new Set(deletedCampaigns)
+    newDeletedCampaigns.add(campaignName.toLowerCase().trim())
+    saveDeletedCampaigns(newDeletedCampaigns)
+  }
+
+  // Função para restaurar campanha
+  const restoreCampaign = (campaignName: string) => {
+    const newDeletedCampaigns = new Set(deletedCampaigns)
+    newDeletedCampaigns.delete(campaignName.toLowerCase().trim())
+    saveDeletedCampaigns(newDeletedCampaigns)
+  }
+
+  // Função utilitária para obter datas do período
+  // Atualizar filtros ao selecionar um preset
+  const handlePreset = (preset: any) => {
+    const range = preset.getRange()
+    setDateRange(range)
+    setTempFilters(prev => ({ ...prev, dateFrom: range.from, dateTo: range.to }))
+    setFilters(prev => ({ ...prev, dateFrom: range.from, dateTo: range.to }))
+  }
+
+  // Remover uso de getDateRange e garantir parâmetros obrigatórios na chamada de campanhas
+  // Novo fluxo: buscar campanhas usando /api/campaigns que agora retorna dados combinados
   const loadCampaigns = async () => {
-    if (!apiKey) return
+    console.log('Chamando loadCampaigns')
+    if (!apiKey) {
+      console.log('API Key não definida, não vai buscar campanhas')
+      return
+    }
+    
+    // Usar getDateRange para obter datas corretas
+    const { getDateRange, getCurrentRedTrackDate } = await import('../lib/utils')
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    
+    if (!dateRange.startDate || !dateRange.endDate) {
+      console.error('Datas não definidas ou inválidas! startDate:', dateRange.startDate, 'endDate:', dateRange.endDate);
+      return;
+    }
     
     setLoading(true)
+    setLoadingMessage('Carregando campanhas...')
     try {
-      const response = await fetch('/api/campaigns?api_key=' + apiKey)
-      const data = await response.json()
+      const params = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'campaign'
+      }
       
-      if (Array.isArray(data)) {
-        const campaignsArray = data.map((item: any) => {
+      console.log('Campanhas - Parâmetros enviados:', params);
+      
+      // Log da URL para depuração
+      const url = new URL('/api/campaigns', window.location.origin);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString());
+        }
+      });
+      console.log('Campanhas - URL da requisição:', url.toString());
+      
+      // Log de timezone para debug
+      console.log('Campanhas - Timezone UTC - Data atual:', getCurrentRedTrackDate());
+      console.log('Campanhas - Timezone UTC - Período selecionado:', selectedPeriod);
+      console.log('Campanhas - Timezone UTC - Datas calculadas:', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        timezone: 'UTC'
+      });
+      
+      // Chamada para API que agora retorna dados combinados
+      const response = await fetch(url.toString());
+      const data = await response.json();
+      
+      console.log('Campanhas - Resposta da API:', data);
+      
+      // Processar dados que já vêm com title correto
+      let campaignsArray: any[] = []
+      
+      if (data && Array.isArray(data)) {
+        campaignsArray = data.map(item => {
           const stat = item.stat || {}
           const campaignName = item.title || 'Campanha sem nome'
+          
+          // Verificar se a campanha foi marcada como deletada pelo usuário
           const isUserDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim())
           
           return {
@@ -127,8 +226,8 @@ const Campaigns: React.FC = () => {
             status: isUserDeleted ? 'inactive' : (item.status || 'active'),
             spend: stat.cost || 0,
             revenue: stat.revenue || 0,
-            cpa: stat.cpa || 0,
-            roi: stat.roi || 0,
+            cpa: stat.cpa || (stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0),
+            roi: stat.roi || (stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0),
             conversions: stat.conversions || 0,
             clicks: stat.clicks || 0,
             unique_clicks: stat.unique_clicks || 0,
@@ -146,35 +245,294 @@ const Campaigns: React.FC = () => {
             isUserDeleted: isUserDeleted
           }
         })
-        
-        setCampaigns(campaignsArray)
       }
+      
+      console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
+      
+      setCampaigns(campaignsArray)
+      setTotalCampaigns(campaignsArray.length)
+      setLastUpdate(new Date())
+      
     } catch (error) {
       console.error('Error loading campaigns:', error)
     } finally {
       setLoading(false)
+      setLoadingMessage('')
     }
   }
 
-  // Carregar campanhas quando a API key mudar
+  // Função para carregar dados de UTM/Creativos
+  const loadUTMCreatives = async () => {
+    if (!apiKey) {
+      console.log('API Key não definida, não vai buscar UTMs')
+      return
+    }
+    const { getDateRange, getCurrentRedTrackDate } = await import('../lib/utils')
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    if (!dateRange.startDate || !dateRange.endDate) {
+      console.error('Datas não definidas ou inválidas! startDate:', dateRange.startDate, 'endDate:', dateRange.endDate);
+      return;
+    }
+    setLoading(true)
+    setLoadingMessage('Carregando dados UTM/criativos...')
+    try {
+      // Montar parâmetros
+      const params: Record<string, string> = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'rt_source,rt_medium,rt_campaign,rt_adgroup,rt_ad,rt_placement',
+      }
+      // Adicionar filtros de UTM se existirem (usando os campos rt_*)
+      if (filters.utm_source) params.rt_source = filters.utm_source
+      if (filters.utm_medium) params.rt_medium = filters.utm_medium
+      if (filters.utm_campaign) params.rt_campaign = filters.utm_campaign
+      if (filters.utm_term) params.rt_adgroup = filters.utm_term
+      if (filters.utm_content) params.rt_ad = filters.utm_content
+      // Montar URL
+      const url = new URL('/api/report', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
+        }
+      })
+      console.log('UTM/Creativos - URL da requisição:', url.toString())
+      // Chamada para API
+      const response = await fetch(url.toString())
+      const data = await response.json()
+      console.log('UTM/Creativos - Resposta da API:', data)
+      // Mapear resposta para UTMCreative[] usando campos rt_*
+      let utmArray: UTMCreative[] = []
+      if (data && Array.isArray(data)) {
+        utmArray = data.map((item: any) => {
+          const stat = item.stat || item // fallback para quando não há stat aninhado
+          return {
+            id: [item.rt_source, item.rt_medium, item.rt_campaign, item.rt_adgroup, item.rt_ad, item.rt_placement].join('-') || Math.random().toString(36).slice(2),
+            utm_source: item.rt_source || '',
+            utm_medium: item.rt_medium || '',
+            utm_campaign: item.rt_campaign || '',
+            utm_term: item.rt_adgroup || '',
+            utm_content: item.rt_ad || '',
+            spend: stat.cost || 0,
+            revenue: stat.revenue || 0,
+            conversions: stat.conversions || 0,
+            clicks: stat.clicks || 0,
+            impressions: stat.impressions || 0,
+            ctr: stat.ctr || 0,
+            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
+            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
+          }
+        })
+      }
+      setUtmCreatives(utmArray)
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('Error loading UTM Creatives:', error)
+    } finally {
+      setLoading(false)
+      setLoadingMessage('')
+    }
+  }
+
+  // Novos estados para os blocos de performance
+  const [bestCampaigns, setBestCampaigns] = useState<any[]>([])
+  const [bestAds, setBestAds] = useState<any[]>([])
+  const [bestOffers, setBestOffers] = useState<any[]>([])
+
+  // Função utilitária para buscar e ordenar top 3
+  const fetchBestPerformers = async (groupBy: string, setter: (data: any[]) => void) => {
+    if (!apiKey) return;
+    const { getDateRange } = await import('../lib/utils')
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    const params = {
+      api_key: apiKey,
+      date_from: dateRange.startDate,
+      date_to: dateRange.endDate,
+      group_by: groupBy
+    }
+    const url = new URL('/api/report', window.location.origin)
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        url.searchParams.set(key, value.toString())
+      }
+    })
+    try {
+      const response = await fetch(url.toString())
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        const sorted = [...data].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 3)
+        setter(sorted)
+      } else {
+        setter([])
+      }
+    } catch {
+      setter([])
+    }
+  }
+
+  // useEffect para carregar dados ao trocar de aba ou filtros
   useEffect(() => {
     if (apiKey) {
-      loadCampaigns()
+      if (activeTab === 'campaigns') {
+        loadCampaigns()
+      } else if (activeTab === 'utm') {
+        loadUTMCreatives()
+      }
     }
-  }, [apiKey, deletedCampaigns])
+    // eslint-disable-next-line
+  }, [apiKey, selectedPeriod, filters, activeTab, customRange, deletedCampaigns])
+
+  // Adicionar indicador de carregamento mais informativo
+  const [loadingMessage, setLoadingMessage] = useState('')
+  
+  // Store para métricas das campanhas
+  const { metrics: campaignMetrics, reorderMetrics } = useCampaignMetricsStore()
+  
+  // Função para renderizar células da tabela baseada na métrica
+  const renderMetricCell = (campaign: any, metric: any) => {
+    switch (metric.key) {
+      case 'actions':
+        return (
+          <div className="flex items-center space-x-2">
+            {campaign.isUserDeleted ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => restoreCampaign(campaign.name)}
+                className="text-green-600 hover:text-green-700"
+                title="Restaurar campanha"
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => markCampaignAsDeleted(campaign.name)}
+                className="text-red-600 hover:text-red-700"
+                title="Marcar como deletada"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        )
+      
+      case 'name':
+        return <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+      
+      case 'source':
+        return <div className="text-sm text-gray-500">{campaign.source}</div>
+      
+      case 'status':
+        return (
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+            {getStatusIcon(campaign.status)}
+            <span className="ml-1">{campaign.status}</span>
+          </span>
+        )
+      
+      case 'clicks':
+        return <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
+      
+      case 'unique_clicks':
+        return <div className="text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
+      
+      case 'impressions':
+        return <div className="text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
+      
+      case 'conversions':
+        return <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+      
+      case 'all_conversions':
+        return <div className="text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
+      
+      case 'approved':
+        return <div className="text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
+      
+      case 'pending':
+        return <div className="text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
+      
+      case 'declined':
+        return <div className="text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
+      
+      case 'ctr':
+        return <div className="text-sm text-gray-900">{campaign.ctr}%</div>
+      
+      case 'conversion_rate':
+        return <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
+      
+      case 'spend':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
+      
+      case 'revenue':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
+      
+      case 'roi':
+        return <div className="text-sm text-gray-900">{campaign.roi}%</div>
+      
+      case 'cpa':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
+      
+      case 'cpc':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
+      
+      case 'epc':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
+      
+      case 'epl':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
+      
+      case 'roas':
+        return <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
+      
+      default:
+        return <div className="text-sm text-gray-500">-</div>
+    }
+  }
+
+  // useEffect para buscar os blocos de performance ao trocar filtros/aba
+  useEffect(() => {
+    if (activeTab === 'utm' && apiKey) {
+      fetchBestPerformers('campaign', setBestCampaigns)
+      fetchBestPerformers('ad', setBestAds)
+      fetchBestPerformers('offer', setBestOffers)
+    }
+    // eslint-disable-next-line
+  }, [apiKey, selectedPeriod, filters, activeTab, customRange])
+
+  // Fechar dropdown quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.period-dropdown')) {
+        setShowPeriodDropdown(false)
+      }
+    }
+
+    if (showPeriodDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showPeriodDropdown])
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800'
+        return 'bg-trackview-success/20 text-trackview-success'
       case 'paused':
         return 'bg-yellow-100 text-yellow-800'
       case 'deleted':
         return 'bg-red-100 text-red-800'
       case 'inactive':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-trackview-danger/20 text-trackview-danger'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-trackview-muted/20 text-trackview-muted'
     }
   }
 
@@ -199,257 +557,529 @@ const Campaigns: React.FC = () => {
       campaign.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
       campaign.status.toLowerCase().includes(searchTerm.toLowerCase())
     
-    return matchesSearch
+    const matchesStatus = !filters.status || campaign.status === filters.status
+    const matchesSource = !filters.source || campaign.source === filters.source
+    const matchesMinSpend = !filters.minSpend || campaign.spend >= parseFloat(filters.minSpend)
+    const matchesMaxSpend = !filters.maxSpend || campaign.spend <= parseFloat(filters.maxSpend)
+    const matchesMinRoi = !filters.minRoi || campaign.roi >= parseFloat(filters.minRoi)
+    const matchesMaxRoi = !filters.maxRoi || campaign.roi <= parseFloat(filters.maxRoi)
+
+    return matchesSearch && matchesStatus && matchesSource && 
+           matchesMinSpend && matchesMaxSpend && matchesMinRoi && matchesMaxRoi
   })
 
-  return (
-    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-          <button className="flex items-center px-4 py-2 rounded-md text-sm font-medium bg-white text-blue-600 shadow-sm">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Campanhas
-          </button>
-        </div>
+  const filteredUTMCreatives = utmCreatives.filter(creative => {
+    const matchesSearch = 
+      creative.utm_source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      creative.utm_medium.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      creative.utm_campaign.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      creative.utm_term.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      creative.utm_content.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesUTMSource = !filters.utm_source || creative.utm_source === filters.utm_source
+    const matchesUTMMedium = !filters.utm_medium || creative.utm_medium === filters.utm_medium
+    const matchesUTMCampaign = !filters.utm_campaign || creative.utm_campaign === filters.utm_campaign
+    const matchesUTMTerm = !filters.utm_term || creative.utm_term === filters.utm_term
+    const matchesUTMContent = !filters.utm_content || creative.utm_content === filters.utm_content
+    const matchesMinSpend = !filters.minSpend || creative.spend >= parseFloat(filters.minSpend)
+    const matchesMaxSpend = !filters.maxSpend || creative.spend <= parseFloat(filters.maxSpend)
+    const matchesMinRoi = !filters.minRoi || creative.roi >= parseFloat(filters.minRoi)
+    const matchesMaxRoi = !filters.maxRoi || creative.roi <= parseFloat(filters.maxRoi)
 
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowMetricsOrder(true)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-          >
-            <Settings className="w-4 h-4 mr-2 inline" />
-            Colunas
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-          >
-            <Filter className="w-4 h-4 mr-2 inline" />
-            Filtros
-          </Button>
-        </div>
+    return matchesSearch && matchesUTMSource && matchesUTMMedium && matchesUTMCampaign && 
+           matchesUTMTerm && matchesUTMContent && matchesMinSpend && matchesMaxSpend && 
+           matchesMinRoi && matchesMaxRoi
+  })
+
+  // Calcular métricas
+  const totalSpend = activeTab === 'campaigns' 
+    ? filteredCampaigns.reduce((sum, c) => sum + c.spend, 0)
+    : filteredUTMCreatives.reduce((sum, c) => sum + c.spend, 0)
+  const totalRevenue = activeTab === 'campaigns'
+    ? filteredCampaigns.reduce((sum, c) => sum + c.revenue, 0)
+    : filteredUTMCreatives.reduce((sum, c) => sum + c.revenue, 0)
+  const totalConversions = activeTab === 'campaigns'
+    ? filteredCampaigns.reduce((sum, c) => sum + c.conversions, 0)
+    : filteredUTMCreatives.reduce((sum, c) => sum + c.conversions, 0)
+  const averageRoi = activeTab === 'campaigns'
+    ? (filteredCampaigns.length > 0 
+        ? filteredCampaigns.reduce((sum, c) => sum + c.roi, 0) / filteredCampaigns.length 
+        : 0)
+    : (filteredUTMCreatives.length > 0
+        ? filteredUTMCreatives.reduce((sum, c) => sum + c.roi, 0) / filteredUTMCreatives.length
+        : 0)
+  const averageCTR = activeTab === 'utm' && filteredUTMCreatives.length > 0
+    ? filteredUTMCreatives.reduce((sum, c) => sum + c.ctr, 0) / filteredUTMCreatives.length
+    : 0
+
+  // Mensagem amigável se não houver campanhas
+  // Mostrar filtros sempre, mesmo sem campanhas
+    return (
+      <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      {/* Nav Container */}
+          <div className="flex items-center justify-between mb-4">
+      {/* Tabs */}
+      <div className="flex space-x-1 bg-trackview-background rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('campaigns')}
+          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'campaigns'
+              ? 'bg-white text-trackview-primary shadow-sm'
+              : 'text-trackview-muted hover:text-trackview-primary'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 mr-2" />
+          Campanhas
+        </button>
+        <button
+          onClick={() => setActiveTab('utm')}
+          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'utm'
+              ? 'bg-white text-trackview-primary shadow-sm'
+              : 'text-trackview-muted hover:text-trackview-primary'
+          }`}
+        >
+          <Link className="w-4 h-4 mr-2" />
+          UTM / Criativos
+        </button>
       </div>
 
-      {/* Search */}
+          {/* Botões de controle */}
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowMetricsOrder(!showMetricsOrder)}
+              className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+            >
+              <Settings className="w-4 h-4 mr-2 inline" />
+              Ordenar Colunas
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+            >
+              <Filter className="w-4 h-4 mr-2 inline" />
+              Filtros
+            </Button>
+          </div>
+        </div>
+
+      {/* Filtro de período padronizado - sempre visível */}
+      <div className="flex items-center justify-between">
+        <div className="relative period-dropdown">
+        </div>
+      </div>
+      {/* Modal de Reordenação de Métricas */}
+      {showMetricsOrder && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowMetricsOrder(false)}
+        >
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.9 }}
+            className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Personalizar Colunas da Tabela</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMetricsOrder(false)}
+                className="p-2"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <MetricsOrder
+              metrics={campaignMetrics}
+              onMetricsChange={reorderMetrics}
+              className="mb-4"
+            />
+            
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowMetricsOrder(false)}
+              >
+                Fechar
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Filtros Avançados */}
+      {showFilters && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-trackview-primary">Filtros Avançados</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(false)}
+            >
+              Ocultar Filtros
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {activeTab === 'campaigns' ? (
+              <>
+                {/* Remover campos de data simples */}
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    Status
+                  </label>
+                  <select 
+                    value={tempFilters.status}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+                  >
+                    <option value="">Todos</option>
+                    <option value="active">Ativo</option>
+                    <option value="paused">Pausado</option>
+                    <option value="inactive">Inativo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    Fonte
+                  </label>
+                  <select 
+                    value={tempFilters.source}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+                  >
+                    <option value="">Todas</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="google">Google</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="instagram">Instagram</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Filtros UTM mantidos */}
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    UTM Source
+                  </label>
+                  <select
+                    value={tempFilters.utm_source}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_source: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+                  >
+                    <option value="">Todos</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="google">Google</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="tiktok">TikTok</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    UTM Medium
+                  </label>
+                  <select
+                    value={tempFilters.utm_medium}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_medium: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
+                  >
+                    <option value="">Todos</option>
+                    <option value="cpc">CPC</option>
+                    <option value="cpm">CPM</option>
+                    <option value="social">Social</option>
+                    <option value="email">Email</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    UTM Campaign
+                  </label>
+                  <Input 
+                    placeholder="Ex: black_friday_2024"
+                    value={tempFilters.utm_campaign}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_campaign: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    UTM Term
+                  </label>
+                  <Input 
+                    placeholder="Ex: desconto"
+                    value={tempFilters.utm_term}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_term: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    UTM Content
+                  </label>
+                  <Input
+                    placeholder="Ex: banner_principal"
+                    value={tempFilters.utm_content}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_content: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+              </>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                Spend Mínimo
+              </label>
+              <Input 
+                type="number"
+                placeholder="0"
+                value={tempFilters.minSpend}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, minSpend: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                Spend Máximo
+              </label>
+              <Input 
+                type="number"
+                placeholder="∞"
+                value={tempFilters.maxSpend}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, maxSpend: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                ROI Mínimo
+              </label>
+              <Input 
+                type="number"
+                placeholder="0"
+                value={tempFilters.minRoi}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, minRoi: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-trackview-text mb-2">
+                ROI Máximo
+              </label>
+              <Input 
+                type="number"
+                placeholder="∞"
+                value={tempFilters.maxRoi}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, maxRoi: e.target.value }))}
+                className="w-full"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end mt-6">
+            <Button 
+              variant="primary"
+              onClick={() => {
+                setFilters(tempFilters)
+                setShowFilters(false)
+              }}
+            >
+              Aplicar Filtros
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Search and Filters */}
       <div className="flex items-center space-x-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-trackview-muted w-4 h-4" />
           <Input
-            placeholder="Buscar campanhas..."
+            placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar UTM/criativos..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
+        
+        {/* Período Dropdown */}
+        {/* This div is now handled by PeriodDropdown component */}
       </div>
 
       {/* Data Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
         {/* Loading Indicator */}
         {loading && (
           <div className="p-8 text-center">
             <div className="inline-flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="text-blue-600 font-medium">Carregando campanhas...</span>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-trackview-primary"></div>
+              <span className="text-trackview-primary font-medium">{loadingMessage || 'Carregando...'}</span>
             </div>
+            <p className="text-sm text-trackview-muted mt-2">
+              {activeTab === 'campaigns' ? 'Buscando dados das campanhas...' : 'Buscando dados UTM/criativos...'}
+            </p>
           </div>
         )}
         
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                {metricsOrder.filter(metric => metric.visible).map((metric) => (
-                  <th key={metric.id} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {metric.label}
-                  </th>
+          {activeTab === 'campaigns' ? (
+            <table className="w-full">
+              <thead className="bg-trackview-background">
+                <tr>
+                  {campaignMetrics
+                    .filter(metric => metric.visible)
+                    .sort((a, b) => (a.order || 0) - (b.order || 0))
+                    .map(metric => (
+                      <th 
+                        key={metric.id}
+                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {metric.label}
+                      </th>
+                    ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-trackview-background">
+                {filteredCampaigns.map((campaign, index) => (
+                  <motion.tr 
+                    key={campaign.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="hover:bg-trackview-background"
+                  >
+                    {campaignMetrics
+                      .filter(metric => metric.visible)
+                      .sort((a, b) => (a.order || 0) - (b.order || 0))
+                      .map(metric => (
+                        <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
+                          {renderMetricCell(campaign, metric)}
+                        </td>
+                      ))}
+                  </motion.tr>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCampaigns.map((campaign, index) => (
-                <motion.tr 
-                  key={campaign.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="hover:bg-gray-50"
-                >
-                  {metricsOrder.filter(metric => metric.visible).map((metric) => {
-                    switch (metric.key) {
-                      case 'actions':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 hover:text-red-700"
-                                title="Marcar como deletada"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        )
-                      case 'name':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
-                          </td>
-                        )
-                      case 'source':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">{campaign.source}</div>
-                          </td>
-                        )
-                      case 'status':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                              {getStatusIcon(campaign.status)}
-                              <span className="ml-1">{campaign.status}</span>
-                            </span>
-                          </td>
-                        )
-                      case 'clicks':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'unique_clicks':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'impressions':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'conversions':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'all_conversions':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'approved':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'pending':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'declined':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
-                          </td>
-                        )
-                      case 'ctr':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.ctr}%</div>
-                          </td>
-                        )
-                      case 'conversion_rate':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
-                          </td>
-                        )
-                      case 'spend':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
-                          </td>
-                        )
-                      case 'revenue':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
-                          </td>
-                        )
-                      case 'roi':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.roi}%</div>
-                          </td>
-                        )
-                      case 'cpa':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
-                          </td>
-                        )
-                      case 'cpc':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc)}</div>
-                          </td>
-                        )
-                      case 'epc':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatCurrency(campaign.epc)}</div>
-                          </td>
-                        )
-                      case 'epl':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{formatCurrency(campaign.epl)}</div>
-                          </td>
-                        )
-                      case 'roas':
-                        return (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{campaign.roas}%</div>
-                          </td>
-                        )
-                      default:
-                        return <td key={metric.id} className="px-4 py-3 whitespace-nowrap"></td>
-                    }
-                  })}
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          ) : (
+            filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_medium && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
+              <div className="p-8 text-center text-gray-500">
+                Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
+                Tente ampliar o período ou revisar os filtros.
+                      </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Best performing campaigns */}
+                <div className="bg-blue-50 rounded-xl p-4 shadow">
+                  <h3 className="font-bold text-blue-700 mb-2">Best performing campaigns (RT):</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left">#</th>
+                        <th className="text-left">Campaign</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Conversions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestCampaigns.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+                      ) : bestCampaigns.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}.</td>
+                          <td>{item.campaign || item.title || item.name || '-'} </td>
+                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                          <td className="text-right">{item.conversions || 0}</td>
+                        </tr>
+                ))}
+              </tbody>
+            </table>
         </div>
-      </motion.div>
-
-      {/* Modal de Reordenação de Métricas */}
-      {showMetricsOrder && (
-        <MetricsOrder
-          metrics={metricsOrder}
-          onOrderChange={setMetricsOrder}
-          onClose={() => setShowMetricsOrder(false)}
-        />
-      )}
-    </div>
+                {/* Best performing ads */}
+                <div className="bg-blue-50 rounded-xl p-4 shadow">
+                  <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left">#</th>
+                        <th className="text-left">Ad</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Conversions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestAds.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+                      ) : bestAds.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}.</td>
+                          <td>{item.ad || item.rt_ad || item.title || item.name || '-'} </td>
+                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                          <td className="text-right">{item.conversions || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+            </div>
+                {/* Best offers */}
+                <div className="bg-blue-50 rounded-xl p-4 shadow">
+                  <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr>
+                        <th className="text-left">#</th>
+                        <th className="text-left">Offer</th>
+                        <th className="text-right">Revenue</th>
+                        <th className="text-right">Conversions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bestOffers.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+                      ) : bestOffers.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}.</td>
+                          <td>{item.offer || item.rt_offer || item.title || item.name || '-'}</td>
+                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                          <td className="text-right">{item.conversions || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+            </div>
+          </div>
+            )
+          )}
+          </div>
+        </motion.div>
+            </div>
   )
 }
 

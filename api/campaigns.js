@@ -215,22 +215,22 @@ async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
     const epl = clicks > 0 ? profit / clicks : 0;
     const roas = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0;
     
-    // Mapear status numérico para string baseado na documentação do RedTrack
-    let statusString = 'inactive';
-    if (campaign.status === 1) {
-      statusString = 'active';
-    } else if (campaign.status === 2) {
-      statusString = 'paused';
-    } else if (campaign.status === 3) {
-      statusString = 'deleted';
-    }
-    
-    return {
-      id: campaign.id,
-      title: campaign.title,
-      source_title: campaign.source_title || '',
-      status: statusString,
-      stat: {
+          // Mapear status numérico para string baseado na documentação do RedTrack
+      let statusString = 'inactive';
+      if (campaign.status === 1) {
+        statusString = 'active';
+      } else if (campaign.status === 2) {
+        statusString = 'paused';
+      } else if (campaign.status === 3) {
+        statusString = 'deleted';
+      }
+      
+      return {
+        id: campaign.id,
+        title: campaign.title,
+        source_title: campaign.source_title || '',
+        status: statusString,
+        stat: {
         clicks,
         unique_clicks: uniqueClicks,
         conversions,
