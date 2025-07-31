@@ -15,8 +15,7 @@ import {
   Link,
   Palette,
   Trash2,
-  Settings,
-  X
+  Settings
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -27,8 +26,6 @@ import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
 import { useCurrencyStore } from '../store/currency'
-import { useCampaignMetricsStore } from '../store/campaignMetrics'
-import MetricsOrder from './MetricsOrder'
 
 interface UTMCreative {
   id: string
@@ -88,6 +85,7 @@ const Campaigns: React.FC = () => {
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [utmCreatives, setUtmCreatives] = useState<UTMCreative[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMessage, setLoadingMessage] = useState('Carregando campanhas...')
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState<'campaigns' | 'utm'>('campaigns')
@@ -112,7 +110,6 @@ const Campaigns: React.FC = () => {
   const [totalCampaigns, setTotalCampaigns] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [deletedCampaigns, setDeletedCampaigns] = useState<Set<string>>(new Set())
-  const [showMetricsOrder, setShowMetricsOrder] = useState(false)
 
   // Date range picker state
   const [dateRange, setDateRange] = useState({ from: '', to: '' })
@@ -226,8 +223,8 @@ const Campaigns: React.FC = () => {
             status: isUserDeleted ? 'inactive' : (item.status || 'active'),
             spend: stat.cost || 0,
             revenue: stat.revenue || 0,
-            cpa: stat.cpa || (stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0),
-            roi: stat.roi || (stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0),
+            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
+            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
             conversions: stat.conversions || 0,
             clicks: stat.clicks || 0,
             unique_clicks: stat.unique_clicks || 0,
@@ -238,10 +235,6 @@ const Campaigns: React.FC = () => {
             declined: stat.declined || 0,
             ctr: stat.ctr || 0,
             conversion_rate: stat.conversion_rate || 0,
-            cpc: stat.cpc || 0,
-            epc: stat.epc || 0,
-            epl: stat.epl || 0,
-            roas: stat.roas || 0,
             isUserDeleted: isUserDeleted
           }
         })
@@ -257,7 +250,6 @@ const Campaigns: React.FC = () => {
       console.error('Error loading campaigns:', error)
     } finally {
       setLoading(false)
-      setLoadingMessage('')
     }
   }
 
@@ -274,7 +266,7 @@ const Campaigns: React.FC = () => {
       return;
     }
     setLoading(true)
-    setLoadingMessage('Carregando dados UTM/criativos...')
+    setLoadingMessage('Carregando dados UTM/Criativos...')
     try {
       // Montar parâmetros
       const params: Record<string, string> = {
@@ -330,7 +322,6 @@ const Campaigns: React.FC = () => {
       console.error('Error loading UTM Creatives:', error)
     } finally {
       setLoading(false)
-      setLoadingMessage('')
     }
   }
 
@@ -381,128 +372,6 @@ const Campaigns: React.FC = () => {
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange, deletedCampaigns])
-
-  // Adicionar indicador de carregamento mais informativo
-  const [loadingMessage, setLoadingMessage] = useState('')
-  
-  // Store para métricas das campanhas
-  const { metrics: campaignMetrics, reorderMetrics } = useCampaignMetricsStore()
-  
-  // Debug: verificar se o store está funcionando
-  console.log('Campaigns - campaignMetrics:', campaignMetrics)
-  
-  // Verificação de segurança para garantir que campaignMetrics existe
-  const safeMetrics = campaignMetrics || []
-  
-  // Verificação adicional para garantir que o store está funcionando
-  useEffect(() => {
-    if (!campaignMetrics || campaignMetrics.length === 0) {
-      console.log('Campaigns - Store não inicializado, usando fallback')
-    }
-  }, [campaignMetrics])
-  
-  // Função para renderizar células da tabela baseada na métrica
-  const renderMetricCell = (campaign: any, metric: any) => {
-    switch (metric.key) {
-      case 'actions':
-        return (
-          <div className="flex items-center space-x-2">
-            {campaign.isUserDeleted ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => restoreCampaign(campaign.name)}
-                className="text-green-600 hover:text-green-700"
-                title="Restaurar campanha"
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => markCampaignAsDeleted(campaign.name)}
-                className="text-red-600 hover:text-red-700"
-                title="Marcar como deletada"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        )
-      
-      case 'name':
-        return <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
-      
-      case 'source':
-        return <div className="text-sm text-gray-500">{campaign.source}</div>
-      
-      case 'status':
-        return (
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-            {getStatusIcon(campaign.status)}
-            <span className="ml-1">{campaign.status}</span>
-          </span>
-        )
-      
-      case 'clicks':
-        return <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
-      
-      case 'unique_clicks':
-        return <div className="text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
-      
-      case 'impressions':
-        return <div className="text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
-      
-      case 'conversions':
-        return <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
-      
-      case 'all_conversions':
-        return <div className="text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
-      
-      case 'approved':
-        return <div className="text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
-      
-      case 'pending':
-        return <div className="text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
-      
-      case 'declined':
-        return <div className="text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
-      
-      case 'ctr':
-        return <div className="text-sm text-gray-900">{campaign.ctr}%</div>
-      
-      case 'conversion_rate':
-        return <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
-      
-      case 'spend':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
-      
-      case 'revenue':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
-      
-      case 'roi':
-        return <div className="text-sm text-gray-900">{campaign.roi}%</div>
-      
-      case 'cpa':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
-      
-      case 'cpc':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
-      
-      case 'epc':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
-      
-      case 'epl':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
-      
-      case 'roas':
-        return <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
-      
-      default:
-        return <div className="text-sm text-gray-500">-</div>
-    }
-  }
 
   // useEffect para buscar os blocos de performance ao trocar filtros/aba
   useEffect(() => {
@@ -657,28 +526,16 @@ const Campaigns: React.FC = () => {
         </button>
       </div>
 
-          {/* Botões de controle */}
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowMetricsOrder(!showMetricsOrder)}
-              className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-            >
-              <Settings className="w-4 h-4 mr-2 inline" />
-              Ordenar Colunas
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-            >
-              <Filter className="w-4 h-4 mr-2 inline" />
-              Filtros
-            </Button>
-          </div>
+          {/* Botão de filtros alinhado à direita */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+          >
+            <Filter className="w-4 h-4 mr-2 inline" />
+            Filtros
+          </Button>
         </div>
 
       {/* Filtro de período padronizado - sempre visível */}
@@ -686,52 +543,6 @@ const Campaigns: React.FC = () => {
         <div className="relative period-dropdown">
         </div>
       </div>
-      {/* Modal de Reordenação de Métricas */}
-      {showMetricsOrder && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowMetricsOrder(false)}
-        >
-          <motion.div 
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0.9 }}
-            className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Personalizar Colunas da Tabela</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowMetricsOrder(false)}
-                className="p-2"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            <MetricsOrder
-              metrics={safeMetrics}
-              onMetricsChange={reorderMetrics}
-              className="mb-4"
-            />
-            
-            <div className="flex justify-end space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowMetricsOrder(false)}
-              >
-                Fechar
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
       {/* Filtros Avançados */}
       {showFilters && (
         <motion.div 
@@ -949,147 +760,202 @@ const Campaigns: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
-        {/* Loading Indicator */}
-        {loading && (
-          <div className="p-8 text-center">
-            <div className="inline-flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-trackview-primary"></div>
-              <span className="text-trackview-primary font-medium">{loadingMessage || 'Carregando...'}</span>
-            </div>
-            <p className="text-sm text-trackview-muted mt-2">
-              {activeTab === 'campaigns' ? 'Buscando dados das campanhas...' : 'Buscando dados UTM/criativos...'}
-            </p>
-          </div>
-        )}
-        
         <div className="overflow-x-auto">
-          {activeTab === 'campaigns' ? (
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-trackview-primary"></div>
+                <span className="text-trackview-text">{loadingMessage}</span>
+              </div>
+              <p className="text-sm text-trackview-muted mt-2">
+                Isso pode levar alguns segundos na primeira vez...
+              </p>
+            </div>
+          ) : activeTab === 'campaigns' ? (
             <table className="w-full">
               <thead className="bg-trackview-background">
                 <tr>
-                  {safeMetrics.length > 0 ? (
-                    safeMetrics
-                      .filter(metric => metric.visible)
-                      .sort((a, b) => (a.order || 0) - (b.order || 0))
-                      .map(metric => (
-                        <th 
-                          key={metric.id}
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {metric.label}
-                        </th>
-                      ))
-                  ) : (
-                    // Fallback para quando não há métricas configuradas
-                    <>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ações
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Campanha
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Fonte
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Cliques
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Conversões
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Gasto
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Receita
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ROI
-                      </th>
-                    </>
-                  )}
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ações
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Campanha
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fonte
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cliques
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Cliques Únicos
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Impressões
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Conversões
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Todas Conversões
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aprovadas
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pendentes
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Recusadas
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CTR
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Taxa Conv.
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Gasto
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Receita
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ROI
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CPA
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    CPC
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    EPC
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    EPL
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ROAS
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-trackview-background">
-                {filteredCampaigns.map((campaign, index) => (
-                  <motion.tr 
-                    key={campaign.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="hover:bg-trackview-background"
-                  >
-                    {safeMetrics.length > 0 ? (
-                      safeMetrics
-                        .filter(metric => metric.visible)
-                        .sort((a, b) => (a.order || 0) - (b.order || 0))
-                        .map(metric => (
-                          <td key={metric.id} className="px-4 py-3 whitespace-nowrap">
-                            {renderMetricCell(campaign, metric)}
-                          </td>
-                        ))
-                    ) : (
-                      // Fallback para quando não há métricas configuradas
-                      <>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            {campaign.isUserDeleted ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => restoreCampaign(campaign.name)}
-                                className="text-green-600 hover:text-green-700"
-                                title="Restaurar campanha"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => markCampaignAsDeleted(campaign.name)}
-                                className="text-red-600 hover:text-red-700"
-                                title="Marcar como deletada"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{campaign.source}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                            {getStatusIcon(campaign.status)}
-                            <span className="ml-1">{campaign.status}</span>
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{campaign.roi}%</div>
-                        </td>
-                      </>
-                    )}
-                  </motion.tr>
-                ))}
+                {filteredCampaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={23} className="px-4 py-8 text-center text-gray-500">
+                      {searchTerm || Object.values(filters).some(v => v) ? 
+                        'Nenhuma campanha encontrada com os filtros aplicados.' :
+                        'Nenhuma campanha encontrada para o período selecionado.'
+                      }
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCampaigns.map((campaign, index) => (
+                    <motion.tr 
+                      key={campaign.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="hover:bg-trackview-background"
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {campaign.isUserDeleted ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => restoreCampaign(campaign.name)}
+                              className="text-green-600 hover:text-green-700"
+                              title="Restaurar campanha"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => markCampaignAsDeleted(campaign.name)}
+                              className="text-red-600 hover:text-red-700"
+                              title="Marcar como deletada"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{campaign.source}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                          {getStatusIcon(campaign.status)}
+                          <span className="ml-1">{campaign.status}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.ctr}%</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.roi}%</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
               </tbody>
             </table>
           ) : (
@@ -1097,7 +963,7 @@ const Campaigns: React.FC = () => {
               <div className="p-8 text-center text-gray-500">
                 Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
                 Tente ampliar o período ou revisar os filtros.
-                      </div>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Best performing campaigns */}
@@ -1122,10 +988,10 @@ const Campaigns: React.FC = () => {
                           <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
                           <td className="text-right">{item.conversions || 0}</td>
                         </tr>
-                ))}
-              </tbody>
-            </table>
-        </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 {/* Best performing ads */}
                 <div className="bg-blue-50 rounded-xl p-4 shadow">
                   <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
@@ -1151,7 +1017,7 @@ const Campaigns: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
-            </div>
+                </div>
                 {/* Best offers */}
                 <div className="bg-blue-50 rounded-xl p-4 shadow">
                   <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
@@ -1177,12 +1043,12 @@ const Campaigns: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
-            </div>
-          </div>
+                </div>
+              </div>
             )
           )}
-          </div>
-        </motion.div>
+        </div>
+      </motion.div>
             </div>
   )
 }

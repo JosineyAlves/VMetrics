@@ -1,14 +1,18 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 300000; // 5 minutos (aumentado de 60 segundos)
+const CACHE_DURATION = 300000; // 5 minutos (aumentado de 1 minuto)
 
 // Controle de rate limiting otimizado
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 1000; // 1 segundo entre requisições (reduzido de 5 segundos)
+const MIN_REQUEST_INTERVAL = 1000; // Reduzido de 5 segundos para 1 segundo
 let requestQueue = [];
 let isProcessingQueue = false;
 
-// Função para processar fila de requisições
+// Cache específico para dados de campanhas
+const campaignDataCache = new Map();
+const CAMPAIGN_CACHE_DURATION = 600000; // 10 minutos para dados de campanhas
+
+// Função para processar fila de requisições otimizada
 async function processRequestQueue() {
   if (isProcessingQueue || requestQueue.length === 0) return;
   
@@ -18,13 +22,13 @@ async function processRequestQueue() {
     const { resolve, reject, url, headers } = requestQueue.shift();
     
     try {
-      // Aguardar intervalo mínimo entre requisições
+      // Aguardar intervalo mínimo entre requisições (reduzido)
       const now = Date.now();
       const timeSinceLastRequest = now - lastRequestTime;
       if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-            const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-            console.log(`⏳ [CAMPAIGNS] Aguardando ${waitTime}ms para rate limiting...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
+        const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+        console.log(`⏳ [CAMPAIGNS] Aguardando ${waitTime}ms para rate limiting...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       }
       
       console.log('⏳ [CAMPAIGNS] Processando requisição da fila...');
@@ -46,8 +50,8 @@ async function processRequestQueue() {
         
         // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 3 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 2 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Tentar novamente uma vez
           const retryResponse = await fetch(url, {
@@ -57,7 +61,7 @@ async function processRequestQueue() {
           
           if (!retryResponse.ok) {
             console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
-          resolve({ items: [], total: 0 });
+            resolve({ items: [], total: 0 });
             continue;
           }
           
@@ -80,86 +84,69 @@ async function processRequestQueue() {
 }
 
 // Função otimizada para buscar dados de múltiplas campanhas em paralelo
-async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
-  console.log(`Campaigns API - Buscando dados em lote para ${campaigns.length} campanhas...`);
+async function getCampaignsDataParallel(apiKey, campaigns, dateFrom, dateTo) {
+  console.log(`Campaigns API - Buscando dados para ${campaigns.length} campanhas em paralelo...`);
   
-  // Buscar todos os tracks de uma vez
+  // Preparar todas as URLs de uma vez
+  const allUrls = [];
+  const campaignIds = campaigns.map(c => c.id);
+  
+  // URL para buscar todos os tracks de uma vez
   const tracksUrl = new URL('https://api.redtrack.io/tracks');
   tracksUrl.searchParams.set('api_key', apiKey);
   tracksUrl.searchParams.set('date_from', dateFrom);
   tracksUrl.searchParams.set('date_to', dateTo);
   tracksUrl.searchParams.set('per', '10000'); // Aumentar limite
   
-  console.log(`Campaigns API - URL tracks para todas as campanhas:`, tracksUrl.toString());
-  
-  const tracksData = await new Promise((resolve, reject) => {
-    requestQueue.push({ 
-      resolve, 
-      reject, 
-      url: tracksUrl.toString(), 
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
-    });
-    processRequestQueue();
-  });
-  
-  // Buscar todas as conversões de uma vez
+  // URL para buscar todas as conversões de uma vez
   const conversionsUrl = new URL('https://api.redtrack.io/conversions');
   conversionsUrl.searchParams.set('api_key', apiKey);
   conversionsUrl.searchParams.set('date_from', dateFrom);
   conversionsUrl.searchParams.set('date_to', dateTo);
   conversionsUrl.searchParams.set('per', '10000'); // Aumentar limite
   
-  console.log(`Campaigns API - URL conversions para todas as campanhas:`, conversionsUrl.toString());
+  allUrls.push({ url: tracksUrl.toString(), type: 'tracks' });
+  allUrls.push({ url: conversionsUrl.toString(), type: 'conversions' });
   
-  const conversionsData = await new Promise((resolve, reject) => {
-    requestQueue.push({ 
-      resolve, 
-      reject, 
-      url: conversionsUrl.toString(), 
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'User-Agent': 'TrackView-Dashboard/1.0'
-      }
-    });
-    processRequestQueue();
-  });
+  // Fazer requisições em paralelo
+  const promises = allUrls.map(({ url, type }) => 
+    new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    })
+  );
   
-  // Processar dados em memória para todas as campanhas
+  // Aguardar todas as requisições
+  const [tracksData, conversionsData] = await Promise.all(promises);
+  
+  // Processar dados em memória (muito mais rápido que múltiplas requisições)
   const tracksArray = tracksData.items || tracksData.data || tracksData || [];
   const conversionsArray = conversionsData.items || conversionsData.data || conversionsData || [];
   
-  console.log(`Campaigns API - Dados brutos obtidos: ${tracksArray.length} tracks, ${conversionsArray.length} conversões`);
+  console.log(`Campaigns API - Dados obtidos: ${tracksArray.length} tracks, ${conversionsArray.length} conversões`);
   
-  // Agrupar tracks por campanha
-  const tracksByCampaign = {};
-  tracksArray.forEach(track => {
-    const campaignId = track.campaign_id;
-    if (!tracksByCampaign[campaignId]) {
-      tracksByCampaign[campaignId] = [];
-    }
-    tracksByCampaign[campaignId].push(track);
-  });
-  
-  // Agrupar conversões por campanha
-  const conversionsByCampaign = {};
-  conversionsArray.forEach(conv => {
-    const campaignId = conv.campaign_id;
-    if (!conversionsByCampaign[campaignId]) {
-      conversionsByCampaign[campaignId] = [];
-    }
-    conversionsByCampaign[campaignId].push(conv);
-  });
-  
-  // Calcular métricas para cada campanha
-  const results = campaigns.map(campaign => {
-    const campaignTracks = tracksByCampaign[campaign.id] || [];
-    const campaignConversions = conversionsByCampaign[campaign.id] || [];
+  // Processar cada campanha usando os dados já carregados
+  const processedData = campaigns.map(campaign => {
+    const campaignId = campaign.id;
     
+    // Filtrar tracks para esta campanha
+    const campaignTracks = Array.isArray(tracksArray) ? 
+      tracksArray.filter(track => track.campaign_id === campaignId) : [];
+    
+    // Filtrar conversões para esta campanha
+    const campaignConversions = Array.isArray(conversionsArray) ? 
+      conversionsArray.filter(conv => conv.campaign_id === campaignId) : [];
+    
+    // Calcular métricas
     const clicks = campaignTracks.length;
     
     // Calcular unique_clicks
@@ -207,7 +194,6 @@ async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
     // Calcular métricas derivadas
     const profit = totalRevenue - totalCost;
     const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
-    const ctr = 0; // Não temos dados de impressões
     const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0;
     const cpc = clicks > 0 ? totalCost / clicks : 0;
     const cpa = conversions > 0 ? totalCost / conversions : 0;
@@ -215,22 +201,22 @@ async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
     const epl = clicks > 0 ? profit / clicks : 0;
     const roas = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0;
     
-          // Mapear status numérico para string baseado na documentação do RedTrack
-      let statusString = 'inactive';
-      if (campaign.status === 1) {
-        statusString = 'active';
-      } else if (campaign.status === 2) {
-        statusString = 'paused';
-      } else if (campaign.status === 3) {
-        statusString = 'deleted';
-      }
-      
-      return {
-        id: campaign.id,
-        title: campaign.title,
-        source_title: campaign.source_title || '',
-        status: statusString,
-        stat: {
+    // Mapear status numérico para string
+    let statusString = 'inactive';
+    if (campaign.status === 1) {
+      statusString = 'active';
+    } else if (campaign.status === 2) {
+      statusString = 'paused';
+    } else if (campaign.status === 3) {
+      statusString = 'deleted';
+    }
+    
+    return {
+      id: campaign.id,
+      title: campaign.title,
+      source_title: campaign.source_title || '',
+      status: statusString,
+      stat: {
         clicks,
         unique_clicks: uniqueClicks,
         conversions,
@@ -241,7 +227,7 @@ async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
         revenue: totalRevenue,
         cost: totalCost,
         impressions: 0,
-        ctr,
+        ctr: 0,
         conversion_rate: conversionRate,
         profit,
         roi,
@@ -254,9 +240,7 @@ async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
     };
   });
   
-  console.log(`Campaigns API - Processamento em lote concluído para ${results.length} campanhas`);
-  
-  return results;
+  return processedData;
 }
 
 export default async function handler(req, res) {
@@ -277,7 +261,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' });
   }
 
-  // Verificar cache
+  // Verificar cache otimizado
   const cacheKey = `campaigns_${JSON.stringify(params)}`;
   const cachedData = requestCache.get(cacheKey);
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
@@ -287,43 +271,57 @@ export default async function handler(req, res) {
 
   try {
     console.log('=== CAMPAIGNS API DEBUG START ===');
-    console.log('Campaigns API - Nova abordagem otimizada: processamento em lote...');
+    console.log('Campaigns API - Nova abordagem otimizada: obter campanhas e dados em paralelo...');
     
     const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
     const dateTo = params.date_to || dateFrom;
     
     console.log('Campaigns API - Data solicitada:', { dateFrom, dateTo });
     
-    // PASSO 1: Obter lista de campanhas
-    console.log('Campaigns API - Passo 1: Obtendo lista de campanhas...');
-    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
-    campaignsUrl.searchParams.set('api_key', apiKey);
+    // PASSO 1: Obter lista de campanhas (com cache específico)
+    const campaignsCacheKey = `campaigns_list_${apiKey}_${dateFrom}_${dateTo}`;
+    let campaignsData = campaignDataCache.get(campaignsCacheKey);
     
-    const campaignsData = await new Promise((resolve, reject) => {
-      requestQueue.push({ 
-        resolve, 
-        reject, 
-        url: campaignsUrl.toString(), 
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent': 'TrackView-Dashboard/1.0'
-        }
+    if (!campaignsData || (Date.now() - campaignsData.timestamp) > CAMPAIGN_CACHE_DURATION) {
+      console.log('Campaigns API - Buscando lista de campanhas da API...');
+      const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
+      campaignsUrl.searchParams.set('api_key', apiKey);
+      
+      campaignsData = await new Promise((resolve, reject) => {
+        requestQueue.push({ 
+          resolve, 
+          reject, 
+          url: campaignsUrl.toString(), 
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'TrackView-Dashboard/1.0'
+          }
+        });
+        processRequestQueue();
       });
-      processRequestQueue();
-    });
+      
+      // Salvar no cache de campanhas
+      campaignDataCache.set(campaignsCacheKey, {
+        data: campaignsData,
+        timestamp: Date.now()
+      });
+    } else {
+      console.log('✅ [CAMPAIGNS] Lista de campanhas retornada do cache');
+      campaignsData = campaignsData.data;
+    }
     
     console.log('Campaigns API - Campanhas obtidas:', campaignsData.length);
     
-    // PASSO 2: Processar todas as campanhas em lote (muito mais rápido)
-    console.log('Campaigns API - Passo 2: Processando todas as campanhas em lote...');
+    // PASSO 2: Buscar dados de todas as campanhas em paralelo (otimização principal)
+    console.log('Campaigns API - Passo 2: Buscando dados de todas as campanhas em paralelo...');
     
-    const processedData = await getCampaignsDataBatch(apiKey, campaignsData, dateFrom, dateTo);
+    const processedData = await getCampaignsDataParallel(apiKey, campaignsData, dateFrom, dateTo);
     
     console.log('Campaigns API - Dados processados finais:', processedData.length, 'campanhas');
     console.log('=== CAMPAIGNS API DEBUG END ===');
     
-    // Salvar no cache
+    // Salvar no cache principal
     requestCache.set(cacheKey, {
       data: processedData,
       timestamp: Date.now()
