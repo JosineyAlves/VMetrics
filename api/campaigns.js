@@ -122,12 +122,12 @@ export default async function handler(req, res) {
     
     // Buscar dados para diferentes períodos
     async function fetchPeriodData(dateFrom, dateTo) {
-      const url = new URL('https://api.redtrack.io/campaigns');
+      const url = new URL('https://api.redtrack.io/report');
       url.searchParams.set('api_key', apiKey);
       url.searchParams.set('date_from', dateFrom);
       url.searchParams.set('date_to', dateTo);
-      url.searchParams.set('with_clicks', 'true');
-      url.searchParams.set('total', 'true');
+      url.searchParams.set('group_by', 'campaign');
+      url.searchParams.set('metrics', 'clicks,unique_clicks,conversions,cost,revenue,roas');
       
       return new Promise((resolve, reject) => {
         requestQueue.push({ 
@@ -152,30 +152,42 @@ export default async function handler(req, res) {
       fetchPeriodData(dates.lastMonthStart, dates.lastMonthEnd)
     ]);
 
-    // Função para calcular métricas de um período
-    function calculatePeriodMetrics(data) {
-      return data.reduce((acc, campaign) => {
-        const stat = campaign.stat || {};
-        acc.ad_spend += stat.cost || 0;
-        acc.revenue += stat.revenue || 0;
-        acc.roas = acc.ad_spend > 0 ? acc.revenue / acc.ad_spend : 0;
-        return acc;
-      }, { ad_spend: 0, revenue: 0, roas: 0 });
+    // Função para extrair métricas de um período
+    function extractPeriodMetrics(data) {
+      // Verificar se data é um objeto com a propriedade stat
+      if (data && data.stat) {
+        return {
+          ad_spend: data.stat.cost || 0,
+          revenue: data.stat.revenue || 0,
+          roas: data.stat.roas || 0
+        };
+      }
+      
+      // Se não tiver stat, retornar zeros
+      return {
+        ad_spend: 0,
+        revenue: 0,
+        roas: 0
+      };
     }
 
-    // Calcular métricas para cada período
-    const todayMetrics = calculatePeriodMetrics(todayData);
-    const yesterdayMetrics = calculatePeriodMetrics(yesterdayData);
-    const thisMonthMetrics = calculatePeriodMetrics(thisMonthData);
-    const lastMonthMetrics = calculatePeriodMetrics(lastMonthData);
+    // Extrair métricas para cada período
+    const todayMetrics = extractPeriodMetrics(todayData);
+    const yesterdayMetrics = extractPeriodMetrics(yesterdayData);
+    const thisMonthMetrics = extractPeriodMetrics(thisMonthData);
+    const lastMonthMetrics = extractPeriodMetrics(lastMonthData);
 
     // Função para obter top 3 campanhas de um período
     function getTopCampaigns(data) {
+      if (!data || !Array.isArray(data)) {
+        return [];
+      }
+      
       return data
         .map(campaign => ({
-          name: campaign.title || '',
-          conversions: (campaign.stat && campaign.stat.conversions) || 0,
-          revenue: (campaign.stat && campaign.stat.revenue) || 0
+          name: campaign.campaign || campaign.title || '',
+          conversions: campaign.conversions || 0,
+          revenue: campaign.revenue || 0
         }))
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 3);
@@ -268,13 +280,18 @@ export default async function handler(req, res) {
       ],
       // Manter a lista completa de campanhas para compatibilidade
       campaigns: todayData.map(campaign => ({
-        id: campaign.id,
-        title: campaign.title,
-        source_title: campaign.source_title || '',
-        status: campaign.status === 1 ? 'active' : 
-                campaign.status === 2 ? 'paused' : 
-                campaign.status === 3 ? 'deleted' : 'inactive',
-        stat: campaign.stat || {}
+        id: campaign.campaign_id || campaign.id || '',
+        title: campaign.campaign || campaign.title || '',
+        source_title: campaign.source || campaign.source_title || '',
+        status: campaign.status || 'active',
+        stat: {
+          clicks: campaign.clicks || 0,
+          unique_clicks: campaign.unique_clicks || 0,
+          conversions: campaign.conversions || 0,
+          cost: campaign.cost || 0,
+          revenue: campaign.revenue || 0,
+          roas: campaign.roas || 0
+        }
       }))
     };
 
