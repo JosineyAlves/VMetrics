@@ -169,6 +169,7 @@ const Campaigns: React.FC = () => {
     }
     
     setLoading(true)
+    setLoadingMessage('Carregando campanhas...')
     try {
       const params = {
         api_key: apiKey,
@@ -221,8 +222,8 @@ const Campaigns: React.FC = () => {
             status: isUserDeleted ? 'inactive' : (item.status || 'active'),
             spend: stat.cost || 0,
             revenue: stat.revenue || 0,
-            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
-            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
+            cpa: stat.cpa || (stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0),
+            roi: stat.roi || (stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0),
             conversions: stat.conversions || 0,
             clicks: stat.clicks || 0,
             unique_clicks: stat.unique_clicks || 0,
@@ -233,6 +234,10 @@ const Campaigns: React.FC = () => {
             declined: stat.declined || 0,
             ctr: stat.ctr || 0,
             conversion_rate: stat.conversion_rate || 0,
+            cpc: stat.cpc || 0,
+            epc: stat.epc || 0,
+            epl: stat.epl || 0,
+            roas: stat.roas || 0,
             isUserDeleted: isUserDeleted
           }
         })
@@ -248,6 +253,7 @@ const Campaigns: React.FC = () => {
       console.error('Error loading campaigns:', error)
     } finally {
       setLoading(false)
+      setLoadingMessage('')
     }
   }
 
@@ -264,6 +270,7 @@ const Campaigns: React.FC = () => {
       return;
     }
     setLoading(true)
+    setLoadingMessage('Carregando dados UTM/criativos...')
     try {
       // Montar parâmetros
       const params: Record<string, string> = {
@@ -319,6 +326,7 @@ const Campaigns: React.FC = () => {
       console.error('Error loading UTM Creatives:', error)
     } finally {
       setLoading(false)
+      setLoadingMessage('')
     }
   }
 
@@ -362,13 +370,16 @@ const Campaigns: React.FC = () => {
   useEffect(() => {
     if (apiKey) {
       if (activeTab === 'campaigns') {
-      loadCampaigns()
+        loadCampaigns()
       } else if (activeTab === 'utm') {
         loadUTMCreatives()
       }
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange, deletedCampaigns])
+
+  // Adicionar indicador de carregamento mais informativo
+  const [loadingMessage, setLoadingMessage] = useState('')
 
   // useEffect para buscar os blocos de performance ao trocar filtros/aba
   useEffect(() => {
@@ -757,6 +768,19 @@ const Campaigns: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="p-8 text-center">
+            <div className="inline-flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-trackview-primary"></div>
+              <span className="text-trackview-primary font-medium">{loadingMessage || 'Carregando...'}</span>
+            </div>
+            <p className="text-sm text-trackview-muted mt-2">
+              {activeTab === 'campaigns' ? 'Buscando dados das campanhas...' : 'Buscando dados UTM/criativos...'}
+            </p>
+          </div>
+        )}
+        
         <div className="overflow-x-auto">
           {activeTab === 'campaigns' ? (
             <table className="w-full">

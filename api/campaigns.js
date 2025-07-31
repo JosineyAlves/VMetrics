@@ -1,10 +1,10 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 60000; // 60 segundos
+const CACHE_DURATION = 300000; // 5 minutos (aumentado de 60 segundos)
 
-// Controle de rate limiting
+// Controle de rate limiting otimizado
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições
+const MIN_REQUEST_INTERVAL = 1000; // 1 segundo entre requisições (reduzido de 5 segundos)
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -46,8 +46,8 @@ async function processRequestQueue() {
         
         // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 5 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 3 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
           // Tentar novamente uma vez
           const retryResponse = await fetch(url, {
@@ -79,19 +79,18 @@ async function processRequestQueue() {
   isProcessingQueue = false;
 }
 
-// Função para buscar dados específicos de uma campanha
-async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
-  console.log(`Campaigns API - Buscando dados específicos para campanha ${campaignId}...`);
+// Função otimizada para buscar dados de múltiplas campanhas em paralelo
+async function getCampaignsDataBatch(apiKey, campaigns, dateFrom, dateTo) {
+  console.log(`Campaigns API - Buscando dados em lote para ${campaigns.length} campanhas...`);
   
-  // Buscar cliques da campanha
+  // Buscar todos os tracks de uma vez
   const tracksUrl = new URL('https://api.redtrack.io/tracks');
   tracksUrl.searchParams.set('api_key', apiKey);
   tracksUrl.searchParams.set('date_from', dateFrom);
   tracksUrl.searchParams.set('date_to', dateTo);
-  tracksUrl.searchParams.set('campaign_id', campaignId);
-  tracksUrl.searchParams.set('per', '1000');
+  tracksUrl.searchParams.set('per', '10000'); // Aumentar limite
   
-  console.log(`Campaigns API - URL tracks para campanha ${campaignId}:`, tracksUrl.toString());
+  console.log(`Campaigns API - URL tracks para todas as campanhas:`, tracksUrl.toString());
   
   const tracksData = await new Promise((resolve, reject) => {
     requestQueue.push({ 
@@ -107,15 +106,14 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
     processRequestQueue();
   });
   
-  // Buscar conversões da campanha
+  // Buscar todas as conversões de uma vez
   const conversionsUrl = new URL('https://api.redtrack.io/conversions');
   conversionsUrl.searchParams.set('api_key', apiKey);
   conversionsUrl.searchParams.set('date_from', dateFrom);
   conversionsUrl.searchParams.set('date_to', dateTo);
-  conversionsUrl.searchParams.set('campaign_id', campaignId);
-  conversionsUrl.searchParams.set('per', '1000');
+  conversionsUrl.searchParams.set('per', '10000'); // Aumentar limite
   
-  console.log(`Campaigns API - URL conversions para campanha ${campaignId}:`, conversionsUrl.toString());
+  console.log(`Campaigns API - URL conversions para todas as campanhas:`, conversionsUrl.toString());
   
   const conversionsData = await new Promise((resolve, reject) => {
     requestQueue.push({ 
@@ -131,123 +129,124 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
     processRequestQueue();
   });
   
-  // Calcular métricas baseadas nos dados brutos
-  // Verificar se os dados estão em tracksData.items, tracksData.data ou tracksData diretamente
-  const tracksArray = tracksData.items || tracksData.data || tracksData;
-  const conversionsArray = conversionsData.items || conversionsData.data || conversionsData;
+  // Processar dados em memória para todas as campanhas
+  const tracksArray = tracksData.items || tracksData.data || tracksData || [];
+  const conversionsArray = conversionsData.items || conversionsData.data || conversionsData || [];
   
-  // FILTRAGEM MANUAL: Garantir que apenas conversões da campanha específica sejam contadas
-  const filteredConversions = Array.isArray(conversionsArray) ? 
-    conversionsArray.filter(conv => conv.campaign_id === campaignId) : [];
+  console.log(`Campaigns API - Dados brutos obtidos: ${tracksArray.length} tracks, ${conversionsArray.length} conversões`);
   
-  const clicks = Array.isArray(tracksArray) ? tracksArray.length : 0;
-  
-  // CORREÇÃO: Calcular unique_clicks baseado em fingerprint ou IP quando clickid não estiver disponível
-  let uniqueClicks = 0;
-  if (Array.isArray(tracksArray) && tracksArray.length > 0) {
-    // Tentar usar clickid primeiro, depois fingerprint, depois IP
-    const uniqueIdentifiers = new Set();
-    tracksArray.forEach(track => {
-      const identifier = track.clickid || track.fingerprint || track.ip;
-      if (identifier) {
-        uniqueIdentifiers.add(identifier);
-      }
-    });
-    uniqueClicks = uniqueIdentifiers.size;
-  }
-  
-  const conversions = filteredConversions.length;
-  
-  // Calcular custo total (soma dos custos dos cliques)
-  const totalCost = Array.isArray(tracksArray) ? 
-    tracksArray.reduce((sum, track) => sum + (track.cost || 0), 0) : 0;
-  
-  // Calcular receita total (soma das receitas das conversões)
-  const totalRevenue = filteredConversions.reduce((sum, conv) => sum + (conv.payout || 0), 0);
-  
-  // CORREÇÃO: Calcular status das conversões
-  const statusCounts = {
-    approved: 0,
-    pending: 0,
-    declined: 0,
-    other: 0
-  };
-  
-  filteredConversions.forEach(conv => {
-    const status = conv.status || 'other';
-    if (status === 'approved' || status === 'approve') {
-      statusCounts.approved++;
-    } else if (status === 'pending' || status === 'pend') {
-      statusCounts.pending++;
-    } else if (status === 'declined' || status === 'decline') {
-      statusCounts.declined++;
-    } else {
-      statusCounts.other++;
+  // Agrupar tracks por campanha
+  const tracksByCampaign = {};
+  tracksArray.forEach(track => {
+    const campaignId = track.campaign_id;
+    if (!tracksByCampaign[campaignId]) {
+      tracksByCampaign[campaignId] = [];
     }
+    tracksByCampaign[campaignId].push(track);
   });
   
-  // Calcular métricas derivadas
-  const profit = totalRevenue - totalCost;
-  const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
-  const ctr = 0; // Não temos dados de impressões
-  const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0;
-  const cpc = clicks > 0 ? totalCost / clicks : 0;
-  const cpa = conversions > 0 ? totalCost / conversions : 0;
-  const epc = clicks > 0 ? totalRevenue / clicks : 0;
-  const epl = clicks > 0 ? profit / clicks : 0; // Earnings per lead
-  const roas = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0; // Return on Ad Spend
+  // Agrupar conversões por campanha
+  const conversionsByCampaign = {};
+  conversionsArray.forEach(conv => {
+    const campaignId = conv.campaign_id;
+    if (!conversionsByCampaign[campaignId]) {
+      conversionsByCampaign[campaignId] = [];
+    }
+    conversionsByCampaign[campaignId].push(conv);
+  });
   
-  console.log(`Campaigns API - Dados calculados para campanha ${campaignId}:`);
-  console.log(`   - Estrutura tracksData:`, typeof tracksData, tracksData.items ? 'com .items' : tracksData.data ? 'com .data' : 'sem .items/.data');
-  console.log(`   - Estrutura conversionsData:`, typeof conversionsData, conversionsData.items ? 'com .items' : conversionsData.data ? 'com .data' : 'sem .items/.data');
-  console.log(`   - tracksData keys:`, Object.keys(tracksData || {}));
-  console.log(`   - conversionsData keys:`, Object.keys(conversionsData || {}));
-  console.log(`   - tracksArray length:`, Array.isArray(tracksArray) ? tracksArray.length : 'não é array');
-  console.log(`   - conversionsArray length:`, Array.isArray(conversionsArray) ? conversionsArray.length : 'não é array');
+  // Calcular métricas para cada campanha
+  const results = campaigns.map(campaign => {
+    const campaignTracks = tracksByCampaign[campaign.id] || [];
+    const campaignConversions = conversionsByCampaign[campaign.id] || [];
+    
+    const clicks = campaignTracks.length;
+    
+    // Calcular unique_clicks
+    let uniqueClicks = 0;
+    if (campaignTracks.length > 0) {
+      const uniqueIdentifiers = new Set();
+      campaignTracks.forEach(track => {
+        const identifier = track.clickid || track.fingerprint || track.ip;
+        if (identifier) {
+          uniqueIdentifiers.add(identifier);
+        }
+      });
+      uniqueClicks = uniqueIdentifiers.size;
+    }
+    
+    const conversions = campaignConversions.length;
+    
+    // Calcular custo total
+    const totalCost = campaignTracks.reduce((sum, track) => sum + (track.cost || 0), 0);
+    
+    // Calcular receita total
+    const totalRevenue = campaignConversions.reduce((sum, conv) => sum + (conv.payout || 0), 0);
+    
+    // Calcular status das conversões
+    const statusCounts = {
+      approved: 0,
+      pending: 0,
+      declined: 0,
+      other: 0
+    };
+    
+    campaignConversions.forEach(conv => {
+      const status = conv.status || 'other';
+      if (status === 'approved' || status === 'approve') {
+        statusCounts.approved++;
+      } else if (status === 'pending' || status === 'pend') {
+        statusCounts.pending++;
+      } else if (status === 'declined' || status === 'decline') {
+        statusCounts.declined++;
+      } else {
+        statusCounts.other++;
+      }
+    });
+    
+    // Calcular métricas derivadas
+    const profit = totalRevenue - totalCost;
+    const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+    const ctr = 0; // Não temos dados de impressões
+    const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0;
+    const cpc = clicks > 0 ? totalCost / clicks : 0;
+    const cpa = conversions > 0 ? totalCost / conversions : 0;
+    const epc = clicks > 0 ? totalRevenue / clicks : 0;
+    const epl = clicks > 0 ? profit / clicks : 0;
+    const roas = totalCost > 0 ? (totalRevenue / totalCost) * 100 : 0;
+    
+    return {
+      id: campaign.id,
+      title: campaign.title,
+      source_title: campaign.source_title || '',
+      status: campaign.status,
+      stat: {
+        clicks,
+        unique_clicks: uniqueClicks,
+        conversions,
+        all_conversions: conversions,
+        approved: statusCounts.approved,
+        pending: statusCounts.pending,
+        declined: statusCounts.declined,
+        revenue: totalRevenue,
+        cost: totalCost,
+        impressions: 0,
+        ctr,
+        conversion_rate: conversionRate,
+        profit,
+        roi,
+        cpc,
+        cpa,
+        epc,
+        epl,
+        roas
+      }
+    };
+  });
   
-  // Log dos primeiros itens para debug
-  if (Array.isArray(tracksArray) && tracksArray.length > 0) {
-    console.log(`   - Primeiro track campaign_id:`, tracksArray[0].campaign_id);
-    console.log(`   - Primeiro track clickid:`, tracksArray[0].clickid);
-    console.log(`   - Primeiro track fingerprint:`, tracksArray[0].fingerprint);
-    console.log(`   - Primeiro track ip:`, tracksArray[0].ip);
-  }
-  if (Array.isArray(conversionsArray) && conversionsArray.length > 0) {
-    console.log(`   - Primeira conversão campaign_id:`, conversionsArray[0].campaign_id);
-    console.log(`   - Primeira conversão status:`, conversionsArray[0].status);
-  }
+  console.log(`Campaigns API - Processamento em lote concluído para ${results.length} campanhas`);
   
-  // Log da filtragem manual
-  console.log(`   - Conversões antes da filtragem:`, conversionsArray.length);
-  console.log(`   - Conversões após filtragem para campanha ${campaignId}:`, filteredConversions.length);
-  console.log(`   - Cliques: ${clicks}, Únicos: ${uniqueClicks}`);
-  console.log(`   - Conversões: ${conversions}`);
-  console.log(`   - Status: Aprovadas: ${statusCounts.approved}, Pendentes: ${statusCounts.pending}, Recusadas: ${statusCounts.declined}, Outros: ${statusCounts.other}`);
-  console.log(`   - Custo: ${totalCost}, Receita: ${totalRevenue}`);
-  console.log(`   - ROI: ${roi}%, Taxa de conversão: ${conversionRate}%`);
-  console.log(`   - CPC: $${cpc}, CPA: $${cpa}, EPC: $${epc}, EPL: $${epl}, ROAS: ${roas}%`);
-  
-  return {
-    clicks,
-    unique_clicks: uniqueClicks,
-    conversions,
-    all_conversions: conversions,
-    approved: statusCounts.approved,
-    pending: statusCounts.pending,
-    declined: statusCounts.declined,
-    revenue: totalRevenue,
-    cost: totalCost,
-    impressions: 0,
-    ctr,
-    conversion_rate: conversionRate,
-    profit,
-    roi,
-    cpc,
-    cpa,
-    epc,
-    epl,
-    roas
-  };
+  return results;
 }
 
 export default async function handler(req, res) {
@@ -278,7 +277,7 @@ export default async function handler(req, res) {
 
   try {
     console.log('=== CAMPAIGNS API DEBUG START ===');
-    console.log('Campaigns API - Nova abordagem: obter campanhas e dados específicos...');
+    console.log('Campaigns API - Nova abordagem otimizada: processamento em lote...');
     
     const dateFrom = params.date_from || new Date().toISOString().split('T')[0];
     const dateTo = params.date_to || dateFrom;
@@ -306,81 +305,12 @@ export default async function handler(req, res) {
     
     console.log('Campaigns API - Campanhas obtidas:', campaignsData.length);
     
-    // PASSO 2: Para cada campanha, buscar dados específicos
-    console.log('Campaigns API - Passo 2: Buscando dados específicos para cada campanha...');
+    // PASSO 2: Processar todas as campanhas em lote (muito mais rápido)
+    console.log('Campaigns API - Passo 2: Processando todas as campanhas em lote...');
     
-    let processedData = [];
+    const processedData = await getCampaignsDataBatch(apiKey, campaignsData, dateFrom, dateTo);
     
-    for (const campaign of campaignsData) {
-      try {
-        console.log(`Campaigns API - Processando campanha: ${campaign.title} (ID: ${campaign.id})`);
-        
-        // Buscar dados específicos da campanha
-        const campaignStats = await getCampaignData(apiKey, campaign.id, dateFrom, dateTo);
-        
-        // Mapear status numérico para string baseado na documentação do RedTrack
-        let statusString = 'inactive';
-        if (campaign.status === 1) {
-          statusString = 'active';
-        } else if (campaign.status === 2) {
-          statusString = 'paused';
-        } else if (campaign.status === 3) {
-          statusString = 'deleted';
-        }
-        
-        processedData.push({
-          id: campaign.id,
-          title: campaign.title,
-          source_title: campaign.source_title || '',
-          status: statusString,
-          stat: campaignStats
-        });
-        
-        // Aguardar um pouco entre as requisições para evitar rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-      } catch (error) {
-        console.error(`❌ Erro ao processar campanha ${campaign.title}:`, error);
-        // Mapear status numérico para string baseado na documentação do RedTrack
-        let statusString = 'inactive';
-        if (campaign.status === 1) {
-          statusString = 'active';
-        } else if (campaign.status === 2) {
-          statusString = 'paused';
-        } else if (campaign.status === 3) {
-          statusString = 'deleted';
-        }
-        
-        // Adicionar campanha com dados zerados em caso de erro
-        processedData.push({
-          id: campaign.id,
-          title: campaign.title,
-          source_title: campaign.source_title || '',
-          status: statusString,
-          stat: {
-            clicks: 0,
-            unique_clicks: 0,
-            conversions: 0,
-            all_conversions: 0,
-            approved: 0,
-            pending: 0,
-            declined: 0,
-            revenue: 0,
-            cost: 0,
-            impressions: 0,
-            ctr: 0,
-            conversion_rate: 0,
-            profit: 0,
-            roi: 0,
-            cpc: 0,
-            cpa: 0,
-            epc: 0
-          }
-        });
-      }
-    }
-    
-    console.log('Campaigns API - Dados processados finais:', JSON.stringify(processedData, null, 2));
+    console.log('Campaigns API - Dados processados finais:', processedData.length, 'campanhas');
     console.log('=== CAMPAIGNS API DEBUG END ===');
     
     // Salvar no cache
