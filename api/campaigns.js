@@ -4,7 +4,7 @@ const CACHE_DURATION = 60000; // 60 segundos
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 3000; // 3 segundos entre requisições
+const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -54,8 +54,8 @@ async function processRequestQueue() {
           });
           
           if (!retryResponse.ok) {
-            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
-            resolve({ data: [], total: 0 });
+                      console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
+          resolve({ items: [], total: 0 });
             continue;
           }
           
@@ -126,9 +126,9 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   });
   
   // Calcular métricas baseadas nos dados brutos
-  // Verificar se os dados estão em tracksData.data ou tracksData diretamente
-  const tracksArray = tracksData.data || tracksData;
-  const conversionsArray = conversionsData.data || conversionsData;
+  // Verificar se os dados estão em tracksData.items, tracksData.data ou tracksData diretamente
+  const tracksArray = tracksData.items || tracksData.data || tracksData;
+  const conversionsArray = conversionsData.items || conversionsData.data || conversionsData;
   
   const clicks = Array.isArray(tracksArray) ? tracksArray.length : 0;
   const uniqueClicks = Array.isArray(tracksArray) ? new Set(tracksArray.map(track => track.clickid)).size : 0;
@@ -152,8 +152,8 @@ async function getCampaignData(apiKey, campaignId, dateFrom, dateTo) {
   const epc = clicks > 0 ? totalRevenue / clicks : 0;
   
   console.log(`Campaigns API - Dados calculados para campanha ${campaignId}:`);
-  console.log(`   - Estrutura tracksData:`, typeof tracksData, tracksData.data ? 'com .data' : 'sem .data');
-  console.log(`   - Estrutura conversionsData:`, typeof conversionsData, conversionsData.data ? 'com .data' : 'sem .data');
+  console.log(`   - Estrutura tracksData:`, typeof tracksData, tracksData.items ? 'com .items' : tracksData.data ? 'com .data' : 'sem .items/.data');
+  console.log(`   - Estrutura conversionsData:`, typeof conversionsData, conversionsData.items ? 'com .items' : conversionsData.data ? 'com .data' : 'sem .items/.data');
   console.log(`   - tracksData keys:`, Object.keys(tracksData || {}));
   console.log(`   - conversionsData keys:`, Object.keys(conversionsData || {}));
   console.log(`   - tracksArray length:`, Array.isArray(tracksArray) ? tracksArray.length : 'não é array');
