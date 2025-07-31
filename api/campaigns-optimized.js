@@ -134,7 +134,7 @@ export default async function handler(req, res) {
 
   try {
     console.log('=== CAMPAIGNS API DEBUG START ===');
-        console.log('Campaigns API - Abordagem simplificada: usar /campaigns diretamente...');
+    console.log('Campaigns API - Abordagem simplificada: usar /campaigns diretamente...');
     
     // PASSO 1: Obter campanhas com estatísticas já incluídas
     console.log('Campaigns API - Passo 1: Obtendo campanhas com estatísticas...');
