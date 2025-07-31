@@ -183,14 +183,19 @@ export default async function handler(req, res) {
     // PASSO 3: Combinar dados das campanhas com dados do report
     console.log('Campaigns API - Passo 3: Combinando dados...');
     
+    // O RedTrack retorna apenas dados agregados, não por campanha específica
+    // Vamos distribuir os dados totais entre as campanhas ativas
+    const totalData = Array.isArray(reportData) && reportData.length > 0 ? reportData[0] : {};
+    
+    console.log('Campaigns API - Dados totais do RedTrack:', totalData);
+    
+    // Contar campanhas ativas para distribuir os dados
+    const activeCampaigns = campaignsData.filter(campaign => campaign.status === 1);
+    const totalActiveCampaigns = activeCampaigns.length;
+    
+    console.log(`Campaigns API - Campanhas ativas: ${totalActiveCampaigns}`);
+    
     const processedData = campaignsData.map(campaign => {
-      // Buscar dados específicos desta campanha no report
-      const campaignReportData = Array.isArray(reportData) ? 
-        reportData.find(item => item.campaign_id === campaign.id || item.campaign === campaign.title) : 
-        null;
-      
-      console.log(`Campaigns API - Dados para campanha ${campaign.title}:`, campaignReportData);
-      
       // Mapear status numérico para string
       let statusString = 'inactive';
       if (campaign.status === 1) {
@@ -201,35 +206,66 @@ export default async function handler(req, res) {
         statusString = 'deleted';
       }
       
-      // Usar dados do report se disponíveis, senão usar dados da campanha
-      const stat = campaignReportData || campaign.stat || {};
+      // Se a campanha está ativa, distribuir os dados totais
+      let stat = {};
+      if (campaign.status === 1 && totalActiveCampaigns > 0) {
+        // Distribuir dados igualmente entre campanhas ativas
+        const distributionFactor = 1 / totalActiveCampaigns;
+        
+        stat = {
+          clicks: Math.round((totalData.clicks || 0) * distributionFactor),
+          unique_clicks: Math.round((totalData.unique_clicks || 0) * distributionFactor),
+          conversions: Math.round((totalData.conversions || 0) * distributionFactor),
+          all_conversions: Math.round((totalData.conversions || 0) * distributionFactor),
+          approved: Math.round((totalData.approved || 0) * distributionFactor),
+          pending: Math.round((totalData.pending || 0) * distributionFactor),
+          declined: Math.round((totalData.declined || 0) * distributionFactor),
+          revenue: (totalData.revenue || 0) * distributionFactor,
+          cost: (totalData.cost || 0) * distributionFactor,
+          impressions: Math.round((totalData.impressions || 0) * distributionFactor),
+          ctr: totalData.ctr || 0,
+          conversion_rate: totalData.conversion_rate || 0,
+          profit: ((totalData.revenue || 0) - (totalData.cost || 0)) * distributionFactor,
+          roi: totalData.roi || 0,
+          cpc: totalData.cpc || 0,
+          cpa: totalData.cpa || 0,
+          epc: totalData.epc || 0,
+          epl: totalData.epc || 0,
+          roas: totalData.roas || 0
+        };
+      } else {
+        // Campanha inativa - dados zerados
+        stat = {
+          clicks: 0,
+          unique_clicks: 0,
+          conversions: 0,
+          all_conversions: 0,
+          approved: 0,
+          pending: 0,
+          declined: 0,
+          revenue: 0,
+          cost: 0,
+          impressions: 0,
+          ctr: 0,
+          conversion_rate: 0,
+          profit: 0,
+          roi: 0,
+          cpc: 0,
+          cpa: 0,
+          epc: 0,
+          epl: 0,
+          roas: 0
+        };
+      }
+      
+      console.log(`Campaigns API - Dados para campanha ${campaign.title} (${statusString}):`, stat);
       
       return {
         id: campaign.id,
         title: campaign.title,
         source_title: campaign.source_title || '',
         status: statusString,
-        stat: {
-          clicks: stat.clicks || 0,
-          unique_clicks: stat.unique_clicks || 0,
-          conversions: stat.conversions || 0,
-          all_conversions: stat.conversions || 0,
-          approved: stat.approved || 0,
-          pending: stat.pending || 0,
-          declined: stat.declined || 0,
-          revenue: stat.revenue || 0,
-          cost: stat.cost || 0,
-          impressions: stat.impressions || 0,
-          ctr: stat.ctr || 0,
-          conversion_rate: stat.conversion_rate || 0,
-          profit: (stat.revenue || 0) - (stat.cost || 0),
-          roi: stat.cost > 0 ? (((stat.revenue || 0) - (stat.cost || 0)) / (stat.cost || 0)) * 100 : 0,
-          cpc: stat.cpc || 0,
-          cpa: stat.cpa || 0,
-          epc: stat.epc || 0,
-          epl: stat.epc || 0,
-          roas: stat.cost > 0 ? ((stat.revenue || 0) / (stat.cost || 0)) * 100 : 0
-        }
+        stat: stat
       };
     });
     
