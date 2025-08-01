@@ -208,9 +208,18 @@ const Campaigns: React.FC = () => {
       
       // Atualizar dados de performance
       if (data && data.performance) {
-        setBestCampaigns(data.performance.bestCampaigns || []);
-        setBestAds(data.performance.bestAds || []);
-        setBestOffers(data.performance.bestOffers || []);
+        setBestCampaigns([
+          ...data.performance.campaigns.today,
+          ...data.performance.campaigns.yesterday
+        ]);
+        setBestAds([
+          ...data.performance.ads.today,
+          ...data.performance.ads.yesterday
+        ]);
+        setBestOffers([
+          ...data.performance.offers.today,
+          ...data.performance.offers.yesterday
+        ]);
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
@@ -348,7 +357,7 @@ const Campaigns: React.FC = () => {
 
   // useEffect para buscar os blocos de performance ao trocar filtros/aba
   useEffect(() => {
-    if (apiKey) {
+    if (activeTab === 'utm' && apiKey) {
       fetchBestPerformers('campaign', setBestCampaigns)
       fetchBestPerformers('ad', setBestAds)
       fetchBestPerformers('offer', setBestOffers)
