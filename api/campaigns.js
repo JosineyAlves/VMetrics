@@ -153,7 +153,7 @@ export default async function handler(req, res) {
     campaignsUrl.searchParams.set('with_clicks', 'true');
     campaignsUrl.searchParams.set('total', 'true');
     
-    const campaignsData = await new Promise((resolve, reject) => {
+    const campaignsResponse = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
         reject, 
@@ -169,6 +169,21 @@ export default async function handler(req, res) {
 
     // PASSO 3: Processar dados das campanhas e adicionar métricas de performance
     console.log('Campaigns API - Processando dados...');
+    console.log('Campaigns API - Resposta da API de campanhas:', campaignsResponse);
+    
+    // Extrair array de campanhas da resposta
+    let campaignsData = [];
+    if (campaignsResponse) {
+      if (Array.isArray(campaignsResponse)) {
+        campaignsData = campaignsResponse;
+      } else if (campaignsResponse.items && Array.isArray(campaignsResponse.items)) {
+        campaignsData = campaignsResponse.items;
+      } else if (campaignsResponse.data && Array.isArray(campaignsResponse.data)) {
+        campaignsData = campaignsResponse.data;
+      } else {
+        console.warn('Campaigns API - Formato de resposta inesperado:', campaignsResponse);
+      }
+    }
     
     const processedData = campaignsData.map(campaign => {
       // Mapear status
