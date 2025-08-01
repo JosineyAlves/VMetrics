@@ -307,50 +307,10 @@ const Campaigns: React.FC = () => {
     }
   }
 
-  // Estados para os blocos de performance
+  // Novos estados para os blocos de performance
   const [bestCampaigns, setBestCampaigns] = useState<any[]>([])
   const [bestAds, setBestAds] = useState<any[]>([])
   const [bestOffers, setBestOffers] = useState<any[]>([])
-
-  // Componente para renderizar um bloco de performance
-  const PerformanceBlock = ({ title, items }: { title: string, items: any[] }) => (
-    <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">{title}</h3>
-      <div className="space-y-3">
-        {items.map((item, index) => (
-          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-900">
-                {index + 1}.
-              </span>
-              <span className="text-sm text-gray-700">
-                {item.name || item.title || 'N/A'}
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm">
-                <span className="text-gray-500">Receita:</span>
-                <span className="ml-1 font-medium text-gray-900">
-                  {formatCurrency(item.revenue || 0)}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="text-gray-500">ROI:</span>
-                <span className="ml-1 font-medium text-gray-900">
-                  {(item.roi || 0).toFixed(2)}%
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-        {items.length === 0 && (
-          <div className="text-sm text-gray-500 text-center py-2">
-            Nenhum dado disponível para o período selecionado
-          </div>
-        )}
-      </div>
-    </div>
-  )
 
   // Função utilitária para buscar e ordenar top 3
   const fetchBestPerformers = async (groupBy: string, setter: (data: any[]) => void) => {
@@ -397,8 +357,10 @@ const Campaigns: React.FC = () => {
 
   // useEffect para buscar os blocos de performance ao trocar filtros/aba
   useEffect(() => {
-    if (apiKey) {
-      loadCampaigns() // Isso já vai atualizar os blocos de performance com as datas corretas
+    if (activeTab === 'utm' && apiKey) {
+      fetchBestPerformers('campaign', setBestCampaigns)
+      fetchBestPerformers('ad', setBestAds)
+      fetchBestPerformers('offer', setBestOffers)
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange])
@@ -774,111 +736,85 @@ const Campaigns: React.FC = () => {
         {/* This div is now handled by PeriodDropdown component */}
       </div>
 
-      {/* Blocos de Performance */}
+      {/* Performance Blocks - Mostrar em ambas as abas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Melhores Campanhas</h3>
-            <span className="text-sm text-gray-500">Últimas 24h</span>
-          </div>
-          <div className="space-y-4">
-            {bestCampaigns.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                Nenhum dado disponível nas últimas 24h
-              </div>
-            ) : (
-              bestCampaigns.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
-                      {idx + 1}
-                    </span>
-                    <span className="text-gray-900 font-medium">{item.name || '-'}</span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Receita</div>
-                      <div className="font-medium text-gray-900">{formatCurrency(item.revenue || 0)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Conversões</div>
-                      <div className="font-medium text-gray-900">{item.conversions || 0}</div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        {/* Best performing campaigns */}
+        <div className="bg-blue-50 rounded-xl p-4 shadow">
+          <h3 className="font-bold text-blue-700 mb-2">Best performing campaigns (RT):</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Campaign</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">Conversions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bestCampaigns.length === 0 ? (
+                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+              ) : bestCampaigns.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{idx + 1}.</td>
+                  <td>{item.name || '-'} </td>
+                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right">{item.conversions || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Melhores Anúncios</h3>
-            <span className="text-sm text-gray-500">Últimas 24h</span>
-          </div>
-          <div className="space-y-4">
-            {bestAds.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                Nenhum dado disponível nas últimas 24h
-              </div>
-            ) : (
-              bestAds.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <span className="flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-600 rounded-full text-sm font-medium">
-                      {idx + 1}
-                    </span>
-                    <span className="text-gray-900 font-medium">{item.name || '-'}</span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Receita</div>
-                      <div className="font-medium text-gray-900">{formatCurrency(item.revenue || 0)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Conversões</div>
-                      <div className="font-medium text-gray-900">{item.conversions || 0}</div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        {/* Best performing ads */}
+        <div className="bg-blue-50 rounded-xl p-4 shadow">
+          <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Ad</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">Conversions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bestAds.length === 0 ? (
+                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+              ) : bestAds.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{idx + 1}.</td>
+                  <td>{item.name || '-'} </td>
+                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right">{item.conversions || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Melhores Ofertas</h3>
-            <span className="text-sm text-gray-500">Últimas 24h</span>
-          </div>
-          <div className="space-y-4">
-            {bestOffers.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                Nenhum dado disponível nas últimas 24h
-              </div>
-            ) : (
-              bestOffers.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <span className="flex items-center justify-center w-6 h-6 bg-green-100 text-green-600 rounded-full text-sm font-medium">
-                      {idx + 1}
-                    </span>
-                    <span className="text-gray-900 font-medium">{item.name || '-'}</span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Receita</div>
-                      <div className="font-medium text-gray-900">{formatCurrency(item.revenue || 0)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Conversões</div>
-                      <div className="font-medium text-gray-900">{item.conversions || 0}</div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        {/* Best offers */}
+        <div className="bg-blue-50 rounded-xl p-4 shadow">
+          <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Offer</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">Conversions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bestOffers.length === 0 ? (
+                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+              ) : bestOffers.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{idx + 1}.</td>
+                  <td>{item.name || '-'}</td>
+                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right">{item.conversions || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

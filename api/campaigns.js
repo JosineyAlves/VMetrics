@@ -122,9 +122,8 @@ export default async function handler(req, res) {
     try {
       const dashboardUrl = new URL('https://api.redtrack.io/dashboard');
       dashboardUrl.searchParams.set('api_key', apiKey);
-      // Sempre usar hoje e ontem para os dados de performance
-      dashboardUrl.searchParams.set('date_from', yesterday);
-      dashboardUrl.searchParams.set('date_to', today);
+      dashboardUrl.searchParams.set('date_from', params.date_from || today);
+      dashboardUrl.searchParams.set('date_to', params.date_to || today);
       
       dashboardData = await new Promise((resolve, reject) => {
         requestQueue.push({ 
