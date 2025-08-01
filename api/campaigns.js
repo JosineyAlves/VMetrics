@@ -148,7 +148,25 @@ export default async function handler(req, res) {
         });
 
         if (Array.isArray(response)) {
-          return response.sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 3);
+          return response
+            .map(item => {
+              // Mapear o nome correto baseado no tipo de agrupamento
+              let name = '';
+              if (groupBy === 'campaign') {
+                name = item.campaign_name || item.campaign || item.name || '-';
+              } else if (groupBy === 'ad') {
+                name = item.ad_name || item.ad || item.name || '-';
+              } else if (groupBy === 'offer') {
+                name = item.offer_name || item.offer || item.name || '-';
+              }
+              
+              return {
+                ...item,
+                name: name
+              };
+            })
+            .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+            .slice(0, 3);
         }
         return [];
       };
