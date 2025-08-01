@@ -116,87 +116,45 @@ export default async function handler(req, res) {
     const lastDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
     const firstDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
 
-    // PASSO 1: Obter dados de performance usando o endpoint /report
-    console.log('Campaigns API - Buscando dados de performance...');
-    let performanceData = {
-      campaigns: [],
-      ads: [],
-      offers: []
-    };
-
+    // PASSO 1: Obter dados do dashboard para métricas de performance
+    console.log('Campaigns API - Buscando dados do dashboard...');
+    let dashboardData = null;
     try {
-      // Função auxiliar para buscar top performers
-      const fetchTopPerformers = async (groupBy, limit = 3) => {
-        const reportUrl = new URL('https://api.redtrack.io/report');
-        reportUrl.searchParams.set('api_key', apiKey);
-        reportUrl.searchParams.set('date_from', params.date_from || today);
-        reportUrl.searchParams.set('date_to', params.date_to || today);
-        reportUrl.searchParams.set('group_by', groupBy);
-        reportUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue,roi');
-        reportUrl.searchParams.set('sort_by', 'revenue');
-        reportUrl.searchParams.set('sort_order', 'desc');
-        reportUrl.searchParams.set('per', limit.toString());
-
-        console.log(`Buscando top performers para ${groupBy}:`, reportUrl.toString());
-
-        const response = await new Promise((resolve, reject) => {
-          requestQueue.push({
-            resolve,
-            reject,
-            url: reportUrl.toString(),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'User-Agent': 'TrackView-Dashboard/1.0'
-            }
-          });
-          processRequestQueue();
+      const dashboardUrl = new URL('https://api.redtrack.io/dashboard');
+      dashboardUrl.searchParams.set('api_key', apiKey);
+      dashboardUrl.searchParams.set('date_from', params.date_from || today);
+      dashboardUrl.searchParams.set('date_to', params.date_to || today);
+      
+      dashboardData = await new Promise((resolve, reject) => {
+        requestQueue.push({ 
+          resolve, 
+          reject, 
+          url: dashboardUrl.toString(), 
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'User-Agent': 'TrackView-Dashboard/1.0'
+          }
         });
-
-        // Verificar a estrutura da resposta
-        if (response && Array.isArray(response)) {
-          return response;
-        } else if (response && response.data && Array.isArray(response.data)) {
-          return response.data;
-        } else if (response && response.items && Array.isArray(response.items)) {
-          return response.items;
-        } else {
-          console.warn(`Resposta inesperada para ${groupBy}:`, response);
-          return [];
-        }
-      };
-
-      // Buscar dados em paralelo para melhor performance
-      const [topCampaigns, topAds, topOffers] = await Promise.all([
-        fetchTopPerformers('campaign'),
-        fetchTopPerformers('rt_ad'),
-        fetchTopPerformers('offer')
-      ]);
-
-      performanceData = {
-        campaigns: topCampaigns.map(item => ({
-          name: item.campaign || item.title || item.name || '-',
-          revenue: parseFloat(item.revenue || 0),
-          conversions: parseInt(item.conversions || 0, 10)
-        })),
-        ads: topAds.map(item => ({
-          name: item.rt_ad || item.ad || item.name || '-',
-          revenue: parseFloat(item.revenue || 0),
-          conversions: parseInt(item.conversions || 0, 10)
-        })),
-        offers: topOffers.map(item => ({
-          name: item.offer || item.name || '-',
-          revenue: parseFloat(item.revenue || 0),
-          conversions: parseInt(item.conversions || 0, 10)
-        }))
-      };
-
-      // Log dos dados de performance para debug
-      console.log('Dados de performance processados:', {
-        campaigns: performanceData.campaigns.length,
-        ads: performanceData.ads.length,
-        offers: performanceData.offers.length
+        processRequestQueue();
       });
+
+      console.log('Campaigns API - Dados do dashboard obtidos:', dashboardData);
+
+      // Estruturar dados de performance
+      let performanceData = {
+        metric_categories: [],
+        performance_categories: []
+      };
+
+      if (dashboardData && dashboardData.performance_categories && dashboardData.metric_categories) {
+        performanceData = {
+          metric_categories: dashboardData.metric_categories,
+          performance_categories: dashboardData.performance_categories
+        };
+      } else {
+        console.warn('Campaigns API - Estrutura de dados do dashboard inesperada:', dashboardData);
+      }
 
       console.log('Campaigns API - Dados de performance obtidos com sucesso');
     } catch (error) {
