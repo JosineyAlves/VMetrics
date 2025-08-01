@@ -137,6 +137,8 @@ export default async function handler(req, res) {
         reportUrl.searchParams.set('sort_order', 'desc');
         reportUrl.searchParams.set('per', limit.toString());
 
+        console.log(`Buscando top performers para ${groupBy}:`, reportUrl.toString());
+
         const response = await new Promise((resolve, reject) => {
           requestQueue.push({
             resolve,
@@ -151,7 +153,17 @@ export default async function handler(req, res) {
           processRequestQueue();
         });
 
-        return response.data || [];
+        // Verificar a estrutura da resposta
+        if (response && Array.isArray(response)) {
+          return response;
+        } else if (response && response.data && Array.isArray(response.data)) {
+          return response.data;
+        } else if (response && response.items && Array.isArray(response.items)) {
+          return response.items;
+        } else {
+          console.warn(`Resposta inesperada para ${groupBy}:`, response);
+          return [];
+        }
       };
 
       // Buscar dados em paralelo para melhor performance
@@ -163,21 +175,28 @@ export default async function handler(req, res) {
 
       performanceData = {
         campaigns: topCampaigns.map(item => ({
-          name: item.campaign || item.name || '-',
-          revenue: item.revenue || 0,
-          conversions: item.conversions || 0
+          name: item.campaign || item.title || item.name || '-',
+          revenue: parseFloat(item.revenue || 0),
+          conversions: parseInt(item.conversions || 0, 10)
         })),
         ads: topAds.map(item => ({
-          name: item.rt_ad || item.name || '-',
-          revenue: item.revenue || 0,
-          conversions: item.conversions || 0
+          name: item.rt_ad || item.ad || item.name || '-',
+          revenue: parseFloat(item.revenue || 0),
+          conversions: parseInt(item.conversions || 0, 10)
         })),
         offers: topOffers.map(item => ({
           name: item.offer || item.name || '-',
-          revenue: item.revenue || 0,
-          conversions: item.conversions || 0
+          revenue: parseFloat(item.revenue || 0),
+          conversions: parseInt(item.conversions || 0, 10)
         }))
       };
+
+      // Log dos dados de performance para debug
+      console.log('Dados de performance processados:', {
+        campaigns: performanceData.campaigns.length,
+        ads: performanceData.ads.length,
+        offers: performanceData.offers.length
+      });
 
       console.log('Campaigns API - Dados de performance obtidos com sucesso');
     } catch (error) {

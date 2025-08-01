@@ -208,9 +208,12 @@ const Campaigns: React.FC = () => {
       
       // Atualizar dados de performance
       if (data && data.performance) {
+        console.log('Dados de performance recebidos:', data.performance);
         setBestCampaigns(data.performance.campaigns || []);
         setBestAds(data.performance.ads || []);
         setBestOffers(data.performance.offers || []);
+      } else {
+        console.warn('Dados de performance não encontrados na resposta');
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
