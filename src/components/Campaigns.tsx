@@ -145,7 +145,8 @@ const Campaigns: React.FC = () => {
       const params = {
         api_key: apiKey,
         date_from: dateRange.startDate,
-        date_to: dateRange.endDate
+        date_to: dateRange.endDate,
+        group_by: 'campaign'
       }
       
       console.log('Campanhas - Parâmetros enviados:', params);
@@ -174,102 +175,58 @@ const Campaigns: React.FC = () => {
       
       console.log('Campanhas - Resposta da API:', data);
       
-      // Processar dados que já vêm com métricas e performance
-      if (data) {
-        // Atualizar métricas gerais
-        const metrics = data.metric_categories || [];
-        const adSpendMetric = metrics.find((m: any) => m.type === 'ad_spend');
-        const revenueMetric = metrics.find((m: any) => m.type === 'revenue');
-        const roasMetric = metrics.find((m: any) => m.type === 'roas');
-        
-        // Atualizar estado das métricas gerais
-        setGeneralMetrics({
-          ad_spend: {
-            today: adSpendMetric?.values.find((v: any) => v.period === 'today')?.value || 0,
-            yesterday: adSpendMetric?.values.find((v: any) => v.period === 'yesterday')?.value || 0,
-            this_month: adSpendMetric?.values.find((v: any) => v.period === 'this_month')?.value || 0,
-            last_month: adSpendMetric?.values.find((v: any) => v.period === 'last_month')?.value || 0,
-            trend: adSpendMetric?.values.find((v: any) => v.period === 'today')?.trend || 'rise'
-          },
-          revenue: {
-            today: revenueMetric?.values.find((v: any) => v.period === 'today')?.value || 0,
-            yesterday: revenueMetric?.values.find((v: any) => v.period === 'yesterday')?.value || 0,
-            this_month: revenueMetric?.values.find((v: any) => v.period === 'this_month')?.value || 0,
-            last_month: revenueMetric?.values.find((v: any) => v.period === 'last_month')?.value || 0,
-            trend: revenueMetric?.values.find((v: any) => v.period === 'today')?.trend || 'rise'
-          },
-          roas: {
-            today: roasMetric?.values.find((v: any) => v.period === 'today')?.value || 0,
-            yesterday: roasMetric?.values.find((v: any) => v.period === 'yesterday')?.value || 0,
-            this_month: roasMetric?.values.find((v: any) => v.period === 'this_month')?.value || 0,
-            last_month: roasMetric?.values.find((v: any) => v.period === 'last_month')?.value || 0,
-            trend: roasMetric?.values.find((v: any) => v.period === 'today')?.trend || 'rise'
+      // Processar dados de campanhas
+      let campaignsArray: any[] = []
+      
+      if (data && data.campaigns && Array.isArray(data.campaigns)) {
+        campaignsArray = data.campaigns.map((item: { id: string; title: string; source_title?: string; status: string; stat?: any }) => {
+          const stat = item.stat || {}
+          const campaignName = item.title || 'Campanha sem nome'
+          
+          return {
+            id: item.id,
+            name: campaignName,
+            source: item.source_title || '',
+            status: item.status || 'active',
+            spend: stat.cost || 0,
+            revenue: stat.revenue || 0,
+            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
+            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
+            conversions: stat.conversions || 0,
+            clicks: stat.clicks || 0,
+            unique_clicks: stat.unique_clicks || 0,
+            impressions: stat.impressions || 0,
+            all_conversions: stat.all_conversions || 0,
+            approved: stat.approved || 0,
+            pending: stat.pending || 0,
+            declined: stat.declined || 0,
+            ctr: stat.ctr || 0,
+            conversion_rate: stat.conversion_rate || 0
           }
-        });
-        
-        // Atualizar performance por categoria
-        const performance = data.performance_categories || [];
-        const campaignsPerf = performance.find((p: any) => p.type === 'campaigns');
-        const adsPerf = performance.find((p: any) => p.type === 'ads');
-        const offersPerf = performance.find((p: any) => p.type === 'offers');
-        
-        // Atualizar top performers
-        if (campaignsPerf) {
-          const todayValues = campaignsPerf.values.find((v: any) => v.type === 'today')?.values || [];
-          const yesterdayValues = campaignsPerf.values.find((v: any) => v.type === 'yesterday')?.values || [];
-          setBestCampaigns([...todayValues, ...yesterdayValues]);
-        }
-        
-        if (adsPerf) {
-          const todayValues = adsPerf.values.find((v: any) => v.type === 'today')?.values || [];
-          const yesterdayValues = adsPerf.values.find((v: any) => v.type === 'yesterday')?.values || [];
-          setBestAds([...todayValues, ...yesterdayValues]);
-        }
-        
-        if (offersPerf) {
-          const todayValues = offersPerf.values.find((v: any) => v.type === 'today')?.values || [];
-          const yesterdayValues = offersPerf.values.find((v: any) => v.type === 'yesterday')?.values || [];
-          setBestOffers([...todayValues, ...yesterdayValues]);
-        }
-        
-        // Processar lista completa de campanhas
-        let campaignsArray = data.campaigns || [];
-        if (Array.isArray(campaignsArray)) {
-          campaignsArray = campaignsArray.map(item => {
-            const stat = item.stat || {}
-            return {
-              id: item.id,
-              name: item.title || 'Campanha sem nome',
-              source: item.source_title || '',
-              status: item.status || 'active',
-              spend: stat.cost || 0,
-              revenue: stat.revenue || 0,
-              cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
-              roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
-              conversions: stat.conversions || 0,
-              clicks: stat.clicks || 0,
-              unique_clicks: stat.unique_clicks || 0,
-              impressions: stat.impressions || 0,
-              all_conversions: stat.all_conversions || 0,
-              approved: stat.approved || 0,
-              pending: stat.pending || 0,
-              declined: stat.declined || 0,
-              ctr: stat.ctr || 0,
-              conversion_rate: stat.conversion_rate || 0,
-              cpc: stat.cpc || 0,
-              epc: stat.epc || 0,
-              epl: stat.epl || 0,
-              roas: stat.roas || 0
-            }
-          })
-        }
-        
-        console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
-        
-        setCampaigns(campaignsArray)
-        setTotalCampaigns(campaignsArray.length)
-        setLastUpdate(new Date())
+        })
       }
+      
+      // Atualizar dados de performance
+      if (data && data.performance) {
+        setBestCampaigns([
+          ...data.performance.campaigns.today,
+          ...data.performance.campaigns.yesterday
+        ]);
+        setBestAds([
+          ...data.performance.ads.today,
+          ...data.performance.ads.yesterday
+        ]);
+        setBestOffers([
+          ...data.performance.offers.today,
+          ...data.performance.offers.yesterday
+        ]);
+      }
+      
+      console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
+      
+      setCampaigns(campaignsArray)
+      setTotalCampaigns(campaignsArray.length)
+      setLastUpdate(new Date())
       
     } catch (error) {
       console.error('Error loading campaigns:', error)
@@ -521,64 +478,8 @@ const Campaigns: React.FC = () => {
 
   // Mensagem amigável se não houver campanhas
   // Mostrar filtros sempre, mesmo sem campanhas
-    // Novo estado para métricas gerais
-  const [generalMetrics, setGeneralMetrics] = useState({
-    ad_spend: { today: 0, yesterday: 0, this_month: 0, last_month: 0, trend: 'rise' },
-    revenue: { today: 0, yesterday: 0, this_month: 0, last_month: 0, trend: 'rise' },
-    roas: { today: 0, yesterday: 0, this_month: 0, last_month: 0, trend: 'rise' }
-  });
-
-  // Função para renderizar métricas gerais
-  const renderMetricCard = (title: string, metric: any) => {
     return (
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-trackview-accent">
-        <h3 className="text-sm font-medium text-trackview-muted mb-2">{title}</h3>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-trackview-text">Hoje</span>
-            <div className="flex items-center">
-              <span className="text-lg font-semibold text-trackview-primary">
-                {title === 'ROAS' ? `${metric.today.toFixed(2)}%` : formatCurrency(metric.today)}
-              </span>
-              {metric.trend === 'rise' ? (
-                <TrendingUp className="w-4 h-4 ml-2 text-green-500" />
-              ) : (
-                <TrendingDown className="w-4 h-4 ml-2 text-red-500" />
-              )}
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-trackview-text">Ontem</span>
-            <span className="text-sm font-medium text-trackview-text">
-              {title === 'ROAS' ? `${metric.yesterday.toFixed(2)}%` : formatCurrency(metric.yesterday)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-trackview-text">Este Mês</span>
-            <span className="text-sm font-medium text-trackview-text">
-              {title === 'ROAS' ? `${metric.this_month.toFixed(2)}%` : formatCurrency(metric.this_month)}
-            </span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-trackview-text">Mês Passado</span>
-            <span className="text-sm font-medium text-trackview-text">
-              {title === 'ROAS' ? `${metric.last_month.toFixed(2)}%` : formatCurrency(metric.last_month)}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  return (
       <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Métricas Gerais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {renderMetricCard('Gasto', generalMetrics.ad_spend)}
-        {renderMetricCard('Receita', generalMetrics.revenue)}
-        {renderMetricCard('ROAS', generalMetrics.roas)}
-      </div>
-
       {/* Nav Container */}
           <div className="flex items-center justify-between mb-4">
       {/* Tabs */}
@@ -835,6 +736,88 @@ const Campaigns: React.FC = () => {
         {/* This div is now handled by PeriodDropdown component */}
       </div>
 
+      {/* Performance Blocks - Mostrar em ambas as abas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Best performing campaigns */}
+        <div className="bg-blue-50 rounded-xl p-4 shadow">
+          <h3 className="font-bold text-blue-700 mb-2">Best performing campaigns (RT):</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Campaign</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">Conversions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bestCampaigns.length === 0 ? (
+                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+              ) : bestCampaigns.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{idx + 1}.</td>
+                  <td>{item.name || '-'} </td>
+                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right">{item.conversions || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Best performing ads */}
+        <div className="bg-blue-50 rounded-xl p-4 shadow">
+          <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Ad</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">Conversions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bestAds.length === 0 ? (
+                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+              ) : bestAds.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{idx + 1}.</td>
+                  <td>{item.name || '-'} </td>
+                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right">{item.conversions || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Best offers */}
+        <div className="bg-blue-50 rounded-xl p-4 shadow">
+          <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">#</th>
+                <th className="text-left">Offer</th>
+                <th className="text-right">Revenue</th>
+                <th className="text-right">Conversions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bestOffers.length === 0 ? (
+                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
+              ) : bestOffers.map((item, idx) => (
+                <tr key={idx}>
+                  <td>{idx + 1}.</td>
+                  <td>{item.name || '-'}</td>
+                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right">{item.conversions || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Data Table */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -1012,93 +995,54 @@ const Campaigns: React.FC = () => {
               </tbody>
             </table>
           ) : (
-            filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_medium && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
-              <div className="p-8 text-center text-gray-500">
-                Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
-                Tente ampliar o período ou revisar os filtros.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {/* Best performing campaigns */}
-                <div className="bg-blue-50 rounded-xl p-4 shadow">
-                  <h3 className="font-bold text-blue-700 mb-2">Best performing campaigns (RT):</h3>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr>
-                        <th className="text-left">#</th>
-                        <th className="text-left">Campaign</th>
-                        <th className="text-right">Revenue</th>
-                        <th className="text-right">Conversions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bestCampaigns.length === 0 ? (
-                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
-                      ) : bestCampaigns.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>{idx + 1}.</td>
-                          <td>{item.campaign || item.title || item.name || '-'} </td>
-                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
-                          <td className="text-right">{item.conversions || 0}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            <div>
+              {/* UTM/Criativos Table */}
+              {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_medium && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
+                <div className="p-8 text-center text-gray-500">
+                  Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
+                  Tente ampliar o período ou revisar os filtros.
                 </div>
-                {/* Best performing ads */}
-                <div className="bg-blue-50 rounded-xl p-4 shadow">
-                  <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr>
-                        <th className="text-left">#</th>
-                        <th className="text-left">Ad</th>
-                        <th className="text-right">Revenue</th>
-                        <th className="text-right">Conversions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bestAds.length === 0 ? (
-                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
-                      ) : bestAds.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>{idx + 1}.</td>
-                          <td>{item.ad || item.rt_ad || item.title || item.name || '-'} </td>
-                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
-                          <td className="text-right">{item.conversions || 0}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {/* Best offers */}
-                <div className="bg-blue-50 rounded-xl p-4 shadow">
-                  <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr>
-                        <th className="text-left">#</th>
-                        <th className="text-left">Offer</th>
-                        <th className="text-right">Revenue</th>
-                        <th className="text-right">Conversions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bestOffers.length === 0 ? (
-                        <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
-                      ) : bestOffers.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>{idx + 1}.</td>
-                          <td>{item.offer || item.rt_offer || item.title || item.name || '-'}</td>
-                          <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
-                          <td className="text-right">{item.conversions || 0}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-trackview-background">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Medium</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Term</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Content</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spend</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ROI</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-trackview-background">
+                    {filteredUTMCreatives.map((creative, index) => (
+                      <motion.tr 
+                        key={creative.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-trackview-background"
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_medium}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.clicks.toLocaleString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.spend)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.roi.toFixed(2)}%</td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
         </div>
       </motion.div>

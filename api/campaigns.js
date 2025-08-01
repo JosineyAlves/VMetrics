@@ -1,16 +1,16 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 300000; // 5 minutos
+const CACHE_DURATION = 300000; // 5 minutos (aumentado de 1 minuto)
 
 // Controle de rate limiting otimizado
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 1000; // 1 segundo
+const MIN_REQUEST_INTERVAL = 1000; // Reduzido de 5 segundos para 1 segundo
 let requestQueue = [];
 let isProcessingQueue = false;
 
 // Cache específico para dados de campanhas
 const campaignDataCache = new Map();
-const CAMPAIGN_CACHE_DURATION = 600000; // 10 minutos
+const CAMPAIGN_CACHE_DURATION = 600000; // 10 minutos para dados de campanhas
 
 // Função para processar fila de requisições otimizada
 async function processRequestQueue() {
@@ -22,13 +22,16 @@ async function processRequestQueue() {
     const { resolve, reject, url, headers } = requestQueue.shift();
     
     try {
+      // Aguardar intervalo mínimo entre requisições (reduzido)
       const now = Date.now();
       const timeSinceLastRequest = now - lastRequestTime;
       if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
         const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+        console.log(`⏳ [CAMPAIGNS] Aguardando ${waitTime}ms para rate limiting...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
       
+      console.log('⏳ [CAMPAIGNS] Processando requisição da fila...');
       const response = await fetch(url, {
         method: 'GET',
         headers
@@ -38,16 +41,26 @@ async function processRequestQueue() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('🔴 [CAMPAIGNS] Erro da RedTrack:', {
+          status: response.status,
+          url: url,
+          errorData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
         
+        // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
+          console.log('⚠️ [CAMPAIGNS] Rate limiting detectado - aguardando 2 segundos...');
           await new Promise(resolve => setTimeout(resolve, 2000));
           
+          // Tentar novamente uma vez
           const retryResponse = await fetch(url, {
             method: 'GET',
             headers
           });
           
           if (!retryResponse.ok) {
+            console.log('⚠️ [CAMPAIGNS] Rate limiting persistente - retornando dados vazios');
             resolve({ items: [], total: 0 });
             continue;
           }
@@ -70,31 +83,6 @@ async function processRequestQueue() {
   isProcessingQueue = false;
 }
 
-// Função auxiliar para obter datas
-function getDates() {
-  const now = new Date();
-  const today = now.toISOString().split('T')[0];
-  
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-  
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const firstDayOfMonthStr = firstDayOfMonth.toISOString().split('T')[0];
-  
-  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthStart = lastMonth.toISOString().split('T')[0];
-  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
-  
-  return {
-    today,
-    yesterday: yesterdayStr,
-    thisMonth: firstDayOfMonthStr,
-    lastMonthStart,
-    lastMonthEnd
-  };
-}
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -114,26 +102,34 @@ export default async function handler(req, res) {
   const cacheKey = `campaigns_${JSON.stringify(params)}`;
   const cachedData = requestCache.get(cacheKey);
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+    console.log('✅ [CAMPAIGNS] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
   }
 
   try {
-    const dates = getDates();
+    console.log('=== CAMPAIGNS API DEBUG START ===');
     
-    // Buscar dados para diferentes períodos
-    async function fetchPeriodData(dateFrom, dateTo) {
-      const url = new URL('https://api.redtrack.io/report');
-      url.searchParams.set('api_key', apiKey);
-      url.searchParams.set('date_from', dateFrom);
-      url.searchParams.set('date_to', dateTo);
-      url.searchParams.set('group_by', 'campaign');
-      url.searchParams.set('metrics', 'clicks,unique_clicks,conversions,cost,revenue,roas');
+    // Obter datas para comparação
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const lastDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
+    const firstDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
+
+    // PASSO 1: Obter dados do dashboard para métricas de performance
+    console.log('Campaigns API - Buscando dados do dashboard...');
+    let dashboardData = null;
+    try {
+      const dashboardUrl = new URL('https://api.redtrack.io/dashboard');
+      dashboardUrl.searchParams.set('api_key', apiKey);
+      dashboardUrl.searchParams.set('date_from', params.date_from || today);
+      dashboardUrl.searchParams.set('date_to', params.date_to || today);
       
-      return new Promise((resolve, reject) => {
+      dashboardData = await new Promise((resolve, reject) => {
         requestQueue.push({ 
           resolve, 
           reject, 
-          url: url.toString(), 
+          url: dashboardUrl.toString(), 
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -142,160 +138,136 @@ export default async function handler(req, res) {
         });
         processRequestQueue();
       });
+      console.log('Campaigns API - Dados do dashboard obtidos com sucesso');
+    } catch (error) {
+      console.warn('Campaigns API - Erro ao buscar dados do dashboard:', error);
+      console.log('Campaigns API - Continuando sem dados de performance...');
     }
 
-    // Buscar dados para todos os períodos em paralelo
-    const [todayData, yesterdayData, thisMonthData, lastMonthData] = await Promise.all([
-      fetchPeriodData(dates.today, dates.today),
-      fetchPeriodData(dates.yesterday, dates.yesterday),
-      fetchPeriodData(dates.thisMonth, dates.today),
-      fetchPeriodData(dates.lastMonthStart, dates.lastMonthEnd)
-    ]);
+    // PASSO 2: Obter lista de campanhas com dados stat
+    console.log('Campaigns API - Buscando lista de campanhas com dados stat...');
+    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
+    campaignsUrl.searchParams.set('api_key', apiKey);
+    campaignsUrl.searchParams.set('date_from', params.date_from || today);
+    campaignsUrl.searchParams.set('date_to', params.date_to || today);
+    campaignsUrl.searchParams.set('with_clicks', 'true');
+    campaignsUrl.searchParams.set('total', 'true');
+    
+    const campaignsData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: campaignsUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
 
-    // Função para extrair métricas de um período
-    function extractPeriodMetrics(data) {
-      // O endpoint /report retorna um array com os dados agregados
-      if (Array.isArray(data)) {
-        // Somar todas as métricas do período
-        return data.reduce((acc, item) => {
-          acc.ad_spend += item.cost || 0;
-          acc.revenue += item.revenue || 0;
-          // ROAS é calculado como revenue/cost
-          acc.roas = acc.ad_spend > 0 ? (acc.revenue / acc.ad_spend) * 100 : 0;
-          return acc;
-        }, { ad_spend: 0, revenue: 0, roas: 0 });
-      }
+    // PASSO 3: Processar dados das campanhas e adicionar métricas de performance
+    console.log('Campaigns API - Processando dados...');
+    
+    const processedData = campaignsData.map(campaign => {
+      // Mapear status
+      let statusString = 'inactive';
+      if (campaign.status === 1) statusString = 'active';
+      else if (campaign.status === 2) statusString = 'paused';
+      else if (campaign.status === 3) statusString = 'deleted';
       
-      // Se não for array ou estiver vazio, retornar zeros
-      return {
-        ad_spend: 0,
+      // Usar stat da campanha
+      const stat = campaign.stat || {
+        clicks: 0,
+        unique_clicks: 0,
+        conversions: 0,
+        all_conversions: 0,
+        approved: 0,
+        pending: 0,
+        declined: 0,
         revenue: 0,
+        cost: 0,
+        impressions: 0,
+        ctr: 0,
+        conversion_rate: 0,
+        profit: 0,
+        roi: 0,
+        cpc: 0,
+        cpa: 0,
+        epc: 0,
+        epl: 0,
         roas: 0
       };
-    }
-
-    // Extrair métricas para cada período
-    const todayMetrics = extractPeriodMetrics(todayData.data || []);
-    const yesterdayMetrics = extractPeriodMetrics(yesterdayData.data || []);
-    const thisMonthMetrics = extractPeriodMetrics(thisMonthData.data || []);
-    const lastMonthMetrics = extractPeriodMetrics(lastMonthData.data || []);
-
-    // Função para obter top 3 campanhas de um período
-    function getTopCampaigns(data) {
-      if (!data || !data.data || !Array.isArray(data.data)) {
-        return [];
-      }
       
-      return data.data
-        .map(campaign => ({
-          name: campaign.campaign || '',
-          conversions: campaign.conversions || 0,
-          revenue: campaign.revenue || 0
-        }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 3);
+      return {
+        id: campaign.id,
+        title: campaign.title,
+        source_title: campaign.source_title || '',
+        status: statusString,
+        stat: stat
+      };
+    });
+
+    // PASSO 4: Adicionar dados de performance comparativa
+    let performanceData = {
+      campaigns: { today: [], yesterday: [] },
+      ads: { today: [], yesterday: [] },
+      offers: { today: [], yesterday: [] },
+      metrics: {
+        ad_spend: [],
+        revenue: [],
+        roas: []
+      }
+    };
+
+    if (dashboardData && dashboardData.performance_categories && dashboardData.metric_categories) {
+      try {
+        performanceData = {
+          campaigns: {
+            today: dashboardData.performance_categories
+              .find(cat => cat.type === 'campaigns')?.values
+              .find(val => val.type === 'today')?.values || [],
+            yesterday: dashboardData.performance_categories
+              .find(cat => cat.type === 'campaigns')?.values
+              .find(val => val.type === 'yesterday')?.values || []
+          },
+          ads: {
+            today: dashboardData.performance_categories
+              .find(cat => cat.type === 'ads')?.values
+              .find(val => val.type === 'today')?.values || [],
+            yesterday: dashboardData.performance_categories
+              .find(cat => cat.type === 'ads')?.values
+              .find(val => val.type === 'yesterday')?.values || []
+          },
+          offers: {
+            today: dashboardData.performance_categories
+              .find(cat => cat.type === 'offers')?.values
+              .find(val => val.type === 'today')?.values || [],
+            yesterday: dashboardData.performance_categories
+              .find(cat => cat.type === 'offers')?.values
+              .find(val => val.type === 'yesterday')?.values || []
+          },
+          metrics: {
+            ad_spend: dashboardData.metric_categories
+              .find(cat => cat.type === 'ad_spend')?.values || [],
+            revenue: dashboardData.metric_categories
+              .find(cat => cat.type === 'revenue')?.values || [],
+            roas: dashboardData.metric_categories
+              .find(cat => cat.type === 'roas')?.values || []
+          }
+        };
+      } catch (error) {
+        console.warn('Campaigns API - Erro ao processar dados de performance:', error);
+        console.log('Campaigns API - Usando dados de performance vazios...');
+      }
+    } else {
+      console.log('Campaigns API - Dados do dashboard não disponíveis, usando dados vazios...');
     }
 
-    // Estruturar resposta no formato do dashboard do RedTrack
     const response = {
-      metric_categories: [
-        {
-          type: "ad_spend",
-          values: [
-            {
-              period: "today",
-              trend: todayMetrics.ad_spend < yesterdayMetrics.ad_spend ? "fall" : "rise",
-              value: todayMetrics.ad_spend
-            },
-            {
-              period: "yesterday",
-              value: yesterdayMetrics.ad_spend
-            },
-            {
-              period: "this_month",
-              value: thisMonthMetrics.ad_spend
-            },
-            {
-              period: "last_month",
-              value: lastMonthMetrics.ad_spend
-            }
-          ]
-        },
-        {
-          type: "revenue",
-          values: [
-            {
-              period: "today",
-              trend: todayMetrics.revenue < yesterdayMetrics.revenue ? "fall" : "rise",
-              value: todayMetrics.revenue
-            },
-            {
-              period: "yesterday",
-              value: yesterdayMetrics.revenue
-            },
-            {
-              period: "this_month",
-              value: thisMonthMetrics.revenue
-            },
-            {
-              period: "last_month",
-              value: lastMonthMetrics.revenue
-            }
-          ]
-        },
-        {
-          type: "roas",
-          values: [
-            {
-              period: "today",
-              trend: todayMetrics.roas < yesterdayMetrics.roas ? "fall" : "rise",
-              value: todayMetrics.roas
-            },
-            {
-              period: "yesterday",
-              value: yesterdayMetrics.roas
-            },
-            {
-              period: "this_month",
-              value: thisMonthMetrics.roas
-            },
-            {
-              period: "last_month",
-              value: lastMonthMetrics.roas
-            }
-          ]
-        }
-      ],
-      performance_categories: [
-        {
-          type: "campaigns",
-          values: [
-            {
-              type: "today",
-              values: getTopCampaigns(todayData)
-            },
-            {
-              type: "yesterday",
-              values: getTopCampaigns(yesterdayData)
-            }
-          ]
-        }
-      ],
-      // Manter a lista completa de campanhas para compatibilidade
-      campaigns: (todayData.data || []).map(campaign => ({
-        id: campaign.campaign_id || '',
-        title: campaign.campaign || '',
-        source_title: campaign.source || '',
-        status: 'active', // O endpoint /report não retorna status
-        stat: {
-          clicks: campaign.clicks || 0,
-          unique_clicks: campaign.unique_clicks || 0,
-          conversions: campaign.conversions || 0,
-          cost: campaign.cost || 0,
-          revenue: campaign.revenue || 0,
-          roas: campaign.roas || 0
-        }
-      }))
+      campaigns: processedData,
+      performance: performanceData
     };
 
     // Salvar no cache
@@ -304,7 +276,9 @@ export default async function handler(req, res) {
       timestamp: Date.now()
     });
     
+    console.log('=== CAMPAIGNS API DEBUG END ===');
     res.status(200).json(response);
+
   } catch (error) {
     console.error('Campaigns API - Erro geral:', error);
     res.status(500).json({ 
