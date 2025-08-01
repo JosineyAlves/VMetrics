@@ -138,27 +138,9 @@ export default async function handler(req, res) {
         });
         processRequestQueue();
       });
-
-      console.log('Campaigns API - Dados do dashboard obtidos:', dashboardData);
-
-      // Estruturar dados de performance
-      let performanceData = {
-        metric_categories: [],
-        performance_categories: []
-      };
-
-      if (dashboardData && dashboardData.performance_categories && dashboardData.metric_categories) {
-        performanceData = {
-          metric_categories: dashboardData.metric_categories,
-          performance_categories: dashboardData.performance_categories
-        };
-      } else {
-        console.warn('Campaigns API - Estrutura de dados do dashboard inesperada:', dashboardData);
-      }
-
-      console.log('Campaigns API - Dados de performance obtidos com sucesso');
+      console.log('Campaigns API - Dados do dashboard obtidos com sucesso');
     } catch (error) {
-      console.warn('Campaigns API - Erro ao buscar dados de performance:', error);
+      console.warn('Campaigns API - Erro ao buscar dados do dashboard:', error);
       console.log('Campaigns API - Continuando sem dados de performance...');
     }
 
@@ -242,8 +224,61 @@ export default async function handler(req, res) {
       };
     });
 
-    // PASSO 4: Estruturar dados de performance para a resposta
-    // Já temos os dados em performanceData, não precisamos fazer mais nada aqui
+    // PASSO 4: Adicionar dados de performance comparativa
+    let performanceData = {
+      campaigns: { today: [], yesterday: [] },
+      ads: { today: [], yesterday: [] },
+      offers: { today: [], yesterday: [] },
+      metrics: {
+        ad_spend: [],
+        revenue: [],
+        roas: []
+      }
+    };
+
+    if (dashboardData && dashboardData.performance_categories && dashboardData.metric_categories) {
+      try {
+        performanceData = {
+          campaigns: {
+            today: dashboardData.performance_categories
+              .find(cat => cat.type === 'campaigns')?.values
+              .find(val => val.type === 'today')?.values || [],
+            yesterday: dashboardData.performance_categories
+              .find(cat => cat.type === 'campaigns')?.values
+              .find(val => val.type === 'yesterday')?.values || []
+          },
+          ads: {
+            today: dashboardData.performance_categories
+              .find(cat => cat.type === 'ads')?.values
+              .find(val => val.type === 'today')?.values || [],
+            yesterday: dashboardData.performance_categories
+              .find(cat => cat.type === 'ads')?.values
+              .find(val => val.type === 'yesterday')?.values || []
+          },
+          offers: {
+            today: dashboardData.performance_categories
+              .find(cat => cat.type === 'offers')?.values
+              .find(val => val.type === 'today')?.values || [],
+            yesterday: dashboardData.performance_categories
+              .find(cat => cat.type === 'offers')?.values
+              .find(val => val.type === 'yesterday')?.values || []
+          },
+          metrics: {
+            ad_spend: dashboardData.metric_categories
+              .find(cat => cat.type === 'ad_spend')?.values || [],
+            revenue: dashboardData.metric_categories
+              .find(cat => cat.type === 'revenue')?.values || [],
+            roas: dashboardData.metric_categories
+              .find(cat => cat.type === 'roas')?.values || []
+          }
+        };
+      } catch (error) {
+        console.warn('Campaigns API - Erro ao processar dados de performance:', error);
+        console.log('Campaigns API - Usando dados de performance vazios...');
+      }
+    } else {
+      console.log('Campaigns API - Dados do dashboard não disponíveis, usando dados vazios...');
+    }
 
     const response = {
       campaigns: processedData,

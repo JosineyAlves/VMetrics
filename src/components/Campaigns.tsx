@@ -207,71 +207,19 @@ const Campaigns: React.FC = () => {
       }
       
       // Atualizar dados de performance
-      if (data && data.performance && data.performance.performance_categories) {
-        console.log('Dados de performance recebidos:', data.performance);
-        
-        interface PerformanceValue {
-          name: string;
-          revenue: number;
-          conversions: number;
-        }
-
-        interface PerformanceTimeValue {
-          type: string;
-          values: PerformanceValue[];
-        }
-
-        interface PerformanceCategory {
-          type: string;
-          values: PerformanceTimeValue[];
-        }
-        
-        // Extrair dados de campanhas
-        const campaignsCategory = data.performance.performance_categories.find(
-          (cat: PerformanceCategory) => cat.type === 'campaigns'
-        );
-        if (campaignsCategory) {
-          const todayValues = campaignsCategory.values.find(
-            (val: PerformanceTimeValue) => val.type === 'today'
-          )?.values || [];
-          const yesterdayValues = campaignsCategory.values.find(
-            (val: PerformanceTimeValue) => val.type === 'yesterday'
-          )?.values || [];
-          setBestCampaigns([...todayValues, ...yesterdayValues]);
-        }
-
-        // Extrair dados de anúncios
-        const adsCategory = data.performance.performance_categories.find(
-          (cat: PerformanceCategory) => cat.type === 'ads'
-        );
-        if (adsCategory) {
-          const todayValues = adsCategory.values.find(
-            (val: PerformanceTimeValue) => val.type === 'today'
-          )?.values || [];
-          const yesterdayValues = adsCategory.values.find(
-            (val: PerformanceTimeValue) => val.type === 'yesterday'
-          )?.values || [];
-          setBestAds([...todayValues, ...yesterdayValues]);
-        }
-
-        // Extrair dados de ofertas
-        const offersCategory = data.performance.performance_categories.find(
-          (cat: PerformanceCategory) => cat.type === 'offers'
-        );
-        if (offersCategory) {
-          const todayValues = offersCategory.values.find(
-            (val: PerformanceTimeValue) => val.type === 'today'
-          )?.values || [];
-          const yesterdayValues = offersCategory.values.find(
-            (val: PerformanceTimeValue) => val.type === 'yesterday'
-          )?.values || [];
-          setBestOffers([...todayValues, ...yesterdayValues]);
-        }
-      } else {
-        console.warn('Dados de performance não encontrados na resposta');
-        setBestCampaigns([]);
-        setBestAds([]);
-        setBestOffers([]);
+      if (data && data.performance) {
+        setBestCampaigns([
+          ...data.performance.campaigns.today,
+          ...data.performance.campaigns.yesterday
+        ]);
+        setBestAds([
+          ...data.performance.ads.today,
+          ...data.performance.ads.yesterday
+        ]);
+        setBestOffers([
+          ...data.performance.offers.today,
+          ...data.performance.offers.yesterday
+        ]);
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
