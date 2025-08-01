@@ -168,7 +168,52 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
 
-    // PASSO 3: Processar dados das campanhas e adicionar métricas de performance
+    // PASSO 3: Buscar dados de anúncios e ofertas
+    console.log('Campaigns API - Buscando dados de anúncios e ofertas...');
+    
+    // Buscar dados de anúncios
+    const adsUrl = new URL('https://api.redtrack.io/report');
+    adsUrl.searchParams.set('api_key', apiKey);
+    adsUrl.searchParams.set('date_from', params.date_from || today);
+    adsUrl.searchParams.set('date_to', params.date_to || today);
+    adsUrl.searchParams.set('group_by', 'ad');
+    
+    const adsResponse = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: adsUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
+
+    // Buscar dados de ofertas
+    const offersUrl = new URL('https://api.redtrack.io/report');
+    offersUrl.searchParams.set('api_key', apiKey);
+    offersUrl.searchParams.set('date_from', params.date_from || today);
+    offersUrl.searchParams.set('date_to', params.date_to || today);
+    offersUrl.searchParams.set('group_by', 'offer');
+    
+    const offersResponse = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: offersUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
+
+    // PASSO 4: Processar dados das campanhas e adicionar métricas de performance
     console.log('Campaigns API - Processando dados...');
     console.log('Campaigns API - Resposta da API de campanhas:', campaignsResponse);
     
@@ -281,9 +326,47 @@ export default async function handler(req, res) {
       console.log('Campaigns API - Dados do dashboard não disponíveis, usando dados vazios...');
     }
 
+    // Processar dados de anúncios
+    let adsData = [];
+    if (Array.isArray(adsResponse)) {
+      adsData = adsResponse
+        .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+        .map(ad => ({
+          name: ad.ad || ad.title || 'N/A',
+          revenue: ad.revenue || 0,
+          conversions: ad.conversions || 0,
+          roi: ad.roi || 0
+        }))
+        .slice(0, 3);
+    }
+
+    // Processar dados de ofertas
+    let offersData = [];
+    if (Array.isArray(offersResponse)) {
+      offersData = offersResponse
+        .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+        .map(offer => ({
+          name: offer.offer || offer.title || 'N/A',
+          revenue: offer.revenue || 0,
+          conversions: offer.conversions || 0,
+          roi: offer.roi || 0
+        }))
+        .slice(0, 3);
+    }
+
     const response = {
       campaigns: processedData,
-      performance: performanceData
+      performance: {
+        ...performanceData,
+        ads: {
+          today: [],
+          yesterday: adsData
+        },
+        offers: {
+          today: [],
+          yesterday: offersData
+        }
+      }
     };
 
     // Salvar no cache
