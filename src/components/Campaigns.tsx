@@ -208,18 +208,9 @@ const Campaigns: React.FC = () => {
       
       // Atualizar dados de performance
       if (data && data.performance) {
-        setBestCampaigns([
-          ...data.performance.campaigns.today,
-          ...data.performance.campaigns.yesterday
-        ]);
-        setBestAds([
-          ...data.performance.ads.today,
-          ...data.performance.ads.yesterday
-        ]);
-        setBestOffers([
-          ...data.performance.offers.today,
-          ...data.performance.offers.yesterday
-        ]);
+        setBestCampaigns(data.performance.campaigns || []);
+        setBestAds(data.performance.ads || []);
+        setBestOffers(data.performance.offers || []);
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);

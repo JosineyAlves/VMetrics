@@ -116,31 +116,72 @@ export default async function handler(req, res) {
     const lastDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
     const firstDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
 
-    // PASSO 1: Obter dados do dashboard para métricas de performance
-    console.log('Campaigns API - Buscando dados do dashboard...');
-    let dashboardData = null;
+    // PASSO 1: Obter dados de performance usando o endpoint /report
+    console.log('Campaigns API - Buscando dados de performance...');
+    let performanceData = {
+      campaigns: [],
+      ads: [],
+      offers: []
+    };
+
     try {
-      const dashboardUrl = new URL('https://api.redtrack.io/dashboard');
-      dashboardUrl.searchParams.set('api_key', apiKey);
-      dashboardUrl.searchParams.set('date_from', params.date_from || today);
-      dashboardUrl.searchParams.set('date_to', params.date_to || today);
-      
-      dashboardData = await new Promise((resolve, reject) => {
-        requestQueue.push({ 
-          resolve, 
-          reject, 
-          url: dashboardUrl.toString(), 
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'User-Agent': 'TrackView-Dashboard/1.0'
-          }
+      // Função auxiliar para buscar top performers
+      const fetchTopPerformers = async (groupBy, limit = 3) => {
+        const reportUrl = new URL('https://api.redtrack.io/report');
+        reportUrl.searchParams.set('api_key', apiKey);
+        reportUrl.searchParams.set('date_from', params.date_from || today);
+        reportUrl.searchParams.set('date_to', params.date_to || today);
+        reportUrl.searchParams.set('group_by', groupBy);
+        reportUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue,roi');
+        reportUrl.searchParams.set('sort_by', 'revenue');
+        reportUrl.searchParams.set('sort_order', 'desc');
+        reportUrl.searchParams.set('per', limit.toString());
+
+        const response = await new Promise((resolve, reject) => {
+          requestQueue.push({
+            resolve,
+            reject,
+            url: reportUrl.toString(),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'TrackView-Dashboard/1.0'
+            }
+          });
+          processRequestQueue();
         });
-        processRequestQueue();
-      });
-      console.log('Campaigns API - Dados do dashboard obtidos com sucesso');
+
+        return response.data || [];
+      };
+
+      // Buscar dados em paralelo para melhor performance
+      const [topCampaigns, topAds, topOffers] = await Promise.all([
+        fetchTopPerformers('campaign'),
+        fetchTopPerformers('rt_ad'),
+        fetchTopPerformers('offer')
+      ]);
+
+      performanceData = {
+        campaigns: topCampaigns.map(item => ({
+          name: item.campaign || item.name || '-',
+          revenue: item.revenue || 0,
+          conversions: item.conversions || 0
+        })),
+        ads: topAds.map(item => ({
+          name: item.rt_ad || item.name || '-',
+          revenue: item.revenue || 0,
+          conversions: item.conversions || 0
+        })),
+        offers: topOffers.map(item => ({
+          name: item.offer || item.name || '-',
+          revenue: item.revenue || 0,
+          conversions: item.conversions || 0
+        }))
+      };
+
+      console.log('Campaigns API - Dados de performance obtidos com sucesso');
     } catch (error) {
-      console.warn('Campaigns API - Erro ao buscar dados do dashboard:', error);
+      console.warn('Campaigns API - Erro ao buscar dados de performance:', error);
       console.log('Campaigns API - Continuando sem dados de performance...');
     }
 
@@ -224,61 +265,8 @@ export default async function handler(req, res) {
       };
     });
 
-    // PASSO 4: Adicionar dados de performance comparativa
-    let performanceData = {
-      campaigns: { today: [], yesterday: [] },
-      ads: { today: [], yesterday: [] },
-      offers: { today: [], yesterday: [] },
-      metrics: {
-        ad_spend: [],
-        revenue: [],
-        roas: []
-      }
-    };
-
-    if (dashboardData && dashboardData.performance_categories && dashboardData.metric_categories) {
-      try {
-        performanceData = {
-          campaigns: {
-            today: dashboardData.performance_categories
-              .find(cat => cat.type === 'campaigns')?.values
-              .find(val => val.type === 'today')?.values || [],
-            yesterday: dashboardData.performance_categories
-              .find(cat => cat.type === 'campaigns')?.values
-              .find(val => val.type === 'yesterday')?.values || []
-          },
-          ads: {
-            today: dashboardData.performance_categories
-              .find(cat => cat.type === 'ads')?.values
-              .find(val => val.type === 'today')?.values || [],
-            yesterday: dashboardData.performance_categories
-              .find(cat => cat.type === 'ads')?.values
-              .find(val => val.type === 'yesterday')?.values || []
-          },
-          offers: {
-            today: dashboardData.performance_categories
-              .find(cat => cat.type === 'offers')?.values
-              .find(val => val.type === 'today')?.values || [],
-            yesterday: dashboardData.performance_categories
-              .find(cat => cat.type === 'offers')?.values
-              .find(val => val.type === 'yesterday')?.values || []
-          },
-          metrics: {
-            ad_spend: dashboardData.metric_categories
-              .find(cat => cat.type === 'ad_spend')?.values || [],
-            revenue: dashboardData.metric_categories
-              .find(cat => cat.type === 'revenue')?.values || [],
-            roas: dashboardData.metric_categories
-              .find(cat => cat.type === 'roas')?.values || []
-          }
-        };
-      } catch (error) {
-        console.warn('Campaigns API - Erro ao processar dados de performance:', error);
-        console.log('Campaigns API - Usando dados de performance vazios...');
-      }
-    } else {
-      console.log('Campaigns API - Dados do dashboard não disponíveis, usando dados vazios...');
-    }
+    // PASSO 4: Estruturar dados de performance para a resposta
+    // Já temos os dados em performanceData, não precisamos fazer mais nada aqui
 
     const response = {
       campaigns: processedData,
