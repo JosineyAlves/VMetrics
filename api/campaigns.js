@@ -116,27 +116,21 @@ export default async function handler(req, res) {
     const lastDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
     const firstDayOfLastMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
 
-    // PASSO 1: Obter dados de performance por tipo
-    console.log('Campaigns API - Buscando dados de performance...');
-    let reportData = {
-      campaigns: [],
-      ads: [],
-      offers: []
-    };
-
+    // PASSO 1: Obter dados do dashboard para métricas de performance
+    console.log('Campaigns API - Buscando dados do dashboard...');
+    let dashboardData = null;
     try {
-      // Buscar dados de campanhas
-      const campaignsReportUrl = new URL('https://api.redtrack.io/report');
-      campaignsReportUrl.searchParams.set('api_key', apiKey);
-      campaignsReportUrl.searchParams.set('date_from', params.date_from || today);
-      campaignsReportUrl.searchParams.set('date_to', params.date_to || today);
-      campaignsReportUrl.searchParams.set('group_by', 'campaign');
+      const dashboardUrl = new URL('https://api.redtrack.io/dashboard');
+      dashboardUrl.searchParams.set('api_key', apiKey);
+      // Usar as datas selecionadas para os dados de performance
+      dashboardUrl.searchParams.set('date_from', params.date_from || today);
+      dashboardUrl.searchParams.set('date_to', params.date_to || today);
       
-      const campaignsReport = await new Promise((resolve, reject) => {
+      dashboardData = await new Promise((resolve, reject) => {
         requestQueue.push({ 
           resolve, 
           reject, 
-          url: campaignsReportUrl.toString(), 
+          url: dashboardUrl.toString(), 
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -145,79 +139,6 @@ export default async function handler(req, res) {
         });
         processRequestQueue();
       });
-
-      // Buscar dados de anúncios
-      const adsReportUrl = new URL('https://api.redtrack.io/report');
-      adsReportUrl.searchParams.set('api_key', apiKey);
-      adsReportUrl.searchParams.set('date_from', params.date_from || today);
-      adsReportUrl.searchParams.set('date_to', params.date_to || today);
-      adsReportUrl.searchParams.set('group_by', 'ad');
-      
-      const adsReport = await new Promise((resolve, reject) => {
-        requestQueue.push({ 
-          resolve, 
-          reject, 
-          url: adsReportUrl.toString(), 
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'User-Agent': 'TrackView-Dashboard/1.0'
-          }
-        });
-        processRequestQueue();
-      });
-      
-      // Buscar dados de ofertas
-      const offersReportUrl = new URL('https://api.redtrack.io/report');
-      offersReportUrl.searchParams.set('api_key', apiKey);
-      offersReportUrl.searchParams.set('date_from', params.date_from || today);
-      offersReportUrl.searchParams.set('date_to', params.date_to || today);
-      offersReportUrl.searchParams.set('group_by', 'offer');
-      
-      const offersReport = await new Promise((resolve, reject) => {
-        requestQueue.push({ 
-          resolve, 
-          reject, 
-          url: offersReportUrl.toString(), 
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'User-Agent': 'TrackView-Dashboard/1.0'
-          }
-        });
-        processRequestQueue();
-      });
-
-      // Processar e ordenar os dados
-      reportData = {
-        campaigns: Array.isArray(campaignsReport) ? 
-          campaignsReport
-            .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
-            .slice(0, 3)
-            .map(item => ({
-              name: item.campaign || '',
-              revenue: item.revenue || 0,
-              conversions: item.conversions || 0
-            })) : [],
-        ads: Array.isArray(adsReport) ?
-          adsReport
-            .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
-            .slice(0, 3)
-            .map(item => ({
-              name: item.ad || '',
-              revenue: item.revenue || 0,
-              conversions: item.conversions || 0
-            })) : [],
-        offers: Array.isArray(offersReport) ?
-          offersReport
-            .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
-            .slice(0, 3)
-            .map(item => ({
-              name: item.offer || '',
-              revenue: item.revenue || 0,
-              conversions: item.conversions || 0
-            })) : []
-      };
       console.log('Campaigns API - Dados do dashboard obtidos com sucesso');
     } catch (error) {
       console.warn('Campaigns API - Erro ao buscar dados do dashboard:', error);

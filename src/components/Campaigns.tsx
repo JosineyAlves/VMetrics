@@ -207,10 +207,67 @@ const Campaigns: React.FC = () => {
       }
       
       // Atualizar dados de performance
-      if (data && data.performance) {
-        setBestCampaigns(data.performance.campaigns || []);
-        setBestAds(data.performance.ads || []);
-        setBestOffers(data.performance.offers || []);
+      if (data && data.campaigns) {
+        // Ordenar campanhas por receita
+        const sortedCampaigns = [...data.campaigns]
+          .sort((a, b) => (b.stat?.revenue || 0) - (a.stat?.revenue || 0))
+          .map(campaign => ({
+            name: campaign.title,
+            revenue: campaign.stat?.revenue || 0,
+            conversions: campaign.stat?.conversions || 0,
+            roi: campaign.stat?.roi || 0
+          }))
+          .slice(0, 3);
+
+        setBestCampaigns(sortedCampaigns);
+      }
+
+      // Buscar dados de anúncios
+      const adsUrl = new URL('/api/report', window.location.origin);
+      adsUrl.searchParams.set('api_key', apiKey);
+      adsUrl.searchParams.set('date_from', dateRange.startDate);
+      adsUrl.searchParams.set('date_to', dateRange.endDate);
+      adsUrl.searchParams.set('group_by', 'ad');
+
+      const adsResponse = await fetch(adsUrl.toString());
+      const adsData = await adsResponse.json();
+      
+      if (Array.isArray(adsData)) {
+        const sortedAds = adsData
+          .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+          .map(ad => ({
+            name: ad.name || ad.title || 'N/A',
+            revenue: ad.revenue || 0,
+            conversions: ad.conversions || 0,
+            roi: ad.roi || 0
+          }))
+          .slice(0, 3);
+
+        setBestAds(sortedAds);
+      }
+
+      // Buscar dados de ofertas
+      const offersUrl = new URL('/api/report', window.location.origin);
+      offersUrl.searchParams.set('api_key', apiKey);
+      offersUrl.searchParams.set('date_from', dateRange.startDate);
+      offersUrl.searchParams.set('date_to', dateRange.endDate);
+      offersUrl.searchParams.set('group_by', 'offer');
+
+      const offersResponse = await fetch(offersUrl.toString());
+      const offersData = await offersResponse.json();
+      
+      if (Array.isArray(offersData)) {
+        const sortedOffers = offersData
+          .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
+          .map(offer => ({
+            name: offer.name || offer.title || 'N/A',
+            revenue: offer.revenue || 0,
+            conversions: offer.conversions || 0,
+            roi: offer.roi || 0
+          }))
+          .slice(0, 3);
+
+        setBestOffers(sortedOffers);
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
