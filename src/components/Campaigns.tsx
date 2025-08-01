@@ -207,71 +207,19 @@ const Campaigns: React.FC = () => {
       }
       
       // Atualizar dados de performance
-      if (data && data.campaigns) {
-        // Ordenar campanhas por receita
-        const sortedCampaigns = [...data.campaigns]
-          .sort((a, b) => (b.stat?.revenue || 0) - (a.stat?.revenue || 0))
-          .map(campaign => ({
-            name: campaign.title,
-            revenue: campaign.stat?.revenue || 0,
-            conversions: campaign.stat?.conversions || 0,
-            roi: campaign.stat?.roi || 0
-          }))
-          .slice(0, 3);
-
-        setBestCampaigns(sortedCampaigns);
-      }
-
-      // Buscar dados de anúncios
-      const adsUrl = new URL('/api/report', window.location.origin);
-      adsUrl.searchParams.set('api_key', apiKey);
-      adsUrl.searchParams.set('date_from', dateRange.startDate);
-      adsUrl.searchParams.set('date_to', dateRange.endDate);
-      adsUrl.searchParams.set('group_by', 'rt_ad');
-      adsUrl.searchParams.set('fields', 'rt_ad,revenue,conversions,roi');
-
-      const adsResponse = await fetch(adsUrl.toString());
-      const adsData = await adsResponse.json();
-      
-      if (Array.isArray(adsData)) {
-        const sortedAds = adsData
-          .filter(ad => ad.rt_ad) // Filtra apenas anúncios com nome definido
-          .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
-          .map(ad => ({
-            name: ad.rt_ad,
-            revenue: ad.revenue || 0,
-            conversions: ad.conversions || 0,
-            roi: ad.roi || 0
-          }))
-          .slice(0, 3);
-
-        setBestAds(sortedAds);
-      }
-
-      // Buscar dados de ofertas
-      const offersUrl = new URL('/api/report', window.location.origin);
-      offersUrl.searchParams.set('api_key', apiKey);
-      offersUrl.searchParams.set('date_from', dateRange.startDate);
-      offersUrl.searchParams.set('date_to', dateRange.endDate);
-      offersUrl.searchParams.set('group_by', 'rt_offer');
-      offersUrl.searchParams.set('fields', 'rt_offer,revenue,conversions,roi');
-
-      const offersResponse = await fetch(offersUrl.toString());
-      const offersData = await offersResponse.json();
-      
-      if (Array.isArray(offersData)) {
-        const sortedOffers = offersData
-          .filter(offer => offer.rt_offer) // Filtra apenas ofertas com nome definido
-          .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
-          .map(offer => ({
-            name: offer.rt_offer,
-            revenue: offer.revenue || 0,
-            conversions: offer.conversions || 0,
-            roi: offer.roi || 0
-          }))
-          .slice(0, 3);
-
-        setBestOffers(sortedOffers);
+      if (data && data.performance) {
+        setBestCampaigns([
+          ...data.performance.campaigns.today,
+          ...data.performance.campaigns.yesterday
+        ]);
+        setBestAds([
+          ...data.performance.ads.today,
+          ...data.performance.ads.yesterday
+        ]);
+        setBestOffers([
+          ...data.performance.offers.today,
+          ...data.performance.offers.yesterday
+        ]);
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
@@ -831,12 +779,12 @@ const Campaigns: React.FC = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Melhores Campanhas</h3>
-            <span className="text-sm text-gray-500">{selectedPeriod}</span>
+            <span className="text-sm text-gray-500">Últimas 24h</span>
           </div>
           <div className="space-y-4">
             {bestCampaigns.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
-                Nenhum dado disponível para o período selecionado
+                Nenhum dado disponível nas últimas 24h
               </div>
             ) : (
               bestCampaigns.map((item, idx) => (
@@ -866,12 +814,12 @@ const Campaigns: React.FC = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Melhores Anúncios</h3>
-            <span className="text-sm text-gray-500">{selectedPeriod}</span>
+            <span className="text-sm text-gray-500">Últimas 24h</span>
           </div>
           <div className="space-y-4">
             {bestAds.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
-                Nenhum dado disponível para o período selecionado
+                Nenhum dado disponível nas últimas 24h
               </div>
             ) : (
               bestAds.map((item, idx) => (
@@ -901,12 +849,12 @@ const Campaigns: React.FC = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Melhores Ofertas</h3>
-            <span className="text-sm text-gray-500">{selectedPeriod}</span>
+            <span className="text-sm text-gray-500">Últimas 24h</span>
           </div>
           <div className="space-y-4">
             {bestOffers.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
-                Nenhum dado disponível para o período selecionado
+                Nenhum dado disponível nas últimas 24h
               </div>
             ) : (
               bestOffers.map((item, idx) => (
