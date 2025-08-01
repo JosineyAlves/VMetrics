@@ -208,24 +208,9 @@ const Campaigns: React.FC = () => {
       
       // Atualizar dados de performance
       if (data && data.performance) {
-        // Ordenar campanhas por receita
-        const sortedCampaigns = [...data.campaigns]
-          .sort((a, b) => (b.stat?.revenue || 0) - (a.stat?.revenue || 0))
-          .map(campaign => ({
-            name: campaign.title,
-            revenue: campaign.stat?.revenue || 0,
-            conversions: campaign.stat?.conversions || 0,
-            roi: campaign.stat?.roi || 0
-          }))
-          .slice(0, 3);
-
-        // Usar dados específicos de anúncios e ofertas
-        const ads = data.performance.ads?.yesterday || [];
-        const offers = data.performance.offers?.yesterday || [];
-
-        setBestCampaigns(sortedCampaigns);
-        setBestAds(ads);
-        setBestOffers(offers);
+        setBestCampaigns(data.performance.campaigns || []);
+        setBestAds(data.performance.ads || []);
+        setBestOffers(data.performance.offers || []);
       }
       
       console.log('Campanhas - Campanhas mapeadas:', campaignsArray);
