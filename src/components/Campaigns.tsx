@@ -227,16 +227,18 @@ const Campaigns: React.FC = () => {
       adsUrl.searchParams.set('api_key', apiKey);
       adsUrl.searchParams.set('date_from', dateRange.startDate);
       adsUrl.searchParams.set('date_to', dateRange.endDate);
-      adsUrl.searchParams.set('group_by', 'ad');
+      adsUrl.searchParams.set('group_by', 'rt_ad');
+      adsUrl.searchParams.set('fields', 'rt_ad,revenue,conversions,roi');
 
       const adsResponse = await fetch(adsUrl.toString());
       const adsData = await adsResponse.json();
       
       if (Array.isArray(adsData)) {
         const sortedAds = adsData
+          .filter(ad => ad.rt_ad) // Filtra apenas anúncios com nome definido
           .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
           .map(ad => ({
-            name: ad.name || ad.title || 'N/A',
+            name: ad.rt_ad,
             revenue: ad.revenue || 0,
             conversions: ad.conversions || 0,
             roi: ad.roi || 0
@@ -251,16 +253,18 @@ const Campaigns: React.FC = () => {
       offersUrl.searchParams.set('api_key', apiKey);
       offersUrl.searchParams.set('date_from', dateRange.startDate);
       offersUrl.searchParams.set('date_to', dateRange.endDate);
-      offersUrl.searchParams.set('group_by', 'offer');
+      offersUrl.searchParams.set('group_by', 'rt_offer');
+      offersUrl.searchParams.set('fields', 'rt_offer,revenue,conversions,roi');
 
       const offersResponse = await fetch(offersUrl.toString());
       const offersData = await offersResponse.json();
       
       if (Array.isArray(offersData)) {
         const sortedOffers = offersData
+          .filter(offer => offer.rt_offer) // Filtra apenas ofertas com nome definido
           .sort((a, b) => (b.revenue || 0) - (a.revenue || 0))
           .map(offer => ({
-            name: offer.name || offer.title || 'N/A',
+            name: offer.rt_offer,
             revenue: offer.revenue || 0,
             conversions: offer.conversions || 0,
             roi: offer.roi || 0
