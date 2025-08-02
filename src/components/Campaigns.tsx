@@ -312,34 +312,42 @@ const Campaigns: React.FC = () => {
   const [bestAds, setBestAds] = useState<any[]>([])
   const [bestOffers, setBestOffers] = useState<any[]>([])
 
-  // Função utilitária para buscar e ordenar top 3
-  const fetchBestPerformers = async (groupBy: string, setter: (data: any[]) => void) => {
+  // Função para buscar dados de performance baseados em conversões
+  const fetchPerformanceData = async () => {
     if (!apiKey) return;
+    
     const { getDateRange } = await import('../lib/utils')
     const dateRange = getDateRange(selectedPeriod, customRange)
-    const params = {
-      api_key: apiKey,
-      date_from: dateRange.startDate,
-      date_to: dateRange.endDate,
-      group_by: groupBy
+    
+    if (!dateRange.startDate || !dateRange.endDate) {
+      console.error('Datas não definidas para buscar performance');
+      return;
     }
-    const url = new URL('/api/report', window.location.origin)
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        url.searchParams.set(key, value.toString())
-      }
-    })
+    
     try {
-      const response = await fetch(url.toString())
-      const data = await response.json()
-      if (Array.isArray(data)) {
-        const sorted = [...data].sort((a, b) => (b.revenue || 0) - (a.revenue || 0)).slice(0, 3)
-        setter(sorted)
-      } else {
-        setter([])
+      console.log('🔍 [CAMPAIGNS] Buscando dados de performance...');
+      const api = new RedTrackAPI(apiKey)
+      const data = await api.getPerformanceData({
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate
+      })
+      
+      if (data && data.campaigns) {
+        setBestCampaigns(data.campaigns.slice(0, 3))
       }
-    } catch {
-      setter([])
+      if (data && data.ads) {
+        setBestAds(data.ads.slice(0, 3))
+      }
+      if (data && data.offers) {
+        setBestOffers(data.offers.slice(0, 3))
+      }
+      
+      console.log('✅ [CAMPAIGNS] Dados de performance carregados:', data);
+    } catch (error) {
+      console.error('❌ [CAMPAIGNS] Erro ao buscar dados de performance:', error);
+      setBestCampaigns([])
+      setBestAds([])
+      setBestOffers([])
     }
   }
 
@@ -357,10 +365,8 @@ const Campaigns: React.FC = () => {
 
   // useEffect para buscar os blocos de performance ao trocar filtros/aba
   useEffect(() => {
-    if (activeTab === 'utm' && apiKey) {
-      fetchBestPerformers('campaign', setBestCampaigns)
-      fetchBestPerformers('ad', setBestAds)
-      fetchBestPerformers('offer', setBestOffers)
+    if (apiKey) {
+      fetchPerformanceData()
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange])
@@ -756,9 +762,9 @@ const Campaigns: React.FC = () => {
               ) : bestCampaigns.map((item, idx) => (
                 <tr key={idx}>
                   <td>{idx + 1}.</td>
-                  <td>{item.name || '-'} </td>
-                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
-                  <td className="text-right">{item.conversions || 0}</td>
+                  <td className="text-xs">{item.name || '-'}</td>
+                  <td className="text-right text-xs">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right text-xs">{item.conversions || 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -782,9 +788,9 @@ const Campaigns: React.FC = () => {
               ) : bestAds.map((item, idx) => (
                 <tr key={idx}>
                   <td>{idx + 1}.</td>
-                  <td>{item.name || '-'} </td>
-                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
-                  <td className="text-right">{item.conversions || 0}</td>
+                  <td className="text-xs">{item.name || '-'}</td>
+                  <td className="text-right text-xs">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right text-xs">{item.conversions || 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -808,9 +814,9 @@ const Campaigns: React.FC = () => {
               ) : bestOffers.map((item, idx) => (
                 <tr key={idx}>
                   <td>{idx + 1}.</td>
-                  <td>{item.name || '-'}</td>
-                  <td className="text-right">{formatCurrency(item.revenue || 0)}</td>
-                  <td className="text-right">{item.conversions || 0}</td>
+                  <td className="text-xs">{item.name || '-'}</td>
+                  <td className="text-right text-xs">{formatCurrency(item.revenue || 0)}</td>
+                  <td className="text-right text-xs">{item.conversions || 0}</td>
                 </tr>
               ))}
             </tbody>

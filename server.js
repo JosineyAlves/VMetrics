@@ -21,6 +21,7 @@ import conversionsHandler from './api/conversions.js'
 import tracksHandler from './api/tracks.js'
 import settingsHandler from './api/settings.js'
 import dictionariesHandler from './api/dictionaries.js'
+import performanceHandler from './api/performance.js'
 
 // Rotas da API
 app.get('/report', async (req, res) => {
@@ -82,6 +83,15 @@ app.get('/dictionaries', async (req, res) => {
     await dictionariesHandler(req, res)
   } catch (error) {
     console.error('Erro no endpoint /dictionaries:', error)
+    res.status(500).json({ error: 'Erro interno do servidor' })
+  }
+})
+
+app.get('/performance', async (req, res) => {
+  try {
+    await performanceHandler(req, res)
+  } catch (error) {
+    console.error('Erro no endpoint /performance:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })
