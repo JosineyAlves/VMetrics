@@ -335,14 +335,20 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
 
 **Métricas Calculadas:**
 - **CPA (Cost Per Acquisition)**: `cost / conversions`
-- **CPC (Cost Per Click)**: `cost / clicks` (para campanhas e anúncios)
 - **ROI (Return On Investment)**: `((revenue - cost) / cost) * 100`
-- **Revenue, Cost, Conversions, Clicks**
+- **Revenue, Cost, Conversions**
+
+**Foco na Performance:**
+- **Conversões**: Quantidade de conversões válidas (Purchase/Conversion)
+- **CPA**: Custo por aquisição - quanto custou cada conversão
+- **ROI**: Retorno sobre investimento - lucratividade da campanha/anúncio/oferta
 
 **Interface Atualizada:**
-- Grid layout para exibir múltiplas métricas
-- Cores condicionais para ROI (verde/vermelho)
-- Métricas detalhadas em cada bloco de performance
+- Layout simplificado focado nas métricas essenciais
+- **Conversões**: Quantidade de conversões válidas
+- **CPA**: Custo por aquisição (quanto custou cada conversão)
+- **ROI**: Retorno sobre investimento com cores condicionais (verde/vermelho)
+- Grid de 1 coluna para melhor legibilidade
 - Responsivo para diferentes tamanhos de tela
 
 ### 19. Próximos Passos 
