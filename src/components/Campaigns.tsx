@@ -515,44 +515,47 @@ const Campaigns: React.FC = () => {
     return (
       <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
-          <div className="flex items-center justify-between mb-4">
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-trackview-background rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('campaigns')}
-          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'campaigns'
-              ? 'bg-white text-trackview-primary shadow-sm'
-              : 'text-trackview-muted hover:text-trackview-primary'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4 mr-2" />
-          Campanhas
-        </button>
-        <button
-          onClick={() => setActiveTab('utm')}
-          className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'utm'
-              ? 'bg-white text-trackview-primary shadow-sm'
-              : 'text-trackview-muted hover:text-trackview-primary'
-          }`}
-        >
-          <Link className="w-4 h-4 mr-2" />
-          UTM / Criativos
-        </button>
-      </div>
-
-          {/* Botão de filtros alinhado à direita */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
+        {/* Tabs */}
+        <div className="flex space-x-1 bg-trackview-background rounded-lg p-1 w-full sm:w-auto">
+          <button
+            onClick={() => setActiveTab('campaigns')}
+            className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
+              activeTab === 'campaigns'
+                ? 'bg-white text-trackview-primary shadow-sm'
+                : 'text-trackview-muted hover:text-trackview-primary'
+            }`}
           >
-            <Filter className="w-4 h-4 mr-2 inline" />
-            Filtros
-          </Button>
+            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Campanhas</span>
+            <span className="xs:hidden">Camp.</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('utm')}
+            className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
+              activeTab === 'utm'
+                ? 'bg-white text-trackview-primary shadow-sm'
+                : 'text-trackview-muted hover:text-trackview-primary'
+            }`}
+          >
+            <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">UTM / Criativos</span>
+            <span className="xs:hidden">UTM</span>
+          </button>
         </div>
+
+        {/* Botão de filtros alinhado à direita */}
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
+        >
+          <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
+          <span className="hidden xs:inline">Filtros</span>
+          <span className="xs:hidden">Filt.</span>
+        </Button>
+      </div>
 
       {/* Filtro de período padronizado - sempre visível */}
       <div className="flex items-center justify-between">
@@ -755,8 +758,8 @@ const Campaigns: React.FC = () => {
       )}
 
       {/* Search and Filters */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+        <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-trackview-muted w-4 h-4" />
           <Input
             placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar UTM/criativos..."}
@@ -770,14 +773,14 @@ const Campaigns: React.FC = () => {
         {/* This div is now handled by PeriodDropdown component */}
       </div>
 
-      {/* Performance Blocks - Layout Melhorado */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      {/* Performance Blocks - Layout Responsivo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
         {/* Best performing campaigns */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-lg border border-blue-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-blue-800 text-lg">🏆 Top Campanhas</h3>
-            <div className="flex items-center space-x-2">
-              <div className="bg-blue-200 rounded-full px-3 py-1 text-xs font-semibold text-blue-800">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-blue-200">
+          <div className="flex items-center justify-between mb-3 lg:mb-4">
+            <h3 className="font-bold text-blue-800 text-sm lg:text-lg">🏆 Top Campanhas</h3>
+            <div className="flex items-center space-x-1 lg:space-x-2">
+              <div className="bg-blue-200 rounded-full px-2 lg:px-3 py-1 text-xs font-semibold text-blue-800">
                 {bestCampaigns.length} encontradas
               </div>
               <button
@@ -787,45 +790,45 @@ const Campaigns: React.FC = () => {
                 title="Atualizar dados"
               >
                 {performanceLoading ? (
-                  <svg className="w-4 h-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
               </button>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 lg:space-y-3">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <div className="text-sm">Carregando dados...</div>
+              <div className="text-center text-gray-500 py-3 lg:py-4">
+                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <div className="text-xs lg:text-sm">Carregando dados...</div>
               </div>
             ) : bestCampaigns.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                <div className="text-2xl mb-2">📊</div>
-                <div className="text-sm">Nenhuma campanha encontrada</div>
+              <div className="text-center text-gray-500 py-3 lg:py-4">
+                <div className="text-xl lg:text-2xl mb-2">📊</div>
+                <div className="text-xs lg:text-sm">Nenhuma campanha encontrada</div>
               </div>
             ) : bestCampaigns.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-blue-100">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                  <div className="flex items-center min-w-0 flex-1">
+                    <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
                       idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-3">
-                      <div className="font-semibold text-blue-900 text-sm truncate max-w-32">
+                    <div className="ml-2 lg:ml-3 min-w-0 flex-1">
+                      <div className="font-semibold text-blue-900 text-xs lg:text-sm truncate">
                         {item.name || 'Campanha sem nome'}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">
+                  <div className="text-right ml-2 flex-shrink-0">
+                    <div className="text-sm lg:text-lg font-bold text-green-600">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
@@ -842,11 +845,11 @@ const Campaigns: React.FC = () => {
         </div>
 
         {/* Best performing ads */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-lg border border-green-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-green-800 text-lg">🎯 Top Anúncios</h3>
-            <div className="flex items-center space-x-2">
-              <div className="bg-green-200 rounded-full px-3 py-1 text-xs font-semibold text-green-800">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-green-200">
+          <div className="flex items-center justify-between mb-3 lg:mb-4">
+            <h3 className="font-bold text-green-800 text-sm lg:text-lg">🎯 Top Anúncios</h3>
+            <div className="flex items-center space-x-1 lg:space-x-2">
+              <div className="bg-green-200 rounded-full px-2 lg:px-3 py-1 text-xs font-semibold text-green-800">
                 {bestAds.length} encontrados
               </div>
               <button
@@ -856,45 +859,45 @@ const Campaigns: React.FC = () => {
                 title="Atualizar dados"
               >
                 {performanceLoading ? (
-                  <svg className="w-4 h-4 text-green-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-green-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
               </button>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 lg:space-y-3">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
-                <div className="text-sm">Carregando dados...</div>
+              <div className="text-center text-gray-500 py-3 lg:py-4">
+                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
+                <div className="text-xs lg:text-sm">Carregando dados...</div>
               </div>
             ) : bestAds.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                <div className="text-2xl mb-2">📊</div>
-                <div className="text-sm">Nenhum anúncio encontrado</div>
+              <div className="text-center text-gray-500 py-3 lg:py-4">
+                <div className="text-xl lg:text-2xl mb-2">📊</div>
+                <div className="text-xs lg:text-sm">Nenhum anúncio encontrado</div>
               </div>
             ) : bestAds.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-green-100">
+              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-green-100">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                  <div className="flex items-center min-w-0 flex-1">
+                    <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
                       idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-3">
-                      <div className="font-semibold text-green-900 text-sm truncate max-w-32">
+                    <div className="ml-2 lg:ml-3 min-w-0 flex-1">
+                      <div className="font-semibold text-green-900 text-xs lg:text-sm truncate">
                         {item.name || 'Anúncio sem nome'}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">
+                  <div className="text-right ml-2 flex-shrink-0">
+                    <div className="text-sm lg:text-lg font-bold text-green-600">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
@@ -948,22 +951,22 @@ const Campaigns: React.FC = () => {
                 <div className="text-sm">Nenhuma oferta encontrada</div>
               </div>
             ) : bestOffers.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
+              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-purple-100">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                  <div className="flex items-center min-w-0 flex-1">
+                    <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
                       idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-3">
-                      <div className="font-semibold text-purple-900 text-sm truncate max-w-32">
+                    <div className="ml-2 lg:ml-3 min-w-0 flex-1">
+                      <div className="font-semibold text-purple-900 text-xs lg:text-sm truncate">
                         {item.name || 'Oferta sem nome'}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-purple-600">
+                  <div className="text-right ml-2 flex-shrink-0">
+                    <div className="text-sm lg:text-lg font-bold text-green-600">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
@@ -986,7 +989,7 @@ const Campaigns: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -998,55 +1001,55 @@ const Campaigns: React.FC = () => {
               </p>
             </div>
           ) : activeTab === 'campaigns' ? (
-            <table className="w-full">
+            <table className="w-full min-w-[1200px]">
               <thead className="bg-trackview-background">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Campanha
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fonte
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Cliques
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Cliques Únicos
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Impressões
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Conversões
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Todas Conversões
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Aprovadas
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Pendentes
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Recusadas
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     CTR
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Taxa Conv.
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Gasto
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Receita
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ROI
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1097,44 +1100,44 @@ const Campaigns: React.FC = () => {
                           <span className="ml-1">{campaign.status}</span>
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.ctr}%</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.ctr}%</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.conversion_rate}%</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.conversion_rate}%</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.roi}%</div>
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                        <div className="text-xs sm:text-sm text-gray-900">{campaign.roi}%</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
