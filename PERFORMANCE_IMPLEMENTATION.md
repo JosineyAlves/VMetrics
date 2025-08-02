@@ -44,6 +44,12 @@ O endpoint processa os seguintes campos das logs de conversão:
 - Processa apenas dados válidos
 - Limita a 3 resultados por categoria
 
+**Agrupamento Inteligente de Anúncios:**
+- **Problema Identificado**: Anúncios com o mesmo nome podem ter IDs diferentes no RedTrack
+- **Solução**: Agrupa anúncios pelo **nome** em vez do ID para evitar duplicações
+- **Exemplo**: AD03 com IDs `120231586832070017` e `120231586918170017` são agrupados como um único anúncio
+- **Benefício**: Dados mais precisos e sem duplicações artificiais
+
 ### 4. Estrutura de Dados Retornada
 
 ```json

@@ -107,17 +107,20 @@ function processPerformanceData(conversions) {
       campaign.payout += parseFloat(conversion.payout || 0);
     }
     
-    // Processar anúncios (usando rt_ad e rt_ad_id)
+    // Processar anúncios (agrupar por NOME em vez de ID para evitar duplicações)
     if (conversion.rt_ad && conversion.rt_ad_id && conversion.rt_ad_id !== '{{ad.id}}') {
-      const adKey = conversion.rt_ad_id;
+      const adName = conversion.rt_ad.trim();
+      const adKey = adName; // Usar nome como chave para agrupar
+      
       if (!ads.has(adKey)) {
         ads.set(adKey, {
-          id: adKey,
-          name: conversion.rt_ad,
+          id: conversion.rt_ad_id, // Manter o primeiro ID encontrado
+          name: adName,
           revenue: 0,
           conversions: 0,
           cost: 0,
-          payout: 0
+          payout: 0,
+          all_ids: [conversion.rt_ad_id] // Array para rastrear todos os IDs
         });
       }
       
@@ -126,6 +129,11 @@ function processPerformanceData(conversions) {
       ad.conversions += 1;
       ad.cost += parseFloat(conversion.cost || 0);
       ad.payout += parseFloat(conversion.payout || 0);
+      
+      // Adicionar ID se não existir no array
+      if (!ad.all_ids.includes(conversion.rt_ad_id)) {
+        ad.all_ids.push(conversion.rt_ad_id);
+      }
     }
     
     // Processar ofertas
@@ -188,6 +196,14 @@ function processPerformanceData(conversions) {
   console.log(`   - Campanhas: ${campaignsArray.length} (de ${campaigns.size} total)`);
   console.log(`   - Anúncios: ${adsArray.length} (de ${ads.size} total)`);
   console.log(`   - Ofertas: ${offersArray.length} (de ${offers.size} total)`);
+  
+  // Log detalhado dos anúncios agrupados
+  if (adsArray.length > 0) {
+    console.log(`📊 [PERFORMANCE] Anúncios agrupados:`);
+    adsArray.forEach((ad, idx) => {
+      console.log(`   ${idx + 1}. ${ad.name} - Revenue: ${ad.revenue}, Conversions: ${ad.conversions}, IDs: ${ad.all_ids.join(', ')}`);
+    });
+  }
   
   return {
     campaigns: campaignsArray,
