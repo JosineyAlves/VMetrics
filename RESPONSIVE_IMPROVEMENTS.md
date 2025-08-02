@@ -228,4 +228,17 @@ w-3 h-3 lg:w-4 lg:h-4  /* Ícones escaláveis */
 
 ---
 
-**Resultado**: TrackView agora é **100% responsivo** e oferece uma experiência excelente em qualquer dispositivo! 🎉 
+**Resultado**: TrackView agora é **100% responsivo** e oferece uma experiência excelente em qualquer dispositivo! 🎉
+
+## 🔧 Correções Técnicas Recentes
+
+### **Bug de Overcounting Corrigido**
+- **Problema**: Anúncios agrupados estavam somando custo e cliques incorretamente
+- **Causa**: Soma repetida dentro do loop de conversões
+- **Solução**: Cálculo único após coleta de todos os IDs
+- **Resultado**: Métricas de CPA e ROI agora são precisas
+
+### **Melhorias na Precisão**
+- **IDs Únicos**: Remoção de duplicatas nos IDs de anúncios
+- **Soma Correta**: Custo e cliques calculados apenas uma vez
+- **Logs Detalhados**: Rastreamento completo do processo de agrupamento 

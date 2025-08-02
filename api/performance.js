@@ -207,15 +207,14 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       const adKey = adName; // Usar nome como chave para agrupar
       
       if (!ads.has(adKey)) {
-        const adCostData = adsCostMap.get(conversion.rt_ad_id);
         ads.set(adKey, {
           id: conversion.rt_ad_id, // Manter o primeiro ID encontrado
           name: adName,
           revenue: 0,
           conversions: 0,
-          cost: adCostData ? adCostData.cost : 0,
+          cost: 0, // Inicializar como 0 - será calculado depois
           payout: 0,
-          clicks: adCostData ? adCostData.clicks : 0,
+          clicks: 0, // Inicializar como 0 - será calculado depois
           all_ids: [conversion.rt_ad_id] // Array para rastrear todos os IDs
         });
       }
@@ -229,15 +228,6 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       if (!ad.all_ids.includes(conversion.rt_ad_id)) {
         ad.all_ids.push(conversion.rt_ad_id);
       }
-      
-      // Somar custos de todos os IDs do anúncio
-      ad.all_ids.forEach(adId => {
-        const adCostData = adsCostMap.get(adId);
-        if (adCostData) {
-          ad.cost += adCostData.cost;
-          ad.clicks += adCostData.clicks;
-        }
-      });
     }
     
     // Processar ofertas
@@ -259,6 +249,29 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       offer.conversions += 1;
       offer.payout += parseFloat(conversion.payout || 0);
     }
+  });
+  
+  // Calcular custo e cliques para anúncios agrupados (APENAS UMA VEZ)
+  console.log(`🔧 [PERFORMANCE] Calculando custo e cliques para anúncios agrupados...`);
+  ads.forEach((ad, adKey) => {
+    // Resetar custo e cliques para recalcular corretamente
+    ad.cost = 0;
+    ad.clicks = 0;
+    
+    // Somar custos de todos os IDs únicos do anúncio
+    const uniqueIds = [...new Set(ad.all_ids)]; // Remover duplicatas
+    uniqueIds.forEach(adId => {
+      const adCostData = adsCostMap.get(adId);
+      if (adCostData) {
+        ad.cost += adCostData.cost;
+        ad.clicks += adCostData.clicks;
+      }
+    });
+    
+    console.log(`📊 [PERFORMANCE] Anúncio "${ad.name}":`);
+    console.log(`   - IDs únicos: ${uniqueIds.join(', ')}`);
+    console.log(`   - Cost total: ${ad.cost}`);
+    console.log(`   - Clicks total: ${ad.clicks}`);
   });
   
   console.log(`📊 [PERFORMANCE] Resumo do processamento:`);
