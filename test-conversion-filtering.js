@@ -1,103 +1,66 @@
-const apiKey = 'K0Y6dcsgEqmjQp0CKD49';
+// Teste do filtro de conversões (apenas Purchase e Conversion)
+const API_KEY = 'K0Y6dcsgEqmjQp0CKD49'
+const BASE_URL = 'https://my-dash-two.vercel.app'
 
 async function testConversionFiltering() {
-  console.log('🧪 Testando diferentes abordagens de filtragem de conversões...');
+  console.log('🧪 Testando filtro de conversões (apenas Purchase e Conversion)...')
   
-  const dateFrom = '2025-07-30';
-  const dateTo = '2025-07-30';
-  
-  // Teste 1: Buscar todas as conversões sem filtro
-  console.log('\n📊 Teste 1: Todas as conversões sem filtro');
-  const allConversionsUrl = `https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=${dateFrom}&date_to=${dateTo}&per=10`;
-  
-  try {
-    const response = await fetch(allConversionsUrl);
-    const data = await response.json();
-    
-    console.log('✅ Total de conversões:', data.total);
-    console.log('✅ Conversões encontradas:', data.items.length);
-    
-    if (data.items.length > 0) {
-      console.log('📊 Primeira conversão:', {
-        id: data.items[0].id,
-        campaign_id: data.items[0].campaign_id,
-        campaign: data.items[0].campaign,
-        payout: data.items[0].payout,
-        created_at: data.items[0].created_at
-      });
-      
-      // Agrupar por campaign_id
-      const groupedByCampaign = {};
-      data.items.forEach(conv => {
-        const campaignId = conv.campaign_id;
-        if (!groupedByCampaign[campaignId]) {
-          groupedByCampaign[campaignId] = [];
-        }
-        groupedByCampaign[campaignId].push(conv);
-      });
-      
-      console.log('📊 Conversões por campanha:');
-      Object.keys(groupedByCampaign).forEach(campaignId => {
-        const conversions = groupedByCampaign[campaignId];
-        const totalPayout = conversions.reduce((sum, conv) => sum + (conv.payout || 0), 0);
-        console.log(`   - Campanha ${campaignId}: ${conversions.length} conversões, $${totalPayout.toFixed(2)} payout`);
-      });
-    }
-  } catch (error) {
-    console.error('❌ Erro ao buscar conversões:', error);
+  const params = {
+    api_key: API_KEY,
+    date_from: '2025-07-01',
+    date_to: '2025-07-31',
+    _t: Date.now() // Forçar refresh
   }
   
-  // Aguardar 3 segundos
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  
-  // Teste 2: Buscar conversões com filtro de campaign_id específico
-  console.log('\n📊 Teste 2: Conversões com filtro campaign_id=687f029939180ad2db89cdb7');
-  const filteredConversionsUrl = `https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=${dateFrom}&date_to=${dateTo}&campaign_id=687f029939180ad2db89cdb7&per=10`;
+  const url = new URL('/api/performance', BASE_URL)
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.set(key, value)
+  })
   
   try {
-    const response = await fetch(filteredConversionsUrl);
-    const data = await response.json();
+    console.log('📡 Fazendo requisição para:', url.toString())
     
-    console.log('✅ Total de conversões filtradas:', data.total);
-    console.log('✅ Conversões encontradas:', data.items.length);
+    const response = await fetch(url.toString())
+    const data = await response.json()
     
-    if (data.items.length > 0) {
-      console.log('📊 Primeira conversão filtrada:', {
-        id: data.items[0].id,
-        campaign_id: data.items[0].campaign_id,
-        campaign: data.items[0].campaign,
-        payout: data.items[0].payout
-      });
+    console.log('✅ Resposta recebida:')
+    
+    if (data.campaigns) {
+      console.log('📊 Campanhas (apenas conversões válidas):')
+      data.campaigns.forEach((campaign, idx) => {
+        console.log(`  ${idx + 1}. ${campaign.name}`)
+        console.log(`     - Revenue: ${campaign.revenue}`)
+        console.log(`     - Conversions: ${campaign.conversions}`)
+        console.log('')
+      })
     }
-  } catch (error) {
-    console.error('❌ Erro ao buscar conversões filtradas:', error);
-  }
-  
-  // Aguardar 3 segundos
-  await new Promise(resolve => setTimeout(resolve, 3000));
-  
-  // Teste 3: Buscar conversões com filtro de campaign_id da Taboola
-  console.log('\n📊 Teste 3: Conversões com filtro campaign_id=688187ef41332f6562846fa9');
-  const taboolaConversionsUrl = `https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=${dateFrom}&date_to=${dateTo}&campaign_id=688187ef41332f6562846fa9&per=10`;
-  
-  try {
-    const response = await fetch(taboolaConversionsUrl);
-    const data = await response.json();
     
-    console.log('✅ Total de conversões Taboola:', data.total);
-    console.log('✅ Conversões encontradas:', data.items.length);
-    
-    if (data.items.length > 0) {
-      console.log('📊 Primeira conversão Taboola:', {
-        id: data.items[0].id,
-        campaign_id: data.items[0].campaign_id,
-        campaign: data.items[0].campaign,
-        payout: data.items[0].payout
-      });
+    if (data.ads) {
+      console.log('📊 Anúncios (apenas conversões válidas):')
+      data.ads.forEach((ad, idx) => {
+        console.log(`  ${idx + 1}. ${ad.name}`)
+        console.log(`     - Revenue: ${ad.revenue}`)
+        console.log(`     - Conversions: ${ad.conversions}`)
+        console.log('')
+      })
     }
+    
+    if (data.offers) {
+      console.log('📊 Ofertas (apenas conversões válidas):')
+      data.offers.forEach((offer, idx) => {
+        console.log(`  ${idx + 1}. ${offer.name}`)
+        console.log(`     - Revenue: ${offer.revenue}`)
+        console.log(`     - Conversions: ${offer.conversions}`)
+        console.log('')
+      })
+    }
+    
+    console.log('✅ Teste concluído: Apenas Purchase e Conversion são considerados conversões válidas!')
+    
   } catch (error) {
-    console.error('❌ Erro ao buscar conversões Taboola:', error);
+    console.error('❌ Erro no teste:', error)
   }
 }
 
-testConversionFiltering().catch(console.error); 
+// Executar teste
+testConversionFiltering() 

@@ -253,3 +253,45 @@ campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversio
 ```
 
 Esta implementação resolve completamente o problema dos blocos de performance não respeitarem os filtros de data, fornecendo dados precisos e atualizados baseados nas logs reais de conversão do RedTrack, com um layout moderno e sistema de cache inteligente. 
+
+### 17. Correção do Filtro de Conversões
+
+**Problema Identificado:**
+- O sistema estava contando `InitiateCheckout` como conversão
+- Isso inflava artificialmente os números de conversões
+- Necessidade de filtrar apenas conversões reais
+
+**Solução Implementada:**
+- **Lista de Conversões Válidas**: Definida lista de tipos de conversão aceitos
+- **Filtro Automático**: Sistema automaticamente ignora `InitiateCheckout` e outros tipos inválidos
+- **Logs Detalhados**: Contadores para debugging e monitoramento
+- **Tipos Aceitos**: Apenas `Purchase` (Compra) e `Conversion` (Conversão)
+
+**Implementação Técnica:**
+```javascript
+// Tipos de conversão válidos (apenas Purchase e Conversion)
+const validConversionTypes = [
+  'Purchase',    // Compra
+  'Conversion'   // Conversão
+];
+
+// Verificar se é uma conversão válida
+const conversionType = conversion.type || conversion.event || '';
+const isValidConversion = validConversionTypes.some(type => 
+  conversionType.toLowerCase().includes(type.toLowerCase())
+);
+
+// Se for InitiateCheckout, pular
+if (conversionType.toLowerCase().includes('initiatecheckout')) {
+  console.log(`⚠️ [PERFORMANCE] Pulando InitiateCheckout: ${conversionType}`);
+  return;
+}
+```
+
+**Logs de Debugging:**
+- Total de conversões processadas
+- Conversões válidas contadas
+- InitiateCheckout ignorados
+- Contadores por entidade (campanhas, anúncios, ofertas)
+
+### 18. Próximos Passos 

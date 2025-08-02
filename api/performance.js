@@ -85,7 +85,41 @@ function processPerformanceData(conversions) {
   
   console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
   
+  // Tipos de conversão válidos (apenas Purchase e Conversion)
+  const validConversionTypes = [
+    'Purchase',    // Compra
+    'Conversion'   // Conversão
+  ];
+  
+  // Contadores para debugging
+  let totalConversions = 0;
+  let validConversions = 0;
+  let initiateCheckoutCount = 0;
+  
   conversions.forEach((conversion, index) => {
+    totalConversions++;
+    
+    // Verificar se é uma conversão válida (excluir InitiateCheckout)
+    const conversionType = conversion.type || conversion.event || '';
+    const isValidConversion = validConversionTypes.some(type => 
+      conversionType.toLowerCase().includes(type.toLowerCase())
+    );
+    
+    // Se for InitiateCheckout, pular
+    if (conversionType.toLowerCase().includes('initiatecheckout')) {
+      initiateCheckoutCount++;
+      console.log(`⚠️ [PERFORMANCE] Pulando InitiateCheckout: ${conversionType}`);
+      return;
+    }
+    
+    // Se não for uma conversão válida, pular
+    if (!isValidConversion) {
+      console.log(`⚠️ [PERFORMANCE] Pulando conversão inválida: ${conversionType}`);
+      return;
+    }
+    
+    validConversions++;
+    
     // Processar campanhas
     if (conversion.campaign && conversion.campaign_id) {
       const campaignKey = conversion.campaign_id;
@@ -157,6 +191,14 @@ function processPerformanceData(conversions) {
       offer.payout += parseFloat(conversion.payout || 0);
     }
   });
+  
+  console.log(`📊 [PERFORMANCE] Resumo do processamento:`);
+  console.log(`   - Total de conversões: ${totalConversions}`);
+  console.log(`   - Conversões válidas: ${validConversions}`);
+  console.log(`   - InitiateCheckout ignorados: ${initiateCheckoutCount}`);
+  console.log(`   - Campanhas processadas: ${campaigns.size}`);
+  console.log(`   - Anúncios processados: ${ads.size}`);
+  console.log(`   - Ofertas processadas: ${offers.size}`);
   
   // Converter para arrays e ordenar por conversões (prioridade) e depois por revenue
   const campaignsArray = Array.from(campaigns.values())
