@@ -1001,15 +1001,9 @@ const Campaigns: React.FC = () => {
                     <span className="font-semibold text-purple-600">{item.conversions || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>CPA:</span>
+                    <span>Revenue:</span>
                     <span className="font-semibold text-purple-600">
-                      {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>ROI:</span>
-                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
-                      {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                      {formatCurrency(item.revenue || 0)}
                     </span>
                   </div>
                 </div>

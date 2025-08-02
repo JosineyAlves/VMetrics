@@ -340,14 +340,14 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
 
 **Foco na Performance:**
 - **Conversões**: Quantidade de conversões válidas (Purchase/Conversion)
-- **CPA**: Custo por aquisição - quanto custou cada conversão
-- **ROI**: Retorno sobre investimento - lucratividade da campanha/anúncio/oferta
+- **CPA**: Custo por aquisição - quanto custou cada conversão (Campanhas e Anúncios)
+- **ROI**: Retorno sobre investimento - lucratividade da campanha/anúncio (Campanhas e Anúncios)
+- **Revenue**: Receita total das conversões (Ofertas)
 
 **Interface Atualizada:**
 - Layout simplificado focado nas métricas essenciais
-- **Conversões**: Quantidade de conversões válidas
-- **CPA**: Custo por aquisição (quanto custou cada conversão)
-- **ROI**: Retorno sobre investimento com cores condicionais (verde/vermelho)
+- **Campanhas e Anúncios**: Conversões, CPA, ROI
+- **Ofertas**: Conversões, Revenue (sem CPA/ROI devido à limitação técnica)
 - Grid de 1 coluna para melhor legibilidade
 - Responsivo para diferentes tamanhos de tela
 
