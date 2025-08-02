@@ -83,7 +83,9 @@ function processPerformanceData(conversions) {
   const ads = new Map();
   const offers = new Map();
   
-  conversions.forEach(conversion => {
+  console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
+  
+  conversions.forEach((conversion, index) => {
     // Processar campanhas
     if (conversion.campaign && conversion.campaign_id) {
       const campaignKey = conversion.campaign_id;
@@ -106,7 +108,7 @@ function processPerformanceData(conversions) {
     }
     
     // Processar anúncios (usando rt_ad e rt_ad_id)
-    if (conversion.rt_ad && conversion.rt_ad_id) {
+    if (conversion.rt_ad && conversion.rt_ad_id && conversion.rt_ad_id !== '{{ad.id}}') {
       const adKey = conversion.rt_ad_id;
       if (!ads.has(adKey)) {
         ads.set(adKey, {
@@ -148,18 +150,44 @@ function processPerformanceData(conversions) {
     }
   });
   
-  // Converter para arrays e ordenar por revenue
+  // Converter para arrays e ordenar por conversões (prioridade) e depois por revenue
   const campaignsArray = Array.from(campaigns.values())
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 10);
+    .sort((a, b) => {
+      // Primeiro por conversões (decrescente)
+      if (b.conversions !== a.conversions) {
+        return b.conversions - a.conversions;
+      }
+      // Se conversões iguais, ordenar por revenue
+      return b.revenue - a.revenue;
+    })
+    .slice(0, 3); // Apenas top 3
     
   const adsArray = Array.from(ads.values())
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 10);
+    .sort((a, b) => {
+      // Primeiro por conversões (decrescente)
+      if (b.conversions !== a.conversions) {
+        return b.conversions - a.conversions;
+      }
+      // Se conversões iguais, ordenar por revenue
+      return b.revenue - a.revenue;
+    })
+    .slice(0, 3); // Apenas top 3
     
   const offersArray = Array.from(offers.values())
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 10);
+    .sort((a, b) => {
+      // Primeiro por conversões (decrescente)
+      if (b.conversions !== a.conversions) {
+        return b.conversions - a.conversions;
+      }
+      // Se conversões iguais, ordenar por revenue
+      return b.revenue - a.revenue;
+    })
+    .slice(0, 3); // Apenas top 3
+  
+  console.log(`✅ [PERFORMANCE] Processamento concluído:`);
+  console.log(`   - Campanhas: ${campaignsArray.length} (de ${campaigns.size} total)`);
+  console.log(`   - Anúncios: ${adsArray.length} (de ${ads.size} total)`);
+  console.log(`   - Ofertas: ${offersArray.length} (de ${offers.size} total)`);
   
   return {
     campaigns: campaignsArray,
@@ -212,16 +240,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD' });
   }
 
-  // Verificar cache
-  const cacheKey = `performance_${JSON.stringify(req.query)}`;
+  // Verificar cache (ignorar se _t (timestamp) for fornecido)
+  const { _t, ...queryParams } = req.query;
+  const cacheKey = `performance_${JSON.stringify(queryParams)}`;
   const cachedData = requestCache.get(cacheKey);
-  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+  
+  // Se não há _t (timestamp) e cache é válido, retornar cache
+  if (!_t && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [PERFORMANCE] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
+  }
+  
+  // Se _t foi fornecido, limpar cache para forçar refresh
+  if (_t) {
+    console.log('🔄 [PERFORMANCE] Forçando refresh - ignorando cache');
+    requestCache.delete(cacheKey);
   }
 
   try {
     console.log('🔍 [PERFORMANCE] Buscando dados de conversão para análise de performance...')
+    console.log(`📅 Período: ${date_from} até ${date_to}`)
     
     // Buscar todas as conversões do período
     const conversionsUrl = new URL('https://api.redtrack.io/conversions');

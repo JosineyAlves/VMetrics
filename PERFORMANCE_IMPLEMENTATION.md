@@ -11,10 +11,10 @@ Os blocos de performance na seção de campanhas ("Best performing campaigns", "
 Criamos um novo endpoint que:
 - Busca todas as conversões do período selecionado via `/conversions`
 - Processa os dados de conversão para extrair informações de campanhas, anúncios e ofertas
-- Organiza os dados por ranking de revenue
-- Retorna os top performers para cada categoria
+- Organiza os dados por ranking de conversões (prioridade) e revenue
+- Retorna os top 3 performers para cada categoria
 
-### 2. Processamento de Dados
+### 2. Processamento de Dados Otimizado
 
 O endpoint processa os seguintes campos das logs de conversão:
 
@@ -33,7 +33,18 @@ O endpoint processa os seguintes campos das logs de conversão:
 - `payout` - Receita da conversão
 - `cost` - Custo da conversão
 
-### 3. Estrutura de Dados Retornada
+### 3. Algoritmo de Ranking Melhorado
+
+**Prioridade de Ordenação:**
+1. **Conversões** (decrescente) - Prioridade principal
+2. **Revenue** (decrescente) - Critério secundário
+
+**Filtros Aplicados:**
+- Remove anúncios com ID `{{ad.id}}` (placeholders)
+- Processa apenas dados válidos
+- Limita a 3 resultados por categoria
+
+### 4. Estrutura de Dados Retornada
 
 ```json
 {
@@ -70,28 +81,66 @@ O endpoint processa os seguintes campos das logs de conversão:
 }
 ```
 
-### 4. Integração no Frontend
+### 5. Layout Melhorado
+
+#### Design dos Blocos de Performance
+
+**Características do Novo Layout:**
+- **Gradientes coloridos** para cada categoria (azul, verde, roxo)
+- **Cards individuais** para cada item do ranking
+- **Medalhas de ranking** (ouro, prata, bronze)
+- **Métricas detalhadas** (Revenue, Conversões, CPA)
+- **Botões de refresh** para forçar atualização
+- **Responsivo** para diferentes tamanhos de tela
+
+**Cores e Identificação:**
+- 🏆 **Top Campanhas** - Azul
+- 🎯 **Top Anúncios** - Verde  
+- 💎 **Top Ofertas** - Roxo
+
+### 6. Sistema de Cache Inteligente
+
+**Controle de Cache:**
+- Cache de 5 minutos por padrão
+- Parâmetro `_t` para forçar refresh
+- Limpeza automática de cache quando necessário
+
+**Como Forçar Refresh:**
+```javascript
+// Adicionar timestamp para ignorar cache
+const params = {
+  date_from: '2024-01-01',
+  date_to: '2024-01-31',
+  _t: Date.now() // Força refresh
+}
+```
+
+### 7. Integração no Frontend
 
 #### Componente Campaigns (`src/components/Campaigns.tsx`)
 
-- Adicionada função `fetchPerformanceData()` que chama o novo endpoint
-- Os blocos de performance agora são atualizados sempre que o período ou filtros mudam
-- Dados são exibidos em ambas as abas (Campanhas e UTM/Criativos)
+- Função `fetchPerformanceData(forceRefresh)` com suporte a refresh forçado
+- Botões de refresh em cada bloco de performance
+- Layout responsivo e moderno
+- Exibição de métricas detalhadas (Revenue, Conversões, CPA)
 
 #### API Service (`src/services/api.ts`)
 
-- Adicionado método `getPerformanceData()` para consumir o novo endpoint
-- Integração com o sistema de cache e tratamento de erros existente
+- Método `getPerformanceData()` com suporte a parâmetros de refresh
+- Integração com sistema de cache existente
+- Tratamento robusto de erros
 
-### 5. Vantagens da Implementação
+### 8. Vantagens da Implementação
 
 1. **Respeita Filtros de Data**: Os dados agora são filtrados pelo período selecionado pelo usuário
 2. **Dados Reais**: Baseado em logs reais de conversão do RedTrack
-3. **Performance**: Cache de 5 minutos para evitar requisições desnecessárias
+3. **Performance**: Cache inteligente com opção de refresh forçado
 4. **Escalabilidade**: Processa até 10.000 conversões por período
 5. **Flexibilidade**: Pode ser facilmente estendido para incluir outras métricas
+6. **UX Melhorada**: Layout moderno e intuitivo
+7. **Ranking Inteligente**: Prioriza conversões sobre revenue
 
-### 6. Campos Utilizados das Logs de Conversão
+### 9. Campos Utilizados das Logs de Conversão
 
 Baseado na análise da log fornecida, utilizamos os seguintes campos:
 
@@ -99,43 +148,75 @@ Baseado na análise da log fornecida, utilizamos os seguintes campos:
 campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversions
 ```
 
-### 7. Como Testar
+### 10. Como Testar
 
 1. **Endpoint Direto:**
    ```bash
    curl "http://localhost:3001/performance?api_key=SUA_API_KEY&date_from=2024-01-01&date_to=2024-01-31"
    ```
 
-2. **Script de Teste:**
+2. **Forçar Refresh:**
    ```bash
-   node test-performance-endpoint.js
+   curl "http://localhost:3001/performance?api_key=SUA_API_KEY&date_from=2024-01-01&date_to=2024-01-31&_t=1234567890"
    ```
 
 3. **Interface:**
    - Acesse a seção Campanhas no TrackView
    - Selecione um período
    - Os blocos de performance serão atualizados automaticamente
+   - Use os botões de refresh para forçar atualização
 
-### 8. Próximos Passos
+### 11. Resolução do Problema de Cache
+
+**Problema Identificado:**
+- Às vezes era necessário recarregar a página para ver dados atualizados
+- Cache estava mantendo dados antigos
+
+**Solução Implementada:**
+- Parâmetro `_t` para forçar refresh
+- Botões de refresh em cada bloco
+- Limpeza automática de cache quando necessário
+- Logs detalhados para debugging
+
+### 12. Próximos Passos
 
 1. **Otimização**: Implementar paginação para períodos com muitas conversões
-2. **Métricas Adicionais**: Adicionar CTR, CPA, ROI aos blocos de performance
+2. **Métricas Adicionais**: Adicionar CTR, ROI aos blocos de performance
 3. **Filtros Avançados**: Permitir filtrar por país, dispositivo, etc.
 4. **Exportação**: Adicionar funcionalidade de exportar dados de performance
+5. **Notificações**: Alertas quando novos dados estão disponíveis
 
-### 9. Arquivos Modificados
+### 13. Arquivos Modificados
 
-- `api/performance.js` - Novo endpoint
+- `api/performance.js` - Endpoint otimizado com ranking melhorado
 - `server.js` - Adicionada rota do endpoint
-- `src/components/Campaigns.tsx` - Integração no frontend
+- `src/components/Campaigns.tsx` - Layout moderno e botões de refresh
 - `src/services/api.ts` - Novo método na API service
 - `test-performance-endpoint.js` - Script de teste
 
-### 10. Considerações Técnicas
+### 14. Considerações Técnicas
 
 - **Rate Limiting**: Implementado controle de taxa de requisições para a API do RedTrack
-- **Cache**: Cache de 5 minutos para otimizar performance
+- **Cache Inteligente**: Cache de 5 minutos com opção de refresh forçado
 - **Tratamento de Erros**: Tratamento robusto de erros e fallbacks
-- **Logs**: Logs detalhados para debugging e monitoramento
+- **Logs Detalhados**: Logs para debugging e monitoramento
+- **Performance**: Otimização para processar grandes volumes de dados
 
-Esta implementação resolve completamente o problema dos blocos de performance não respeitarem os filtros de data, fornecendo dados precisos e atualizados baseados nas logs reais de conversão do RedTrack. 
+### 15. Confirmação dos Dados
+
+**✅ Confirmado**: Os dados estão sendo extraídos das logs reais de conversão do RedTrack, conforme demonstrado na resposta da API:
+
+```json
+{
+  "campaigns": [
+    {
+      "id": "687f060db92e32dd00ea83bd",
+      "name": "Facebook - Morango Lucrativo",
+      "revenue": 224.10,
+      "conversions": 9
+    }
+  ]
+}
+```
+
+Esta implementação resolve completamente o problema dos blocos de performance não respeitarem os filtros de data, fornecendo dados precisos e atualizados baseados nas logs reais de conversão do RedTrack, com um layout moderno e sistema de cache inteligente. 

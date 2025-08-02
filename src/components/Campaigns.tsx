@@ -313,7 +313,7 @@ const Campaigns: React.FC = () => {
   const [bestOffers, setBestOffers] = useState<any[]>([])
 
   // Função para buscar dados de performance baseados em conversões
-  const fetchPerformanceData = async () => {
+  const fetchPerformanceData = async (forceRefresh = false) => {
     if (!apiKey) return;
     
     const { getDateRange } = await import('../lib/utils')
@@ -326,11 +326,21 @@ const Campaigns: React.FC = () => {
     
     try {
       console.log('🔍 [CAMPAIGNS] Buscando dados de performance...');
-      const api = new RedTrackAPI(apiKey)
-      const data = await api.getPerformanceData({
+      console.log(`📅 Período: ${dateRange.startDate} até ${dateRange.endDate}`);
+      
+      // Adicionar timestamp para forçar refresh se necessário
+      const params: any = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate
-      })
+      }
+      
+      if (forceRefresh) {
+        params._t = Date.now(); // Força refresh ignorando cache
+        console.log('🔄 [CAMPAIGNS] Forçando refresh dos dados...');
+      }
+      
+      const api = new RedTrackAPI(apiKey)
+      const data = await api.getPerformanceData(params)
       
       if (data && data.campaigns) {
         setBestCampaigns(data.campaigns.slice(0, 3))
@@ -742,85 +752,177 @@ const Campaigns: React.FC = () => {
         {/* This div is now handled by PeriodDropdown component */}
       </div>
 
-      {/* Performance Blocks - Mostrar em ambas as abas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Performance Blocks - Layout Melhorado */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Best performing campaigns */}
-        <div className="bg-blue-50 rounded-xl p-4 shadow">
-          <h3 className="font-bold text-blue-700 mb-2">Best performing campaigns (RT):</h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="text-left">#</th>
-                <th className="text-left">Campaign</th>
-                <th className="text-right">Revenue</th>
-                <th className="text-right">Conversions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bestCampaigns.length === 0 ? (
-                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
-              ) : bestCampaigns.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{idx + 1}.</td>
-                  <td className="text-xs">{item.name || '-'}</td>
-                  <td className="text-right text-xs">{formatCurrency(item.revenue || 0)}</td>
-                  <td className="text-right text-xs">{item.conversions || 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-lg border border-blue-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-blue-800 text-lg">🏆 Top Campanhas</h3>
+            <div className="flex items-center space-x-2">
+              <div className="bg-blue-200 rounded-full px-3 py-1 text-xs font-semibold text-blue-800">
+                {bestCampaigns.length} encontradas
+              </div>
+              <button
+                onClick={() => fetchPerformanceData(true)}
+                className="p-1 hover:bg-blue-200 rounded-full transition-colors"
+                title="Atualizar dados"
+              >
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {bestCampaigns.length === 0 ? (
+              <div className="text-center text-gray-500 py-4">
+                <div className="text-2xl mb-2">📊</div>
+                <div className="text-sm">Nenhuma campanha encontrada</div>
+              </div>
+            ) : bestCampaigns.map((item, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-blue-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div className="ml-3">
+                      <div className="font-semibold text-blue-900 text-sm truncate max-w-32">
+                        {item.name || 'Campanha sem nome'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">
+                      {formatCurrency(item.revenue || 0)}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-xs text-gray-600">
+                  <span>Conversões: <span className="font-semibold text-blue-600">{item.conversions || 0}</span></span>
+                  <span>CPA: <span className="font-semibold text-blue-600">
+                    {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                  </span></span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
         {/* Best performing ads */}
-        <div className="bg-blue-50 rounded-xl p-4 shadow">
-          <h3 className="font-bold text-blue-700 mb-2">Best performing ads (RT):</h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="text-left">#</th>
-                <th className="text-left">Ad</th>
-                <th className="text-right">Revenue</th>
-                <th className="text-right">Conversions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bestAds.length === 0 ? (
-                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
-              ) : bestAds.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{idx + 1}.</td>
-                  <td className="text-xs">{item.name || '-'}</td>
-                  <td className="text-right text-xs">{formatCurrency(item.revenue || 0)}</td>
-                  <td className="text-right text-xs">{item.conversions || 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 shadow-lg border border-green-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-green-800 text-lg">🎯 Top Anúncios</h3>
+            <div className="flex items-center space-x-2">
+              <div className="bg-green-200 rounded-full px-3 py-1 text-xs font-semibold text-green-800">
+                {bestAds.length} encontrados
+              </div>
+              <button
+                onClick={() => fetchPerformanceData(true)}
+                className="p-1 hover:bg-green-200 rounded-full transition-colors"
+                title="Atualizar dados"
+              >
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {bestAds.length === 0 ? (
+              <div className="text-center text-gray-500 py-4">
+                <div className="text-2xl mb-2">📊</div>
+                <div className="text-sm">Nenhum anúncio encontrado</div>
+              </div>
+            ) : bestAds.map((item, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-green-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div className="ml-3">
+                      <div className="font-semibold text-green-900 text-sm truncate max-w-32">
+                        {item.name || 'Anúncio sem nome'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">
+                      {formatCurrency(item.revenue || 0)}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-xs text-gray-600">
+                  <span>Conversões: <span className="font-semibold text-green-600">{item.conversions || 0}</span></span>
+                  <span>CPA: <span className="font-semibold text-green-600">
+                    {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                  </span></span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
         {/* Best offers */}
-        <div className="bg-blue-50 rounded-xl p-4 shadow">
-          <h3 className="font-bold text-blue-700 mb-2">Best offers:</h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr>
-                <th className="text-left">#</th>
-                <th className="text-left">Offer</th>
-                <th className="text-right">Revenue</th>
-                <th className="text-right">Conversions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bestOffers.length === 0 ? (
-                <tr><td colSpan={4} className="text-center text-gray-400">No data</td></tr>
-              ) : bestOffers.map((item, idx) => (
-                <tr key={idx}>
-                  <td>{idx + 1}.</td>
-                  <td className="text-xs">{item.name || '-'}</td>
-                  <td className="text-right text-xs">{formatCurrency(item.revenue || 0)}</td>
-                  <td className="text-right text-xs">{item.conversions || 0}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 shadow-lg border border-purple-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-purple-800 text-lg">💎 Top Ofertas</h3>
+            <div className="flex items-center space-x-2">
+              <div className="bg-purple-200 rounded-full px-3 py-1 text-xs font-semibold text-purple-800">
+                {bestOffers.length} encontradas
+              </div>
+              <button
+                onClick={() => fetchPerformanceData(true)}
+                className="p-1 hover:bg-purple-200 rounded-full transition-colors"
+                title="Atualizar dados"
+              >
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {bestOffers.length === 0 ? (
+              <div className="text-center text-gray-500 py-4">
+                <div className="text-2xl mb-2">📊</div>
+                <div className="text-sm">Nenhuma oferta encontrada</div>
+              </div>
+            ) : bestOffers.map((item, idx) => (
+              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div className="ml-3">
+                      <div className="font-semibold text-purple-900 text-sm truncate max-w-32">
+                        {item.name || 'Oferta sem nome'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-purple-600">
+                      {formatCurrency(item.revenue || 0)}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-xs text-gray-600">
+                  <span>Conversões: <span className="font-semibold text-purple-600">{item.conversions || 0}</span></span>
+                  <span>CPA: <span className="font-semibold text-purple-600">
+                    {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                  </span></span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
