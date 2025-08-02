@@ -990,8 +990,8 @@ const Campaigns: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right ml-2 flex-shrink-0">
-                    <div className="text-sm lg:text-lg font-bold text-green-600">
-                      {formatCurrency(item.revenue || 0)}
+                    <div className="text-sm lg:text-lg font-bold text-purple-600">
+                      #{idx + 1}
                     </div>
                   </div>
                 </div>
