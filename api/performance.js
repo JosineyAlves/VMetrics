@@ -78,12 +78,46 @@ async function processRequestQueue() {
 }
 
 // Função para processar dados de conversão e extrair performance
-function processPerformanceData(conversions) {
+function processPerformanceData(conversions, campaignsCostData, adsCostData) {
   const campaigns = new Map();
   const ads = new Map();
   const offers = new Map();
   
   console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
+  
+  // Criar mapas de custo das campanhas
+  const campaignsCostMap = new Map();
+  if (campaignsCostData && campaignsCostData.data) {
+    campaignsCostData.data.forEach(item => {
+      if (item.campaign_id) {
+        campaignsCostMap.set(item.campaign_id, {
+          cost: parseFloat(item.cost || 0),
+          clicks: parseInt(item.clicks || 0),
+          conversions: parseInt(item.conversions || 0),
+          revenue: parseFloat(item.revenue || 0)
+        });
+      }
+    });
+  }
+  
+  // Criar mapas de custo dos anúncios
+  const adsCostMap = new Map();
+  if (adsCostData && adsCostData.data) {
+    adsCostData.data.forEach(item => {
+      if (item.rt_ad_id) {
+        adsCostMap.set(item.rt_ad_id, {
+          cost: parseFloat(item.cost || 0),
+          clicks: parseInt(item.clicks || 0),
+          conversions: parseInt(item.conversions || 0),
+          revenue: parseFloat(item.revenue || 0)
+        });
+      }
+    });
+  }
+  
+  console.log(`📊 [PERFORMANCE] Dados de custo carregados:`);
+  console.log(`   - Campanhas com custo: ${campaignsCostMap.size}`);
+  console.log(`   - Anúncios com custo: ${adsCostMap.size}`);
   
   // Tipos de conversão válidos (apenas Purchase e Conversion)
   const validConversionTypes = [
@@ -124,20 +158,21 @@ function processPerformanceData(conversions) {
     if (conversion.campaign && conversion.campaign_id) {
       const campaignKey = conversion.campaign_id;
       if (!campaigns.has(campaignKey)) {
+        const campaignCostData = campaignsCostMap.get(campaignKey);
         campaigns.set(campaignKey, {
           id: campaignKey,
           name: conversion.campaign,
           revenue: 0,
           conversions: 0,
-          cost: 0,
-          payout: 0
+          cost: campaignCostData ? campaignCostData.cost : 0,
+          payout: 0,
+          clicks: campaignCostData ? campaignCostData.clicks : 0
         });
       }
       
       const campaign = campaigns.get(campaignKey);
       campaign.revenue += parseFloat(conversion.payout || 0);
       campaign.conversions += 1;
-      campaign.cost += parseFloat(conversion.cost || 0);
       campaign.payout += parseFloat(conversion.payout || 0);
     }
     
@@ -147,13 +182,15 @@ function processPerformanceData(conversions) {
       const adKey = adName; // Usar nome como chave para agrupar
       
       if (!ads.has(adKey)) {
+        const adCostData = adsCostMap.get(conversion.rt_ad_id);
         ads.set(adKey, {
           id: conversion.rt_ad_id, // Manter o primeiro ID encontrado
           name: adName,
           revenue: 0,
           conversions: 0,
-          cost: 0,
+          cost: adCostData ? adCostData.cost : 0,
           payout: 0,
+          clicks: adCostData ? adCostData.clicks : 0,
           all_ids: [conversion.rt_ad_id] // Array para rastrear todos os IDs
         });
       }
@@ -161,13 +198,21 @@ function processPerformanceData(conversions) {
       const ad = ads.get(adKey);
       ad.revenue += parseFloat(conversion.payout || 0);
       ad.conversions += 1;
-      ad.cost += parseFloat(conversion.cost || 0);
       ad.payout += parseFloat(conversion.payout || 0);
       
       // Adicionar ID se não existir no array
       if (!ad.all_ids.includes(conversion.rt_ad_id)) {
         ad.all_ids.push(conversion.rt_ad_id);
       }
+      
+      // Somar custos de todos os IDs do anúncio
+      ad.all_ids.forEach(adId => {
+        const adCostData = adsCostMap.get(adId);
+        if (adCostData) {
+          ad.cost += adCostData.cost;
+          ad.clicks += adCostData.clicks;
+        }
+      });
     }
     
     // Processar ofertas
@@ -187,7 +232,6 @@ function processPerformanceData(conversions) {
       const offer = offers.get(offerKey);
       offer.revenue += parseFloat(conversion.payout || 0);
       offer.conversions += 1;
-      offer.cost += parseFloat(conversion.cost || 0);
       offer.payout += parseFloat(conversion.payout || 0);
     }
   });
@@ -316,7 +360,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('🔍 [PERFORMANCE] Buscando dados de conversão para análise de performance...')
+    console.log('🔍 [PERFORMANCE] Buscando dados de conversão e custos para análise de performance...')
     console.log(`📅 Período: ${date_from} até ${date_to}`)
     
     // Buscar todas as conversões do período
@@ -344,6 +388,62 @@ export default async function handler(req, res) {
       });
       processRequestQueue();
     });
+    
+    // Buscar dados de custo das campanhas
+    console.log('🔍 [PERFORMANCE] Buscando dados de custo das campanhas...')
+    const campaignsCostUrl = new URL('https://api.redtrack.io/report');
+    campaignsCostUrl.searchParams.set('api_key', apiKey);
+    campaignsCostUrl.searchParams.set('date_from', date_from);
+    campaignsCostUrl.searchParams.set('date_to', date_to);
+    campaignsCostUrl.searchParams.set('group_by', 'campaign_id');
+    campaignsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+    
+    console.log('🔍 [PERFORMANCE] URL dos custos de campanhas:', campaignsCostUrl.toString());
+    
+    const campaignsCostData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: campaignsCostUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0 (https://my-dash-two.vercel.app)',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      processRequestQueue();
+    });
+    
+    // Buscar dados de custo dos anúncios
+    console.log('🔍 [PERFORMANCE] Buscando dados de custo dos anúncios...')
+    const adsCostUrl = new URL('https://api.redtrack.io/report');
+    adsCostUrl.searchParams.set('api_key', apiKey);
+    adsCostUrl.searchParams.set('date_from', date_from);
+    adsCostUrl.searchParams.set('date_to', date_to);
+    adsCostUrl.searchParams.set('group_by', 'rt_ad_id');
+    adsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+    
+    console.log('🔍 [PERFORMANCE] URL dos custos de anúncios:', adsCostUrl.toString());
+    
+    const adsCostData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: adsCostUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0 (https://my-dash-two.vercel.app)',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      processRequestQueue();
+    });
 
     console.log('🔍 [PERFORMANCE] Dados de conversão recebidos com sucesso');
     
@@ -356,7 +456,7 @@ export default async function handler(req, res) {
     
     if (conversionsData && conversionsData.items && conversionsData.items.length > 0) {
       console.log(`🔍 [PERFORMANCE] Processando ${conversionsData.items.length} conversões...`);
-      performanceData = processPerformanceData(conversionsData.items);
+      performanceData = processPerformanceData(conversionsData.items, campaignsCostData, adsCostData);
     } else {
       console.log('🔍 [PERFORMANCE] Nenhuma conversão encontrada para o período');
     }

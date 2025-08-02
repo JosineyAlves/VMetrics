@@ -833,11 +833,33 @@ const Campaigns: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-xs text-gray-600">
-                  <span>Conversões: <span className="font-semibold text-blue-600">{item.conversions || 0}</span></span>
-                  <span>CPA: <span className="font-semibold text-blue-600">
-                    {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                  </span></span>
+                <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Conversões:</span>
+                    <span className="font-semibold text-blue-600">{item.conversions || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Clicks:</span>
+                    <span className="font-semibold text-blue-600">{item.clicks || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CPA:</span>
+                    <span className="font-semibold text-blue-600">
+                      {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CPC:</span>
+                    <span className="font-semibold text-blue-600">
+                      {item.clicks > 0 ? formatCurrency((item.cost || 0) / item.clicks) : formatCurrency(0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between col-span-2">
+                    <span>ROI:</span>
+                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                      {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -902,11 +924,33 @@ const Campaigns: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-xs text-gray-600">
-                  <span>Conversões: <span className="font-semibold text-green-600">{item.conversions || 0}</span></span>
-                  <span>CPA: <span className="font-semibold text-green-600">
-                    {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                  </span></span>
+                <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Conversões:</span>
+                    <span className="font-semibold text-green-600">{item.conversions || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Clicks:</span>
+                    <span className="font-semibold text-green-600">{item.clicks || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CPA:</span>
+                    <span className="font-semibold text-green-600">
+                      {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CPC:</span>
+                    <span className="font-semibold text-green-600">
+                      {item.clicks > 0 ? formatCurrency((item.cost || 0) / item.clicks) : formatCurrency(0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between col-span-2">
+                    <span>ROI:</span>
+                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                      {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -971,11 +1015,23 @@ const Campaigns: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-xs text-gray-600">
-                  <span>Conversões: <span className="font-semibold text-purple-600">{item.conversions || 0}</span></span>
-                  <span>CPA: <span className="font-semibold text-purple-600">
-                    {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                  </span></span>
+                <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                  <div className="flex justify-between">
+                    <span>Conversões:</span>
+                    <span className="font-semibold text-purple-600">{item.conversions || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>CPA:</span>
+                    <span className="font-semibold text-purple-600">
+                      {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between col-span-2">
+                    <span>ROI:</span>
+                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                      {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

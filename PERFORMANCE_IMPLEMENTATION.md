@@ -294,4 +294,52 @@ if (conversionType.toLowerCase().includes('initiatecheckout')) {
 - InitiateCheckout ignorados
 - Contadores por entidade (campanhas, anúncios, ofertas)
 
-### 18. Próximos Passos 
+### 18. Implementação do Cálculo de CPA com Dados Reais
+
+**Problema Identificado:**
+- Métricas de CPA estavam zeradas nos blocos de performance
+- Campo `cost` das conversões vinha como 0
+- Necessidade de buscar dados de custo reais das campanhas e anúncios
+
+**Solução Implementada:**
+- **Endpoint `/report`**: Utiliza o endpoint de relatórios do RedTrack para buscar dados de custo
+- **Dados Agregados**: Busca custos por `campaign_id` e `rt_ad_id`
+- **Métricas Calculadas**: CPA, CPC, ROI com dados reais
+- **Integração Completa**: Combina dados de conversões com dados de custo
+
+**Implementação Técnica:**
+```javascript
+// Buscar dados de custo das campanhas
+const campaignsCostUrl = new URL('https://api.redtrack.io/report');
+campaignsCostUrl.searchParams.set('group_by', 'campaign_id');
+campaignsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+
+// Buscar dados de custo dos anúncios
+const adsCostUrl = new URL('https://api.redtrack.io/report');
+adsCostUrl.searchParams.set('group_by', 'rt_ad_id');
+adsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+
+// Processar dados combinados
+function processPerformanceData(conversions, campaignsCostData, adsCostData) {
+  // Criar mapas de custo
+  const campaignsCostMap = new Map();
+  const adsCostMap = new Map();
+  
+  // Combinar dados de conversões com dados de custo
+  // Calcular CPA, CPC, ROI
+}
+```
+
+**Métricas Calculadas:**
+- **CPA (Cost Per Acquisition)**: `cost / conversions`
+- **CPC (Cost Per Click)**: `cost / clicks` (para campanhas e anúncios)
+- **ROI (Return On Investment)**: `((revenue - cost) / cost) * 100`
+- **Revenue, Cost, Conversions, Clicks**
+
+**Interface Atualizada:**
+- Grid layout para exibir múltiplas métricas
+- Cores condicionais para ROI (verde/vermelho)
+- Métricas detalhadas em cada bloco de performance
+- Responsivo para diferentes tamanhos de tela
+
+### 19. Próximos Passos 
