@@ -184,7 +184,34 @@ campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversio
 - Limpeza automática de cache quando necessário
 - Logs detalhados para debugging
 
-### 12. Próximos Passos
+### 12. Sincronização de Dados
+
+**Problema Identificado:**
+- Blocos de performance e dados de campanhas carregavam de forma assíncrona
+- Dessincronização entre datas selecionadas e dados exibidos
+- Necessidade de trocar datas para forçar atualização
+
+**Solução Implementada:**
+- **useEffect Unificado**: Um único useEffect para carregar todos os dados
+- **Carregamento Sequencial**: Dados de campanhas → Aguarda → Dados de performance
+- **Refresh Forçado**: Sempre força refresh dos dados de performance
+- **Estado de Loading**: Indicadores visuais durante carregamento
+- **Logs Detalhados**: Para debugging e monitoramento
+
+**Fluxo de Carregamento:**
+1. Usuário seleciona período
+2. Carrega dados de campanhas/UTM
+3. Aguarda processamento (100ms)
+4. Carrega dados de performance com refresh forçado
+5. Atualiza interface com dados sincronizados
+
+**Melhorias na UX:**
+- Loading spinners nos blocos de performance
+- Botões de refresh desabilitados durante carregamento
+- Feedback visual durante atualizações
+- Logs detalhados no console para debugging
+
+### 13. Próximos Passos
 
 1. **Otimização**: Implementar paginação para períodos com muitas conversões
 2. **Métricas Adicionais**: Adicionar CTR, ROI aos blocos de performance
@@ -192,7 +219,7 @@ campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversio
 4. **Exportação**: Adicionar funcionalidade de exportar dados de performance
 5. **Notificações**: Alertas quando novos dados estão disponíveis
 
-### 13. Arquivos Modificados
+### 14. Arquivos Modificados
 
 - `api/performance.js` - Endpoint otimizado com ranking melhorado
 - `server.js` - Adicionada rota do endpoint
@@ -200,7 +227,7 @@ campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversio
 - `src/services/api.ts` - Novo método na API service
 - `test-performance-endpoint.js` - Script de teste
 
-### 14. Considerações Técnicas
+### 15. Considerações Técnicas
 
 - **Rate Limiting**: Implementado controle de taxa de requisições para a API do RedTrack
 - **Cache Inteligente**: Cache de 5 minutos com opção de refresh forçado
@@ -208,7 +235,7 @@ campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversio
 - **Logs Detalhados**: Logs para debugging e monitoramento
 - **Performance**: Otimização para processar grandes volumes de dados
 
-### 15. Confirmação dos Dados
+### 16. Confirmação dos Dados
 
 **✅ Confirmado**: Os dados estão sendo extraídos das logs reais de conversão do RedTrack, conforme demonstrado na resposta da API:
 

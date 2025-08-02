@@ -311,16 +311,20 @@ const Campaigns: React.FC = () => {
   const [bestCampaigns, setBestCampaigns] = useState<any[]>([])
   const [bestAds, setBestAds] = useState<any[]>([])
   const [bestOffers, setBestOffers] = useState<any[]>([])
+  const [performanceLoading, setPerformanceLoading] = useState(false)
 
   // Função para buscar dados de performance baseados em conversões
   const fetchPerformanceData = async (forceRefresh = false) => {
     if (!apiKey) return;
+    
+    setPerformanceLoading(true)
     
     const { getDateRange } = await import('../lib/utils')
     const dateRange = getDateRange(selectedPeriod, customRange)
     
     if (!dateRange.startDate || !dateRange.endDate) {
       console.error('Datas não definidas para buscar performance');
+      setPerformanceLoading(false)
       return;
     }
     
@@ -358,25 +362,39 @@ const Campaigns: React.FC = () => {
       setBestCampaigns([])
       setBestAds([])
       setBestOffers([])
+    } finally {
+      setPerformanceLoading(false)
     }
   }
 
-  // useEffect para carregar dados ao trocar de aba ou filtros
+  // useEffect unificado para carregar dados sincronizados
   useEffect(() => {
     if (apiKey) {
-      if (activeTab === 'campaigns') {
-        loadCampaigns()
-      } else if (activeTab === 'utm') {
-        loadUTMCreatives()
+      console.log('🔄 [CAMPAIGNS] Carregando dados sincronizados...')
+      
+      // Função para carregar todos os dados de forma sincronizada
+      const loadAllData = async () => {
+        try {
+          // Carregar dados de campanhas/UTM primeiro
+          if (activeTab === 'campaigns') {
+            await loadCampaigns()
+          } else if (activeTab === 'utm') {
+            await loadUTMCreatives()
+          }
+          
+          // Aguardar um pouco para garantir que os dados foram processados
+          await new Promise(resolve => setTimeout(resolve, 100))
+          
+          // Carregar dados de performance com as mesmas datas
+          await fetchPerformanceData(true) // Forçar refresh para garantir sincronização
+          
+          console.log('✅ [CAMPAIGNS] Todos os dados carregados com sucesso')
+        } catch (error) {
+          console.error('❌ [CAMPAIGNS] Erro ao carregar dados:', error)
+        }
       }
-    }
-    // eslint-disable-next-line
-  }, [apiKey, selectedPeriod, filters, activeTab, customRange])
-
-  // useEffect para buscar os blocos de performance ao trocar filtros/aba
-  useEffect(() => {
-    if (apiKey) {
-      fetchPerformanceData()
+      
+      loadAllData()
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange])
@@ -764,17 +782,29 @@ const Campaigns: React.FC = () => {
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
-                className="p-1 hover:bg-blue-200 rounded-full transition-colors"
+                disabled={performanceLoading}
+                className="p-1 hover:bg-blue-200 rounded-full transition-colors disabled:opacity-50"
                 title="Atualizar dados"
               >
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                {performanceLoading ? (
+                  <svg className="w-4 h-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
           <div className="space-y-3">
-            {bestCampaigns.length === 0 ? (
+            {performanceLoading ? (
+              <div className="text-center text-gray-500 py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <div className="text-sm">Carregando dados...</div>
+              </div>
+            ) : bestCampaigns.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
                 <div className="text-2xl mb-2">📊</div>
                 <div className="text-sm">Nenhuma campanha encontrada</div>
@@ -821,17 +851,29 @@ const Campaigns: React.FC = () => {
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
-                className="p-1 hover:bg-green-200 rounded-full transition-colors"
+                disabled={performanceLoading}
+                className="p-1 hover:bg-green-200 rounded-full transition-colors disabled:opacity-50"
                 title="Atualizar dados"
               >
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                {performanceLoading ? (
+                  <svg className="w-4 h-4 text-green-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
           <div className="space-y-3">
-            {bestAds.length === 0 ? (
+            {performanceLoading ? (
+              <div className="text-center text-gray-500 py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
+                <div className="text-sm">Carregando dados...</div>
+              </div>
+            ) : bestAds.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
                 <div className="text-2xl mb-2">📊</div>
                 <div className="text-sm">Nenhum anúncio encontrado</div>
@@ -878,17 +920,29 @@ const Campaigns: React.FC = () => {
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
-                className="p-1 hover:bg-purple-200 rounded-full transition-colors"
+                disabled={performanceLoading}
+                className="p-1 hover:bg-purple-200 rounded-full transition-colors disabled:opacity-50"
                 title="Atualizar dados"
               >
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
+                {performanceLoading ? (
+                  <svg className="w-4 h-4 text-purple-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
           <div className="space-y-3">
-            {bestOffers.length === 0 ? (
+            {performanceLoading ? (
+              <div className="text-center text-gray-500 py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                <div className="text-sm">Carregando dados...</div>
+              </div>
+            ) : bestOffers.length === 0 ? (
               <div className="text-center text-gray-500 py-4">
                 <div className="text-2xl mb-2">📊</div>
                 <div className="text-sm">Nenhuma oferta encontrada</div>
