@@ -78,46 +78,71 @@ async function processRequestQueue() {
 }
 
 // Função para processar dados de conversão e extrair performance
-function processPerformanceData(conversions, campaignsCostData, adsCostData) {
+function processPerformanceData(conversions, campaignsTracksData, adsTracksData) {
   const campaigns = new Map();
   const ads = new Map();
   const offers = new Map();
   
   console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
   
-  // Criar mapas de custo das campanhas
+  // Criar mapas de custo das campanhas a partir dos tracks
   const campaignsCostMap = new Map();
-  if (campaignsCostData && campaignsCostData.data) {
-    campaignsCostData.data.forEach(item => {
-      if (item.campaign_id) {
-        campaignsCostMap.set(item.campaign_id, {
-          cost: parseFloat(item.cost || 0),
-          clicks: parseInt(item.clicks || 0),
-          conversions: parseInt(item.conversions || 0),
-          revenue: parseFloat(item.revenue || 0)
-        });
+  if (campaignsTracksData && campaignsTracksData.items) {
+    campaignsTracksData.items.forEach(track => {
+      if (track.campaign_id) {
+        const existing = campaignsCostMap.get(track.campaign_id) || {
+          cost: 0,
+          clicks: 0,
+          revenue: 0
+        };
+        
+        existing.cost += parseFloat(track.cost || 0);
+        existing.clicks += 1; // Cada track é um clique
+        existing.revenue += parseFloat(track.revenue || 0);
+        
+        campaignsCostMap.set(track.campaign_id, existing);
       }
     });
   }
   
-  // Criar mapas de custo dos anúncios
+  // Criar mapas de custo dos anúncios a partir dos tracks
   const adsCostMap = new Map();
-  if (adsCostData && adsCostData.data) {
-    adsCostData.data.forEach(item => {
-      if (item.rt_ad_id) {
-        adsCostMap.set(item.rt_ad_id, {
-          cost: parseFloat(item.cost || 0),
-          clicks: parseInt(item.clicks || 0),
-          conversions: parseInt(item.conversions || 0),
-          revenue: parseFloat(item.revenue || 0)
-        });
+  if (adsTracksData && adsTracksData.items) {
+    adsTracksData.items.forEach(track => {
+      if (track.rt_ad_id) {
+        const existing = adsCostMap.get(track.rt_ad_id) || {
+          cost: 0,
+          clicks: 0,
+          revenue: 0
+        };
+        
+        existing.cost += parseFloat(track.cost || 0);
+        existing.clicks += 1; // Cada track é um clique
+        existing.revenue += parseFloat(track.revenue || 0);
+        
+        adsCostMap.set(track.rt_ad_id, existing);
       }
     });
   }
   
-  console.log(`📊 [PERFORMANCE] Dados de custo carregados:`);
+  console.log(`📊 [PERFORMANCE] Dados de custo carregados via /tracks:`);
   console.log(`   - Campanhas com custo: ${campaignsCostMap.size}`);
   console.log(`   - Anúncios com custo: ${adsCostMap.size}`);
+  
+  // Log detalhado dos dados de custo
+  if (campaignsCostMap.size > 0) {
+    console.log(`📊 [PERFORMANCE] Dados de custo das campanhas:`);
+    campaignsCostMap.forEach((data, campaignId) => {
+      console.log(`   - ${campaignId}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
+    });
+  }
+  
+  if (adsCostMap.size > 0) {
+    console.log(`📊 [PERFORMANCE] Dados de custo dos anúncios:`);
+    adsCostMap.forEach((data, adId) => {
+      console.log(`   - ${adId}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
+    });
+  }
   
   // Tipos de conversão válidos (apenas Purchase e Conversion)
   const validConversionTypes = [
@@ -389,22 +414,21 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
     
-    // Buscar dados de custo das campanhas
-    console.log('🔍 [PERFORMANCE] Buscando dados de custo das campanhas...')
-    const campaignsCostUrl = new URL('https://api.redtrack.io/report');
-    campaignsCostUrl.searchParams.set('api_key', apiKey);
-    campaignsCostUrl.searchParams.set('date_from', date_from);
-    campaignsCostUrl.searchParams.set('date_to', date_to);
-    campaignsCostUrl.searchParams.set('group_by', 'campaign_id');
-    campaignsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+    // Buscar dados de custo das campanhas via /tracks
+    console.log('🔍 [PERFORMANCE] Buscando dados de custo das campanhas via /tracks...')
+    const campaignsTracksUrl = new URL('https://api.redtrack.io/tracks');
+    campaignsTracksUrl.searchParams.set('api_key', apiKey);
+    campaignsTracksUrl.searchParams.set('date_from', date_from);
+    campaignsTracksUrl.searchParams.set('date_to', date_to);
+    campaignsTracksUrl.searchParams.set('per', '10000'); // Máximo para pegar todos os dados
     
-    console.log('🔍 [PERFORMANCE] URL dos custos de campanhas:', campaignsCostUrl.toString());
+    console.log('🔍 [PERFORMANCE] URL dos tracks de campanhas:', campaignsTracksUrl.toString());
     
-    const campaignsCostData = await new Promise((resolve, reject) => {
+    const campaignsTracksData = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
         reject, 
-        url: campaignsCostUrl.toString(), 
+        url: campaignsTracksUrl.toString(), 
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -417,22 +441,21 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
     
-    // Buscar dados de custo dos anúncios
-    console.log('🔍 [PERFORMANCE] Buscando dados de custo dos anúncios...')
-    const adsCostUrl = new URL('https://api.redtrack.io/report');
-    adsCostUrl.searchParams.set('api_key', apiKey);
-    adsCostUrl.searchParams.set('date_from', date_from);
-    adsCostUrl.searchParams.set('date_to', date_to);
-    adsCostUrl.searchParams.set('group_by', 'rt_ad_id');
-    adsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+    // Buscar dados de custo dos anúncios via /tracks
+    console.log('🔍 [PERFORMANCE] Buscando dados de custo dos anúncios via /tracks...')
+    const adsTracksUrl = new URL('https://api.redtrack.io/tracks');
+    adsTracksUrl.searchParams.set('api_key', apiKey);
+    adsTracksUrl.searchParams.set('date_from', date_from);
+    adsTracksUrl.searchParams.set('date_to', date_to);
+    adsTracksUrl.searchParams.set('per', '10000'); // Máximo para pegar todos os dados
     
-    console.log('🔍 [PERFORMANCE] URL dos custos de anúncios:', adsCostUrl.toString());
+    console.log('🔍 [PERFORMANCE] URL dos tracks de anúncios:', adsTracksUrl.toString());
     
-    const adsCostData = await new Promise((resolve, reject) => {
+    const adsTracksData = await new Promise((resolve, reject) => {
       requestQueue.push({ 
         resolve, 
         reject, 
-        url: adsCostUrl.toString(), 
+        url: adsTracksUrl.toString(), 
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -456,7 +479,7 @@ export default async function handler(req, res) {
     
     if (conversionsData && conversionsData.items && conversionsData.items.length > 0) {
       console.log(`🔍 [PERFORMANCE] Processando ${conversionsData.items.length} conversões...`);
-      performanceData = processPerformanceData(conversionsData.items, campaignsCostData, adsCostData);
+      performanceData = processPerformanceData(conversionsData.items, campaignsTracksData, adsTracksData);
     } else {
       console.log('🔍 [PERFORMANCE] Nenhuma conversão encontrada para o período');
     }

@@ -302,30 +302,33 @@ if (conversionType.toLowerCase().includes('initiatecheckout')) {
 - Necessidade de buscar dados de custo reais das campanhas e anúncios
 
 **Solução Implementada:**
-- **Endpoint `/report`**: Utiliza o endpoint de relatórios do RedTrack para buscar dados de custo
-- **Dados Agregados**: Busca custos por `campaign_id` e `rt_ad_id`
+- **Endpoint `/tracks`**: Utiliza o endpoint de logs de cliques do RedTrack para buscar dados de custo
+- **Dados de Cliques**: Cada track representa um clique com dados de custo
 - **Métricas Calculadas**: CPA, CPC, ROI com dados reais
-- **Integração Completa**: Combina dados de conversões com dados de custo
+- **Integração Completa**: Combina dados de conversões com dados de custo dos cliques
 
 **Implementação Técnica:**
 ```javascript
-// Buscar dados de custo das campanhas
-const campaignsCostUrl = new URL('https://api.redtrack.io/report');
-campaignsCostUrl.searchParams.set('group_by', 'campaign_id');
-campaignsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+// Buscar dados de custo das campanhas via /tracks
+const campaignsTracksUrl = new URL('https://api.redtrack.io/tracks');
+campaignsTracksUrl.searchParams.set('date_from', date_from);
+campaignsTracksUrl.searchParams.set('date_to', date_to);
+campaignsTracksUrl.searchParams.set('per', '10000');
 
-// Buscar dados de custo dos anúncios
-const adsCostUrl = new URL('https://api.redtrack.io/report');
-adsCostUrl.searchParams.set('group_by', 'rt_ad_id');
-adsCostUrl.searchParams.set('metrics', 'clicks,conversions,cost,revenue');
+// Buscar dados de custo dos anúncios via /tracks
+const adsTracksUrl = new URL('https://api.redtrack.io/tracks');
+adsTracksUrl.searchParams.set('date_from', date_from);
+adsTracksUrl.searchParams.set('date_to', date_to);
+adsTracksUrl.searchParams.set('per', '10000');
 
 // Processar dados combinados
-function processPerformanceData(conversions, campaignsCostData, adsCostData) {
-  // Criar mapas de custo
+function processPerformanceData(conversions, campaignsTracksData, adsTracksData) {
+  // Criar mapas de custo a partir dos tracks
   const campaignsCostMap = new Map();
   const adsCostMap = new Map();
   
-  // Combinar dados de conversões com dados de custo
+  // Cada track é um clique com dados de custo
+  // Combinar dados de conversões com dados de custo dos cliques
   // Calcular CPA, CPC, ROI
 }
 ```
