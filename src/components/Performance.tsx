@@ -81,14 +81,13 @@ interface PerformanceData {
     avgTicket: number
   }[]
   
-  // Dados por hora do dia
-  hourlyPerformance: {
-    hour: number
-    conversions: number
-    revenue: number
-    cost: number
-    roi: number
-  }[]
+     // Dados por hora do dia
+   hourlyPerformance: {
+     hour: number
+     conversions: number
+     revenue: number
+     avgTicket: number
+   }[]
   
   // Resumo geral
   summary: {
@@ -112,7 +111,7 @@ const Performance: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null)
-  const [selectedAnalysis, setSelectedAnalysis] = useState<'device' | 'browser' | 'location' | 'source' | 'hourly'>('device')
+     const [selectedAnalysis, setSelectedAnalysis] = useState<'device' | 'source' | 'hourly'>('device')
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
     campaign: '',
@@ -475,40 +474,38 @@ const Performance: React.FC = () => {
       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
     })).sort((a, b) => b.revenue - a.revenue)
 
-         // Análise por hora do dia - apenas conversões do tipo 'conversion'
+              // Análise por hora do dia - apenas conversões do tipo 'conversion'
      const hourlyAnalysis = conversions
        .filter(conv => conv.type === 'conversion')
        .reduce((acc, conv) => {
          const hour = new Date(conv.created_at).getHours()
          if (!acc[hour]) {
-           acc[hour] = { conversions: 0, revenue: 0, cost: 0 }
+           acc[hour] = { conversions: 0, revenue: 0 }
          }
          acc[hour].conversions++
          acc[hour].revenue += conv.revenue || 0
-         acc[hour].cost += conv.cost || 0
          return acc
-       }, {} as Record<number, { conversions: number, revenue: number, cost: number }>)
+       }, {} as Record<number, { conversions: number, revenue: number }>)
 
-    // Criar array com todas as 24 horas, mesmo sem dados
-    const hourlyPerformance = Array.from({ length: 24 }, (_, hour) => {
-      const data = hourlyAnalysis[hour] || { conversions: 0, revenue: 0, cost: 0 }
-      return {
-        hour,
-        conversions: data.conversions,
-        revenue: data.revenue,
-        cost: data.cost,
-        roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0
-      }
-    })
+     // Criar array com todas as 24 horas, mesmo sem dados
+     const hourlyPerformance = Array.from({ length: 24 }, (_, hour) => {
+       const data = hourlyAnalysis[hour] || { conversions: 0, revenue: 0 }
+       return {
+         hour,
+         conversions: data.conversions,
+         revenue: data.revenue,
+         avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+       }
+     })
 
-         // Resumo geral
-     const totalRevenue = conversions.reduce((sum, conv) => sum + (conv.revenue || 0), 0)
-     const totalCost = conversions.reduce((sum, conv) => sum + (conv.cost || 0), 0)
-     const totalROI = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0
-     
-     // Filtrar apenas conversões do tipo 'conversion' (excluir initiatecheckout)
+         // Filtrar apenas conversões do tipo 'conversion' (excluir initiatecheckout)
      const conversionConversions = conversions.filter(conv => conv.type === 'conversion')
      const totalConversions = conversionConversions.length
+     
+     // Resumo geral - apenas conversões do tipo 'conversion'
+     const totalRevenue = conversionConversions.reduce((sum, conv) => sum + (conv.revenue || 0), 0)
+     const totalCost = conversionConversions.reduce((sum, conv) => sum + (conv.cost || 0), 0)
+     const totalROI = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0
      const avgTicket = totalConversions > 0 ? totalRevenue / totalConversions : 0
 
     const bestDevice = devicePerformance[0]?.device || ''
@@ -525,18 +522,18 @@ const Performance: React.FC = () => {
       locationPerformance,
       sourcePerformance,
       hourlyPerformance,
-      summary: {
-        totalConversions: conversions.length,
-        totalRevenue,
-        totalCost,
-        totalROI,
-        avgTicket,
-        bestDevice,
-        bestBrowser,
-        bestLocation,
-        bestSource,
-        bestHour
-      }
+               summary: {
+           totalConversions: totalConversions,
+           totalRevenue,
+           totalCost,
+           totalROI,
+           avgTicket,
+           bestDevice,
+           bestBrowser,
+           bestLocation,
+           bestSource,
+           bestHour
+         }
     }
   }
 
@@ -548,58 +545,46 @@ const Performance: React.FC = () => {
     loadPerformanceData(true)
   }
 
-  const getAnalysisData = () => {
-    if (!performanceData) return []
-    
-    switch (selectedAnalysis) {
-      case 'device':
-        return performanceData.devicePerformance
-      case 'browser':
-        return performanceData.browserPerformance
-      case 'location':
-        return performanceData.locationPerformance
-      case 'source':
-        return performanceData.sourcePerformance
-      case 'hourly':
-        return performanceData.hourlyPerformance
-      default:
-        return []
-    }
-  }
+     const getAnalysisData = () => {
+     if (!performanceData) return []
+     
+     switch (selectedAnalysis) {
+       case 'device':
+         return performanceData.devicePerformance
+       case 'source':
+         return performanceData.sourcePerformance
+       case 'hourly':
+         return performanceData.hourlyPerformance
+       default:
+         return []
+     }
+   }
 
-  const getAnalysisTitle = () => {
-    switch (selectedAnalysis) {
-      case 'device':
-        return 'Performance por Dispositivo'
-      case 'browser':
-        return 'Performance por Navegador'
-      case 'location':
-        return 'Performance por Localização'
-      case 'source':
-        return 'Performance por Fonte de Tráfego'
-      case 'hourly':
-        return 'Performance por Hora do Dia'
-      default:
-        return 'Análise de Performance'
-    }
-  }
+     const getAnalysisTitle = () => {
+     switch (selectedAnalysis) {
+       case 'device':
+         return 'Performance por Dispositivo'
+       case 'source':
+         return 'Performance por Fonte de Tráfego'
+       case 'hourly':
+         return 'Performance por Hora do Dia'
+       default:
+         return 'Análise de Performance'
+     }
+   }
 
-  const getAnalysisIcon = () => {
-    switch (selectedAnalysis) {
-      case 'device':
-        return <DeviceIcon className="w-5 h-5" />
-      case 'browser':
-        return <BrowserIcon className="w-5 h-5" />
-      case 'location':
-        return <LocationIcon className="w-5 h-5" />
-      case 'source':
-        return <SourceIcon className="w-5 h-5" />
-      case 'hourly':
-        return <Clock className="w-5 h-5" />
-      default:
-        return <BarChart3 className="w-5 h-5" />
-    }
-  }
+     const getAnalysisIcon = () => {
+     switch (selectedAnalysis) {
+       case 'device':
+         return <DeviceIcon className="w-5 h-5" />
+       case 'source':
+         return <SourceIcon className="w-5 h-5" />
+       case 'hourly':
+         return <Clock className="w-5 h-5" />
+       default:
+         return <BarChart3 className="w-5 h-5" />
+     }
+   }
 
   if (loading) {
     return (
@@ -611,13 +596,24 @@ const Performance: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-                 <div className="flex items-center gap-3">
-           <div>
-             <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
-             <p className="text-sm text-gray-600">Focando apenas em conversões do tipo 'conversion'</p>
-           </div>
+             {/* Header */}
+       <div className="flex justify-between items-center">
+         <div>
+           <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
+           <p className="text-sm text-gray-600">Focando apenas em conversões do tipo 'conversion'</p>
+         </div>
+         
+         <div className="flex gap-3">
+           <PeriodDropdown />
+           <Button
+             variant="outline"
+             size="sm"
+             onClick={() => setShowFilters(!showFilters)}
+             className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+           >
+             <Filter className="w-4 h-4 mr-2" />
+             Filtros
+           </Button>
            <Button
              variant="outline"
              size="sm"
@@ -629,20 +625,7 @@ const Performance: React.FC = () => {
              {refreshing ? 'Atualizando...' : 'Atualizar'}
            </Button>
          </div>
-        
-        <div className="flex gap-3">
-          <PeriodDropdown />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtros
-          </Button>
-        </div>
-      </div>
+       </div>
 
       {/* Filtros */}
       {showFilters && (
@@ -682,137 +665,83 @@ const Performance: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Cards de Resumo */}
-      {performanceData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
-                <p className="text-2xl font-bold text-gray-900">{performanceData.summary.totalConversions}</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </motion.div>
+             {/* Cards de Resumo */}
+       {performanceData && (
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.1 }}
+             className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+           >
+             <div className="flex items-center justify-between">
+               <div>
+                 <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
+                 <p className="text-2xl font-bold text-gray-900">{performanceData.summary.totalConversions}</p>
+                 <p className="text-xs text-gray-500">Apenas tipo 'conversion'</p>
+               </div>
+               <div className="p-3 bg-blue-100 rounded-xl">
+                 <Users className="w-6 h-6 text-blue-600" />
+               </div>
+             </div>
+           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Receita Total</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(performanceData.summary.totalRevenue)}</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-xl">
-                <DollarSign className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </motion.div>
+           <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ delay: 0.2 }}
+             className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
+           >
+             <div className="flex items-center justify-between">
+               <div>
+                 <p className="text-sm font-medium text-gray-600">Receita Total</p>
+                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(performanceData.summary.totalRevenue)}</p>
+                 <p className="text-xs text-gray-500">Receita das conversões</p>
+               </div>
+               <div className="p-3 bg-green-100 rounded-xl">
+                 <DollarSign className="w-6 h-6 text-green-600" />
+               </div>
+             </div>
+           </motion.div>
+         </div>
+       )}
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">ROI Total</p>
-                <p className="text-2xl font-bold text-gray-900">{performanceData.summary.totalROI.toFixed(2)}%</p>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(performanceData.summary.avgTicket)}</p>
-              </div>
-              <div className="p-3 bg-orange-100 rounded-xl">
-                <BarChart3 className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Seletor de Análise */}
-      <div className="flex flex-wrap gap-3">
-        <Button
-          onClick={() => setSelectedAnalysis('device')}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-            selectedAnalysis === 'device'
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <DeviceIcon className="w-5 h-5 mr-2" />
-          Dispositivos
-        </Button>
-        <Button
-          onClick={() => setSelectedAnalysis('browser')}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-            selectedAnalysis === 'browser'
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <BrowserIcon className="w-5 h-5 mr-2" />
-          Navegadores
-        </Button>
-        <Button
-          onClick={() => setSelectedAnalysis('location')}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-            selectedAnalysis === 'location'
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <LocationIcon className="w-5 h-5 mr-2" />
-          Localização
-        </Button>
-        <Button
-          onClick={() => setSelectedAnalysis('source')}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-            selectedAnalysis === 'source'
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <SourceIcon className="w-5 h-5 mr-2" />
-          Fontes
-        </Button>
-        <Button
-          onClick={() => setSelectedAnalysis('hourly')}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-            selectedAnalysis === 'hourly'
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          <Clock className="w-5 h-5 mr-2" />
-          Horário
-        </Button>
-      </div>
+             {/* Seletor de Análise */}
+       <div className="flex flex-wrap gap-3">
+         <Button
+           onClick={() => setSelectedAnalysis('device')}
+           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+             selectedAnalysis === 'device'
+               ? 'bg-blue-600 text-white shadow-lg'
+               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+           }`}
+         >
+           <DeviceIcon className="w-5 h-5 mr-2" />
+           Dispositivos
+         </Button>
+         <Button
+           onClick={() => setSelectedAnalysis('source')}
+           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+             selectedAnalysis === 'source'
+               ? 'bg-blue-600 text-white shadow-lg'
+               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+           }`}
+         >
+           <SourceIcon className="w-5 h-5 mr-2" />
+           Fontes
+         </Button>
+         <Button
+           onClick={() => setSelectedAnalysis('hourly')}
+           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+             selectedAnalysis === 'hourly'
+               ? 'bg-blue-600 text-white shadow-lg'
+               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+           }`}
+         >
+           <Clock className="w-5 h-5 mr-2" />
+           Horário
+         </Button>
+       </div>
 
       {/* Gráfico de Análise */}
       <motion.div
@@ -824,11 +753,6 @@ const Performance: React.FC = () => {
                  <div className="flex items-center gap-3 mb-6">
            {getAnalysisIcon()}
            <h2 className="text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
-           {selectedAnalysis === 'hourly' && (
-             <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-               Mostrando todas as 24 horas do dia
-             </span>
-           )}
          </div>
 
         {getAnalysisData().length > 0 ? (
@@ -840,8 +764,6 @@ const Performance: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                                      <XAxis 
                      dataKey={selectedAnalysis === 'device' ? 'device' : 
-                              selectedAnalysis === 'browser' ? 'browser' : 
-                              selectedAnalysis === 'location' ? 'city' : 
                               selectedAnalysis === 'source' ? 'source' : 'hour'} 
                      tick={{ fontSize: 12 }}
                      tickFormatter={(value) => {
@@ -878,15 +800,15 @@ const Performance: React.FC = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                      {selectedAnalysis === 'device' ? 'Dispositivo' : 
-                       selectedAnalysis === 'browser' ? 'Navegador' : 
-                       selectedAnalysis === 'location' ? 'Localização' : 
-                       selectedAnalysis === 'source' ? 'Fonte' : 'Hora'}
-                    </th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Conversões</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Receita</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">ROI</th>
+                                         <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                       {selectedAnalysis === 'device' ? 'Dispositivo' : 
+                        selectedAnalysis === 'source' ? 'Fonte' : 'Hora'}
+                     </th>
+                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Conversões</th>
+                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Receita</th>
+                     <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                       {selectedAnalysis === 'hourly' ? 'Ticket Médio' : 'ROI'}
+                     </th>
                   </tr>
                 </thead>
                                  <tbody>
@@ -894,21 +816,25 @@ const Performance: React.FC = () => {
                     <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                                              <td className="py-3 px-4 font-medium">
                          {selectedAnalysis === 'device' ? item.device : 
-                          selectedAnalysis === 'browser' ? item.browser : 
-                          selectedAnalysis === 'location' ? `${item.city}, ${item.country}` : 
                           selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 
                           selectedAnalysis === 'hourly' ? `${item.hour.toString().padStart(2, '0')}:00` : 
                           `${item.hour}h`}
                        </td>
-                      <td className="text-right py-3 px-4">{item.conversions}</td>
-                      <td className="text-right py-3 px-4 font-semibold">{formatCurrency(item.revenue)}</td>
-                      <td className="text-right py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          item.roi > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {item.roi.toFixed(2)}%
-                        </span>
-                      </td>
+                                             <td className="text-right py-3 px-4">{item.conversions}</td>
+                       <td className="text-right py-3 px-4 font-semibold">{formatCurrency(item.revenue)}</td>
+                       <td className="text-right py-3 px-4">
+                         {selectedAnalysis === 'hourly' ? (
+                           <span className="font-semibold text-gray-900">
+                             {formatCurrency(item.avgTicket)}
+                           </span>
+                         ) : (
+                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                             item.roi > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                           }`}>
+                             {item.roi.toFixed(2)}%
+                           </span>
+                         )}
+                       </td>
                     </tr>
                   ))}
                 </tbody>
