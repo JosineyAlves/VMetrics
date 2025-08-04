@@ -6,7 +6,6 @@ import {
   Users,
   Calendar,
   Filter,
-  Download,
   RefreshCw,
   AlertCircle,
   Eye,
@@ -527,10 +526,7 @@ const Conversions: React.FC = () => {
     loadConversions(true)
   }
 
-  const handleExport = () => {
-    // Implementar exportação de conversões
-    console.log('Exportando conversões...')
-  }
+
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
@@ -566,7 +562,7 @@ const Conversions: React.FC = () => {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
 
-  // Calcular métricas adicionais
+  // Calcular métricas básicas
   const calculateMetrics = () => {
     if (conversions.length === 0) return {}
     
@@ -575,100 +571,11 @@ const Conversions: React.FC = () => {
     const totalProfit = totalPayout - totalCost
     const avgTicket = totalPayout / conversions.length
     
-    // Contar por status
-    const statusCounts = conversions.reduce((acc, conv) => {
-      const status = conv.status || 'unknown'
-      acc[status] = (acc[status] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    // Contar por dispositivo
-    const deviceCounts = conversions.reduce((acc, conv) => {
-      const device = conv.device || 'unknown'
-      acc[device] = (acc[device] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    // Contar por país
-    const countryCounts = conversions.reduce((acc, conv) => {
-      const country = conv.country || 'unknown'
-      acc[country] = (acc[country] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    // Análise de Sub-IDs (Direct Response)
-    const subIdAnalysis = conversions.reduce((acc, conv) => {
-      // Analisar Sub1 (geralmente Ad ID)
-      if (conv.sub1) {
-        acc.sub1Counts[conv.sub1] = (acc.sub1Counts[conv.sub1] || 0) + 1
-      }
-      // Analisar Sub4 (geralmente Ad Name)
-      if (conv.sub4) {
-        acc.sub4Counts[conv.sub4] = (acc.sub4Counts[conv.sub4] || 0) + 1
-      }
-      // Analisar Sub5 (geralmente Ad Set Name)
-      if (conv.sub5) {
-        acc.sub5Counts[conv.sub5] = (acc.sub5Counts[conv.sub5] || 0) + 1
-      }
-      // Analisar Sub6 (geralmente Campaign Name)
-      if (conv.sub6) {
-        acc.sub6Counts[conv.sub6] = (acc.sub6Counts[conv.sub6] || 0) + 1
-      }
-      // Analisar Sub7 (geralmente Placement)
-      if (conv.sub7) {
-        acc.sub7Counts[conv.sub7] = (acc.sub7Counts[conv.sub7] || 0) + 1
-      }
-      return acc
-    }, {
-      sub1Counts: {} as Record<string, number>,
-      sub4Counts: {} as Record<string, number>,
-      sub5Counts: {} as Record<string, number>,
-      sub6Counts: {} as Record<string, number>,
-      sub7Counts: {} as Record<string, number>
-    })
-    
-    // Análise de ConvTypes (Direct Response)
-    const convTypeAnalysis = conversions.reduce((acc, conv) => {
-      // Contar ConvTypes ativos
-      for (let i = 1; i <= 40; i++) {
-        const typeKey = `type${i}` as keyof Conversion
-        const value = Number(conv[typeKey])
-        if (value > 0) {
-          acc.activeTypes.push(i)
-          acc.typeCounts[i] = (acc.typeCounts[i] || 0) + value
-        }
-      }
-      return acc
-    }, {
-      activeTypes: [] as number[],
-      typeCounts: {} as Record<number, number>
-    })
-    
-    // Análise de Fingerprints (Fraude/Qualidade)
-    const fingerprintAnalysis = conversions.reduce((acc, conv) => {
-      if (conv.fingerprint) {
-        acc.fingerprintCounts[conv.fingerprint] = (acc.fingerprintCounts[conv.fingerprint] || 0) + 1
-      }
-      if (conv.duplicate_status > 0) {
-        acc.duplicateCount++
-      }
-      return acc
-    }, {
-      fingerprintCounts: {} as Record<string, number>,
-      duplicateCount: 0
-    })
-    
     return {
       totalPayout,
       totalCost,
       totalProfit,
-      avgTicket,
-      statusCounts,
-      deviceCounts,
-      countryCounts,
-      subIdAnalysis,
-      convTypeAnalysis,
-      fingerprintAnalysis
+      avgTicket
     }
   }
 
@@ -699,13 +606,6 @@ const Conversions: React.FC = () => {
         </div>
         
         <div className="flex gap-3">
-          <Button 
-            onClick={handleExport}
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -1151,82 +1051,7 @@ const Conversions: React.FC = () => {
 
 
 
-      {/* Análises de Direct Response */}
-      {showAdvancedData && conversions.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
-        >
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Análises de Direct Response</h2>
-            <p className="text-sm text-gray-600">Métricas específicas para otimização de campanhas</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              
-              {/* Análise de Sub-IDs */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">Análise de Sub-IDs</h3>
-                <div className="space-y-2">
-                  <div className="text-xs">
-                    <strong>Sub1 (Ad ID):</strong> {Object.keys(metrics.subIdAnalysis?.sub1Counts || {}).length} valores únicos
-                  </div>
-                  <div className="text-xs">
-                    <strong>Sub4 (Ad Name):</strong> {Object.keys(metrics.subIdAnalysis?.sub4Counts || {}).length} valores únicos
-                  </div>
-                  <div className="text-xs">
-                    <strong>Sub5 (Ad Set):</strong> {Object.keys(metrics.subIdAnalysis?.sub5Counts || {}).length} valores únicos
-                  </div>
-                  <div className="text-xs">
-                    <strong>Sub6 (Campaign):</strong> {Object.keys(metrics.subIdAnalysis?.sub6Counts || {}).length} valores únicos
-                  </div>
-                  <div className="text-xs">
-                    <strong>Sub7 (Placement):</strong> {Object.keys(metrics.subIdAnalysis?.sub7Counts || {}).length} valores únicos
-                  </div>
-                </div>
-              </div>
-              
-              {/* Análise de ConvTypes */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">Análise de ConvTypes</h3>
-                <div className="space-y-2">
-                  <div className="text-xs">
-                    <strong>ConvTypes Ativos:</strong> {metrics.convTypeAnalysis?.activeTypes?.length || 0} tipos
-                  </div>
-                  <div className="text-xs">
-                    <strong>Total de ConvTypes:</strong> {Object.values(metrics.convTypeAnalysis?.typeCounts || {}).reduce((a, b) => a + b, 0)}
-                  </div>
-                  {metrics.convTypeAnalysis?.activeTypes?.map((type) => (
-                    <div key={type} className="text-xs">
-                      <strong>Type{type}:</strong> {metrics.convTypeAnalysis?.typeCounts?.[type] || 0}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Análise de Qualidade */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">Análise de Qualidade</h3>
-                <div className="space-y-2">
-                  <div className="text-xs">
-                    <strong>Fingerprints Únicos:</strong> {Object.keys(metrics.fingerprintAnalysis?.fingerprintCounts || {}).length}
-                  </div>
-                  <div className="text-xs">
-                    <strong>Conversões Duplicadas:</strong> {metrics.fingerprintAnalysis?.duplicateCount || 0}
-                  </div>
-                  <div className="text-xs">
-                    <strong>Taxa de Duplicação:</strong> {conversions.length > 0 ? ((metrics.fingerprintAnalysis?.duplicateCount || 0) / conversions.length * 100).toFixed(2) : 0}%
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-          </div>
-        </motion.div>
-      )}
+
     </div>
   )
 }
