@@ -1,39 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  TrendingUp,
   DollarSign,
   Users,
-  Calendar,
-  Filter,
-  RefreshCw,
-  AlertCircle,
-  Smartphone,
-  Monitor,
-  Globe,
-  MapPin,
-  BarChart3,
-  PieChart,
-  Activity,
   Target,
-  MousePointer,
   Clock,
-  Hash,
-  User,
-  Shield,
-  Eye,
+  MapPin,
+  Monitor,
+  Smartphone,
   Smartphone as DeviceIcon,
-  Monitor as BrowserIcon,
-  MapPin as LocationIcon,
-  BarChart2 as SourceIcon
+  BarChart2 as SourceIcon,
+  BarChart3
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell, PieChart as RechartsPieChart, Pie } from 'recharts'
 import { Button } from './ui/button'
-import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
-import PeriodDropdown from './ui/PeriodDropdown'
-import { getDateRange, periodPresets } from '../lib/utils'
+import { getDateRange } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
 import { useCurrencyStore } from '../store/currency'
 
@@ -58,6 +41,16 @@ interface PerformanceData {
     avgTicket: number
   }[]
   
+  // Dados de OS
+  osPerformance: {
+    os: string
+    conversions: number
+    revenue: number
+    cost: number
+    roi: number
+    avgTicket: number
+  }[]
+  
   // Dados de localização
   locationPerformance: {
     country: string
@@ -74,6 +67,17 @@ interface PerformanceData {
   sourcePerformance: {
     source: string
     network: string
+    conversions: number
+    revenue: number
+    cost: number
+    roi: number
+    avgTicket: number
+  }[]
+  
+  // Dados de posicionamento (RT Placement)
+  placementPerformance: {
+    placement: string
+    placement_id: string
     conversions: number
     revenue: number
     cost: number
@@ -111,17 +115,7 @@ const Performance: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null)
-     const [selectedAnalysis, setSelectedAnalysis] = useState<'device' | 'source' | 'hourly'>('device')
-  const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState({
-    campaign: '',
-    type: '',
-    status: '',
-    device: '',
-    browser: '',
-    country: '',
-    source: ''
-  })
+        const [selectedAnalysis, setSelectedAnalysis] = useState<'device' | 'source' | 'hourly' | 'placement' | 'location' | 'browser' | 'os'>('device')
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -145,12 +139,11 @@ const Performance: React.FC = () => {
       
       console.log('Performance - Carregando dados de conversões...')
       
-      const params = {
-        date_from: dateRange.startDate,
-        date_to: dateRange.endDate,
-        per: 1000, // Máximo para obter mais dados
-        ...filters
-      }
+             const params = {
+         date_from: dateRange.startDate,
+         date_to: dateRange.endDate,
+         per: 1000 // Máximo para obter mais dados
+       }
       
       const response = await api.getConversions(params)
       console.log('Performance - Resposta da API:', response)
@@ -355,11 +348,13 @@ const Performance: React.FC = () => {
   const calculatePerformanceAnalysis = (conversions: any[]): PerformanceData => {
     if (conversions.length === 0) {
       return {
-        devicePerformance: [],
-        browserPerformance: [],
-        locationPerformance: [],
-        sourcePerformance: [],
-        hourlyPerformance: [],
+                 devicePerformance: [],
+         browserPerformance: [],
+         osPerformance: [],
+         locationPerformance: [],
+         sourcePerformance: [],
+         placementPerformance: [],
+         hourlyPerformance: [],
         summary: {
           totalConversions: 0,
           totalRevenue: 0,
@@ -368,9 +363,10 @@ const Performance: React.FC = () => {
           avgTicket: 0,
           bestDevice: '',
           bestBrowser: '',
-          bestLocation: '',
-          bestSource: '',
-          bestHour: 0
+                       bestLocation: '',
+             bestSource: '',
+             bestPlacement: '',
+             bestHour: 0
         }
       }
     }
@@ -412,16 +408,39 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
 
-    const browserPerformance = Object.entries(browserAnalysis).map(([browser, data]) => ({
-      browser,
-      conversions: data.conversions,
-      revenue: data.revenue,
-      cost: data.cost,
-      roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-      avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-    })).sort((a, b) => b.revenue - a.revenue)
+         const browserPerformance = Object.entries(browserAnalysis).map(([browser, data]) => ({
+       browser,
+       conversions: data.conversions,
+       revenue: data.revenue,
+       cost: data.cost,
+       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
+       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+     })).sort((a, b) => b.revenue - a.revenue)
 
-         // Análise por localização - apenas conversões do tipo 'conversion'
+     // Análise por OS - apenas conversões do tipo 'conversion'
+     const osAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const os = conv.os || 'Unknown'
+         if (!acc[os]) {
+           acc[os] = { conversions: 0, revenue: 0, cost: 0 }
+         }
+         acc[os].conversions++
+         acc[os].revenue += conv.revenue || 0
+         acc[os].cost += conv.cost || 0
+         return acc
+       }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
+
+     const osPerformance = Object.entries(osAnalysis).map(([os, data]) => ({
+       os,
+       conversions: data.conversions,
+       revenue: data.revenue,
+       cost: data.cost,
+       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
+       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+     })).sort((a, b) => b.revenue - a.revenue)
+
+          // Análise por localização - apenas conversões do tipo 'conversion'
      const locationAnalysis = conversions
        .filter(conv => conv.type === 'conversion')
        .reduce((acc, conv) => {
@@ -468,13 +487,39 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { source: string, network: string, conversions: number, revenue: number, cost: number }>)
 
-    const sourcePerformance = Object.values(sourceAnalysis).map(data => ({
-      ...data,
-      roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-      avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-    })).sort((a, b) => b.revenue - a.revenue)
+         const sourcePerformance = Object.values(sourceAnalysis).map(data => ({
+       ...data,
+       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
+       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+     })).sort((a, b) => b.revenue - a.revenue)
 
-              // Análise por hora do dia - apenas conversões do tipo 'conversion'
+     // Análise por posicionamento (RT Placement) - apenas conversões do tipo 'conversion'
+     const placementAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const placement = `${conv.rt_placement}-${conv.rt_placement_id}`
+         if (!acc[placement]) {
+           acc[placement] = { 
+             placement: conv.rt_placement || 'Unknown',
+             placement_id: conv.rt_placement_id || 'Unknown',
+             conversions: 0, 
+             revenue: 0, 
+             cost: 0 
+           }
+         }
+         acc[placement].conversions++
+         acc[placement].revenue += conv.revenue || 0
+         acc[placement].cost += conv.cost || 0
+         return acc
+       }, {} as Record<string, { placement: string, placement_id: string, conversions: number, revenue: number, cost: number }>)
+
+     const placementPerformance = Object.values(placementAnalysis).map(data => ({
+       ...data,
+       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
+       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+     })).sort((a, b) => b.revenue - a.revenue)
+
+               // Análise por hora do dia - apenas conversões do tipo 'conversion'
      const hourlyAnalysis = conversions
        .filter(conv => conv.type === 'conversion')
        .reduce((acc, conv) => {
@@ -508,83 +553,113 @@ const Performance: React.FC = () => {
      const totalROI = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0
      const avgTicket = totalConversions > 0 ? totalRevenue / totalConversions : 0
 
-    const bestDevice = devicePerformance[0]?.device || ''
-    const bestBrowser = browserPerformance[0]?.browser || ''
-    const bestLocation = locationPerformance[0]?.city || ''
-    const bestSource = sourcePerformance[0]?.source || ''
-    const bestHour = hourlyPerformance.reduce((best, current) => 
-      current.revenue > best.revenue ? current : best
-    ).hour
+         const bestDevice = devicePerformance[0]?.device || ''
+     const bestBrowser = browserPerformance[0]?.browser || ''
+     const bestOS = osPerformance[0]?.os || ''
+     const bestLocation = locationPerformance[0]?.city || ''
+     const bestSource = sourcePerformance[0]?.source || ''
+     const bestPlacement = placementPerformance[0]?.placement || ''
+     const bestHour = hourlyPerformance.reduce((best, current) => 
+       current.revenue > best.revenue ? current : best
+     ).hour
 
-    return {
-      devicePerformance,
-      browserPerformance,
-      locationPerformance,
-      sourcePerformance,
-      hourlyPerformance,
-               summary: {
-           totalConversions: totalConversions,
-           totalRevenue,
-           totalCost,
-           totalROI,
-           avgTicket,
-           bestDevice,
-           bestBrowser,
-           bestLocation,
-           bestSource,
-           bestHour
-         }
-    }
+         return {
+       devicePerformance,
+       browserPerformance,
+       osPerformance,
+       locationPerformance,
+       sourcePerformance,
+       placementPerformance,
+       hourlyPerformance,
+                summary: {
+            totalConversions: totalConversions,
+            totalRevenue,
+            totalCost,
+            totalROI,
+            avgTicket,
+            bestDevice,
+            bestBrowser,
+            bestOS,
+            bestLocation,
+            bestSource,
+            bestPlacement,
+            bestHour
+          }
+     }
   }
 
-  useEffect(() => {
-    loadPerformanceData()
-  }, [apiKey, selectedPeriod, customRange, filters])
+     useEffect(() => {
+     loadPerformanceData()
+   }, [apiKey, selectedPeriod, customRange])
 
   const handleRefresh = () => {
     loadPerformanceData(true)
   }
 
-     const getAnalysisData = () => {
-     if (!performanceData) return []
-     
-     switch (selectedAnalysis) {
-       case 'device':
-         return performanceData.devicePerformance
-       case 'source':
-         return performanceData.sourcePerformance
-       case 'hourly':
-         return performanceData.hourlyPerformance
-       default:
-         return []
-     }
-   }
+           const getAnalysisData = () => {
+      if (!performanceData) return []
+      
+      switch (selectedAnalysis) {
+        case 'device':
+          return performanceData.devicePerformance
+        case 'source':
+          return performanceData.sourcePerformance
+        case 'placement':
+          return performanceData.placementPerformance
+        case 'location':
+          return performanceData.locationPerformance
+        case 'browser':
+          return performanceData.browserPerformance
+        case 'os':
+          return performanceData.osPerformance
+        case 'hourly':
+          return performanceData.hourlyPerformance
+        default:
+          return []
+      }
+    }
 
-     const getAnalysisTitle = () => {
-     switch (selectedAnalysis) {
-       case 'device':
-         return 'Performance por Dispositivo'
-       case 'source':
-         return 'Performance por Fonte de Tráfego'
-       case 'hourly':
-         return 'Performance por Hora do Dia'
-       default:
-         return 'Análise de Performance'
-     }
-   }
+           const getAnalysisTitle = () => {
+      switch (selectedAnalysis) {
+        case 'device':
+          return 'Performance por Dispositivo'
+        case 'source':
+          return 'Performance por Fonte de Tráfego'
+        case 'placement':
+          return 'Performance por Posicionamento'
+        case 'location':
+          return 'Performance por Localização'
+        case 'browser':
+          return 'Performance por Navegador'
+        case 'os':
+          return 'Performance por Sistema Operacional'
+        case 'hourly':
+          return 'Performance por Hora do Dia'
+        default:
+          return 'Análise de Performance'
+      }
+    }
 
-     const getAnalysisIcon = () => {
-     switch (selectedAnalysis) {
-       case 'device':
-         return <DeviceIcon className="w-5 h-5" />
-       case 'source':
-         return <SourceIcon className="w-5 h-5" />
-       case 'hourly':
-         return <Clock className="w-5 h-5" />
-       default:
-         return <BarChart3 className="w-5 h-5" />
-     }
-   }
+           const getAnalysisIcon = () => {
+      switch (selectedAnalysis) {
+        case 'device':
+          return <DeviceIcon className="w-5 h-5" />
+        case 'source':
+          return <SourceIcon className="w-5 h-5" />
+        case 'placement':
+          return <Target className="w-5 h-5" />
+        case 'location':
+          return <MapPin className="w-5 h-5" />
+        case 'browser':
+          return <Monitor className="w-5 h-5" />
+        case 'os':
+          return <Smartphone className="w-5 h-5" />
+        case 'hourly':
+          return <Clock className="w-5 h-5" />
+        default:
+          return <BarChart3 className="w-5 h-5" />
+      }
+    }
 
   if (loading) {
     return (
@@ -602,68 +677,9 @@ const Performance: React.FC = () => {
            <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
            <p className="text-sm text-gray-600">Focando apenas em conversões do tipo 'conversion'</p>
          </div>
-         
-         <div className="flex gap-3">
-           <PeriodDropdown />
-           <Button
-             variant="outline"
-             size="sm"
-             onClick={() => setShowFilters(!showFilters)}
-             className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-           >
-             <Filter className="w-4 h-4 mr-2" />
-             Filtros
-           </Button>
-           <Button
-             variant="outline"
-             size="sm"
-             onClick={handleRefresh}
-             disabled={refreshing}
-             className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-           >
-             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-             {refreshing ? 'Atualizando...' : 'Atualizar'}
-           </Button>
-         </div>
        </div>
 
-      {/* Filtros */}
-      {showFilters && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Filtros</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Input
-              placeholder="Filtrar por campanha..."
-              value={filters.campaign}
-              onChange={(e) => setFilters({ ...filters, campaign: e.target.value })}
-              className="rounded-xl"
-            />
-            <Input
-              placeholder="Filtrar por tipo..."
-              value={filters.type}
-              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              className="rounded-xl"
-            />
-            <Input
-              placeholder="Filtrar por status..."
-              value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              className="rounded-xl"
-            />
-            <Input
-              placeholder="Filtrar por dispositivo..."
-              value={filters.device}
-              onChange={(e) => setFilters({ ...filters, device: e.target.value })}
-              className="rounded-xl"
-            />
-          </div>
-        </motion.div>
-      )}
+      
 
              {/* Cards de Resumo */}
        {performanceData && (
@@ -719,28 +735,72 @@ const Performance: React.FC = () => {
            <DeviceIcon className="w-5 h-5 mr-2" />
            Dispositivos
          </Button>
-         <Button
-           onClick={() => setSelectedAnalysis('source')}
-           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-             selectedAnalysis === 'source'
-               ? 'bg-blue-600 text-white shadow-lg'
-               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-           }`}
-         >
-           <SourceIcon className="w-5 h-5 mr-2" />
-           Fontes
-         </Button>
-         <Button
-           onClick={() => setSelectedAnalysis('hourly')}
-           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-             selectedAnalysis === 'hourly'
-               ? 'bg-blue-600 text-white shadow-lg'
-               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-           }`}
-         >
-           <Clock className="w-5 h-5 mr-2" />
-           Horário
-         </Button>
+                   <Button
+            onClick={() => setSelectedAnalysis('source')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              selectedAnalysis === 'source'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <SourceIcon className="w-5 h-5 mr-2" />
+            Fontes
+          </Button>
+          <Button
+            onClick={() => setSelectedAnalysis('placement')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              selectedAnalysis === 'placement'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <Target className="w-5 h-5 mr-2" />
+            Posicionamentos
+          </Button>
+          <Button
+            onClick={() => setSelectedAnalysis('location')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              selectedAnalysis === 'location'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <MapPin className="w-5 h-5 mr-2" />
+            Localização
+          </Button>
+          <Button
+            onClick={() => setSelectedAnalysis('browser')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              selectedAnalysis === 'browser'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <Monitor className="w-5 h-5 mr-2" />
+            Navegadores
+          </Button>
+          <Button
+            onClick={() => setSelectedAnalysis('os')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              selectedAnalysis === 'os'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <Smartphone className="w-5 h-5 mr-2" />
+            Sistemas
+          </Button>
+          <Button
+            onClick={() => setSelectedAnalysis('hourly')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              selectedAnalysis === 'hourly'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <Clock className="w-5 h-5 mr-2" />
+            Horário
+          </Button>
        </div>
 
       {/* Gráfico de Análise */}
@@ -764,7 +824,11 @@ const Performance: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                                      <XAxis 
                      dataKey={selectedAnalysis === 'device' ? 'device' : 
-                              selectedAnalysis === 'source' ? 'source' : 'hour'} 
+                              selectedAnalysis === 'source' ? 'source' : 
+                              selectedAnalysis === 'placement' ? 'placement' : 
+                              selectedAnalysis === 'location' ? 'city' : 
+                              selectedAnalysis === 'browser' ? 'browser' : 
+                              selectedAnalysis === 'os' ? 'os' : 'hour'} 
                      tick={{ fontSize: 12 }}
                      tickFormatter={(value) => {
                        if (selectedAnalysis === 'hourly') {
@@ -802,7 +866,11 @@ const Performance: React.FC = () => {
                   <tr className="border-b border-gray-200">
                                          <th className="text-left py-3 px-4 font-semibold text-gray-700">
                        {selectedAnalysis === 'device' ? 'Dispositivo' : 
-                        selectedAnalysis === 'source' ? 'Fonte' : 'Hora'}
+                        selectedAnalysis === 'source' ? 'Fonte' : 
+                        selectedAnalysis === 'placement' ? 'Posicionamento' : 
+                        selectedAnalysis === 'location' ? 'Localização' : 
+                        selectedAnalysis === 'browser' ? 'Navegador' : 
+                        selectedAnalysis === 'os' ? 'Sistema' : 'Hora'}
                      </th>
                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Conversões</th>
                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Receita</th>
@@ -817,6 +885,10 @@ const Performance: React.FC = () => {
                                              <td className="py-3 px-4 font-medium">
                          {selectedAnalysis === 'device' ? item.device : 
                           selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 
+                          selectedAnalysis === 'placement' ? `${item.placement} (${item.placement_id})` : 
+                          selectedAnalysis === 'location' ? `${item.city}, ${item.country}` : 
+                          selectedAnalysis === 'browser' ? item.browser : 
+                          selectedAnalysis === 'os' ? item.os : 
                           selectedAnalysis === 'hourly' ? `${item.hour.toString().padStart(2, '0')}:00` : 
                           `${item.hour}h`}
                        </td>
