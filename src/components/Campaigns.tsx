@@ -334,7 +334,7 @@ const Campaigns: React.FC = () => {
       
       // Adicionar timestamp para forçar refresh se necessário
       const params: any = {
-        date_from: dateRange.startDate,
+      date_from: dateRange.startDate,
         date_to: dateRange.endDate
       }
       
@@ -376,9 +376,9 @@ const Campaigns: React.FC = () => {
       const loadAllData = async () => {
         try {
           // Carregar dados de campanhas/UTM primeiro
-          if (activeTab === 'campaigns') {
+      if (activeTab === 'campaigns') {
             await loadCampaigns()
-          } else if (activeTab === 'utm') {
+      } else if (activeTab === 'utm') {
             await loadUTMCreatives()
           }
           
@@ -516,46 +516,46 @@ const Campaigns: React.FC = () => {
       <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
-        {/* Tabs */}
+      {/* Tabs */}
         <div className="flex space-x-1 bg-trackview-background rounded-lg p-1 w-full sm:w-auto">
-          <button
-            onClick={() => setActiveTab('campaigns')}
+        <button
+          onClick={() => setActiveTab('campaigns')}
             className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
-              activeTab === 'campaigns'
-                ? 'bg-white text-trackview-primary shadow-sm'
-                : 'text-trackview-muted hover:text-trackview-primary'
-            }`}
-          >
+            activeTab === 'campaigns'
+              ? 'bg-white text-trackview-primary shadow-sm'
+              : 'text-trackview-muted hover:text-trackview-primary'
+          }`}
+        >
             <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden xs:inline">Campanhas</span>
             <span className="xs:hidden">Camp.</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('utm')}
+        </button>
+        <button
+          onClick={() => setActiveTab('utm')}
             className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
-              activeTab === 'utm'
-                ? 'bg-white text-trackview-primary shadow-sm'
-                : 'text-trackview-muted hover:text-trackview-primary'
-            }`}
-          >
+            activeTab === 'utm'
+              ? 'bg-white text-trackview-primary shadow-sm'
+              : 'text-trackview-muted hover:text-trackview-primary'
+          }`}
+        >
             <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden xs:inline">UTM / Criativos</span>
             <span className="xs:hidden">UTM</span>
-          </button>
-        </div>
+        </button>
+      </div>
 
-        {/* Botão de filtros alinhado à direita */}
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
+          {/* Botão de filtros alinhado à direita */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
           className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
-        >
+          >
           <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
           <span className="hidden xs:inline">Filtros</span>
           <span className="xs:hidden">Filt.</span>
-        </Button>
-      </div>
+          </Button>
+        </div>
 
       {/* Filtro de período padronizado - sempre visível */}
       <div className="flex items-center justify-between">
@@ -812,7 +812,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-xl lg:text-2xl mb-2">📊</div>
                 <div className="text-xs lg:text-sm">Nenhuma campanha encontrada</div>
               </div>
-            ) : bestCampaigns.map((item, idx) => (
+              ) : bestCampaigns.map((item, idx) => (
               <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-blue-100">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center min-w-0 flex-1">
@@ -853,7 +853,7 @@ const Campaigns: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Best performing ads */}
@@ -893,7 +893,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-xl lg:text-2xl mb-2">📊</div>
                 <div className="text-xs lg:text-sm">Nenhum anúncio encontrado</div>
               </div>
-            ) : bestAds.map((item, idx) => (
+              ) : bestAds.map((item, idx) => (
               <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-green-100">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center min-w-0 flex-1">
@@ -934,7 +934,7 @@ const Campaigns: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Best offers */}
@@ -974,7 +974,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-2xl mb-2">📊</div>
                 <div className="text-sm">Nenhuma oferta encontrada</div>
               </div>
-            ) : bestOffers.map((item, idx) => (
+              ) : bestOffers.map((item, idx) => (
               <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-purple-100">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center min-w-0 flex-1">
