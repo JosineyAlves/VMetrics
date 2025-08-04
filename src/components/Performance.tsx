@@ -467,7 +467,7 @@ const Performance: React.FC = () => {
       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
     })).sort((a, b) => b.revenue - a.revenue)
 
-    // Análise por hora do dia
+    // Análise por hora do dia - incluir todas as 24 horas
     const hourlyAnalysis = conversions.reduce((acc, conv) => {
       const hour = new Date(conv.created_at).getHours()
       if (!acc[hour]) {
@@ -479,13 +479,17 @@ const Performance: React.FC = () => {
       return acc
     }, {} as Record<number, { conversions: number, revenue: number, cost: number }>)
 
-    const hourlyPerformance = Object.entries(hourlyAnalysis).map(([hour, data]) => ({
-      hour: parseInt(hour),
-      conversions: data.conversions,
-      revenue: data.revenue,
-      cost: data.cost,
-      roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0
-    })).sort((a, b) => a.hour - b.hour)
+    // Criar array com todas as 24 horas, mesmo sem dados
+    const hourlyPerformance = Array.from({ length: 24 }, (_, hour) => {
+      const data = hourlyAnalysis[hour] || { conversions: 0, revenue: 0, cost: 0 }
+      return {
+        hour,
+        conversions: data.conversions,
+        revenue: data.revenue,
+        cost: data.cost,
+        roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0
+      }
+    })
 
     // Resumo geral
     const totalRevenue = conversions.reduce((sum, conv) => sum + (conv.revenue || 0), 0)
@@ -800,32 +804,54 @@ const Performance: React.FC = () => {
         transition={{ delay: 0.5 }}
         className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"
       >
-        <div className="flex items-center gap-3 mb-6">
-          {getAnalysisIcon()}
-          <h2 className="text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
-        </div>
+                 <div className="flex items-center gap-3 mb-6">
+           {getAnalysisIcon()}
+           <h2 className="text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
+           {selectedAnalysis === 'hourly' && (
+             <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+               Mostrando todas as 24 horas do dia
+             </span>
+           )}
+         </div>
 
         {getAnalysisData().length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Gráfico de Barras */}
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={getAnalysisData().slice(0, 10)}>
+                         {/* Gráfico de Barras */}
+             <div className="h-80">
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey={selectedAnalysis === 'device' ? 'device' : 
-                             selectedAnalysis === 'browser' ? 'browser' : 
-                             selectedAnalysis === 'location' ? 'city' : 
-                             selectedAnalysis === 'source' ? 'source' : 'hour'} 
-                    tick={{ fontSize: 12 }}
-                  />
+                                     <XAxis 
+                     dataKey={selectedAnalysis === 'device' ? 'device' : 
+                              selectedAnalysis === 'browser' ? 'browser' : 
+                              selectedAnalysis === 'location' ? 'city' : 
+                              selectedAnalysis === 'source' ? 'source' : 'hour'} 
+                     tick={{ fontSize: 12 }}
+                     tickFormatter={(value) => {
+                       if (selectedAnalysis === 'hourly') {
+                         return `${value}h`
+                       }
+                       return value
+                     }}
+                   />
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip 
                     formatter={(value: any) => formatCurrency(value)}
                     contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }}
                   />
-                  <Bar dataKey="revenue" name="Receita" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                  <Legend />
+                                     <Bar 
+                     dataKey="revenue" 
+                     name="Receita" 
+                     fill="#6366f1" 
+                     radius={[4, 4, 0, 0]}
+                     fill={(entry) => {
+                       if (selectedAnalysis === 'hourly') {
+                         return entry.revenue > 0 ? '#6366f1' : '#e5e7eb'
+                       }
+                       return '#6366f1'
+                     }}
+                   />
+                   <Legend />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -846,16 +872,17 @@ const Performance: React.FC = () => {
                     <th className="text-right py-3 px-4 font-semibold text-gray-700">ROI</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {getAnalysisData().slice(0, 10).map((item, index) => (
+                                 <tbody>
+                   {(selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)).map((item, index) => (
                     <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium">
-                        {selectedAnalysis === 'device' ? item.device : 
-                         selectedAnalysis === 'browser' ? item.browser : 
-                         selectedAnalysis === 'location' ? `${item.city}, ${item.country}` : 
-                         selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 
-                         `${item.hour}h`}
-                      </td>
+                                             <td className="py-3 px-4 font-medium">
+                         {selectedAnalysis === 'device' ? item.device : 
+                          selectedAnalysis === 'browser' ? item.browser : 
+                          selectedAnalysis === 'location' ? `${item.city}, ${item.country}` : 
+                          selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 
+                          selectedAnalysis === 'hourly' ? `${item.hour.toString().padStart(2, '0')}:00` : 
+                          `${item.hour}h`}
+                       </td>
                       <td className="text-right py-3 px-4">{item.conversions}</td>
                       <td className="text-right py-3 px-4 font-semibold">{formatCurrency(item.revenue)}</td>
                       <td className="text-right py-3 px-4">
