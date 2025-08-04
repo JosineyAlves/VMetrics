@@ -376,17 +376,19 @@ const Performance: React.FC = () => {
       }
     }
 
-    // Análise por dispositivo
-    const deviceAnalysis = conversions.reduce((acc, conv) => {
-      const device = conv.device || 'Unknown'
-      if (!acc[device]) {
-        acc[device] = { conversions: 0, revenue: 0, cost: 0 }
-      }
-      acc[device].conversions++
-      acc[device].revenue += conv.revenue || 0
-      acc[device].cost += conv.cost || 0
-      return acc
-    }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
+         // Análise por dispositivo - apenas conversões do tipo 'conversion'
+     const deviceAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const device = conv.device || 'Unknown'
+         if (!acc[device]) {
+           acc[device] = { conversions: 0, revenue: 0, cost: 0 }
+         }
+         acc[device].conversions++
+         acc[device].revenue += conv.revenue || 0
+         acc[device].cost += conv.cost || 0
+         return acc
+       }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
 
     const devicePerformance = Object.entries(deviceAnalysis).map(([device, data]) => ({
       device,
@@ -397,17 +399,19 @@ const Performance: React.FC = () => {
       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
     })).sort((a, b) => b.revenue - a.revenue)
 
-    // Análise por browser
-    const browserAnalysis = conversions.reduce((acc, conv) => {
-      const browser = conv.browser || 'Unknown'
-      if (!acc[browser]) {
-        acc[browser] = { conversions: 0, revenue: 0, cost: 0 }
-      }
-      acc[browser].conversions++
-      acc[browser].revenue += conv.revenue || 0
-      acc[browser].cost += conv.cost || 0
-      return acc
-    }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
+         // Análise por browser - apenas conversões do tipo 'conversion'
+     const browserAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const browser = conv.browser || 'Unknown'
+         if (!acc[browser]) {
+           acc[browser] = { conversions: 0, revenue: 0, cost: 0 }
+         }
+         acc[browser].conversions++
+         acc[browser].revenue += conv.revenue || 0
+         acc[browser].cost += conv.cost || 0
+         return acc
+       }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
 
     const browserPerformance = Object.entries(browserAnalysis).map(([browser, data]) => ({
       browser,
@@ -418,24 +422,26 @@ const Performance: React.FC = () => {
       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
     })).sort((a, b) => b.revenue - a.revenue)
 
-    // Análise por localização
-    const locationAnalysis = conversions.reduce((acc, conv) => {
-      const location = `${conv.country}-${conv.city}-${conv.region}`
-      if (!acc[location]) {
-        acc[location] = { 
-          country: conv.country || 'Unknown',
-          city: conv.city || 'Unknown',
-          state: conv.region || 'Unknown',
-          conversions: 0, 
-          revenue: 0, 
-          cost: 0 
-        }
-      }
-      acc[location].conversions++
-      acc[location].revenue += conv.revenue || 0
-      acc[location].cost += conv.cost || 0
-      return acc
-    }, {} as Record<string, { country: string, city: string, state: string, conversions: number, revenue: number, cost: number }>)
+         // Análise por localização - apenas conversões do tipo 'conversion'
+     const locationAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const location = `${conv.country}-${conv.city}-${conv.region}`
+         if (!acc[location]) {
+           acc[location] = { 
+             country: conv.country || 'Unknown',
+             city: conv.city || 'Unknown',
+             state: conv.region || 'Unknown',
+             conversions: 0, 
+             revenue: 0, 
+             cost: 0 
+           }
+         }
+         acc[location].conversions++
+         acc[location].revenue += conv.revenue || 0
+         acc[location].cost += conv.cost || 0
+         return acc
+       }, {} as Record<string, { country: string, city: string, state: string, conversions: number, revenue: number, cost: number }>)
 
     const locationPerformance = Object.values(locationAnalysis).map(data => ({
       ...data,
@@ -443,23 +449,25 @@ const Performance: React.FC = () => {
       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
     })).sort((a, b) => b.revenue - a.revenue)
 
-    // Análise por fonte de tráfego
-    const sourceAnalysis = conversions.reduce((acc, conv) => {
-      const source = `${conv.source}-${conv.network}`
-      if (!acc[source]) {
-        acc[source] = { 
-          source: conv.source || 'Unknown',
-          network: conv.network || 'Unknown',
-          conversions: 0, 
-          revenue: 0, 
-          cost: 0 
-        }
-      }
-      acc[source].conversions++
-      acc[source].revenue += conv.revenue || 0
-      acc[source].cost += conv.cost || 0
-      return acc
-    }, {} as Record<string, { source: string, network: string, conversions: number, revenue: number, cost: number }>)
+         // Análise por fonte de tráfego - apenas conversões do tipo 'conversion'
+     const sourceAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const source = `${conv.source}-${conv.network}`
+         if (!acc[source]) {
+           acc[source] = { 
+             source: conv.source || 'Unknown',
+             network: conv.network || 'Unknown',
+             conversions: 0, 
+             revenue: 0, 
+             cost: 0 
+           }
+         }
+         acc[source].conversions++
+         acc[source].revenue += conv.revenue || 0
+         acc[source].cost += conv.cost || 0
+         return acc
+       }, {} as Record<string, { source: string, network: string, conversions: number, revenue: number, cost: number }>)
 
     const sourcePerformance = Object.values(sourceAnalysis).map(data => ({
       ...data,
@@ -467,17 +475,19 @@ const Performance: React.FC = () => {
       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
     })).sort((a, b) => b.revenue - a.revenue)
 
-    // Análise por hora do dia - incluir todas as 24 horas
-    const hourlyAnalysis = conversions.reduce((acc, conv) => {
-      const hour = new Date(conv.created_at).getHours()
-      if (!acc[hour]) {
-        acc[hour] = { conversions: 0, revenue: 0, cost: 0 }
-      }
-      acc[hour].conversions++
-      acc[hour].revenue += conv.revenue || 0
-      acc[hour].cost += conv.cost || 0
-      return acc
-    }, {} as Record<number, { conversions: number, revenue: number, cost: number }>)
+         // Análise por hora do dia - apenas conversões do tipo 'conversion'
+     const hourlyAnalysis = conversions
+       .filter(conv => conv.type === 'conversion')
+       .reduce((acc, conv) => {
+         const hour = new Date(conv.created_at).getHours()
+         if (!acc[hour]) {
+           acc[hour] = { conversions: 0, revenue: 0, cost: 0 }
+         }
+         acc[hour].conversions++
+         acc[hour].revenue += conv.revenue || 0
+         acc[hour].cost += conv.cost || 0
+         return acc
+       }, {} as Record<number, { conversions: number, revenue: number, cost: number }>)
 
     // Criar array com todas as 24 horas, mesmo sem dados
     const hourlyPerformance = Array.from({ length: 24 }, (_, hour) => {
@@ -491,11 +501,15 @@ const Performance: React.FC = () => {
       }
     })
 
-    // Resumo geral
-    const totalRevenue = conversions.reduce((sum, conv) => sum + (conv.revenue || 0), 0)
-    const totalCost = conversions.reduce((sum, conv) => sum + (conv.cost || 0), 0)
-    const totalROI = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0
-    const avgTicket = conversions.length > 0 ? totalRevenue / conversions.length : 0
+         // Resumo geral
+     const totalRevenue = conversions.reduce((sum, conv) => sum + (conv.revenue || 0), 0)
+     const totalCost = conversions.reduce((sum, conv) => sum + (conv.cost || 0), 0)
+     const totalROI = totalCost > 0 ? ((totalRevenue - totalCost) / totalCost) * 100 : 0
+     
+     // Filtrar apenas conversões do tipo 'conversion' (excluir initiatecheckout)
+     const conversionConversions = conversions.filter(conv => conv.type === 'conversion')
+     const totalConversions = conversionConversions.length
+     const avgTicket = totalConversions > 0 ? totalRevenue / totalConversions : 0
 
     const bestDevice = devicePerformance[0]?.device || ''
     const bestBrowser = browserPerformance[0]?.browser || ''
@@ -599,19 +613,22 @@ const Performance: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
-        </div>
+                 <div className="flex items-center gap-3">
+           <div>
+             <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
+             <p className="text-sm text-gray-600">Focando apenas em conversões do tipo 'conversion'</p>
+           </div>
+           <Button
+             variant="outline"
+             size="sm"
+             onClick={handleRefresh}
+             disabled={refreshing}
+             className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+           >
+             <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+             {refreshing ? 'Atualizando...' : 'Atualizar'}
+           </Button>
+         </div>
         
         <div className="flex gap-3">
           <PeriodDropdown />
