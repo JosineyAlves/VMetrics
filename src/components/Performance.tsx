@@ -27,7 +27,6 @@ interface PerformanceData {
     conversions: number
     revenue: number
     cost: number
-    roi: number
     avgTicket: number
   }[]
   
@@ -37,7 +36,6 @@ interface PerformanceData {
     conversions: number
     revenue: number
     cost: number
-    roi: number
     avgTicket: number
   }[]
   
@@ -47,7 +45,6 @@ interface PerformanceData {
     conversions: number
     revenue: number
     cost: number
-    roi: number
     avgTicket: number
   }[]
   
@@ -59,7 +56,6 @@ interface PerformanceData {
     conversions: number
     revenue: number
     cost: number
-    roi: number
     avgTicket: number
   }[]
   
@@ -70,7 +66,6 @@ interface PerformanceData {
     conversions: number
     revenue: number
     cost: number
-    roi: number
     avgTicket: number
   }[]
   
@@ -81,7 +76,6 @@ interface PerformanceData {
     conversions: number
     revenue: number
     cost: number
-    roi: number
     avgTicket: number
   }[]
   
@@ -385,14 +379,13 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
 
-    const devicePerformance = Object.entries(deviceAnalysis).map(([device, data]) => ({
-      device,
-      conversions: data.conversions,
-      revenue: data.revenue,
-      cost: data.cost,
-      roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-      avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-    })).sort((a, b) => b.revenue - a.revenue)
+         const devicePerformance = Object.entries(deviceAnalysis).map(([device, data]) => ({
+       device,
+       conversions: data.conversions,
+       revenue: data.revenue,
+       cost: data.cost,
+       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+     })).sort((a, b) => b.revenue - a.revenue)
 
          // Análise por browser - apenas conversões do tipo 'conversion'
      const browserAnalysis = conversions
@@ -408,14 +401,13 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
 
-         const browserPerformance = Object.entries(browserAnalysis).map(([browser, data]) => ({
-       browser,
-       conversions: data.conversions,
-       revenue: data.revenue,
-       cost: data.cost,
-       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-     })).sort((a, b) => b.revenue - a.revenue)
+                   const browserPerformance = Object.entries(browserAnalysis).map(([browser, data]) => ({
+        browser,
+        conversions: data.conversions,
+        revenue: data.revenue,
+        cost: data.cost,
+        avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+      })).sort((a, b) => b.revenue - a.revenue)
 
      // Análise por OS - apenas conversões do tipo 'conversion'
      const osAnalysis = conversions
@@ -431,14 +423,13 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { conversions: number, revenue: number, cost: number }>)
 
-     const osPerformance = Object.entries(osAnalysis).map(([os, data]) => ({
-       os,
-       conversions: data.conversions,
-       revenue: data.revenue,
-       cost: data.cost,
-       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-     })).sort((a, b) => b.revenue - a.revenue)
+           const osPerformance = Object.entries(osAnalysis).map(([os, data]) => ({
+        os,
+        conversions: data.conversions,
+        revenue: data.revenue,
+        cost: data.cost,
+        avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+      })).sort((a, b) => b.revenue - a.revenue)
 
           // Análise por localização - apenas conversões do tipo 'conversion'
      const locationAnalysis = conversions
@@ -461,11 +452,10 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { country: string, city: string, state: string, conversions: number, revenue: number, cost: number }>)
 
-    const locationPerformance = Object.values(locationAnalysis).map(data => ({
-      ...data,
-      roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-      avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-    })).sort((a, b) => b.revenue - a.revenue)
+         const locationPerformance = Object.values(locationAnalysis).map(data => ({
+       ...data,
+       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+     })).sort((a, b) => b.revenue - a.revenue)
 
          // Análise por fonte de tráfego - apenas conversões do tipo 'conversion'
      const sourceAnalysis = conversions
@@ -487,11 +477,10 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { source: string, network: string, conversions: number, revenue: number, cost: number }>)
 
-         const sourcePerformance = Object.values(sourceAnalysis).map(data => ({
-       ...data,
-       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-     })).sort((a, b) => b.revenue - a.revenue)
+                   const sourcePerformance = Object.values(sourceAnalysis).map(data => ({
+        ...data,
+        avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+      })).sort((a, b) => b.revenue - a.revenue)
 
      // Análise por posicionamento (RT Placement) - apenas conversões do tipo 'conversion'
      const placementAnalysis = conversions
@@ -513,11 +502,10 @@ const Performance: React.FC = () => {
          return acc
        }, {} as Record<string, { placement: string, placement_id: string, conversions: number, revenue: number, cost: number }>)
 
-     const placementPerformance = Object.values(placementAnalysis).map(data => ({
-       ...data,
-       roi: data.cost > 0 ? ((data.revenue - data.cost) / data.cost) * 100 : 0,
-       avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
-     })).sort((a, b) => b.revenue - a.revenue)
+           const placementPerformance = Object.values(placementAnalysis).map(data => ({
+        ...data,
+        avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
+      })).sort((a, b) => b.revenue - a.revenue)
 
                // Análise por hora do dia - apenas conversões do tipo 'conversion'
      const hourlyAnalysis = conversions
@@ -672,12 +660,11 @@ const Performance: React.FC = () => {
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
              {/* Header */}
-       <div className="flex justify-between items-center">
-         <div>
-           <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
-           <p className="text-sm text-gray-600">Focando apenas em conversões do tipo 'conversion'</p>
-         </div>
-       </div>
+               <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
+          </div>
+        </div>
 
       
 
@@ -874,9 +861,9 @@ const Performance: React.FC = () => {
                      </th>
                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Conversões</th>
                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Receita</th>
-                     <th className="text-right py-3 px-4 font-semibold text-gray-700">
-                       {selectedAnalysis === 'hourly' ? 'Ticket Médio' : 'ROI'}
-                     </th>
+                                           <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                        Ticket Médio
+                      </th>
                   </tr>
                 </thead>
                                  <tbody>
@@ -894,19 +881,11 @@ const Performance: React.FC = () => {
                        </td>
                                              <td className="text-right py-3 px-4">{item.conversions}</td>
                        <td className="text-right py-3 px-4 font-semibold">{formatCurrency(item.revenue)}</td>
-                       <td className="text-right py-3 px-4">
-                         {selectedAnalysis === 'hourly' ? (
-                           <span className="font-semibold text-gray-900">
-                             {formatCurrency(item.avgTicket)}
-                           </span>
-                         ) : (
-                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                             item.roi > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                           }`}>
-                             {item.roi.toFixed(2)}%
-                           </span>
-                         )}
-                       </td>
+                                               <td className="text-right py-3 px-4">
+                          <span className="font-semibold text-gray-900">
+                            {formatCurrency(item.avgTicket)}
+                          </span>
+                        </td>
                     </tr>
                   ))}
                 </tbody>
