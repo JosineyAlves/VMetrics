@@ -994,21 +994,41 @@ const Conversions: React.FC = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         IP
                       </th>
-                    </>
-                  )}
-                  {showAdvancedData && (
-                    <>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Dispositivo
+                        Fingerprint
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        OS
+                        Duplicate
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Navegador
+                        Sub1
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        IP
+                        Sub4
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sub5
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sub6
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sub7
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type1
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        RT Source
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        RT Campaign
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        RT Ad
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        RT Placement
                       </th>
                     </>
                   )}
@@ -1064,21 +1084,60 @@ const Conversions: React.FC = () => {
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         {conversion.ip || 'N/A'}
                       </td>
-                    </>
-                  )}
-                  {showAdvancedData && (
-                    <>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {conversion.device || 'N/A'}
+                        <span className="font-mono text-xs" title={conversion.fingerprint}>
+                          {conversion.fingerprint ? `${conversion.fingerprint.substring(0, 8)}...` : 'N/A'}
+                        </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {conversion.os || 'N/A'}
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          conversion.duplicate_status === 0 ? 'bg-green-100 text-green-800' :
+                          conversion.duplicate_status === 1 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {conversion.duplicate_status === 0 ? 'OK' : 
+                           conversion.duplicate_status === 1 ? 'DUP' : 'DUP+'}
+                        </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {conversion.browser || 'N/A'}
+                        <span className="font-mono text-xs" title={conversion.sub1}>
+                          {conversion.sub1 ? `${conversion.sub1.substring(0, 12)}...` : 'N/A'}
+                        </span>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {conversion.ip || 'N/A'}
+                        {conversion.sub4 || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {conversion.sub5 || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <span className="text-xs" title={conversion.sub6}>
+                          {conversion.sub6 ? `${conversion.sub6.substring(0, 15)}...` : 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {conversion.sub7 || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          Number(conversion.type1) > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {Number(conversion.type1) > 0 ? Number(conversion.type1) : '0'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {conversion.rt_source || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <span className="text-xs" title={conversion.rt_campaign}>
+                          {conversion.rt_campaign ? `${conversion.rt_campaign.substring(0, 15)}...` : 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {conversion.rt_ad || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {conversion.rt_placement || 'N/A'}
                       </td>
                     </>
                   )}
@@ -1090,224 +1149,14 @@ const Conversions: React.FC = () => {
         )}
       </motion.div>
 
-      {/* Dados Avançados - Debug */}
-      {showAdvancedData && conversions.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
-        >
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800">Dados Avançados (Debug)</h2>
-            <p className="text-sm text-gray-600">Todos os campos disponíveis do RedTrack</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Primeira conversão como exemplo */}
-              {conversions.slice(0, 1).map((conv, index) => (
-                <div key={index} className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Exemplo de Conversão #{index + 1}</h3>
-                  
-                  <div className="space-y-2">
-                    <div className="text-xs">
-                      <strong>ID:</strong> {conv.id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Click ID:</strong> {conv.click_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Campaign ID:</strong> {conv.campaign_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Offer ID:</strong> {conv.offer_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Source ID:</strong> {conv.source_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Program ID:</strong> {conv.program_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Landing ID:</strong> {conv.landing_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Prelanding ID:</strong> {conv.prelanding_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Network:</strong> {conv.network}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Event:</strong> {conv.event}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Fingerprint:</strong> {conv.fingerprint}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Deduplicate Token:</strong> {conv.deduplicate_token}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Duplicate Status:</strong> {conv.duplicate_status}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Landing:</strong> {conv.landing}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Prelanding:</strong> {conv.prelanding}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Deeplink:</strong> {conv.deeplink}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Referer:</strong> {conv.referer}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Page:</strong> {conv.page}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Page URL:</strong> {conv.page_url}
-                    </div>
-                    <div className="text-xs">
-                      <strong>User Agent:</strong> {conv.user_agent}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Currency:</strong> {conv.currency}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Attribution Type:</strong> {conv.attribution_type}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Is Transaction:</strong> {conv.is_transaction}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Default Type:</strong> {conv.default_type}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Order:</strong> {conv.order}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Coupon:</strong> {conv.coupon}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Ref ID:</strong> {conv.ref_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>External ID:</strong> {conv.external_id}
-                    </div>
-                    <div className="text-xs">
-                      <strong>Server:</strong> {conv.server}
-                    </div>
-                  </div>
-                </div>
-              ))}
-              
-              {/* Seção de Sub-IDs */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">Sub-IDs (Parâmetros Personalizados)</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {conversions.slice(0, 1).map((conv, index) => (
-                    <div key={index} className="space-y-2">
-                      {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => {
-                        const subKey = `sub${num}` as keyof Conversion;
-                        const value = conv[subKey];
-                        if (value) {
-                          return (
-                            <div key={num} className="text-xs">
-                              <strong>Sub{num}:</strong> {String(value)}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Seção de ConvTypes */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">ConvTypes (Tipos de Conversão)</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {conversions.slice(0, 1).map((conv, index) => (
-                    <div key={index} className="space-y-2">
-                      {Array.from({ length: 40 }, (_, i) => i + 1).map((num) => {
-                        const typeKey = `type${num}` as keyof Conversion;
-                        const value = conv[typeKey];
-                        if (value && Number(value) > 0) {
-                          return (
-                            <div key={num} className="text-xs">
-                              <strong>Type{num}:</strong> {String(value)}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Seção de RedTrack Specific */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">RedTrack Specific</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {conversions.slice(0, 1).map((conv, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="text-xs">
-                        <strong>RT Source:</strong> {conv.rt_source}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Medium:</strong> {conv.rt_medium}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Campaign:</strong> {conv.rt_campaign}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Ad Group:</strong> {conv.rt_adgroup}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Ad:</strong> {conv.rt_ad}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Placement:</strong> {conv.rt_placement}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Keyword:</strong> {conv.rt_keyword}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Campaign ID:</strong> {conv.rt_campaign_id}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Ad Group ID:</strong> {conv.rt_adgroup_id}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Ad ID:</strong> {conv.rt_ad_id}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Placement ID:</strong> {conv.rt_placement_id}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Role 1:</strong> {conv.rt_role_1}
-                      </div>
-                      <div className="text-xs">
-                        <strong>RT Role 2:</strong> {conv.rt_role_2}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+
 
       {/* Análises de Direct Response */}
       {showAdvancedData && conversions.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.5 }}
           className="bg-white rounded-2xl shadow-lg overflow-hidden"
         >
           <div className="px-6 py-4 border-b border-gray-200">
