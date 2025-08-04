@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
 
@@ -50,6 +51,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       label: 'Conversões',
       icon: TrendingUp,
       description: 'Log de conversões'
+    },
+    {
+      id: 'performance',
+      label: 'Performance',
+      icon: BarChart3,
+      description: 'Análises avançadas'
     },
     {
       id: 'settings',
