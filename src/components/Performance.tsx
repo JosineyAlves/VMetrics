@@ -365,10 +365,10 @@ const Performance: React.FC = () => {
       }
     }
 
-         // Análise por dispositivo - apenas conversões do tipo 'conversion'
-     const deviceAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+                   // Análise por dispositivo - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const deviceAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const device = conv.device || 'Unknown'
          if (!acc[device]) {
            acc[device] = { conversions: 0, revenue: 0, cost: 0 }
@@ -387,10 +387,10 @@ const Performance: React.FC = () => {
        avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
      })).sort((a, b) => b.revenue - a.revenue)
 
-         // Análise por browser - apenas conversões do tipo 'conversion'
-     const browserAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+                   // Análise por browser - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const browserAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const browser = conv.browser || 'Unknown'
          if (!acc[browser]) {
            acc[browser] = { conversions: 0, revenue: 0, cost: 0 }
@@ -409,10 +409,10 @@ const Performance: React.FC = () => {
         avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
       })).sort((a, b) => b.revenue - a.revenue)
 
-     // Análise por OS - apenas conversões do tipo 'conversion'
-     const osAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+           // Análise por OS - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const osAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const os = conv.os || 'Unknown'
          if (!acc[os]) {
            acc[os] = { conversions: 0, revenue: 0, cost: 0 }
@@ -431,10 +431,10 @@ const Performance: React.FC = () => {
         avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
       })).sort((a, b) => b.revenue - a.revenue)
 
-          // Análise por localização - apenas conversões do tipo 'conversion'
-     const locationAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+                     // Análise por localização - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const locationAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const location = `${conv.country}-${conv.city}-${conv.region}`
          if (!acc[location]) {
            acc[location] = { 
@@ -457,10 +457,10 @@ const Performance: React.FC = () => {
        avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
      })).sort((a, b) => b.revenue - a.revenue)
 
-         // Análise por fonte de tráfego - apenas conversões do tipo 'conversion'
-     const sourceAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+                   // Análise por fonte de tráfego - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const sourceAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const source = `${conv.source}-${conv.network}`
          if (!acc[source]) {
            acc[source] = { 
@@ -482,10 +482,10 @@ const Performance: React.FC = () => {
         avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
       })).sort((a, b) => b.revenue - a.revenue)
 
-     // Análise por posicionamento (RT Placement) - apenas conversões do tipo 'conversion'
-     const placementAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+           // Análise por posicionamento (RT Placement) - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const placementAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const placement = `${conv.rt_placement}-${conv.rt_placement_id}`
          if (!acc[placement]) {
            acc[placement] = { 
@@ -507,10 +507,10 @@ const Performance: React.FC = () => {
         avgTicket: data.conversions > 0 ? data.revenue / data.conversions : 0
       })).sort((a, b) => b.revenue - a.revenue)
 
-               // Análise por hora do dia - apenas conversões do tipo 'conversion'
-     const hourlyAnalysis = conversions
-       .filter(conv => conv.type === 'conversion')
-       .reduce((acc, conv) => {
+                               // Análise por hora do dia - apenas conversões do tipo 'conversion' e status 'APPROVED'
+      const hourlyAnalysis = conversions
+        .filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
+        .reduce((acc, conv) => {
          const hour = new Date(conv.created_at).getHours()
          if (!acc[hour]) {
            acc[hour] = { conversions: 0, revenue: 0 }
@@ -531,8 +531,8 @@ const Performance: React.FC = () => {
        }
      })
 
-         // Filtrar apenas conversões do tipo 'conversion' (excluir initiatecheckout)
-     const conversionConversions = conversions.filter(conv => conv.type === 'conversion')
+                   // Filtrar apenas conversões do tipo 'conversion' e status 'APPROVED' (excluir initiatecheckout e pendentes)
+      const conversionConversions = conversions.filter(conv => conv.type === 'conversion' && conv.status === 'APPROVED')
      const totalConversions = conversionConversions.length
      
      // Resumo geral - apenas conversões do tipo 'conversion'
@@ -681,7 +681,7 @@ const Performance: React.FC = () => {
                <div>
                  <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
                  <p className="text-2xl font-bold text-gray-900">{performanceData.summary.totalConversions}</p>
-                 <p className="text-xs text-gray-500">Apenas tipo 'conversion'</p>
+                                   <p className="text-xs text-gray-500">Apenas conversões aprovadas</p>
                </div>
                <div className="p-3 bg-blue-100 rounded-xl">
                  <Users className="w-6 h-6 text-blue-600" />
@@ -699,7 +699,7 @@ const Performance: React.FC = () => {
                <div>
                  <p className="text-sm font-medium text-gray-600">Receita Total</p>
                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(performanceData.summary.totalRevenue)}</p>
-                 <p className="text-xs text-gray-500">Receita das conversões</p>
+                                   <p className="text-xs text-gray-500">Receita das conversões aprovadas</p>
                </div>
                <div className="p-3 bg-green-100 rounded-xl">
                  <DollarSign className="w-6 h-6 text-green-600" />
