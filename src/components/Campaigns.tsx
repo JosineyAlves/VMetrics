@@ -101,7 +101,9 @@ const Campaigns: React.FC = () => {
     utm_medium: '',
     utm_campaign: '',
     utm_term: '',
-    utm_content: ''
+    utm_content: '',
+    minConversions: '',
+    minRevenue: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
   const { selectedPeriod, customRange } = useDateRangeStore()
@@ -482,13 +484,8 @@ const Campaigns: React.FC = () => {
     
     const matchesStatus = !filters.status || campaign.status === filters.status
     const matchesSource = !filters.source || campaign.source === filters.source
-    const matchesMinSpend = !filters.minSpend || campaign.spend >= parseFloat(filters.minSpend)
-    const matchesMaxSpend = !filters.maxSpend || campaign.spend <= parseFloat(filters.maxSpend)
-    const matchesMinRoi = !filters.minRoi || campaign.roi >= parseFloat(filters.minRoi)
-    const matchesMaxRoi = !filters.maxRoi || campaign.roi <= parseFloat(filters.maxRoi)
 
-    return matchesSearch && matchesStatus && matchesSource && 
-           matchesMinSpend && matchesMaxSpend && matchesMinRoi && matchesMaxRoi
+    return matchesSearch && matchesStatus && matchesSource
   })
 
   const filteredUTMCreatives = utmCreatives.filter(creative => {
@@ -504,14 +501,11 @@ const Campaigns: React.FC = () => {
     const matchesUTMCampaign = !filters.utm_campaign || creative.utm_campaign === filters.utm_campaign
     const matchesUTMTerm = !filters.utm_term || creative.utm_term === filters.utm_term
     const matchesUTMContent = !filters.utm_content || creative.utm_content === filters.utm_content
-    const matchesMinSpend = !filters.minSpend || creative.spend >= parseFloat(filters.minSpend)
-    const matchesMaxSpend = !filters.maxSpend || creative.spend <= parseFloat(filters.maxSpend)
-    const matchesMinRoi = !filters.minRoi || creative.roi >= parseFloat(filters.minRoi)
-    const matchesMaxRoi = !filters.maxRoi || creative.roi <= parseFloat(filters.maxRoi)
+    const matchesMinConversions = !filters.minConversions || creative.conversions >= parseFloat(filters.minConversions)
+    const matchesMinRevenue = !filters.minRevenue || creative.revenue >= parseFloat(filters.minRevenue)
 
     return matchesSearch && matchesUTMSource && matchesUTMMedium && matchesUTMCampaign && 
-           matchesUTMTerm && matchesUTMContent && matchesMinSpend && matchesMaxSpend && 
-           matchesMinRoi && matchesMaxRoi
+           matchesUTMTerm && matchesUTMContent && matchesMinConversions && matchesMinRevenue
   })
 
   // Calcular métricas
@@ -712,60 +706,37 @@ const Campaigns: React.FC = () => {
                     className="w-full"
                   />
                 </div>
+                
+                {/* Filtros adicionais para RT Campaign/Ad */}
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    Conversões Mínimas
+                  </label>
+                  <Input 
+                    type="number"
+                    placeholder="0"
+                    value={tempFilters.minConversions}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, minConversions: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-trackview-text mb-2">
+                    Receita Mínima
+                  </label>
+                  <Input 
+                    type="number"
+                    placeholder="0"
+                    value={tempFilters.minRevenue}
+                    onChange={(e) => setTempFilters(prev => ({ ...prev, minRevenue: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
               </>
             )}
             
-            <div>
-              <label className="block text-sm font-medium text-trackview-text mb-2">
-                Spend Mínimo
-              </label>
-              <Input 
-                type="number"
-                placeholder="0"
-                value={tempFilters.minSpend}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, minSpend: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-trackview-text mb-2">
-                Spend Máximo
-              </label>
-              <Input 
-                type="number"
-                placeholder="∞"
-                value={tempFilters.maxSpend}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, maxSpend: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-trackview-text mb-2">
-                ROI Mínimo
-              </label>
-              <Input 
-                type="number"
-                placeholder="0"
-                value={tempFilters.minRoi}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, minRoi: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-trackview-text mb-2">
-                ROI Máximo
-              </label>
-              <Input 
-                type="number"
-                placeholder="∞"
-                value={tempFilters.maxRoi}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, maxRoi: e.target.value }))}
-                className="w-full"
-              />
-            </div>
+
           </div>
           
           <div className="flex justify-end mt-6">
