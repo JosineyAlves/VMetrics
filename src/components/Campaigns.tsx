@@ -798,8 +798,9 @@ const Campaigns: React.FC = () => {
         {/* This div is now handled by PeriodDropdown component */}
       </div>
 
-      {/* Performance Blocks - Layout Responsivo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+      {/* Performance Blocks - Layout Responsivo - Apenas na aba Campanhas */}
+      {activeTab === 'campaigns' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
         {/* Best performing campaigns */}
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-blue-200">
           <div className="flex items-center justify-between mb-3 lg:mb-4">
@@ -1037,6 +1038,7 @@ const Campaigns: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Data Table */}
       <motion.div
