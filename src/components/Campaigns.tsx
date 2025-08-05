@@ -235,10 +235,10 @@ const Campaigns: React.FC = () => {
     }
   }
 
-  // Função para carregar dados de UTM/Creativos
+  // Função para carregar dados de RT Campaign, RT Adgroup, RT Ad baseados em conversões
   const loadUTMCreatives = async () => {
     if (!apiKey) {
-      console.log('API Key não definida, não vai buscar UTMs')
+      console.log('API Key não definida, não vai buscar dados RT')
       return
     }
     const { getDateRange, getCurrentRedTrackDate } = await import('../lib/utils')
@@ -248,60 +248,85 @@ const Campaigns: React.FC = () => {
       return;
     }
     setLoading(true)
-    setLoadingMessage('Carregando dados UTM/Criativos...')
+    setLoadingMessage('Carregando dados RT Campaign/Adgroup/Ad...')
     try {
-      // Montar parâmetros
+      // Buscar conversões com dados RT
       const params: Record<string, string> = {
         api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        group_by: 'rt_source,rt_medium,rt_campaign,rt_adgroup,rt_ad,rt_placement',
+        per: '10000', // Máximo para obter mais dados
       }
-      // Adicionar filtros de UTM se existirem (usando os campos rt_*)
-      if (filters.utm_source) params.rt_source = filters.utm_source
-      if (filters.utm_medium) params.rt_medium = filters.utm_medium
-      if (filters.utm_campaign) params.rt_campaign = filters.utm_campaign
-      if (filters.utm_term) params.rt_adgroup = filters.utm_term
-      if (filters.utm_content) params.rt_ad = filters.utm_content
-      // Montar URL
-      const url = new URL('/api/report', window.location.origin)
+      
+      // Montar URL para buscar conversões
+      const url = new URL('/api/conversions', window.location.origin)
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           url.searchParams.set(key, value.toString())
         }
       })
-      console.log('UTM/Creativos - URL da requisição:', url.toString())
+      console.log('RT Data - URL da requisição:', url.toString())
+      
       // Chamada para API
       const response = await fetch(url.toString())
       const data = await response.json()
-      console.log('UTM/Creativos - Resposta da API:', data)
-      // Mapear resposta para UTMCreative[] usando campos rt_*
-      let utmArray: UTMCreative[] = []
-      if (data && Array.isArray(data)) {
-        utmArray = data.map((item: any) => {
-          const stat = item.stat || item // fallback para quando não há stat aninhado
-          return {
-            id: [item.rt_source, item.rt_medium, item.rt_campaign, item.rt_adgroup, item.rt_ad, item.rt_placement].join('-') || Math.random().toString(36).slice(2),
-            utm_source: item.rt_source || '',
-            utm_medium: item.rt_medium || '',
-            utm_campaign: item.rt_campaign || '',
-            utm_term: item.rt_adgroup || '',
-            utm_content: item.rt_ad || '',
-            spend: stat.cost || 0,
-            revenue: stat.revenue || 0,
-            conversions: stat.conversions || 0,
-            clicks: stat.clicks || 0,
-            impressions: stat.impressions || 0,
-            ctr: stat.ctr || 0,
-            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
-            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
+      console.log('RT Data - Resposta da API:', data)
+      
+      // Processar conversões para extrair dados RT
+      let rtArray: UTMCreative[] = []
+      if (data && data.items && Array.isArray(data.items)) {
+        // Agrupar por RT Campaign, RT Adgroup, RT Ad
+        const rtMap = new Map()
+        
+        data.items.forEach((conversion: any) => {
+          // Filtrar apenas conversões aprovadas
+          const status = conversion.status || conversion.approval_status || ''
+          if (status !== 'APPROVED') {
+            return
           }
+          
+          // Criar chave única para agrupamento
+          const rtCampaign = conversion.rt_campaign || 'Unknown Campaign'
+          const rtAdgroup = conversion.rt_adgroup || 'Unknown Adgroup'
+          const rtAd = conversion.rt_ad || 'Unknown Ad'
+          const key = `${rtCampaign}-${rtAdgroup}-${rtAd}`
+          
+          if (!rtMap.has(key)) {
+            rtMap.set(key, {
+              id: key,
+              utm_source: conversion.rt_source || '',
+              utm_medium: conversion.rt_medium || '',
+              utm_campaign: rtCampaign,
+              utm_term: rtAdgroup,
+              utm_content: rtAd,
+              spend: 0, // Não temos dados de custo por conversão
+              revenue: 0,
+              conversions: 0,
+              clicks: 0,
+              impressions: 0,
+              ctr: 0,
+              cpa: 0,
+              roi: 0,
+            })
+          }
+          
+          const rtData = rtMap.get(key)
+          rtData.revenue += parseFloat(conversion.payout || 0)
+          rtData.conversions += 1
         })
+        
+        // Converter para array e calcular métricas
+        rtArray = Array.from(rtMap.values()).map(item => ({
+          ...item,
+          cpa: item.conversions > 0 ? item.spend / item.conversions : 0,
+          roi: item.spend > 0 ? ((item.revenue - item.spend) / item.spend) * 100 : 0,
+        })).sort((a, b) => b.conversions - a.conversions) // Ordenar por conversões
       }
-      setUtmCreatives(utmArray)
+      
+      setUtmCreatives(rtArray)
       setLastUpdate(new Date())
     } catch (error) {
-      console.error('Error loading UTM Creatives:', error)
+      console.error('Error loading RT data:', error)
     } finally {
       setLoading(false)
     }
@@ -539,8 +564,8 @@ const Campaigns: React.FC = () => {
           }`}
         >
             <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden xs:inline">UTM / Criativos</span>
-            <span className="xs:hidden">UTM</span>
+            <span className="hidden xs:inline">RT Campaign/Ad</span>
+            <span className="xs:hidden">RT</span>
         </button>
       </div>
 
@@ -618,10 +643,10 @@ const Campaigns: React.FC = () => {
               </>
             ) : (
               <>
-                {/* Filtros UTM mantidos */}
+                {/* Filtros RT Campaign/Ad */}
                 <div>
                   <label className="block text-sm font-medium text-trackview-text mb-2">
-                    UTM Source
+                    RT Source
                   </label>
                   <select
                     value={tempFilters.utm_source}
@@ -637,7 +662,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-trackview-text mb-2">
-                    UTM Medium
+                    RT Medium
                   </label>
                   <select
                     value={tempFilters.utm_medium}
@@ -654,7 +679,7 @@ const Campaigns: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-trackview-text mb-2">
-                    UTM Campaign
+                    RT Campaign
                   </label>
                   <Input 
                     placeholder="Ex: black_friday_2024"
@@ -666,7 +691,7 @@ const Campaigns: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-trackview-text mb-2">
-                    UTM Term
+                    RT Adgroup
                   </label>
                   <Input 
                     placeholder="Ex: desconto"
@@ -678,7 +703,7 @@ const Campaigns: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-trackview-text mb-2">
-                    UTM Content
+                    RT Ad
                   </label>
                   <Input
                     placeholder="Ex: banner_principal"
@@ -762,7 +787,7 @@ const Campaigns: React.FC = () => {
         <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-trackview-muted w-4 h-4" />
           <Input
-            placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar UTM/criativos..."}
+            placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar RT Campaign/Ad..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -1194,23 +1219,21 @@ const Campaigns: React.FC = () => {
               {/* UTM/Criativos Table */}
               {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_medium && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
                 <div className="p-8 text-center text-gray-500">
-                  Nenhum dado de UTM/Criativos encontrado para o período ou filtros selecionados.<br/>
+                  Nenhum dado de RT Campaign/Ad encontrado para o período ou filtros selecionados.<br/>
                   Tente ampliar o período ou revisar os filtros.
                 </div>
               ) : (
                 <table className="w-full">
                   <thead className="bg-trackview-background">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Source</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Medium</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Campaign</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Term</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UTM Content</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Medium</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spend</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ROI</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-trackview-background">
@@ -1227,11 +1250,11 @@ const Campaigns: React.FC = () => {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.clicks.toLocaleString()}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.spend)}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.roi.toFixed(2)}%</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {creative.conversions > 0 ? formatCurrency(creative.revenue / creative.conversions) : formatCurrency(0)}
+                        </td>
                       </motion.tr>
                     ))}
                   </tbody>

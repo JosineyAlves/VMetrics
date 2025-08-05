@@ -153,6 +153,7 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   // Contadores para debugging
   let totalConversions = 0;
   let validConversions = 0;
+  let approvedConversions = 0;
   let initiateCheckoutCount = 0;
   
   conversions.forEach((conversion, index) => {
@@ -177,7 +178,15 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       return;
     }
     
+    // ✅ NOVO: Verificar se o status é APPROVED
+    const conversionStatus = conversion.status || conversion.approval_status || '';
+    if (conversionStatus !== 'APPROVED') {
+      console.log(`⚠️ [PERFORMANCE] Pulando conversão não aprovada: ${conversionStatus}`);
+      return;
+    }
+    
     validConversions++;
+    approvedConversions++;
     
     // Processar campanhas
     if (conversion.campaign && conversion.campaign_id) {
@@ -277,6 +286,7 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   console.log(`📊 [PERFORMANCE] Resumo do processamento:`);
   console.log(`   - Total de conversões: ${totalConversions}`);
   console.log(`   - Conversões válidas: ${validConversions}`);
+  console.log(`   - Conversões aprovadas: ${approvedConversions}`);
   console.log(`   - InitiateCheckout ignorados: ${initiateCheckoutCount}`);
   console.log(`   - Campanhas processadas: ${campaigns.size}`);
   console.log(`   - Anúncios processados: ${ads.size}`);
