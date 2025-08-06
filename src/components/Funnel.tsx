@@ -748,16 +748,8 @@ const Funnel: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8 pb-16">
-                {/* Header */}
+                {/* Controles */}
         <div className="mb-6">
-          <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">
-              🎯 Análise de Funil
-            </h1>
-            <p className="text-sm text-gray-600">
-              Visualize e analise o funil de conversão das suas campanhas
-            </p>
-          </div>
           
           {/* Controles */}
           <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
