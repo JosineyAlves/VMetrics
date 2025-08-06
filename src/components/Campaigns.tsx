@@ -47,7 +47,18 @@ const mapRedTrackCampaign = (item: any) => {
   // Acessar dados do objeto stat se disponível
   const stat = item.stat || {};
   
-  return {
+  // Debug temporário
+  console.log('🔍 [CAMPAIGNS] Mapeando campanha:', item.title);
+  console.log('🔍 [CAMPAIGNS] Stat object:', stat);
+  console.log('🔍 [CAMPAIGNS] Funnel data from stat:', {
+    prelp_views: stat.prelp_views,
+    prelp_clicks: stat.prelp_clicks,
+    lp_views: stat.lp_views,
+    lp_clicks: stat.lp_clicks,
+    initiatecheckout: stat.initiatecheckout
+  });
+  
+  const mappedCampaign = {
     id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
     name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
     source: item.source || item.traffic_source || item.media_source || item.source_title || '',
@@ -77,6 +88,16 @@ const mapRedTrackCampaign = (item: any) => {
     lp_clicks: stat.lp_clicks || 0,
     initiatecheckout: stat.initiatecheckout || 0
   };
+  
+  console.log('🔍 [CAMPAIGNS] Final mapped campaign funnel data:', {
+    prelp_views: mappedCampaign.prelp_views,
+    prelp_clicks: mappedCampaign.prelp_clicks,
+    lp_views: mappedCampaign.lp_views,
+    lp_clicks: mappedCampaign.lp_clicks,
+    initiatecheckout: mappedCampaign.initiatecheckout
+  });
+  
+  return mappedCampaign;
 }
 
 const Campaigns: React.FC = () => {
@@ -1209,19 +1230,29 @@ const Campaigns: React.FC = () => {
                         <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.prelp_views?.toLocaleString() || '0'}</div>
+                        <div className="text-sm text-gray-900">
+                          {campaign.prelp_views !== undefined ? campaign.prelp_views.toLocaleString() : '0'}
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.prelp_clicks?.toLocaleString() || '0'}</div>
+                        <div className="text-sm text-gray-900">
+                          {campaign.prelp_clicks !== undefined ? campaign.prelp_clicks.toLocaleString() : '0'}
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.lp_views?.toLocaleString() || '0'}</div>
+                        <div className="text-sm text-gray-900">
+                          {campaign.lp_views !== undefined ? campaign.lp_views.toLocaleString() : '0'}
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.lp_clicks?.toLocaleString() || '0'}</div>
+                        <div className="text-sm text-gray-900">
+                          {campaign.lp_clicks !== undefined ? campaign.lp_clicks.toLocaleString() : '0'}
+                        </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.initiatecheckout?.toLocaleString() || '0'}</div>
+                        <div className="text-sm text-gray-900">
+                          {campaign.initiatecheckout !== undefined ? campaign.initiatecheckout.toLocaleString() : '0'}
+                        </div>
                       </td>
                     </motion.tr>
                   ))
