@@ -43,36 +43,41 @@ interface UTMCreative {
   roi: number
 }
 
-const mapRedTrackCampaign = (item: any) => ({
-  id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
-  name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
-  source: item.source || item.traffic_source || item.media_source || '',
-  status: item.status || item.campaign_status || 'active',
-  spend: item.cost || item.spend || item.campaign_cost || 0,
-  revenue: item.revenue || item.campaign_revenue || item.earnings || 0,
-  cpa: item.cpa || item.cost_per_acquisition || 0,
-  roi: item.roi || item.return_on_investment || 0,
-  conversions: item.conversions || item.approved || item.total_conversions || 0,
-  clicks: item.clicks || item.total_clicks || 0,
-  unique_clicks: item.unique_clicks || 0,
-  impressions: item.impressions || item.total_impressions || 0,
-  all_conversions: item.all_conversions || 0,
-  approved: item.approved || 0,
-  pending: item.pending || 0,
-  declined: item.declined || 0,
-  ctr: item.ctr || 0,
-  conversion_rate: item.conversion_rate || 0,
-  cpc: item.cpc || 0,
-  epc: item.epc || 0,
-  epl: item.epl || 0,
-  roas: item.roas || 0,
-  // Métricas de funil
-  prelp_views: item.prelp_views || 0,
-  prelp_clicks: item.prelp_clicks || 0,
-  lp_views: item.lp_views || 0,
-  lp_clicks: item.lp_clicks || 0,
-  initiatecheckout: item.initiatecheckout || 0
-})
+const mapRedTrackCampaign = (item: any) => {
+  // Acessar dados do objeto stat se disponível
+  const stat = item.stat || {};
+  
+  return {
+    id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
+    name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
+    source: item.source || item.traffic_source || item.media_source || item.source_title || '',
+    status: item.status || item.campaign_status || 'active',
+    spend: stat.cost || item.cost || item.spend || item.campaign_cost || 0,
+    revenue: stat.revenue || item.revenue || item.campaign_revenue || item.earnings || 0,
+    cpa: stat.cpa || item.cpa || item.cost_per_acquisition || 0,
+    roi: stat.roi || item.roi || item.return_on_investment || 0,
+    conversions: stat.conversions || item.conversions || item.approved || item.total_conversions || 0,
+    clicks: stat.clicks || item.clicks || item.total_clicks || 0,
+    unique_clicks: stat.unique_clicks || item.unique_clicks || 0,
+    impressions: stat.impressions || item.impressions || item.total_impressions || 0,
+    all_conversions: stat.all_conversions || item.all_conversions || 0,
+    approved: stat.approved || item.approved || 0,
+    pending: stat.pending || item.pending || 0,
+    declined: stat.declined || item.declined || 0,
+    ctr: stat.ctr || item.ctr || 0,
+    conversion_rate: stat.conversion_rate || item.conversion_rate || 0,
+    cpc: stat.cpc || item.cpc || 0,
+    epc: stat.epc || item.epc || 0,
+    epl: stat.epl || item.epl || 0,
+    roas: stat.roas || item.roas || 0,
+    // Métricas de funil - acessar do objeto stat
+    prelp_views: stat.prelp_views || 0,
+    prelp_clicks: stat.prelp_clicks || 0,
+    lp_views: stat.lp_views || 0,
+    lp_clicks: stat.lp_clicks || 0,
+    initiatecheckout: stat.initiatecheckout || 0
+  }
+}
 
 const Campaigns: React.FC = () => {
   console.log('Montou Campanhas')
