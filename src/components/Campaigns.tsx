@@ -51,7 +51,9 @@ const mapRedTrackCampaign = (item: any) => {
   // Acessar dados do objeto stat se disponível
   const stat = item.stat || {};
   
-  return {
+
+  
+  const mappedCampaign = {
     id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
     name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
     source: item.source || item.traffic_source || item.media_source || item.source_title || '',
@@ -64,7 +66,8 @@ const mapRedTrackCampaign = (item: any) => {
     clicks: stat.clicks || item.clicks || item.total_clicks || 0,
     unique_clicks: stat.unique_clicks || item.unique_clicks || 0,
     impressions: stat.impressions || item.impressions || item.total_impressions || 0,
-    all_conversions: stat.all_conversions || item.all_conversions || 0,
+    // Usar total_conversions do RedTrack (campo correto)
+    all_conversions: stat.total_conversions || (stat.approved || 0) + (stat.pending || 0) + (stat.declined || 0) + (stat.other || 0) || 0,
     approved: stat.approved || item.approved || 0,
     pending: stat.pending || item.pending || 0,
     declined: stat.declined || item.declined || 0,
@@ -80,8 +83,31 @@ const mapRedTrackCampaign = (item: any) => {
     lp_views: stat.lp_views || 0,
     lp_clicks: stat.lp_clicks || 0,
     // InitiateCheckout usando convtype1 (mesmo padrão do Dashboard)
-    initiatecheckout: stat.convtype1 || 0
+    initiatecheckout: stat.convtype1 || 0,
+    
+    // Métricas adicionais importantes do RedTrack
+    aov: stat.aov || 0,
+    epc_lp: stat.epc_lp || 0,
+    epuc: stat.epuc || 0,
+    epv: stat.epv || 0,
+    lp_clicks_cr: stat.lp_clicks_cr || 0,
+    lp_views_cr: stat.lp_views_cr || 0,
+    prelp_clicks_cr: stat.prelp_clicks_cr || 0,
+    prelp_views_cr: stat.prelp_views_cr || 0,
+    impressions_visible: stat.impressions_visible || 0,
+    attribution: stat.attribution || 0,
+    attribution_rate: stat.attribution_rate || 0,
+    baddevice: stat.baddevice || 0,
+    baddevice_rate: stat.baddevice_rate || 0,
+    datacenter: stat.datacenter || 0,
+    datacenter_rate: stat.datacenter_rate || 0,
+    transactions: stat.transactions || 0,
+    tr: stat.tr || 0
   };
+  
+
+  
+  return mappedCampaign;
 }
 
 const Campaigns: React.FC = () => {
@@ -137,7 +163,7 @@ const Campaigns: React.FC = () => {
       case 'clicks':
         return (
           <div className="text-sm font-semibold text-gray-900">
-            {campaign.clicks.toLocaleString()}
+            {campaign.clicks !== undefined && campaign.clicks > 0 ? campaign.clicks.toLocaleString() : '0'}
           </div>
         )
       case 'unique_clicks':
@@ -155,13 +181,13 @@ const Campaigns: React.FC = () => {
       case 'conversions':
         return (
           <div className="text-sm font-bold text-green-700">
-            {campaign.conversions.toLocaleString()}
+            {campaign.conversions !== undefined && campaign.conversions > 0 ? campaign.conversions.toLocaleString() : '0'}
           </div>
         )
       case 'all_conversions':
         return (
           <div className="text-sm font-semibold text-gray-900">
-            {campaign.all_conversions.toLocaleString()}
+            {campaign.all_conversions !== undefined && campaign.all_conversions > 0 ? campaign.all_conversions.toLocaleString() : '0'}
           </div>
         )
       case 'approved':
@@ -195,9 +221,10 @@ const Campaigns: React.FC = () => {
           </div>
         )
       case 'spend':
+        console.log('🔍 [CAMPAIGNS] Renderizando spend:', campaign.spend, 'para campanha:', campaign.name);
         return (
           <div className="text-sm font-semibold text-red-700">
-            {formatCurrency(campaign.spend)}
+            {campaign.spend !== undefined && campaign.spend > 0 ? formatCurrency(campaign.spend) : 'R$ 0,00'}
           </div>
         )
       case 'revenue':
@@ -270,6 +297,108 @@ const Campaigns: React.FC = () => {
         return (
           <div className="text-sm font-bold text-orange-600">
             {campaign.initiatecheckout !== undefined ? campaign.initiatecheckout.toLocaleString() : '0'}
+          </div>
+        )
+      case 'aov':
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {formatCurrency(campaign.aov || 0)}
+          </div>
+        )
+      case 'epc_lp':
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {formatCurrency(campaign.epc_lp || 0)}
+          </div>
+        )
+      case 'epuc':
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {formatCurrency(campaign.epuc || 0)}
+          </div>
+        )
+      case 'epv':
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {formatCurrency(campaign.epv || 0)}
+          </div>
+        )
+      case 'lp_clicks_cr':
+        return (
+          <div className="text-sm font-semibold text-blue-700">
+            {(campaign.lp_clicks_cr || 0).toFixed(2)}%
+          </div>
+        )
+      case 'lp_views_cr':
+        return (
+          <div className="text-sm font-semibold text-blue-700">
+            {(campaign.lp_views_cr || 0).toFixed(2)}%
+          </div>
+        )
+      case 'prelp_clicks_cr':
+        return (
+          <div className="text-sm font-semibold text-blue-700">
+            {(campaign.prelp_clicks_cr || 0).toFixed(2)}%
+          </div>
+        )
+      case 'prelp_views_cr':
+        return (
+          <div className="text-sm font-semibold text-blue-700">
+            {(campaign.prelp_views_cr || 0).toFixed(2)}%
+          </div>
+        )
+      case 'impressions_visible':
+        return (
+          <div className="text-sm font-semibold text-blue-600">
+            {campaign.impressions_visible !== undefined ? campaign.impressions_visible.toLocaleString() : '0'}
+          </div>
+        )
+      case 'transactions':
+        return (
+          <div className="text-sm font-semibold text-green-600">
+            {campaign.transactions !== undefined ? campaign.transactions.toLocaleString() : '0'}
+          </div>
+        )
+      case 'tr':
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {(campaign.tr || 0).toFixed(2)}%
+          </div>
+        )
+      case 'attribution':
+        return (
+          <div className="text-sm font-semibold text-purple-600">
+            {campaign.attribution !== undefined ? campaign.attribution.toLocaleString() : '0'}
+          </div>
+        )
+      case 'attribution_rate':
+        return (
+          <div className="text-sm font-semibold text-purple-700">
+            {(campaign.attribution_rate || 0).toFixed(2)}%
+          </div>
+        )
+      case 'baddevice':
+        return (
+          <div className="text-sm font-semibold text-red-600">
+            {campaign.baddevice !== undefined ? campaign.baddevice.toLocaleString() : '0'}
+          </div>
+        )
+      case 'baddevice_rate':
+        return (
+          <div className="text-sm font-semibold text-red-700">
+            {(campaign.baddevice_rate || 0).toFixed(2)}%
+          </div>
+        )
+      case 'datacenter':
+        return (
+          <div className="text-sm font-semibold text-orange-600">
+            {campaign.datacenter !== undefined ? campaign.datacenter.toLocaleString() : '0'}
+          </div>
+        )
+      case 'datacenter_rate':
+        return (
+          <div className="text-sm font-semibold text-orange-700">
+            {(campaign.datacenter_rate || 0).toFixed(2)}%
           </div>
         )
       default:

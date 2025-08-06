@@ -295,6 +295,178 @@ const allColumns: Column[] = [
     format: 'integer',
     icon: 'ShoppingCart',
     color: 'orange'
+  },
+  
+  // Métricas Avançadas do RedTrack
+  {
+    id: 'aov',
+    label: 'AOV',
+    description: 'Average Order Value',
+    category: 'revenue',
+    unit: 'currency',
+    format: 'currency',
+    icon: 'ShoppingCart',
+    color: 'green'
+  },
+  {
+    id: 'epc_lp',
+    label: 'EPC LP',
+    description: 'Earnings per Landing Page Click',
+    category: 'revenue',
+    unit: 'currency',
+    format: 'currency',
+    icon: 'DollarSign',
+    color: 'green'
+  },
+  {
+    id: 'epuc',
+    label: 'EPUC',
+    description: 'Earnings per Unique Click',
+    category: 'revenue',
+    unit: 'currency',
+    format: 'currency',
+    icon: 'DollarSign',
+    color: 'green'
+  },
+  {
+    id: 'epv',
+    label: 'EPV',
+    description: 'Earnings per View',
+    category: 'revenue',
+    unit: 'currency',
+    format: 'currency',
+    icon: 'DollarSign',
+    color: 'green'
+  },
+  {
+    id: 'lp_clicks_cr',
+    label: 'LP Clicks CR',
+    description: 'Landing Page Clicks Conversion Rate',
+    category: 'performance',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'blue'
+  },
+  {
+    id: 'lp_views_cr',
+    label: 'LP Views CR',
+    description: 'Landing Page Views Conversion Rate',
+    category: 'performance',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'blue'
+  },
+  {
+    id: 'prelp_clicks_cr',
+    label: 'Pre-LP Clicks CR',
+    description: 'Pre-LP Clicks Conversion Rate',
+    category: 'performance',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'blue'
+  },
+  {
+    id: 'prelp_views_cr',
+    label: 'Pre-LP Views CR',
+    description: 'Pre-LP Views Conversion Rate',
+    category: 'performance',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'BarChart3',
+    color: 'blue'
+  },
+  {
+    id: 'impressions_visible',
+    label: 'Impressões Visíveis',
+    description: 'Impressões realmente vistas',
+    category: 'basic',
+    unit: 'number',
+    format: 'integer',
+    icon: 'Eye',
+    color: 'blue'
+  },
+  {
+    id: 'transactions',
+    label: 'Transações',
+    description: 'Número de transações',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'ShoppingCart',
+    color: 'green'
+  },
+  {
+    id: 'tr',
+    label: 'Taxa Transação',
+    description: 'Taxa de transação (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'ShoppingCart',
+    color: 'green'
+  },
+  {
+    id: 'attribution',
+    label: 'Atribuição',
+    description: 'Conversões atribuídas',
+    category: 'conversion',
+    unit: 'number',
+    format: 'integer',
+    icon: 'Target',
+    color: 'purple'
+  },
+  {
+    id: 'attribution_rate',
+    label: 'Taxa Atribuição',
+    description: 'Taxa de atribuição (%)',
+    category: 'conversion',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'Target',
+    color: 'purple'
+  },
+  {
+    id: 'baddevice',
+    label: 'Bad Device',
+    description: 'Dispositivos inválidos',
+    category: 'basic',
+    unit: 'number',
+    format: 'integer',
+    icon: 'Smartphone',
+    color: 'red'
+  },
+  {
+    id: 'baddevice_rate',
+    label: 'Taxa Bad Device',
+    description: 'Taxa de dispositivos inválidos (%)',
+    category: 'basic',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'Smartphone',
+    color: 'red'
+  },
+  {
+    id: 'datacenter',
+    label: 'Datacenter',
+    description: 'Tráfego de datacenter',
+    category: 'basic',
+    unit: 'number',
+    format: 'integer',
+    icon: 'Server',
+    color: 'orange'
+  },
+  {
+    id: 'datacenter_rate',
+    label: 'Taxa Datacenter',
+    description: 'Taxa de tráfego de datacenter (%)',
+    category: 'basic',
+    unit: 'percentage',
+    format: 'percentage',
+    icon: 'Server',
+    color: 'orange'
   }
 ]
 
@@ -304,12 +476,13 @@ const defaultSelectedColumns = [
   'source',
   'status',
   'clicks',
+  'all_conversions',
+  'conversions',
   'prelp_views',
   'prelp_clicks',
   'lp_views',
   'lp_clicks',
-  'initiatecheckout',
-  'conversions'
+  'initiatecheckout'
 ]
 
 export const useColumnsStore = create<ColumnsState>()(
