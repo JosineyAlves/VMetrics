@@ -142,8 +142,21 @@ const Campaigns: React.FC = () => {
       case 'name':
         return (
           <div className="flex flex-col">
-            <div className="text-sm font-semibold text-gray-900 break-words leading-tight" title={campaign.name}>
+            <div 
+              className="text-sm font-semibold text-gray-900 truncate max-w-[180px] cursor-help relative group" 
+              title={campaign.name}
+              style={{
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap'
+              }}
+            >
               {campaign.name}
+              {/* Tooltip */}
+              <div className="absolute left-0 top-full mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 whitespace-nowrap pointer-events-none max-w-xs">
+                {campaign.name}
+                <div className="absolute bottom-full left-2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
             </div>
           </div>
         )
@@ -434,16 +447,6 @@ const Campaigns: React.FC = () => {
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
   const [totalCampaigns, setTotalCampaigns] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
-  const [campaignColumnWidth, setCampaignColumnWidth] = useState(() => {
-    const saved = localStorage.getItem('campaignColumnWidth')
-    return saved ? parseInt(saved) : 250
-  })
-
-  // Função para atualizar a largura da coluna e salvar no localStorage
-  const updateCampaignColumnWidth = (newWidth: number) => {
-    setCampaignColumnWidth(newWidth)
-    localStorage.setItem('campaignColumnWidth', newWidth.toString())
-  }
 
   // Date range picker state
   const [dateRange, setDateRange] = useState({ from: '', to: '' })
@@ -1341,40 +1344,6 @@ const Campaigns: React.FC = () => {
         className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {/* Controles de largura da coluna Campanha */}
-          <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-gray-600">Largura da coluna Campanha:</span>
-              <button
-                onClick={() => updateCampaignColumnWidth(Math.max(200, campaignColumnWidth - 50))}
-                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                title="Diminuir largura"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                </svg>
-              </button>
-              <span className="text-xs font-medium text-gray-700 min-w-[3rem] text-center">
-                {campaignColumnWidth}px
-              </span>
-              <button
-                onClick={() => updateCampaignColumnWidth(Math.min(500, campaignColumnWidth + 50))}
-                className="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                title="Aumentar largura"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-            <button
-              onClick={() => updateCampaignColumnWidth(250)}
-              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 border border-blue-300 rounded hover:bg-blue-200 transition-colors"
-              title="Resetar para largura padrão"
-            >
-              Resetar
-            </button>
-          </div>
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -1392,10 +1361,9 @@ const Campaigns: React.FC = () => {
                   {getVisibleColumns().map((column) => (
                     <th 
                       key={column?.id} 
-                      className={`px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider ${
-                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]' : 'whitespace-nowrap'
+                      className={`px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap ${
+                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
                       }`}
-                      style={column?.id === 'name' ? { minWidth: `${campaignColumnWidth}px`, maxWidth: `${campaignColumnWidth + 100}px` } : {}}
                     >
                       <div className="flex items-center space-x-2">
                         <span>{column?.label}</span>
@@ -1435,10 +1403,9 @@ const Campaigns: React.FC = () => {
                       {getVisibleColumns().map((column) => (
                         <td 
                           key={column?.id} 
-                          className={`px-6 py-4 ${
-                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-blue-50 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]' : 'whitespace-nowrap'
+                          className={`px-6 py-4 whitespace-nowrap ${
+                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-blue-50 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
                           }`}
-                          style={column?.id === 'name' ? { minWidth: `${campaignColumnWidth}px`, maxWidth: `${campaignColumnWidth + 100}px` } : {}}
                         >
                           {renderCell(campaign, column)}
                         </td>
