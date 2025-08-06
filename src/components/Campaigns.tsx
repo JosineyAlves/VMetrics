@@ -47,6 +47,13 @@ const mapRedTrackCampaign = (item: any) => {
   // Acessar dados do objeto stat se disponível
   const stat = item.stat || {};
   
+  // Garantir que os valores sejam números
+  const prelp_views = Number(stat.prelp_views) || 0;
+  const prelp_clicks = Number(stat.prelp_clicks) || 0;
+  const lp_views = Number(stat.lp_views) || 0;
+  const lp_clicks = Number(stat.lp_clicks) || 0;
+  const initiatecheckout = Number(stat.initiatecheckout) || 0;
+  
   return {
     id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
     name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
@@ -70,13 +77,13 @@ const mapRedTrackCampaign = (item: any) => {
     epc: stat.epc || item.epc || 0,
     epl: stat.epl || item.epl || 0,
     roas: stat.roas || item.roas || 0,
-    // Métricas de funil - acessar do objeto stat
-    prelp_views: stat.prelp_views || 0,
-    prelp_clicks: stat.prelp_clicks || 0,
-    lp_views: stat.lp_views || 0,
-    lp_clicks: stat.lp_clicks || 0,
-    initiatecheckout: stat.initiatecheckout || 0
-  }
+    // Métricas de funil - valores garantidos como números
+    prelp_views,
+    prelp_clicks,
+    lp_views,
+    lp_clicks,
+    initiatecheckout
+  };
 }
 
 const Campaigns: React.FC = () => {
