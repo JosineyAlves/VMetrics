@@ -200,7 +200,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 3: Pre-LP Clicks
       if (campaign.prelp_clicks > 0) {
-        const conversionRate = calculateConversionRate(campaign.prelp_clicks, campaign.prelp_views)
+        const conversionRate = calculateConversionRate(campaign.prelp_clicks, campaign.clicks)
         stages.push({
           name: 'Pre-LP Clicks',
           value: campaign.prelp_clicks,
@@ -216,7 +216,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 4: LP Views
       if (campaign.lp_views > 0) {
-        const conversionRate = calculateConversionRate(campaign.lp_views, campaign.prelp_clicks)
+        const conversionRate = calculateConversionRate(campaign.lp_views, campaign.clicks)
         stages.push({
           name: 'LP Views',
           value: campaign.lp_views,
@@ -232,7 +232,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 5: LP Clicks
       if (campaign.lp_clicks > 0) {
-        const conversionRate = calculateConversionRate(campaign.lp_clicks, campaign.lp_views)
+        const conversionRate = calculateConversionRate(campaign.lp_clicks, campaign.clicks)
         stages.push({
           name: 'LP Clicks',
           value: campaign.lp_clicks,
@@ -248,7 +248,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 6: Initiate Checkout
       if (campaign.initiatecheckout > 0) {
-        const conversionRate = calculateConversionRate(campaign.initiatecheckout, campaign.lp_clicks)
+        const conversionRate = calculateConversionRate(campaign.initiatecheckout, campaign.clicks)
         stages.push({
           name: 'Initiate Checkout',
           value: campaign.initiatecheckout,
@@ -264,7 +264,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 7: Conversões
       if (campaign.conversions > 0) {
-        const conversionRate = calculateConversionRate(campaign.conversions, campaign.initiatecheckout)
+        const conversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
         stages.push({
           name: 'Conversões',
           value: campaign.conversions,
@@ -356,7 +356,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 3: Pre-LP Clicks
       if (campaign.prelp_clicks > 0) {
-        const conversionRate = calculateConversionRate(campaign.prelp_clicks, campaign.prelp_views)
+        const conversionRate = calculateConversionRate(campaign.prelp_clicks, campaign.clicks)
         stages.push({
           name: 'Pre-LP Clicks',
           value: campaign.prelp_clicks,
@@ -372,7 +372,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 4: LP Views
       if (campaign.lp_views > 0) {
-        const conversionRate = calculateConversionRate(campaign.lp_views, campaign.prelp_clicks)
+        const conversionRate = calculateConversionRate(campaign.lp_views, campaign.clicks)
         stages.push({
           name: 'LP Views',
           value: campaign.lp_views,
@@ -388,7 +388,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 5: LP Clicks
       if (campaign.lp_clicks > 0) {
-        const conversionRate = calculateConversionRate(campaign.lp_clicks, campaign.lp_views)
+        const conversionRate = calculateConversionRate(campaign.lp_clicks, campaign.clicks)
         stages.push({
           name: 'LP Clicks',
           value: campaign.lp_clicks,
@@ -404,7 +404,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 6: Initiate Checkout
       if (campaign.initiatecheckout > 0) {
-        const conversionRate = calculateConversionRate(campaign.initiatecheckout, campaign.lp_clicks)
+        const conversionRate = calculateConversionRate(campaign.initiatecheckout, campaign.clicks)
         stages.push({
           name: 'Initiate Checkout',
           value: campaign.initiatecheckout,
@@ -420,7 +420,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 7: Conversões
       if (campaign.conversions > 0) {
-        const conversionRate = calculateConversionRate(campaign.conversions, campaign.initiatecheckout)
+        const conversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
         stages.push({
           name: 'Conversões',
           value: campaign.conversions,
