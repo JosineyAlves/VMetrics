@@ -489,48 +489,49 @@ const Funnel: React.FC = () => {
   // Componente de visualização 3D do funil
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
-      <div className="relative w-full h-[600px] bg-gradient-to-b from-gray-50 to-white rounded-2xl p-8 overflow-hidden">
+      <div className="relative w-full min-h-[800px] bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 overflow-visible">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30"></div>
         
-        <div className="relative z-10 flex flex-col items-center justify-center h-full">
+        <div className="relative z-10 flex flex-col items-center py-8">
+          {/* Header do funil */}
           <div className="text-center mb-8">
-            <h3 className="text-3xl font-bold text-gray-800 mb-2">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
               Funil de Conversão - {data.campaign.name}
             </h3>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600">
               Análise detalhada do fluxo de conversão
             </p>
           </div>
           
           {/* Funil unificado e centralizado */}
-          <div className="flex flex-col items-center space-y-6 h-80">
+          <div className="flex flex-col items-center space-y-4 w-full max-w-4xl">
             {data.stages.map((stage, index) => (
               <motion.div
                 key={stage.name}
-                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: index * 0.15, duration: 0.5 }}
-                className="flex flex-col items-center relative"
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+                className="flex flex-col items-center relative w-full"
               >
                 {/* Estágio do funil - formato unificado */}
                 <div 
-                  className={`bg-gradient-to-b ${stage.gradient} rounded-2xl shadow-xl flex items-center justify-center mb-3 relative`}
+                  className={`bg-gradient-to-b ${stage.gradient} rounded-xl shadow-lg flex items-center justify-center mb-2 relative w-full max-w-md`}
                   style={{
-                    width: `${Math.max(200, 300 - index * 20)}px`,
-                    height: '80px',
-                    minWidth: '200px'
+                    height: '70px'
                   }}
                 >
-                  <div className="flex items-center space-x-4 text-white">
-                    <div className="text-2xl">
-                      {stage.icon}
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">
-                        {stage.value.toLocaleString()}
+                  <div className="flex items-center justify-between w-full px-6 text-white">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-xl">
+                        {stage.icon}
                       </div>
-                      <div className="text-sm opacity-90">
-                        {stage.name}
+                      <div className="text-center">
+                        <div className="text-lg font-bold">
+                          {stage.value.toLocaleString()}
+                        </div>
+                        <div className="text-xs opacity-90">
+                          {stage.name}
+                        </div>
                       </div>
                     </div>
                     <div className="text-right">
@@ -549,10 +550,10 @@ const Funnel: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.15 + 0.3 }}
-                    className="flex items-center justify-center w-8 h-8"
+                    transition={{ delay: index * 0.1 + 0.2 }}
+                    className="flex items-center justify-center w-6 h-6 my-2"
                   >
-                    <div className="w-0.5 h-8 bg-gradient-to-b from-gray-400 to-gray-300"></div>
+                    <div className="w-0.5 h-6 bg-gradient-to-b from-gray-400 to-gray-300"></div>
                   </motion.div>
                 )}
               </motion.div>
@@ -560,27 +561,27 @@ const Funnel: React.FC = () => {
           </div>
           
           {/* Resumo do funil */}
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center w-full">
             <div className="inline-flex items-center space-x-6 bg-white rounded-xl p-4 shadow-lg">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-xl font-bold text-blue-600">
                   {data.summary.totalClicks.toLocaleString()}
                 </div>
-                <div className="text-sm text-gray-600">Total Cliques</div>
+                <div className="text-xs text-gray-600">Total Cliques</div>
               </div>
-              <div className="w-px h-8 bg-gray-300"></div>
+              <div className="w-px h-6 bg-gray-300"></div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl font-bold text-green-600">
                   {data.summary.totalConversions.toLocaleString()}
                 </div>
-                <div className="text-sm text-gray-600">Conversões</div>
+                <div className="text-xs text-gray-600">Conversões</div>
               </div>
-              <div className="w-px h-8 bg-gray-300"></div>
+              <div className="w-px h-6 bg-gray-300"></div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-xl font-bold text-purple-600">
                   {data.summary.totalConversionRate}
                 </div>
-                <div className="text-sm text-gray-600">Taxa Total</div>
+                <div className="text-xs text-gray-600">Taxa Total</div>
               </div>
             </div>
           </div>
@@ -746,18 +747,18 @@ const Funnel: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 pb-16">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                🎯 Análise de Funil
-              </h1>
-              <p className="text-gray-600">
-                Visualize e analise o funil de conversão das suas campanhas
-              </p>
-            </div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+                          <div>
+                <h1 className="text-2xl font-bold text-gray-800 mb-1">
+                  🎯 Análise de Funil
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Visualize e analise o funil de conversão das suas campanhas
+                </p>
+              </div>
             
             <div className="flex items-center space-x-3">
               <Button
@@ -781,8 +782,8 @@ const Funnel: React.FC = () => {
           </div>
           
           {/* Controles */}
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Seletor de Campanha */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
