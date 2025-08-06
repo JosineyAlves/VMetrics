@@ -1346,7 +1346,12 @@ const Campaigns: React.FC = () => {
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <tr>
                   {getVisibleColumns().map((column) => (
-                    <th key={column?.id} className="px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                    <th 
+                      key={column?.id} 
+                      className={`px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap ${
+                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]' : ''
+                      }`}
+                    >
                       <div className="flex items-center space-x-2">
                         <span>{column?.label}</span>
                         {column?.category === 'funnel' && (
@@ -1380,10 +1385,15 @@ const Campaigns: React.FC = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 border-b border-gray-50"
+                      className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 border-b border-gray-50 group"
                     >
                       {getVisibleColumns().map((column) => (
-                        <td key={column?.id} className="px-6 py-4 whitespace-nowrap">
+                        <td 
+                          key={column?.id} 
+                          className={`px-6 py-4 whitespace-nowrap ${
+                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-blue-50 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]' : ''
+                          }`}
+                        >
                           {renderCell(campaign, column)}
                         </td>
                       ))}
