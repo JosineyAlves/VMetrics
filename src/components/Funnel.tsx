@@ -90,6 +90,13 @@ const Funnel: React.FC = () => {
     type: 'conversion'
   })
 
+  // Função auxiliar para calcular taxa de conversão de forma segura
+  const calculateConversionRate = (numerator: number, denominator: number): number => {
+    if (denominator === 0 || !isFinite(denominator)) return 0
+    const rate = (numerator / denominator) * 100
+    return isFinite(rate) ? rate : 0
+  }
+
   // Carregar campanhas disponíveis
   const loadCampaigns = async () => {
     if (!apiKey) return
@@ -177,7 +184,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 2: Pre-LP Views
       if (campaign.prelp_views > 0) {
-        const conversionRate = (campaign.prelp_views / campaign.clicks) * 100
+        const conversionRate = calculateConversionRate(campaign.prelp_views, campaign.clicks)
         stages.push({
           name: 'Pre-LP Views',
           value: campaign.prelp_views,
@@ -193,7 +200,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 3: Pre-LP Clicks
       if (campaign.prelp_clicks > 0) {
-        const conversionRate = (campaign.prelp_clicks / campaign.prelp_views) * 100
+        const conversionRate = calculateConversionRate(campaign.prelp_clicks, campaign.prelp_views)
         stages.push({
           name: 'Pre-LP Clicks',
           value: campaign.prelp_clicks,
@@ -209,7 +216,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 4: LP Views
       if (campaign.lp_views > 0) {
-        const conversionRate = (campaign.lp_views / campaign.prelp_clicks) * 100
+        const conversionRate = calculateConversionRate(campaign.lp_views, campaign.prelp_clicks)
         stages.push({
           name: 'LP Views',
           value: campaign.lp_views,
@@ -225,7 +232,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 5: LP Clicks
       if (campaign.lp_clicks > 0) {
-        const conversionRate = (campaign.lp_clicks / campaign.lp_views) * 100
+        const conversionRate = calculateConversionRate(campaign.lp_clicks, campaign.lp_views)
         stages.push({
           name: 'LP Clicks',
           value: campaign.lp_clicks,
@@ -241,7 +248,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 6: Initiate Checkout
       if (campaign.initiatecheckout > 0) {
-        const conversionRate = (campaign.initiatecheckout / campaign.lp_clicks) * 100
+        const conversionRate = calculateConversionRate(campaign.initiatecheckout, campaign.lp_clicks)
         stages.push({
           name: 'Initiate Checkout',
           value: campaign.initiatecheckout,
@@ -257,7 +264,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 7: Conversões
       if (campaign.conversions > 0) {
-        const conversionRate = (campaign.conversions / campaign.initiatecheckout) * 100
+        const conversionRate = calculateConversionRate(campaign.conversions, campaign.initiatecheckout)
         stages.push({
           name: 'Conversões',
           value: campaign.conversions,
@@ -272,7 +279,7 @@ const Funnel: React.FC = () => {
       }
       
       // Calcular métricas totais
-      const totalConversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0
+      const totalConversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
       const roi = campaign.spend > 0 ? ((campaign.revenue - campaign.spend) / campaign.spend) * 100 : 0
       
       const funnelData: FunnelData = {
@@ -333,7 +340,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 2: Pre-LP Views
       if (campaign.prelp_views > 0) {
-        const conversionRate = (campaign.prelp_views / campaign.clicks) * 100
+        const conversionRate = calculateConversionRate(campaign.prelp_views, campaign.clicks)
         stages.push({
           name: 'Pre-LP Views',
           value: campaign.prelp_views,
@@ -349,7 +356,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 3: Pre-LP Clicks
       if (campaign.prelp_clicks > 0) {
-        const conversionRate = (campaign.prelp_clicks / campaign.prelp_views) * 100
+        const conversionRate = calculateConversionRate(campaign.prelp_clicks, campaign.prelp_views)
         stages.push({
           name: 'Pre-LP Clicks',
           value: campaign.prelp_clicks,
@@ -365,7 +372,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 4: LP Views
       if (campaign.lp_views > 0) {
-        const conversionRate = (campaign.lp_views / campaign.prelp_clicks) * 100
+        const conversionRate = calculateConversionRate(campaign.lp_views, campaign.prelp_clicks)
         stages.push({
           name: 'LP Views',
           value: campaign.lp_views,
@@ -381,7 +388,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 5: LP Clicks
       if (campaign.lp_clicks > 0) {
-        const conversionRate = (campaign.lp_clicks / campaign.lp_views) * 100
+        const conversionRate = calculateConversionRate(campaign.lp_clicks, campaign.lp_views)
         stages.push({
           name: 'LP Clicks',
           value: campaign.lp_clicks,
@@ -397,7 +404,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 6: Initiate Checkout
       if (campaign.initiatecheckout > 0) {
-        const conversionRate = (campaign.initiatecheckout / campaign.lp_clicks) * 100
+        const conversionRate = calculateConversionRate(campaign.initiatecheckout, campaign.lp_clicks)
         stages.push({
           name: 'Initiate Checkout',
           value: campaign.initiatecheckout,
@@ -413,7 +420,7 @@ const Funnel: React.FC = () => {
       
       // Estágio 7: Conversões
       if (campaign.conversions > 0) {
-        const conversionRate = (campaign.conversions / campaign.initiatecheckout) * 100
+        const conversionRate = calculateConversionRate(campaign.conversions, campaign.initiatecheckout)
         stages.push({
           name: 'Conversões',
           value: campaign.conversions,
@@ -428,7 +435,7 @@ const Funnel: React.FC = () => {
       }
       
       // Calcular métricas totais
-      const totalConversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0
+      const totalConversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
       const roi = campaign.spend > 0 ? ((campaign.revenue - campaign.spend) / campaign.spend) * 100 : 0
       
       const funnelData2: FunnelData = {
@@ -482,69 +489,100 @@ const Funnel: React.FC = () => {
   // Componente de visualização 3D do funil
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
-      <div className="relative w-full h-96 bg-gradient-to-b from-gray-50 to-white rounded-2xl p-8 overflow-hidden">
+      <div className="relative w-full h-[600px] bg-gradient-to-b from-gray-50 to-white rounded-2xl p-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30"></div>
         
         <div className="relative z-10 flex flex-col items-center justify-center h-full">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+            <h3 className="text-3xl font-bold text-gray-800 mb-2">
               Funil de Conversão - {data.campaign.name}
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-lg">
               Análise detalhada do fluxo de conversão
             </p>
           </div>
           
-          <div className="flex items-end justify-center space-x-4 h-64">
+          {/* Funil unificado e centralizado */}
+          <div className="flex flex-col items-center space-y-6 h-80">
             {data.stages.map((stage, index) => (
               <motion.div
                 key={stage.name}
-                initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                initial={{ opacity: 0, y: 30, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: index * 0.2, duration: 0.6 }}
-                className="flex flex-col items-center"
+                transition={{ delay: index * 0.15, duration: 0.5 }}
+                className="flex flex-col items-center relative"
               >
-                {/* Cone 3D do funil */}
+                {/* Estágio do funil - formato unificado */}
                 <div 
-                  className={`w-${Math.max(8, 20 - index * 2)} h-${Math.max(8, 20 - index * 2)} bg-gradient-to-b ${stage.gradient} rounded-full shadow-lg transform rotate-45 flex items-center justify-center mb-2`}
+                  className={`bg-gradient-to-b ${stage.gradient} rounded-2xl shadow-xl flex items-center justify-center mb-3 relative`}
                   style={{
-                    width: `${Math.max(60, 120 - index * 15)}px`,
-                    height: `${Math.max(60, 120 - index * 15)}px`,
-                    transform: `rotate(45deg) scale(${1 - index * 0.1})`
+                    width: `${Math.max(200, 300 - index * 20)}px`,
+                    height: '80px',
+                    minWidth: '200px'
                   }}
                 >
-                  <div className="transform -rotate-45 text-white font-bold text-xs">
-                    {stage.value.toLocaleString()}
+                  <div className="flex items-center space-x-4 text-white">
+                    <div className="text-2xl">
+                      {stage.icon}
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">
+                        {stage.value.toLocaleString()}
+                      </div>
+                      <div className="text-sm opacity-90">
+                        {stage.name}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold">
+                        {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}%
+                      </div>
+                      <div className="text-xs opacity-75">
+                        conversão
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                {/* Informações do estágio */}
-                <div className="text-center">
-                  <div className="flex items-center justify-center mb-1">
-                    {stage.icon}
-                    <span className="ml-1 text-xs font-semibold text-gray-700">
-                      {stage.name}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {stage.percentage.toFixed(1)}%
-                  </div>
-                </div>
-                
-                {/* Seta para próximo estágio */}
+                {/* Seta de conexão (apenas entre estágios) */}
                 {index < data.stages.length - 1 && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.2 + 0.3 }}
-                    className="absolute top-1/2 transform -translate-y-1/2"
-                    style={{ left: `${(index + 1) * 120}px` }}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.15 + 0.3 }}
+                    className="flex items-center justify-center w-8 h-8"
                   >
-                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                    <div className="w-0.5 h-8 bg-gradient-to-b from-gray-400 to-gray-300"></div>
                   </motion.div>
                 )}
               </motion.div>
             ))}
+          </div>
+          
+          {/* Resumo do funil */}
+          <div className="mt-8 text-center">
+            <div className="inline-flex items-center space-x-6 bg-white rounded-xl p-4 shadow-lg">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {data.summary.totalClicks.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Total Cliques</div>
+              </div>
+              <div className="w-px h-8 bg-gray-300"></div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {data.summary.totalConversions.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Conversões</div>
+              </div>
+              <div className="w-px h-8 bg-gray-300"></div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {data.summary.totalConversionRate}
+                </div>
+                <div className="text-sm text-gray-600">Taxa Total</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -583,11 +621,11 @@ const Funnel: React.FC = () => {
                   {stage.value.toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-600">
-                  {stage.percentage.toFixed(1)}% de conversão
+                  {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}% de conversão
                 </div>
                 {stage.dropoffRate > 0 && (
                   <div className="text-xs text-red-500">
-                    -{stage.dropoffRate.toFixed(1)}% dropoff
+                    -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% dropoff
                   </div>
                 )}
               </div>
@@ -722,11 +760,11 @@ const Funnel: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-                             <Button
-                 onClick={toggleComparisonMode}
-                 variant={comparisonMode ? "primary" : "outline"}
-                 className="flex items-center space-x-2"
-               >
+              <Button
+                onClick={toggleComparisonMode}
+                variant={comparisonMode ? "primary" : "outline"}
+                className="flex items-center space-x-2"
+              >
                 <SplitSquareVertical className="w-4 h-4" />
                 <span>Comparar</span>
               </Button>
