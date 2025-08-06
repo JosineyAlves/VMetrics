@@ -748,42 +748,20 @@ const Funnel: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8 pb-16">
-        {/* Header */}
+                {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-                          <div>
-                <h1 className="text-2xl font-bold text-gray-800 mb-1">
-                  🎯 Análise de Funil
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Visualize e analise o funil de conversão das suas campanhas
-                </p>
-              </div>
-            
-            <div className="flex items-center space-x-3">
-              <Button
-                onClick={toggleComparisonMode}
-                variant={comparisonMode ? "primary" : "outline"}
-                className="flex items-center space-x-2"
-              >
-                <SplitSquareVertical className="w-4 h-4" />
-                <span>Comparar</span>
-              </Button>
-              
-              <Button
-                onClick={refreshData}
-                disabled={loading}
-                className="flex items-center space-x-2"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>Atualizar</span>
-              </Button>
-            </div>
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">
+              🎯 Análise de Funil
+            </h1>
+            <p className="text-sm text-gray-600">
+              Visualize e analise o funil de conversão das suas campanhas
+            </p>
           </div>
           
           {/* Controles */}
           <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {/* Seletor de Campanha */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -838,6 +816,21 @@ const Funnel: React.FC = () => {
                   <option value="2d">Análise Detalhada</option>
                   <option value="comparison">Comparação</option>
                 </select>
+              </div>
+              
+              {/* Botão Comparar */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ações
+                </label>
+                <Button
+                  onClick={toggleComparisonMode}
+                  variant={comparisonMode ? "primary" : "outline"}
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <SplitSquareVertical className="w-4 h-4" />
+                  <span>Comparar</span>
+                </Button>
               </div>
             </div>
           </div>
