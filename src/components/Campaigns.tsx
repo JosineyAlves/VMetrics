@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Search, 
@@ -16,7 +16,8 @@ import {
   Palette,
   Settings,
   GripVertical,
-  X
+  X,
+  GripHorizontal
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -132,6 +133,9 @@ const Campaigns: React.FC = () => {
   })
   const [showColumnManager, setShowColumnManager] = useState(false)
   const [draggedColumn, setDraggedColumn] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
+  const dragRef = useRef<HTMLDivElement>(null)
   
   // Função para formatar moeda
   const formatCurrency = (value: number) => {
@@ -176,6 +180,59 @@ const Campaigns: React.FC = () => {
   
   const getVisibleColumns = () => {
     return columns.filter(col => col.visible).sort((a, b) => a.order - b.order)
+  }
+  
+  // Funções para drag and drop
+  const handleDragStart = (e: React.DragEvent, columnKey: string) => {
+    setIsDragging(true)
+    setDraggedColumn(columnKey)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', columnKey)
+  }
+  
+  const handleDragOver = (e: React.DragEvent, columnKey: string) => {
+    e.preventDefault()
+    if (draggedColumn && draggedColumn !== columnKey) {
+      setDragOverColumn(columnKey)
+    }
+  }
+  
+  const handleDragLeave = () => {
+    setDragOverColumn(null)
+  }
+  
+  const handleDrop = (e: React.DragEvent, targetColumnKey: string) => {
+    e.preventDefault()
+    if (draggedColumn && draggedColumn !== targetColumnKey) {
+      const visibleColumns = getVisibleColumns()
+      const draggedIndex = visibleColumns.findIndex(col => col.key === draggedColumn)
+      const targetIndex = visibleColumns.findIndex(col => col.key === targetColumnKey)
+      
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const newColumns = [...columns]
+        const draggedColumnConfig = newColumns.find(col => col.key === draggedColumn)
+        const targetColumnConfig = newColumns.find(col => col.key === targetColumnKey)
+        
+        if (draggedColumnConfig && targetColumnConfig) {
+          // Trocar as ordens
+          const tempOrder = draggedColumnConfig.order
+          draggedColumnConfig.order = targetColumnConfig.order
+          targetColumnConfig.order = tempOrder
+          
+          setColumns(newColumns)
+          saveColumnsToStorage(newColumns)
+        }
+      }
+    }
+    setIsDragging(false)
+    setDraggedColumn(null)
+    setDragOverColumn(null)
+  }
+  
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    setDraggedColumn(null)
+    setDragOverColumn(null)
   }
   
   // Função para renderizar célula baseada na coluna
@@ -729,12 +786,13 @@ const Campaigns: React.FC = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setShowColumnManager(!showColumnManager)}
+                onClick={resetColumns}
                 className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
+                title="Resetar ordem das colunas"
               >
                 <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
-                <span className="hidden xs:inline">Colunas</span>
-                <span className="xs:hidden">Col.</span>
+                <span className="hidden xs:inline">Resetar</span>
+                <span className="xs:hidden">Reset</span>
               </Button>
             )}
             <Button 
@@ -927,78 +985,7 @@ const Campaigns: React.FC = () => {
         </motion.div>
       )}
       
-      {/* Gerenciador de Colunas */}
-      {showColumnManager && activeTab === 'campaigns' && (
-        <motion.div 
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent mb-4"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-trackview-primary">Gerenciar Colunas</h3>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetColumns}
-              >
-                Resetar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowColumnManager(false)}
-              >
-                Fechar
-              </Button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {columns.map((column, index) => (
-              <div key={column.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={column.visible}
-                      onChange={() => toggleColumnVisibility(column.key)}
-                      className="rounded border-gray-300 text-trackview-primary focus:ring-trackview-primary"
-                    />
-                    <span className="text-sm font-medium">{column.label}</span>
-                  </label>
-                </div>
-                <div className="flex gap-1">
-                  {index > 0 && (
-                    <button
-                      onClick={() => moveColumn(index, index - 1)}
-                      className="p-1 text-gray-500 hover:text-trackview-primary"
-                    >
-                      ↑
-                    </button>
-                  )}
-                  {index < columns.length - 1 && (
-                    <button
-                      onClick={() => moveColumn(index, index + 1)}
-                      className="p-1 text-gray-500 hover:text-trackview-primary"
-                    >
-                      ↓
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-4 text-sm text-gray-600">
-            <p>• Marque/desmarque as colunas para mostrar/ocultar</p>
-            <p>• Use as setas para reordenar as colunas</p>
-            <p>• Clique em "Resetar" para voltar à configuração padrão</p>
-          </div>
-        </motion.div>
-      )}
+
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
@@ -1265,6 +1252,11 @@ const Campaigns: React.FC = () => {
         className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {activeTab === 'campaigns' && (
+            <div className="p-2 bg-blue-50 border-b border-blue-200 text-xs text-blue-700 text-center">
+              💡 Arraste os cabeçalhos das colunas para reorganizá-las
+            </div>
+          )}
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -1280,8 +1272,24 @@ const Campaigns: React.FC = () => {
               <thead className="bg-trackview-background">
                 <tr>
                   {getVisibleColumns().map((column) => (
-                    <th key={column.key} className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {column.label}
+                    <th 
+                      key={column.key} 
+                      className={`px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move select-none ${
+                        draggedColumn === column.key ? 'opacity-50' : ''
+                      } ${
+                        dragOverColumn === column.key ? 'bg-blue-100 border-l-2 border-blue-500' : ''
+                      }`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, column.key)}
+                      onDragOver={(e) => handleDragOver(e, column.key)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, column.key)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <div className="flex items-center gap-1">
+                        <GripHorizontal className="w-3 h-3 text-gray-400" />
+                        <span>{column.label}</span>
+                      </div>
                     </th>
                   ))}
                 </tr>
