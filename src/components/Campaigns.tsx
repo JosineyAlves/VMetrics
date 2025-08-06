@@ -47,18 +47,7 @@ const mapRedTrackCampaign = (item: any) => {
   // Acessar dados do objeto stat se disponível
   const stat = item.stat || {};
   
-  // Debug temporário
-  console.log('🔍 [CAMPAIGNS] Mapeando campanha:', item.title);
-  console.log('🔍 [CAMPAIGNS] Stat object:', stat);
-  console.log('🔍 [CAMPAIGNS] Funnel data from stat:', {
-    prelp_views: stat.prelp_views,
-    prelp_clicks: stat.prelp_clicks,
-    lp_views: stat.lp_views,
-    lp_clicks: stat.lp_clicks,
-    initiatecheckout: stat.initiatecheckout
-  });
-  
-  const mappedCampaign = {
+  return {
     id: item.campaign_id || item.id || item.campaign_id || Math.random().toString(36).slice(2),
     name: item.campaign || item.campaign_name || item.name || item.campaign_name || item.title || 'Campanha sem nome',
     source: item.source || item.traffic_source || item.media_source || item.source_title || '',
@@ -88,16 +77,6 @@ const mapRedTrackCampaign = (item: any) => {
     lp_clicks: stat.lp_clicks || 0,
     initiatecheckout: stat.initiatecheckout || 0
   };
-  
-  console.log('🔍 [CAMPAIGNS] Final mapped campaign funnel data:', {
-    prelp_views: mappedCampaign.prelp_views,
-    prelp_clicks: mappedCampaign.prelp_clicks,
-    lp_views: mappedCampaign.lp_views,
-    lp_clicks: mappedCampaign.lp_clicks,
-    initiatecheckout: mappedCampaign.initiatecheckout
-  });
-  
-  return mappedCampaign;
 }
 
 const Campaigns: React.FC = () => {
@@ -214,29 +193,8 @@ const Campaigns: React.FC = () => {
       
       if (data && data.campaigns && Array.isArray(data.campaigns)) {
         campaignsArray = data.campaigns.map((item: { id: string; title: string; source_title?: string; status: string; stat?: any }) => {
-          const stat = item.stat || {}
-          const campaignName = item.title || 'Campanha sem nome'
-          
-          return {
-            id: item.id,
-            name: campaignName,
-            source: item.source_title || '',
-            status: item.status || 'active',
-            spend: stat.cost || 0,
-            revenue: stat.revenue || 0,
-            cpa: stat.cost > 0 && stat.conversions > 0 ? stat.cost / stat.conversions : 0,
-            roi: stat.cost > 0 ? ((stat.revenue - stat.cost) / stat.cost) * 100 : 0,
-            conversions: stat.conversions || 0,
-            clicks: stat.clicks || 0,
-            unique_clicks: stat.unique_clicks || 0,
-            impressions: stat.impressions || 0,
-            all_conversions: stat.all_conversions || 0,
-            approved: stat.approved || 0,
-            pending: stat.pending || 0,
-            declined: stat.declined || 0,
-            ctr: stat.ctr || 0,
-            conversion_rate: stat.conversion_rate || 0
-          }
+          // Usar a função mapRedTrackCampaign que inclui as métricas de funil
+          return mapRedTrackCampaign(item)
         })
       }
       

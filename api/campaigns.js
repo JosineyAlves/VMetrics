@@ -215,6 +215,17 @@ export default async function handler(req, res) {
         roas: 0
       };
       
+      // Debug: verificar dados de funil
+      console.log(`🔍 [CAMPAIGNS API] Campanha: ${campaign.title}`);
+      console.log(`🔍 [CAMPAIGNS API] Stat keys:`, Object.keys(stat));
+      console.log(`🔍 [CAMPAIGNS API] Funnel data:`, {
+        prelp_views: stat.prelp_views,
+        prelp_clicks: stat.prelp_clicks,
+        lp_views: stat.lp_views,
+        lp_clicks: stat.lp_clicks,
+        initiatecheckout: stat.initiatecheckout
+      });
+      
       return {
         id: campaign.id,
         title: campaign.title,
