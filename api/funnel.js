@@ -94,12 +94,13 @@ export default async function handler(req, res) {
     return
   }
 
-  const authHeader = req.headers['authorization']
-  let apiKey = authHeader ? authHeader.replace('Bearer ', '') : null
-
-  // Permitir também via query string
-  if (!apiKey && req.query.api_key) {
-    apiKey = req.query.api_key
+  const params = { ...req.query };
+  let apiKey = params.api_key;
+  
+  // Permitir também via Authorization header
+  if (!apiKey) {
+    const authHeader = req.headers['authorization']
+    apiKey = authHeader ? authHeader.replace('Bearer ', '') : null
   }
 
   console.log('🔍 [FUNNEL] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
@@ -108,7 +109,7 @@ export default async function handler(req, res) {
     console.error('❌ [FUNNEL] API Key não fornecida')
     return res.status(401).json({ 
       error: 'API Key é obrigatória',
-      message: 'Forneça a API Key via Authorization header ou query parameter api_key'
+      message: 'Forneça a API Key via query parameter api_key ou Authorization header'
     })
   }
 
@@ -164,31 +165,36 @@ export default async function handler(req, res) {
     const campaignsUrl = `https://api.redtrack.io/campaigns?${campaignsParams.toString()}`
     console.log('🔍 [FUNNEL] URL campanhas:', campaignsUrl)
 
-    // Fazer requisição para buscar campanhas
-    const campaignsResponse = await fetch(campaignsUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    // Fazer requisição para buscar campanhas usando a mesma estrutura do campaigns.js
+    const campaignsResponse = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: campaignsUrl, 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'TrackView-Dashboard/1.0'
+        }
+      });
+      processRequestQueue();
+    });
 
-    if (!campaignsResponse.ok) {
-      console.error('❌ [FUNNEL] Erro na API de campanhas:', campaignsResponse.status)
-      return res.status(campaignsResponse.status).json({
+    if (!campaignsResponse) {
+      console.error('❌ [FUNNEL] Erro na API de campanhas: resposta vazia')
+      return res.status(500).json({
         error: 'Erro ao buscar campanhas',
-        status: campaignsResponse.status
+        message: 'Resposta vazia da API'
       })
     }
 
-    const campaignsData = await campaignsResponse.json()
     console.log('✅ [FUNNEL] Dados de campanhas recebidos:', {
-      total: campaignsData.total || 0,
-      items: campaignsData.items?.length || 0
+      total: campaignsResponse.total || 0,
+      items: campaignsResponse.items?.length || 0
     })
 
     // Processar dados do funil baseado nas campanhas
-    const funnelData = processFunnelDataFromCampaigns(campaignsData.items || [], campaign_id)
+    const funnelData = processFunnelDataFromCampaigns(campaignsResponse.items || [], campaign_id)
 
     // Salvar no cache
     const cacheData = {
@@ -247,8 +253,6 @@ function processFunnelDataFromCampaigns(campaigns, selectedCampaignId) {
       prelp_views: acc.prelp_views + (stat.prelp_views || 0),
       lp_views: acc.lp_views + (stat.lp_views || 0),
       lp_clicks: acc.lp_clicks + (stat.lp_clicks || 0),
-      offer_views: acc.offer_views + (stat.offer_views || 0),
-      offer_clicks: acc.offer_clicks + (stat.offer_clicks || 0),
       conversions: acc.conversions + (stat.conversions || 0),
       approved: acc.approved + (stat.approved || 0),
       pending: acc.pending + (stat.pending || 0),
@@ -262,8 +266,6 @@ function processFunnelDataFromCampaigns(campaigns, selectedCampaignId) {
     prelp_views: 0,
     lp_views: 0,
     lp_clicks: 0,
-    offer_views: 0,
-    offer_clicks: 0,
     conversions: 0,
     approved: 0,
     pending: 0,
@@ -310,24 +312,22 @@ function processFunnelDataFromCampaigns(campaigns, selectedCampaignId) {
     })
   }
 
-  // Detectar Offer se houver dados
-  if (aggregatedStats.offer_views > 0 || aggregatedStats.offer_clicks > 0) {
-    const offerValue = aggregatedStats.offer_views || aggregatedStats.offer_clicks
+  // Detectar Offer (usando lp_clicks como proxy para offer views/clicks)
+  if (aggregatedStats.lp_clicks > 0) {
     const baseValue = aggregatedStats.lp_views > 0 ? aggregatedStats.lp_views : 
                      (aggregatedStats.prelp_views > 0 ? aggregatedStats.prelp_views : aggregatedStats.clicks)
-    const offerRate = baseValue > 0 ? (offerValue / baseValue) * 100 : 0
+    const offerRate = baseValue > 0 ? (aggregatedStats.lp_clicks / baseValue) * 100 : 0
     stages.push({
       name: 'Offer',
-      value: offerValue,
+      value: aggregatedStats.lp_clicks,
       percentage: offerRate,
-      description: 'Visualizações/cliques da oferta'
+      description: 'Cliques na oferta (via landing page)'
     })
   }
 
   // Sempre incluir conversões finais (apenas aprovadas)
   if (aggregatedStats.approved > 0) {
-    const baseValue = aggregatedStats.offer_views > 0 || aggregatedStats.offer_clicks > 0 ? 
-                     (aggregatedStats.offer_views || aggregatedStats.offer_clicks) :
+    const baseValue = aggregatedStats.lp_clicks > 0 ? aggregatedStats.lp_clicks :
                      (aggregatedStats.lp_views > 0 ? aggregatedStats.lp_views : 
                      (aggregatedStats.prelp_views > 0 ? aggregatedStats.prelp_views : aggregatedStats.clicks))
     const conversionRate = baseValue > 0 ? (aggregatedStats.approved / baseValue) * 100 : 0

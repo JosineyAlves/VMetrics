@@ -65,7 +65,13 @@ const mapRedTrackCampaign = (item: any) => ({
   cpc: item.cpc || 0,
   epc: item.epc || 0,
   epl: item.epl || 0,
-  roas: item.roas || 0
+  roas: item.roas || 0,
+  // Métricas de funil
+  prelp_views: item.prelp_views || 0,
+  prelp_clicks: item.prelp_clicks || 0,
+  lp_views: item.lp_views || 0,
+  lp_clicks: item.lp_clicks || 0,
+  initiatecheckout: item.initiatecheckout || 0
 })
 
 const Campaigns: React.FC = () => {
@@ -1095,12 +1101,27 @@ const Campaigns: React.FC = () => {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ROAS
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pre-LP Views
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pre-LP Clicks
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    LP Views
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    LP Clicks
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    InitiateCheckout
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-trackview-background">
                 {filteredCampaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={22} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={27} className="px-4 py-8 text-center text-gray-500">
                       {searchTerm || Object.values(filters).some(v => v) ? 
                         'Nenhuma campanha encontrada com os filtros aplicados.' :
                         'Nenhuma campanha encontrada para o período selecionado.'
@@ -1181,6 +1202,21 @@ const Campaigns: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.prelp_views?.toLocaleString() || '0'}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.prelp_clicks?.toLocaleString() || '0'}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.lp_views?.toLocaleString() || '0'}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.lp_clicks?.toLocaleString() || '0'}</div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{campaign.initiatecheckout?.toLocaleString() || '0'}</div>
                       </td>
                     </motion.tr>
                   ))
