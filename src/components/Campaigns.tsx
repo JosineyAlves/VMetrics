@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Search, 
@@ -13,11 +13,7 @@ import {
   BarChart3,
   Target,
   Link,
-  Palette,
-  Settings,
-  GripVertical,
-  X,
-  GripHorizontal
+  Palette
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -28,6 +24,9 @@ import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
 import { useCurrencyStore } from '../store/currency'
+import ColumnsSelector from './ColumnsSelector'
+import ColumnsOrder from './ColumnsOrder'
+import { useColumnsStore } from '../store/columns'
 
 interface UTMCreative {
   id: string
@@ -46,13 +45,7 @@ interface UTMCreative {
   roi: number
 }
 
-interface ColumnConfig {
-  key: string
-  label: string
-  visible: boolean
-  order: number
-  width?: string
-}
+
 
 const mapRedTrackCampaign = (item: any) => {
   // Acessar dados do objeto stat se disponível
@@ -96,46 +89,7 @@ const Campaigns: React.FC = () => {
   const { apiKey } = useAuthStore()
   const { currency } = useCurrencyStore()
   
-  // Configuração padrão das colunas
-  const defaultColumns: ColumnConfig[] = [
-    { key: 'name', label: 'Campanha', visible: true, order: 1 },
-    { key: 'source', label: 'Fonte', visible: true, order: 2 },
-    { key: 'status', label: 'Status', visible: true, order: 3 },
-    { key: 'clicks', label: 'Cliques', visible: true, order: 4 },
-    { key: 'unique_clicks', label: 'Cliques Únicos', visible: true, order: 5 },
-    { key: 'impressions', label: 'Impressões', visible: true, order: 6 },
-    { key: 'conversions', label: 'Conversões', visible: true, order: 7 },
-    { key: 'all_conversions', label: 'Todas Conversões', visible: true, order: 8 },
-    { key: 'approved', label: 'Aprovadas', visible: true, order: 9 },
-    { key: 'pending', label: 'Pendentes', visible: true, order: 10 },
-    { key: 'declined', label: 'Recusadas', visible: true, order: 11 },
-    { key: 'ctr', label: 'CTR', visible: true, order: 12 },
-    { key: 'conversion_rate', label: 'Taxa Conv.', visible: true, order: 13 },
-    { key: 'spend', label: 'Gasto', visible: true, order: 14 },
-    { key: 'revenue', label: 'Receita', visible: true, order: 15 },
-    { key: 'roi', label: 'ROI', visible: true, order: 16 },
-    { key: 'cpa', label: 'CPA', visible: true, order: 17 },
-    { key: 'cpc', label: 'CPC', visible: true, order: 18 },
-    { key: 'epc', label: 'EPC', visible: true, order: 19 },
-    { key: 'epl', label: 'EPL', visible: true, order: 20 },
-    { key: 'roas', label: 'ROAS', visible: true, order: 21 },
-    { key: 'prelp_views', label: 'Pre-LP Views', visible: true, order: 22 },
-    { key: 'prelp_clicks', label: 'Pre-LP Clicks', visible: true, order: 23 },
-    { key: 'lp_views', label: 'LP Views', visible: true, order: 24 },
-    { key: 'lp_clicks', label: 'LP Clicks', visible: true, order: 25 },
-    { key: 'initiatecheckout', label: 'InitiateCheckout', visible: true, order: 26 }
-  ]
-  
-  // Estados para gerenciar colunas
-  const [columns, setColumns] = useState<ColumnConfig[]>(() => {
-    const saved = localStorage.getItem('campaigns-columns')
-    return saved ? JSON.parse(saved) : defaultColumns
-  })
-  const [showColumnManager, setShowColumnManager] = useState(false)
-  const [draggedColumn, setDraggedColumn] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
-  const dragRef = useRef<HTMLDivElement>(null)
+
   
   // Função para formatar moeda
   const formatCurrency = (value: number) => {
@@ -146,98 +100,19 @@ const Campaigns: React.FC = () => {
     }).format(value)
   }
   
-  // Funções para gerenciar colunas
-  const saveColumnsToStorage = (newColumns: ColumnConfig[]) => {
-    localStorage.setItem('campaigns-columns', JSON.stringify(newColumns))
-  }
-  
-  const toggleColumnVisibility = (columnKey: string) => {
-    const newColumns = columns.map(col => 
-      col.key === columnKey ? { ...col, visible: !col.visible } : col
-    )
-    setColumns(newColumns)
-    saveColumnsToStorage(newColumns)
-  }
-  
-  const moveColumn = (fromIndex: number, toIndex: number) => {
-    const newColumns = [...columns]
-    const [movedColumn] = newColumns.splice(fromIndex, 1)
-    newColumns.splice(toIndex, 0, movedColumn)
-    
-    // Reordenar os índices
-    newColumns.forEach((col, index) => {
-      col.order = index + 1
-    })
-    
-    setColumns(newColumns)
-    saveColumnsToStorage(newColumns)
-  }
-  
-  const resetColumns = () => {
-    setColumns(defaultColumns)
-    saveColumnsToStorage(defaultColumns)
-  }
+  // Usar o store de colunas
+  const { selectedColumns, columnsOrder, availableColumns } = useColumnsStore()
   
   const getVisibleColumns = () => {
-    return columns.filter(col => col.visible).sort((a, b) => a.order - b.order)
-  }
-  
-  // Funções para drag and drop
-  const handleDragStart = (e: React.DragEvent, columnKey: string) => {
-    setIsDragging(true)
-    setDraggedColumn(columnKey)
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/html', columnKey)
-  }
-  
-  const handleDragOver = (e: React.DragEvent, columnKey: string) => {
-    e.preventDefault()
-    if (draggedColumn && draggedColumn !== columnKey) {
-      setDragOverColumn(columnKey)
-    }
-  }
-  
-  const handleDragLeave = () => {
-    setDragOverColumn(null)
-  }
-  
-  const handleDrop = (e: React.DragEvent, targetColumnKey: string) => {
-    e.preventDefault()
-    if (draggedColumn && draggedColumn !== targetColumnKey) {
-      const visibleColumns = getVisibleColumns()
-      const draggedIndex = visibleColumns.findIndex(col => col.key === draggedColumn)
-      const targetIndex = visibleColumns.findIndex(col => col.key === targetColumnKey)
-      
-      if (draggedIndex !== -1 && targetIndex !== -1) {
-        const newColumns = [...columns]
-        const draggedColumnConfig = newColumns.find(col => col.key === draggedColumn)
-        const targetColumnConfig = newColumns.find(col => col.key === targetColumnKey)
-        
-        if (draggedColumnConfig && targetColumnConfig) {
-          // Trocar as ordens
-          const tempOrder = draggedColumnConfig.order
-          draggedColumnConfig.order = targetColumnConfig.order
-          targetColumnConfig.order = tempOrder
-          
-          setColumns(newColumns)
-          saveColumnsToStorage(newColumns)
-        }
-      }
-    }
-    setIsDragging(false)
-    setDraggedColumn(null)
-    setDragOverColumn(null)
-  }
-  
-  const handleDragEnd = () => {
-    setIsDragging(false)
-    setDraggedColumn(null)
-    setDragOverColumn(null)
+    return columnsOrder
+      .filter(columnId => selectedColumns.includes(columnId))
+      .map(columnId => availableColumns.find(c => c.id === columnId))
+      .filter(Boolean)
   }
   
   // Função para renderizar célula baseada na coluna
-  const renderCell = (campaign: any, column: ColumnConfig) => {
-    switch (column.key) {
+  const renderCell = (campaign: any, column: any) => {
+    switch (column.id) {
       case 'name':
         return <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
       case 'source':
@@ -783,17 +658,10 @@ const Campaigns: React.FC = () => {
           {/* Botões de controle alinhados à direita */}
           <div className="flex gap-2">
             {activeTab === 'campaigns' && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={resetColumns}
-                className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
-                title="Resetar ordem das colunas"
-              >
-                <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
-                <span className="hidden xs:inline">Resetar</span>
-                <span className="xs:hidden">Reset</span>
-              </Button>
+              <>
+                <ColumnsSelector />
+                <ColumnsOrder />
+              </>
             )}
             <Button 
               variant="outline" 
@@ -1252,11 +1120,6 @@ const Campaigns: React.FC = () => {
         className="bg-white rounded-xl shadow-sm border border-trackview-accent overflow-hidden"
       >
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {activeTab === 'campaigns' && (
-            <div className="p-2 bg-blue-50 border-b border-blue-200 text-xs text-blue-700 text-center">
-              💡 Arraste os cabeçalhos das colunas para reorganizá-las
-            </div>
-          )}
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -1272,24 +1135,8 @@ const Campaigns: React.FC = () => {
               <thead className="bg-trackview-background">
                 <tr>
                   {getVisibleColumns().map((column) => (
-                    <th 
-                      key={column.key} 
-                      className={`px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-move select-none ${
-                        draggedColumn === column.key ? 'opacity-50' : ''
-                      } ${
-                        dragOverColumn === column.key ? 'bg-blue-100 border-l-2 border-blue-500' : ''
-                      }`}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, column.key)}
-                      onDragOver={(e) => handleDragOver(e, column.key)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, column.key)}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <div className="flex items-center gap-1">
-                        <GripHorizontal className="w-3 h-3 text-gray-400" />
-                        <span>{column.label}</span>
-                      </div>
+                    <th key={column?.id} className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {column?.label}
                     </th>
                   ))}
                 </tr>
@@ -1314,7 +1161,7 @@ const Campaigns: React.FC = () => {
                       className="hover:bg-trackview-background"
                     >
                       {getVisibleColumns().map((column) => (
-                        <td key={column.key} className="px-4 py-3 whitespace-nowrap">
+                        <td key={column?.id} className="px-4 py-3 whitespace-nowrap">
                           {renderCell(campaign, column)}
                         </td>
                       ))}
