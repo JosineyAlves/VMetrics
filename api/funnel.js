@@ -120,7 +120,7 @@ export default async function handler(req, res) {
       campaign_id,
       status = 'APPROVED',
       type = 'conversion',
-      per = 1000
+      per = 100
     } = req.query
 
     // Validar parâmetros obrigatórios
@@ -150,91 +150,45 @@ export default async function handler(req, res) {
       return res.status(200).json(cachedData.data)
     }
 
-    // Adicionar à fila de requisições
-    const queuePromise = new Promise((resolve, reject) => {
-      requestQueue.push({
-        resolve,
-        reject,
-        url: null, // Será definido abaixo
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      })
-    })
-
-    // Buscar dados de conversões
-    const conversionsParams = new URLSearchParams({
+    // Buscar dados de campanhas do RedTrack
+    const campaignsParams = new URLSearchParams({
       api_key: apiKey,
       date_from,
       date_to,
       per: per.toString(),
-      ...(campaign_id && { campaign_id }),
-      ...(status && { status }),
-      ...(type && { type })
+      with_clicks: 'true',
+      total: 'true',
+      timezone: 'America/Sao_Paulo'
     })
 
-    const conversionsUrl = `https://api.redtrack.io/conversions?${conversionsParams.toString()}`
-    console.log('🔍 [FUNNEL] URL conversões:', conversionsUrl)
+    const campaignsUrl = `https://api.redtrack.io/campaigns?${campaignsParams.toString()}`
+    console.log('🔍 [FUNNEL] URL campanhas:', campaignsUrl)
 
-    // Buscar dados de tracks (cliques)
-    const tracksParams = new URLSearchParams({
-      api_key: apiKey,
-      date_from,
-      date_to,
-      per: per.toString(),
-      ...(campaign_id && { campaign_id })
+    // Fazer requisição para buscar campanhas
+    const campaignsResponse = await fetch(campaignsUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
     })
 
-    const tracksUrl = `https://api.redtrack.io/tracks?${tracksParams.toString()}`
-    console.log('🔍 [FUNNEL] URL tracks:', tracksUrl)
-
-    // Fazer requisições paralelas
-    const [conversionsResponse, tracksResponse] = await Promise.all([
-      fetch(conversionsUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      }),
-      fetch(tracksUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      })
-    ])
-
-    if (!conversionsResponse.ok) {
-      console.error('❌ [FUNNEL] Erro na API de conversões:', conversionsResponse.status)
-      return res.status(conversionsResponse.status).json({
-        error: 'Erro ao buscar conversões',
-        status: conversionsResponse.status
+    if (!campaignsResponse.ok) {
+      console.error('❌ [FUNNEL] Erro na API de campanhas:', campaignsResponse.status)
+      return res.status(campaignsResponse.status).json({
+        error: 'Erro ao buscar campanhas',
+        status: campaignsResponse.status
       })
     }
 
-    if (!tracksResponse.ok) {
-      console.error('❌ [FUNNEL] Erro na API de tracks:', tracksResponse.status)
-      return res.status(tracksResponse.status).json({
-        error: 'Erro ao buscar tracks',
-        status: tracksResponse.status
-      })
-    }
-
-    const [conversionsData, tracksData] = await Promise.all([
-      conversionsResponse.json(),
-      tracksResponse.json()
-    ])
-
-    console.log('✅ [FUNNEL] Dados recebidos:', {
-      conversions: conversionsData.items?.length || 0,
-      tracks: tracksData.items?.length || 0
+    const campaignsData = await campaignsResponse.json()
+    console.log('✅ [FUNNEL] Dados de campanhas recebidos:', {
+      total: campaignsData.total || 0,
+      items: campaignsData.items?.length || 0
     })
 
-    // Processar dados do funil
-    const funnelData = processFunnelData(conversionsData.items || [], tracksData.items || [])
+    // Processar dados do funil baseado nas campanhas
+    const funnelData = processFunnelDataFromCampaigns(campaignsData.items || [], campaign_id)
 
     // Salvar no cache
     const cacheData = {
@@ -256,101 +210,130 @@ export default async function handler(req, res) {
   }
 }
 
-// Função para processar dados do funil
-function processFunnelData(conversions, tracks) {
-  console.log('🔍 [FUNNEL] Processando dados do funil...')
+// Função para processar dados do funil baseado nas campanhas
+function processFunnelDataFromCampaigns(campaigns, selectedCampaignId) {
+  console.log('🔍 [FUNNEL] Processando dados do funil baseado em campanhas...')
   
-  // Calcular cliques totais
-  const totalClicks = tracks.reduce((sum, track) => sum + (track.clicks || 0), 0)
-  console.log('🔍 [FUNNEL] Total de cliques:', totalClicks)
+  // Se um campaign_id específico foi fornecido, filtrar apenas essa campanha
+  let targetCampaigns = campaigns
+  if (selectedCampaignId) {
+    targetCampaigns = campaigns.filter(campaign => campaign.id == selectedCampaignId)
+    console.log('🔍 [FUNNEL] Filtrando campanha específica:', selectedCampaignId)
+  }
 
-  // Detectar estágios do funil
+  if (targetCampaigns.length === 0) {
+    console.log('⚠️ [FUNNEL] Nenhuma campanha encontrada')
+    return {
+      stages: [],
+      totalVolume: 0,
+      totalConversionRate: 0,
+      totalStages: 0,
+      summary: {
+        totalClicks: 0,
+        totalConversions: 0,
+        totalConversionRate: '0%'
+      },
+      message: 'Nenhuma campanha foi encontrada'
+    }
+  }
+
+  // Agregar dados de todas as campanhas selecionadas
+  const aggregatedStats = targetCampaigns.reduce((acc, campaign) => {
+    const stat = campaign.stat || {}
+    
+    return {
+      clicks: acc.clicks + (stat.clicks || 0),
+      unique_clicks: acc.unique_clicks + (stat.unique_clicks || 0),
+      prelp_views: acc.prelp_views + (stat.prelp_views || 0),
+      lp_views: acc.lp_views + (stat.lp_views || 0),
+      lp_clicks: acc.lp_clicks + (stat.lp_clicks || 0),
+      offer_views: acc.offer_views + (stat.offer_views || 0),
+      offer_clicks: acc.offer_clicks + (stat.offer_clicks || 0),
+      conversions: acc.conversions + (stat.conversions || 0),
+      approved: acc.approved + (stat.approved || 0),
+      pending: acc.pending + (stat.pending || 0),
+      declined: acc.declined + (stat.declined || 0),
+      revenue: acc.revenue + (stat.revenue || 0),
+      cost: acc.cost + (stat.cost || 0)
+    }
+  }, {
+    clicks: 0,
+    unique_clicks: 0,
+    prelp_views: 0,
+    lp_views: 0,
+    lp_clicks: 0,
+    offer_views: 0,
+    offer_clicks: 0,
+    conversions: 0,
+    approved: 0,
+    pending: 0,
+    declined: 0,
+    revenue: 0,
+    cost: 0
+  })
+
+  console.log('🔍 [FUNNEL] Estatísticas agregadas:', aggregatedStats)
+
+  // Construir estágios do funil
   const stages = []
 
   // Sempre incluir cliques como primeiro estágio
-  if (totalClicks > 0) {
+  if (aggregatedStats.clicks > 0) {
     stages.push({
       name: 'Cliques',
-      value: totalClicks,
+      value: aggregatedStats.clicks,
       percentage: 100,
       description: 'Total de cliques recebidos'
     })
   }
 
   // Detectar Pre-LP se houver dados
-  const prelpViews = conversions.reduce((sum, conv) => {
-    return sum + (conv.prelp_views || conv.pre_landing_views || 0)
-  }, 0)
-  
-  if (prelpViews > 0) {
-    const prelpRate = totalClicks > 0 ? (prelpViews / totalClicks) * 100 : 0
+  if (aggregatedStats.prelp_views > 0) {
+    const prelpRate = aggregatedStats.clicks > 0 ? (aggregatedStats.prelp_views / aggregatedStats.clicks) * 100 : 0
     stages.push({
       name: 'Pre-LP',
-      value: prelpViews,
+      value: aggregatedStats.prelp_views,
       percentage: prelpRate,
       description: 'Visualizações da página pré-landing'
     })
   }
 
   // Detectar LP se houver dados
-  const lpViews = conversions.reduce((sum, conv) => {
-    return sum + (conv.lp_views || conv.landing_views || 0)
-  }, 0)
-  
-  if (lpViews > 0) {
-    const baseValue = prelpViews > 0 ? prelpViews : totalClicks
-    const lpRate = baseValue > 0 ? (lpViews / baseValue) * 100 : 0
+  if (aggregatedStats.lp_views > 0) {
+    const baseValue = aggregatedStats.prelp_views > 0 ? aggregatedStats.prelp_views : aggregatedStats.clicks
+    const lpRate = baseValue > 0 ? (aggregatedStats.lp_views / baseValue) * 100 : 0
     stages.push({
       name: 'LP',
-      value: lpViews,
+      value: aggregatedStats.lp_views,
       percentage: lpRate,
       description: 'Visualizações da landing page'
     })
   }
 
   // Detectar Offer se houver dados
-  const offerViews = conversions.reduce((sum, conv) => {
-    return sum + (conv.offer_views || conv.offer_clicks || 0)
-  }, 0)
-  
-  if (offerViews > 0) {
-    const baseValue = lpViews > 0 ? lpViews : (prelpViews > 0 ? prelpViews : totalClicks)
-    const offerRate = baseValue > 0 ? (offerViews / baseValue) * 100 : 0
+  if (aggregatedStats.offer_views > 0 || aggregatedStats.offer_clicks > 0) {
+    const offerValue = aggregatedStats.offer_views || aggregatedStats.offer_clicks
+    const baseValue = aggregatedStats.lp_views > 0 ? aggregatedStats.lp_views : 
+                     (aggregatedStats.prelp_views > 0 ? aggregatedStats.prelp_views : aggregatedStats.clicks)
+    const offerRate = baseValue > 0 ? (offerValue / baseValue) * 100 : 0
     stages.push({
       name: 'Offer',
-      value: offerViews,
+      value: offerValue,
       percentage: offerRate,
       description: 'Visualizações/cliques da oferta'
     })
   }
 
-  // Detectar InitiateCheckout se houver dados
-  const initiateCheckouts = conversions.filter(conv => conv.type === 'initiatecheckout').length
-  if (initiateCheckouts > 0) {
-    const baseValue = offerViews > 0 ? offerViews : (lpViews > 0 ? lpViews : (prelpViews > 0 ? prelpViews : totalClicks))
-    const checkoutRate = baseValue > 0 ? (initiateCheckouts / baseValue) * 100 : 0
-    stages.push({
-      name: 'InitiateCheckout',
-      value: initiateCheckouts,
-      percentage: checkoutRate,
-      description: 'Inícios de checkout'
-    })
-  }
-
-  // Sempre incluir conversões finais
-  const finalConversions = conversions.filter(conv => 
-    conv.type === 'conversion' && conv.status === 'APPROVED'
-  ).length
-  
-  if (finalConversions > 0) {
-    const baseValue = initiateCheckouts > 0 ? initiateCheckouts : 
-                     (offerViews > 0 ? offerViews : 
-                     (lpViews > 0 ? lpViews : 
-                     (prelpViews > 0 ? prelpViews : totalClicks)))
-    const conversionRate = baseValue > 0 ? (finalConversions / baseValue) * 100 : 0
+  // Sempre incluir conversões finais (apenas aprovadas)
+  if (aggregatedStats.approved > 0) {
+    const baseValue = aggregatedStats.offer_views > 0 || aggregatedStats.offer_clicks > 0 ? 
+                     (aggregatedStats.offer_views || aggregatedStats.offer_clicks) :
+                     (aggregatedStats.lp_views > 0 ? aggregatedStats.lp_views : 
+                     (aggregatedStats.prelp_views > 0 ? aggregatedStats.prelp_views : aggregatedStats.clicks))
+    const conversionRate = baseValue > 0 ? (aggregatedStats.approved / baseValue) * 100 : 0
     stages.push({
       name: 'Conversão',
-      value: finalConversions,
+      value: aggregatedStats.approved,
       percentage: conversionRate,
       description: 'Conversões aprovadas'
     })
@@ -371,9 +354,14 @@ function processFunnelData(conversions, tracks) {
     totalConversionRate,
     totalStages: stages.length,
     summary: {
-      totalClicks,
-      totalConversions: finalConversions,
+      totalClicks: aggregatedStats.clicks,
+      totalConversions: aggregatedStats.approved,
       totalConversionRate: totalConversionRate.toFixed(2) + '%'
-    }
+    },
+    campaigns: targetCampaigns.map(campaign => ({
+      id: campaign.id,
+      title: campaign.title,
+      source_title: campaign.source_title || ''
+    }))
   }
 } 
