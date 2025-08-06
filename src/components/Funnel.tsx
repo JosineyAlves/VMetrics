@@ -11,8 +11,15 @@ import {
   ShoppingCart,
   CheckCircle,
   Eye,
-  MousePointer
+  MousePointer,
+  ArrowRight,
+  Percent,
+  Activity,
+  Zap,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../store/auth'
 import { useDateRangeStore } from '../store/dateRange'
 import { Button } from './ui/button'
@@ -27,6 +34,8 @@ interface FunnelStage {
   color: string
   gradient: string
   description: string
+  conversionRate: number
+  dropoffRate: number
 }
 
 interface Campaign {
@@ -38,6 +47,12 @@ interface Campaign {
   revenue: number
   conversions: number
   clicks: number
+  prelp_views: number
+  prelp_clicks: number
+  lp_views: number
+  lp_clicks: number
+  initiatecheckout: number
+  all_conversions: number
 }
 
 interface FunnelData {
@@ -49,7 +64,11 @@ interface FunnelData {
     totalClicks: number
     totalConversions: number
     totalConversionRate: string
+    totalRevenue: number
+    totalSpend: number
+    roi: number
   }
+  campaign: Campaign
 }
 
 const Funnel: React.FC = () => {
@@ -65,6 +84,7 @@ const Funnel: React.FC = () => {
   const [comparisonMode, setComparisonMode] = useState(false)
   const [funnelData2, setFunnelData2] = useState<FunnelData | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'3d' | '2d' | 'comparison'>('3d')
   const [filters, setFilters] = useState({
     status: 'APPROVED',
     type: 'conversion'
@@ -99,17 +119,27 @@ const Funnel: React.FC = () => {
       if (data && data.campaigns && Array.isArray(data.campaigns)) {
         const campaignsArray = data.campaigns.map((item: any) => ({
           id: item.id,
-          name: item.title || 'Campanha sem nome',
-          source: item.source_title || '',
+          name: item.title || item.name || 'Campanha sem nome',
+          source: item.source_title || item.source || '',
           status: item.status || 'active',
           spend: item.stat?.cost || 0,
           revenue: item.stat?.revenue || 0,
           conversions: item.stat?.conversions || 0,
-          clicks: item.stat?.clicks || 0
+          clicks: item.stat?.clicks || 0,
+          prelp_views: item.stat?.prelp_views || 0,
+          prelp_clicks: item.stat?.prelp_clicks || 0,
+          lp_views: item.stat?.lp_views || 0,
+          lp_clicks: item.stat?.lp_clicks || 0,
+          initiatecheckout: item.stat?.convtype1 || 0,
+          all_conversions: item.stat?.total_conversions || 0
         }))
         
         setCampaigns(campaignsArray)
-        console.log('Campanhas carregadas:', campaignsArray.length)
+        
+        // Selecionar primeira campanha automaticamente
+        if (campaignsArray.length > 0 && !selectedCampaign) {
+          setSelectedCampaign(campaignsArray[0].id)
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar campanhas:', error)
@@ -118,180 +148,402 @@ const Funnel: React.FC = () => {
 
   // Carregar dados do funil para uma campanha específica
   const loadFunnelData = async (campaignId?: string) => {
-    if (!apiKey) return
+    if (!apiKey || !campaignId) return
     
     setLoading(true)
-    setLoadingMessage('Carregando dados do funil...')
+    setLoadingMessage('Analisando funil de conversão...')
     
     try {
-      const { getDateRange } = await import('../lib/utils')
-      const dateRange = getDateRange(selectedPeriod, customRange)
+      const campaign = campaigns.find(c => c.id === campaignId)
+      if (!campaign) return
       
-      if (!dateRange.startDate || !dateRange.endDate) return
+      // Criar estágios do funil baseados nos dados da campanha
+      const stages: FunnelStage[] = []
       
-      const params = {
-        api_key: apiKey,
-        date_from: dateRange.startDate,
-        date_to: dateRange.endDate,
-        status: filters.status,
-        type: filters.type,
-        ...(campaignId && { campaign_id: campaignId })
+      // Estágio 1: Cliques
+      if (campaign.clicks > 0) {
+        stages.push({
+          name: 'Cliques',
+          value: campaign.clicks,
+          percentage: 100,
+          icon: <MousePointer className="w-4 h-4" />,
+          color: 'blue',
+          gradient: 'from-blue-500 to-blue-600',
+          description: 'Total de cliques recebidos',
+          conversionRate: 100,
+          dropoffRate: 0
+        })
       }
       
-      const url = new URL('/api/funnel', window.location.origin)
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          url.searchParams.set(key, value.toString())
-        }
-      })
-      
-      const response = await fetch(url.toString(), {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`)
+      // Estágio 2: Pre-LP Views
+      if (campaign.prelp_views > 0) {
+        const conversionRate = (campaign.prelp_views / campaign.clicks) * 100
+        stages.push({
+          name: 'Pre-LP Views',
+          value: campaign.prelp_views,
+          percentage: conversionRate,
+          icon: <Eye className="w-4 h-4" />,
+          color: 'cyan',
+          gradient: 'from-cyan-500 to-cyan-600',
+          description: 'Visualizações da pré-landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
       }
       
-      const data = await response.json()
-      
-      // Processar estágios do funil com ícones e cores
-      const processedStages = data.stages.map((stage: any, index: number) => {
-        const stageConfig = getStageConfig(stage.name, index)
-        return {
-          ...stage,
-          icon: stageConfig.icon,
-          color: stageConfig.color,
-          gradient: stageConfig.gradient
-        }
-      })
-      
-      const processedData = {
-        ...data,
-        stages: processedStages
+      // Estágio 3: Pre-LP Clicks
+      if (campaign.prelp_clicks > 0) {
+        const conversionRate = (campaign.prelp_clicks / campaign.prelp_views) * 100
+        stages.push({
+          name: 'Pre-LP Clicks',
+          value: campaign.prelp_clicks,
+          percentage: conversionRate,
+          icon: <MousePointer className="w-4 h-4" />,
+          color: 'indigo',
+          gradient: 'from-indigo-500 to-indigo-600',
+          description: 'Cliques na pré-landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
       }
       
-      return processedData
+      // Estágio 4: LP Views
+      if (campaign.lp_views > 0) {
+        const conversionRate = (campaign.lp_views / campaign.prelp_clicks) * 100
+        stages.push({
+          name: 'LP Views',
+          value: campaign.lp_views,
+          percentage: conversionRate,
+          icon: <Eye className="w-4 h-4" />,
+          color: 'green',
+          gradient: 'from-green-500 to-green-600',
+          description: 'Visualizações da landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 5: LP Clicks
+      if (campaign.lp_clicks > 0) {
+        const conversionRate = (campaign.lp_clicks / campaign.lp_views) * 100
+        stages.push({
+          name: 'LP Clicks',
+          value: campaign.lp_clicks,
+          percentage: conversionRate,
+          icon: <MousePointer className="w-4 h-4" />,
+          color: 'emerald',
+          gradient: 'from-emerald-500 to-emerald-600',
+          description: 'Cliques na landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 6: Initiate Checkout
+      if (campaign.initiatecheckout > 0) {
+        const conversionRate = (campaign.initiatecheckout / campaign.lp_clicks) * 100
+        stages.push({
+          name: 'Initiate Checkout',
+          value: campaign.initiatecheckout,
+          percentage: conversionRate,
+          icon: <ShoppingCart className="w-4 h-4" />,
+          color: 'orange',
+          gradient: 'from-orange-500 to-orange-600',
+          description: 'Inícios de checkout',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 7: Conversões
+      if (campaign.conversions > 0) {
+        const conversionRate = (campaign.conversions / campaign.initiatecheckout) * 100
+        stages.push({
+          name: 'Conversões',
+          value: campaign.conversions,
+          percentage: conversionRate,
+          icon: <CheckCircle className="w-4 h-4" />,
+          color: 'red',
+          gradient: 'from-red-500 to-red-600',
+          description: 'Conversões finais',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Calcular métricas totais
+      const totalConversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0
+      const roi = campaign.spend > 0 ? ((campaign.revenue - campaign.spend) / campaign.spend) * 100 : 0
+      
+      const funnelData: FunnelData = {
+        stages,
+        totalVolume: campaign.clicks,
+        totalConversionRate,
+        totalStages: stages.length,
+        summary: {
+          totalClicks: campaign.clicks,
+          totalConversions: campaign.conversions,
+          totalConversionRate: `${totalConversionRate.toFixed(2)}%`,
+          totalRevenue: campaign.revenue,
+          totalSpend: campaign.spend,
+          roi
+        },
+        campaign
+      }
+      
+      setFunnelData(funnelData)
+      
     } catch (error) {
       console.error('Erro ao carregar dados do funil:', error)
-      return null
     } finally {
       setLoading(false)
-    }
-  }
-
-  // Configuração visual para cada estágio do funil
-  const getStageConfig = (stageName: string, index: number) => {
-    const configs = {
-      'Cliques': {
-        icon: <MousePointer className="w-6 h-6" />,
-        color: 'text-blue-600',
-        gradient: 'from-blue-500 to-blue-600'
-      },
-      'Pre-LP': {
-        icon: <Eye className="w-6 h-6" />,
-        color: 'text-purple-600',
-        gradient: 'from-purple-500 to-purple-600'
-      },
-      'LP': {
-        icon: <BarChart3 className="w-6 h-6" />,
-        color: 'text-green-600',
-        gradient: 'from-green-500 to-green-600'
-      },
-      'Offer': {
-        icon: <Target className="w-6 h-6" />,
-        color: 'text-orange-600',
-        gradient: 'from-orange-500 to-orange-600'
-      },
-      'InitiateCheckout': {
-        icon: <ShoppingCart className="w-6 h-6" />,
-        color: 'text-yellow-600',
-        gradient: 'from-yellow-500 to-yellow-600'
-      },
-      'Conversão': {
-        icon: <CheckCircle className="w-6 h-6" />,
-        color: 'text-red-600',
-        gradient: 'from-red-500 to-red-600'
-      }
-    }
-    
-    return configs[stageName as keyof typeof configs] || {
-      icon: <Users className="w-6 h-6" />,
-      color: 'text-gray-600',
-      gradient: 'from-gray-500 to-gray-600'
     }
   }
 
   // Carregar dados quando campanha é selecionada
   const handleCampaignSelect = async (campaignId: string) => {
     setSelectedCampaign(campaignId)
-    const data = await loadFunnelData(campaignId)
-    setFunnelData(data)
+    await loadFunnelData(campaignId)
   }
 
-  // Carregar dados para comparação
   const handleCampaign2Select = async (campaignId: string) => {
     setSelectedCampaign2(campaignId)
-    const data = await loadFunnelData(campaignId)
-    setFunnelData2(data)
-  }
-
-  // Alternar modo de comparação
-  const toggleComparisonMode = () => {
-    setComparisonMode(!comparisonMode)
-    if (!comparisonMode) {
-      setSelectedCampaign2('')
+    // Carregar dados da segunda campanha para comparação
+    if (campaignId) {
+      const campaign = campaigns.find(c => c.id === campaignId)
+      if (!campaign) return
+      
+      // Criar estágios do funil para a segunda campanha
+      const stages: FunnelStage[] = []
+      
+      // Estágio 1: Cliques
+      if (campaign.clicks > 0) {
+        stages.push({
+          name: 'Cliques',
+          value: campaign.clicks,
+          percentage: 100,
+          icon: <MousePointer className="w-4 h-4" />,
+          color: 'blue',
+          gradient: 'from-blue-500 to-blue-600',
+          description: 'Total de cliques recebidos',
+          conversionRate: 100,
+          dropoffRate: 0
+        })
+      }
+      
+      // Estágio 2: Pre-LP Views
+      if (campaign.prelp_views > 0) {
+        const conversionRate = (campaign.prelp_views / campaign.clicks) * 100
+        stages.push({
+          name: 'Pre-LP Views',
+          value: campaign.prelp_views,
+          percentage: conversionRate,
+          icon: <Eye className="w-4 h-4" />,
+          color: 'cyan',
+          gradient: 'from-cyan-500 to-cyan-600',
+          description: 'Visualizações da pré-landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 3: Pre-LP Clicks
+      if (campaign.prelp_clicks > 0) {
+        const conversionRate = (campaign.prelp_clicks / campaign.prelp_views) * 100
+        stages.push({
+          name: 'Pre-LP Clicks',
+          value: campaign.prelp_clicks,
+          percentage: conversionRate,
+          icon: <MousePointer className="w-4 h-4" />,
+          color: 'indigo',
+          gradient: 'from-indigo-500 to-indigo-600',
+          description: 'Cliques na pré-landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 4: LP Views
+      if (campaign.lp_views > 0) {
+        const conversionRate = (campaign.lp_views / campaign.prelp_clicks) * 100
+        stages.push({
+          name: 'LP Views',
+          value: campaign.lp_views,
+          percentage: conversionRate,
+          icon: <Eye className="w-4 h-4" />,
+          color: 'green',
+          gradient: 'from-green-500 to-green-600',
+          description: 'Visualizações da landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 5: LP Clicks
+      if (campaign.lp_clicks > 0) {
+        const conversionRate = (campaign.lp_clicks / campaign.lp_views) * 100
+        stages.push({
+          name: 'LP Clicks',
+          value: campaign.lp_clicks,
+          percentage: conversionRate,
+          icon: <MousePointer className="w-4 h-4" />,
+          color: 'emerald',
+          gradient: 'from-emerald-500 to-emerald-600',
+          description: 'Cliques na landing page',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 6: Initiate Checkout
+      if (campaign.initiatecheckout > 0) {
+        const conversionRate = (campaign.initiatecheckout / campaign.lp_clicks) * 100
+        stages.push({
+          name: 'Initiate Checkout',
+          value: campaign.initiatecheckout,
+          percentage: conversionRate,
+          icon: <ShoppingCart className="w-4 h-4" />,
+          color: 'orange',
+          gradient: 'from-orange-500 to-orange-600',
+          description: 'Inícios de checkout',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Estágio 7: Conversões
+      if (campaign.conversions > 0) {
+        const conversionRate = (campaign.conversions / campaign.initiatecheckout) * 100
+        stages.push({
+          name: 'Conversões',
+          value: campaign.conversions,
+          percentage: conversionRate,
+          icon: <CheckCircle className="w-4 h-4" />,
+          color: 'red',
+          gradient: 'from-red-500 to-red-600',
+          description: 'Conversões finais',
+          conversionRate: conversionRate,
+          dropoffRate: 100 - conversionRate
+        })
+      }
+      
+      // Calcular métricas totais
+      const totalConversionRate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0
+      const roi = campaign.spend > 0 ? ((campaign.revenue - campaign.spend) / campaign.spend) * 100 : 0
+      
+      const funnelData2: FunnelData = {
+        stages,
+        totalVolume: campaign.clicks,
+        totalConversionRate,
+        totalStages: stages.length,
+        summary: {
+          totalClicks: campaign.clicks,
+          totalConversions: campaign.conversions,
+          totalConversionRate: `${totalConversionRate.toFixed(2)}%`,
+          totalRevenue: campaign.revenue,
+          totalSpend: campaign.spend,
+          roi
+        },
+        campaign
+      }
+      
+      setFunnelData2(funnelData2)
+    } else {
       setFunnelData2(null)
     }
   }
 
-  // Atualizar dados
-  const refreshData = async () => {
-    if (selectedCampaign) {
-      const data = await loadFunnelData(selectedCampaign)
-      setFunnelData(data)
-    }
-    if (comparisonMode && selectedCampaign2) {
-      const data2 = await loadFunnelData(selectedCampaign2)
-      setFunnelData2(data2)
+  const toggleComparisonMode = () => {
+    setComparisonMode(!comparisonMode)
+    if (!comparisonMode) {
+      setViewMode('comparison')
+    } else {
+      setViewMode('3d')
     }
   }
 
-  // Carregar campanhas na inicialização
+  const refreshData = async () => {
+    await loadCampaigns()
+    if (selectedCampaign) {
+      await loadFunnelData(selectedCampaign)
+    }
+  }
+
   useEffect(() => {
     loadCampaigns()
   }, [apiKey, selectedPeriod, customRange])
 
+  useEffect(() => {
+    if (selectedCampaign) {
+      loadFunnelData(selectedCampaign)
+    }
+  }, [selectedCampaign])
+
   // Componente de visualização 3D do funil
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
-      <div className="relative w-full h-96 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50"></div>
+      <div className="relative w-full h-96 bg-gradient-to-b from-gray-50 to-white rounded-2xl p-8 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30"></div>
         
         <div className="relative z-10 flex flex-col items-center justify-center h-full">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Funil de Conversão</h3>
-            <p className="text-gray-600">Taxa de conversão total: {data.summary.totalConversionRate}</p>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              Funil de Conversão - {data.campaign.name}
+            </h3>
+            <p className="text-gray-600">
+              Análise detalhada do fluxo de conversão
+            </p>
           </div>
           
-          <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-end justify-center space-x-4 h-64">
             {data.stages.map((stage, index) => (
-              <div key={stage.name} className="flex flex-col items-center">
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${stage.gradient} flex items-center justify-center text-white shadow-lg transform hover:scale-110 transition-transform duration-300`}>
-                  {stage.icon}
+              <motion.div
+                key={stage.name}
+                initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: index * 0.2, duration: 0.6 }}
+                className="flex flex-col items-center"
+              >
+                {/* Cone 3D do funil */}
+                <div 
+                  className={`w-${Math.max(8, 20 - index * 2)} h-${Math.max(8, 20 - index * 2)} bg-gradient-to-b ${stage.gradient} rounded-full shadow-lg transform rotate-45 flex items-center justify-center mb-2`}
+                  style={{
+                    width: `${Math.max(60, 120 - index * 15)}px`,
+                    height: `${Math.max(60, 120 - index * 15)}px`,
+                    transform: `rotate(45deg) scale(${1 - index * 0.1})`
+                  }}
+                >
+                  <div className="transform -rotate-45 text-white font-bold text-xs">
+                    {stage.value.toLocaleString()}
+                  </div>
                 </div>
-                <div className="mt-2 text-center">
-                  <p className="text-sm font-semibold text-gray-800">{stage.name}</p>
-                  <p className="text-xs text-gray-600">{stage.value.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">{stage.percentage.toFixed(1)}%</p>
+                
+                {/* Informações do estágio */}
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    {stage.icon}
+                    <span className="ml-1 text-xs font-semibold text-gray-700">
+                      {stage.name}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {stage.percentage.toFixed(1)}%
+                  </div>
                 </div>
+                
+                {/* Seta para próximo estágio */}
                 {index < data.stages.length - 1 && (
-                  <div className="w-8 h-0.5 bg-gray-300 mt-4"></div>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.2 + 0.3 }}
+                    className="absolute top-1/2 transform -translate-y-1/2"
+                    style={{ left: `${(index + 1) * 120}px` }}
+                  >
+                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                  </motion.div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -299,282 +551,323 @@ const Funnel: React.FC = () => {
     )
   }
 
-  // Componente de comparação
-  const ComparisonView: React.FC = () => {
-    if (!funnelData || !funnelData2) return null
-
+  // Componente de visualização 2D do funil
+  const Funnel2DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">
-            {campaigns.find(c => c.id === selectedCampaign)?.name || 'Campanha 1'}
-          </h4>
-          <Funnel3DVisualization data={funnelData} />
-        </div>
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">
+          Análise Detalhada do Funil
+        </h3>
         
-        <div>
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">
-            {campaigns.find(c => c.id === selectedCampaign2)?.name || 'Campanha 2'}
-          </h4>
-          <Funnel3DVisualization data={funnelData2} />
-        </div>
-        
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h4 className="text-lg font-semibold text-gray-800 mb-4">Comparação de Métricas</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Taxa de Conversão</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData.summary.totalConversionRate}</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData2.summary.totalConversionRate}</p>
+        <div className="space-y-4">
+          {data.stages.map((stage, index) => (
+            <motion.div
+              key={stage.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg bg-gradient-to-r ${stage.gradient} text-white`}>
+                  {stage.icon}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">{stage.name}</h4>
+                  <p className="text-sm text-gray-600">{stage.description}</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Total de Cliques</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData.summary.totalClicks.toLocaleString()}</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData2.summary.totalClicks.toLocaleString()}</p>
+              
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-800">
+                  {stage.value.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {stage.percentage.toFixed(1)}% de conversão
+                </div>
+                {stage.dropoffRate > 0 && (
+                  <div className="text-xs text-red-500">
+                    -{stage.dropoffRate.toFixed(1)}% dropoff
+                  </div>
+                )}
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Conversões</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData.summary.totalConversions.toLocaleString()}</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData2.summary.totalConversions.toLocaleString()}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Estágios</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData.totalStages}</p>
-                <p className="text-lg font-bold text-gray-800">{funnelData2.totalStages}</p>
-              </div>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Funil de Conversão</h1>
-          <p className="text-sm text-gray-600">Análise completa do funil de marketing</p>
-        </div>
-        
-        <div className="flex gap-3">
-          <PeriodDropdown
-            value={selectedPeriod}
-            customRange={customRange}
-            onChange={(period, range) => {
-              // O onChange será tratado pelo App.tsx globalmente
-            }}
-          />
-          
-          <Button
-            onClick={() => setShowFilters(!showFilters)}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Filter className="w-4 h-4" />
-            Filtros
-          </Button>
-          
-          <Button
-            onClick={refreshData}
-            disabled={loading}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
-          
-          <Button
-            onClick={toggleComparisonMode}
-            variant={comparisonMode ? "primary" : "outline"}
-            className="flex items-center gap-2"
-          >
-            <SplitSquareVertical className="w-4 h-4" />
-            Comparar
-          </Button>
-        </div>
-      </div>
-
-      {/* Filtros */}
-      {showFilters && (
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Filtros</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="APPROVED">Aprovado</option>
-                <option value="PENDING">Pendente</option>
-                <option value="DECLINED">Recusado</option>
-                <option value="ALL">Todos</option>
-              </select>
+  // Componente de comparação entre campanhas
+  const ComparisonView: React.FC = () => {
+    return (
+      <div className="space-y-6">
+        {/* Header da comparação */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">
+            📊 Comparação de Campanhas
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-semibold text-blue-800 mb-2">
+                {funnelData?.campaign.name || 'Campanha 1'}
+              </h4>
+              <div className="text-2xl font-bold text-blue-600">
+                {funnelData?.summary.totalConversionRate || '0%'}
+              </div>
+              <div className="text-sm text-blue-600">
+                Taxa de Conversão Total
+              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-              <select
-                value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="conversion">Conversão</option>
-                <option value="initiatecheckout">Início de Checkout</option>
-                <option value="ALL">Todos</option>
-              </select>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <h4 className="font-semibold text-green-800 mb-2">
+                {funnelData2?.campaign.name || 'Campanha 2'}
+              </h4>
+              <div className="text-2xl font-bold text-green-600">
+                {funnelData2?.summary.totalConversionRate || '0%'}
+              </div>
+              <div className="text-sm text-green-600">
+                Taxa de Conversão Total
+              </div>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Seleção de Campanhas */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Selecionar Campanha</h3>
         
-        {comparisonMode ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Campanha 1</label>
-              <select
-                value={selectedCampaign}
-                onChange={(e) => handleCampaignSelect(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Selecione uma campanha</option>
-                {campaigns.map((campaign) => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Campanha 2</label>
-              <select
-                value={selectedCampaign2}
-                onChange={(e) => handleCampaign2Select(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Selecione uma campanha</option>
-                {campaigns.map((campaign) => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Visualizações lado a lado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              {funnelData?.campaign.name || 'Campanha 1'}
+            </h3>
+            {funnelData && <Funnel2DVisualization data={funnelData} />}
           </div>
-        ) : (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Campanha</label>
-            <select
-              value={selectedCampaign}
-              onChange={(e) => handleCampaignSelect(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Selecione uma campanha</option>
-              {campaigns.map((campaign) => (
-                <option key={campaign.id} value={campaign.id}>
-                  {campaign.name}
-                </option>
-              ))}
-            </select>
+          
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              {funnelData2?.campaign.name || 'Campanha 2'}
+            </h3>
+            {funnelData2 ? (
+              <Funnel2DVisualization data={funnelData2} />
+            ) : (
+              <div className="text-center text-gray-500 py-8">
+                <div className="text-4xl mb-2">📈</div>
+                <p>Selecione uma segunda campanha para comparar</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Análise comparativa detalhada */}
+        {funnelData && funnelData2 && (
+          <div className="bg-white rounded-2xl p-6 shadow-lg">
+            <h3 className="text-xl font-bold text-gray-800 mb-6">
+              📋 Análise Comparativa Detalhada
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-800 mb-1">
+                  {funnelData.summary.totalClicks.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Cliques - Campanha 1</div>
+                <div className="text-2xl font-bold text-gray-800 mt-2">
+                  {funnelData2.summary.totalClicks.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Cliques - Campanha 2</div>
+              </div>
+              
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600 mb-1">
+                  {funnelData.summary.totalConversions.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Conversões - Campanha 1</div>
+                <div className="text-2xl font-bold text-green-600 mt-2">
+                  {funnelData2.summary.totalConversions.toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-600">Conversões - Campanha 2</div>
+              </div>
+              
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600 mb-1">
+                  {funnelData.summary.roi.toFixed(2)}%
+                </div>
+                <div className="text-sm text-gray-600">ROI - Campanha 1</div>
+                <div className="text-2xl font-bold text-blue-600 mt-2">
+                  {funnelData2.summary.roi.toFixed(2)}%
+                </div>
+                <div className="text-sm text-gray-600">ROI - Campanha 2</div>
+              </div>
+            </div>
           </div>
         )}
       </div>
+    )
+  }
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">{loadingMessage}</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                🎯 Análise de Funil
+              </h1>
+              <p className="text-gray-600">
+                Visualize e analise o funil de conversão das suas campanhas
+              </p>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+                             <Button
+                 onClick={toggleComparisonMode}
+                 variant={comparisonMode ? "primary" : "outline"}
+                 className="flex items-center space-x-2"
+               >
+                <SplitSquareVertical className="w-4 h-4" />
+                <span>Comparar</span>
+              </Button>
+              
+              <Button
+                onClick={refreshData}
+                disabled={loading}
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Atualizar</span>
+              </Button>
+            </div>
+          </div>
+          
+          {/* Controles */}
+          <div className="bg-white rounded-xl p-6 shadow-lg mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Seletor de Campanha */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Campanha Principal
+                </label>
+                <select
+                  value={selectedCampaign}
+                  onChange={(e) => handleCampaignSelect(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Selecione uma campanha</option>
+                  {campaigns.map((campaign) => (
+                    <option key={campaign.id} value={campaign.id}>
+                      {campaign.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Seletor de Campanha 2 (para comparação) */}
+              {comparisonMode && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Campanha para Comparar
+                  </label>
+                  <select
+                    value={selectedCampaign2}
+                    onChange={(e) => handleCampaign2Select(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Selecione uma campanha</option>
+                    {campaigns.map((campaign) => (
+                      <option key={campaign.id} value={campaign.id}>
+                        {campaign.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
+              {/* Modo de Visualização */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Modo de Visualização
+                </label>
+                <select
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="3d">Visualização 3D</option>
+                  <option value="2d">Análise Detalhada</option>
+                  <option value="comparison">Comparação</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Dados do Funil */}
-      {!loading && (
-        <>
-          {comparisonMode ? (
-            <ComparisonView />
-          ) : (
-            funnelData && (
-              <div className="space-y-6">
+        
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="text-gray-600">{loadingMessage}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Content */}
+        {!loading && (
+          <AnimatePresence mode="wait">
+            {viewMode === '3d' && funnelData && (
+              <motion.div
+                key="3d"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Funnel3DVisualization data={funnelData} />
-                
-                {/* Tabela Detalhada */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Detalhes do Funil</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">Estágio</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-700">Volume</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-700">Taxa de Conversão</th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-700">Perda</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {funnelData.stages.map((stage, index) => {
-                          const previousValue = index > 0 ? funnelData.stages[index - 1].value : stage.value
-                          const loss = previousValue - stage.value
-                          const lossPercentage = previousValue > 0 ? (loss / previousValue) * 100 : 0
-                          
-                          return (
-                            <tr key={stage.name} className="border-b border-gray-100 hover:bg-gray-50">
-                              <td className="py-3 px-4">
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${stage.gradient} flex items-center justify-center text-white`}>
-                                    {stage.icon}
-                                  </div>
-                                  <div>
-                                    <p className="font-medium text-gray-800">{stage.name}</p>
-                                    <p className="text-sm text-gray-600">{stage.description}</p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="text-right py-3 px-4 font-medium text-gray-800">
-                                {stage.value.toLocaleString()}
-                              </td>
-                              <td className="text-right py-3 px-4 font-medium text-gray-800">
-                                {stage.percentage.toFixed(1)}%
-                              </td>
-                              <td className="text-right py-3 px-4">
-                                {index > 0 && (
-                                  <span className="text-red-600 font-medium">
-                                    -{loss.toLocaleString()} ({lossPercentage.toFixed(1)}%)
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-        </>
-      )}
-
-      {/* Mensagem quando nenhuma campanha está selecionada */}
-      {!loading && !funnelData && !comparisonMode && (
-        <div className="text-center py-12">
-          <TrendingDown className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">Selecione uma Campanha</h3>
-          <p className="text-gray-500">Escolha uma campanha para visualizar o funil de conversão</p>
-        </div>
-      )}
+              </motion.div>
+            )}
+            
+            {viewMode === '2d' && funnelData && (
+              <motion.div
+                key="2d"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Funnel2DVisualization data={funnelData} />
+              </motion.div>
+            )}
+            
+            {viewMode === 'comparison' && (
+              <motion.div
+                key="comparison"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ComparisonView />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+        
+        {/* Empty State */}
+        {!loading && !funnelData && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🎯</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Selecione uma campanha
+            </h3>
+            <p className="text-gray-600">
+              Escolha uma campanha para visualizar seu funil de conversão
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
