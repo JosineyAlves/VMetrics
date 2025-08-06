@@ -114,84 +114,166 @@ const Campaigns: React.FC = () => {
   const renderCell = (campaign: any, column: any) => {
     switch (column.id) {
       case 'name':
-        return <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+        return (
+          <div className="flex flex-col">
+            <div className="text-sm font-semibold text-gray-900 truncate max-w-[200px]" title={campaign.name}>
+              {campaign.name}
+            </div>
+          </div>
+        )
       case 'source':
-        return <div className="text-sm text-gray-500">{campaign.source}</div>
+        return (
+          <div className="text-sm text-gray-600 font-medium">
+            {campaign.source}
+          </div>
+        )
       case 'status':
         return (
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(campaign.status)}`}>
             {getStatusIcon(campaign.status)}
-            <span className="ml-1">{campaign.status}</span>
+            <span className="ml-1.5">{campaign.status}</span>
           </span>
         )
       case 'clicks':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-gray-900">
+            {campaign.clicks.toLocaleString()}
+          </div>
+        )
       case 'unique_clicks':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-gray-900">
+            {campaign.unique_clicks.toLocaleString()}
+          </div>
+        )
       case 'impressions':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-gray-900">
+            {campaign.impressions.toLocaleString()}
+          </div>
+        )
       case 'conversions':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-bold text-green-700">
+            {campaign.conversions.toLocaleString()}
+          </div>
+        )
       case 'all_conversions':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-gray-900">
+            {campaign.all_conversions.toLocaleString()}
+          </div>
+        )
       case 'approved':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-green-600">
+            {campaign.approved.toLocaleString()}
+          </div>
+        )
       case 'pending':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-yellow-600">
+            {campaign.pending.toLocaleString()}
+          </div>
+        )
       case 'declined':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
+        return (
+          <div className="text-sm font-semibold text-red-600">
+            {campaign.declined.toLocaleString()}
+          </div>
+        )
       case 'ctr':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.ctr}%</div>
+        return (
+          <div className="text-sm font-semibold text-blue-700">
+            {campaign.ctr}%
+          </div>
+        )
       case 'conversion_rate':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.conversion_rate}%</div>
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {campaign.conversion_rate}%
+          </div>
+        )
       case 'spend':
-        return <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
+        return (
+          <div className="text-sm font-semibold text-red-700">
+            {formatCurrency(campaign.spend)}
+          </div>
+        )
       case 'revenue':
-        return <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
+        return (
+          <div className="text-sm font-bold text-green-700">
+            {formatCurrency(campaign.revenue)}
+          </div>
+        )
       case 'roi':
-        return <div className="text-xs sm:text-sm text-gray-900">{campaign.roi}%</div>
+        return (
+          <div className={`text-sm font-bold ${campaign.roi >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+            {campaign.roi}%
+          </div>
+        )
       case 'cpa':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
+        return (
+          <div className="text-sm font-semibold text-orange-700">
+            {formatCurrency(campaign.cpa)}
+          </div>
+        )
       case 'cpc':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
+        return (
+          <div className="text-sm font-semibold text-blue-700">
+            {formatCurrency(campaign.cpc || 0)}
+          </div>
+        )
       case 'epc':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {formatCurrency(campaign.epc || 0)}
+          </div>
+        )
       case 'epl':
-        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
+        return (
+          <div className="text-sm font-semibold text-green-700">
+            {formatCurrency(campaign.epl || 0)}
+          </div>
+        )
       case 'roas':
-        return <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
+        return (
+          <div className={`text-sm font-bold ${(campaign.roas || 0) >= 100 ? 'text-green-700' : 'text-orange-700'}`}>
+            {campaign.roas || 0}%
+          </div>
+        )
       case 'prelp_views':
         return (
-          <div className="text-sm text-gray-900">
+          <div className="text-sm font-semibold text-blue-600">
             {campaign.prelp_views !== undefined ? campaign.prelp_views.toLocaleString() : '0'}
           </div>
         )
       case 'prelp_clicks':
         return (
-          <div className="text-sm text-gray-900">
+          <div className="text-sm font-semibold text-blue-700">
             {campaign.prelp_clicks !== undefined ? campaign.prelp_clicks.toLocaleString() : '0'}
           </div>
         )
       case 'lp_views':
         return (
-          <div className="text-sm text-gray-900">
+          <div className="text-sm font-semibold text-indigo-600">
             {campaign.lp_views !== undefined ? campaign.lp_views.toLocaleString() : '0'}
           </div>
         )
       case 'lp_clicks':
         return (
-          <div className="text-sm text-gray-900">
+          <div className="text-sm font-semibold text-indigo-700">
             {campaign.lp_clicks !== undefined ? campaign.lp_clicks.toLocaleString() : '0'}
           </div>
         )
       case 'initiatecheckout':
         return (
-          <div className="text-sm text-gray-900">
+          <div className="text-sm font-bold text-orange-600">
             {campaign.initiatecheckout !== undefined ? campaign.initiatecheckout.toLocaleString() : '0'}
           </div>
         )
       default:
-        return <div className="text-sm text-gray-900">-</div>
+        return <div className="text-sm text-gray-500">-</div>
     }
   }
   const [campaigns, setCampaigns] = useState<any[]>([])
@@ -1131,24 +1213,35 @@ const Campaigns: React.FC = () => {
               </p>
             </div>
           ) : activeTab === 'campaigns' ? (
-            <table className="w-full min-w-[1200px]">
-              <thead className="bg-trackview-background">
+            <table className="w-full min-w-[1400px]">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <tr>
                   {getVisibleColumns().map((column) => (
-                    <th key={column?.id} className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {column?.label}
+                    <th key={column?.id} className="px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        <span>{column?.label}</span>
+                        {column?.category === 'funnel' && (
+                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                        )}
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-trackview-background">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {filteredCampaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={getVisibleColumns().length} className="px-4 py-8 text-center text-gray-500">
-                      {searchTerm || Object.values(filters).some(v => v) ? 
-                        'Nenhuma campanha encontrada com os filtros aplicados.' :
-                        'Nenhuma campanha encontrada para o período selecionado.'
-                      }
+                    <td colSpan={getVisibleColumns().length} className="px-6 py-12 text-center text-gray-500">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="text-4xl mb-2">📊</div>
+                        <p className="text-lg font-medium text-gray-700">
+                          {searchTerm || Object.values(filters).some(v => v) ? 
+                            'Nenhuma campanha encontrada com os filtros aplicados.' :
+                            'Nenhuma campanha encontrada para o período selecionado.'
+                          }
+                        </p>
+                        <p className="text-sm text-gray-500">Tente ajustar os filtros ou período</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -1158,10 +1251,10 @@ const Campaigns: React.FC = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="hover:bg-trackview-background"
+                      className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 border-b border-gray-50"
                     >
                       {getVisibleColumns().map((column) => (
-                        <td key={column?.id} className="px-4 py-3 whitespace-nowrap">
+                        <td key={column?.id} className="px-6 py-4 whitespace-nowrap">
                           {renderCell(campaign, column)}
                         </td>
                       ))}

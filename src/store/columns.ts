@@ -298,34 +298,18 @@ const allColumns: Column[] = [
   }
 ]
 
-// Colunas padrão selecionadas
+// Colunas padrão selecionadas - Ordem do funil de conversão
 const defaultSelectedColumns = [
   'name',
   'source',
   'status',
   'clicks',
-  'unique_clicks',
-  'impressions',
-  'conversions',
-  'all_conversions',
-  'approved',
-  'pending',
-  'declined',
-  'ctr',
-  'conversion_rate',
-  'spend',
-  'revenue',
-  'roi',
-  'cpa',
-  'cpc',
-  'epc',
-  'epl',
-  'roas',
   'prelp_views',
   'prelp_clicks',
   'lp_views',
   'lp_clicks',
-  'initiatecheckout'
+  'initiatecheckout',
+  'conversions'
 ]
 
 export const useColumnsStore = create<ColumnsState>()(
