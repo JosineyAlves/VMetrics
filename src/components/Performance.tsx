@@ -832,7 +832,6 @@ const Performance: React.FC = () => {
                                      <Bar 
                      dataKey="revenue" 
                      name="Receita" 
-                     fill="#6366f1" 
                      radius={[4, 4, 0, 0]}
                      fill={(entry) => {
                        if (selectedAnalysis === 'hourly') {

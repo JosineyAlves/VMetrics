@@ -8,7 +8,7 @@ import {
   ShoppingCart, 
   Target,
   BarChart3,
-  Compare,
+  SplitSquareVertical,
   Filter,
   RefreshCw,
   ChevronDown,
@@ -353,7 +353,7 @@ const Funnel: React.FC = () => {
     if (!comparison.campaign1 || !comparison.campaign2) {
       return (
         <div className="text-center py-12">
-          <Compare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <SplitSquareVertical className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-600 mb-2">Selecione duas campanhas</h3>
           <p className="text-gray-500">Escolha duas campanhas para comparar seus funis</p>
         </div>
@@ -462,7 +462,7 @@ const Funnel: React.FC = () => {
               variant={comparisonMode ? "default" : "outline"}
               className="flex items-center space-x-2"
             >
-              <Compare className="w-4 h-4" />
+              <SplitSquareVertical className="w-4 h-4" />
               <span>{comparisonMode ? 'Modo Simples' : 'Comparar'}</span>
             </Button>
           </div>
