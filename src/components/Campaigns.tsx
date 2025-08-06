@@ -14,7 +14,9 @@ import {
   Target,
   Link,
   Palette,
-  Settings
+  Settings,
+  GripVertical,
+  X
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -41,6 +43,14 @@ interface UTMCreative {
   ctr: number
   cpa: number
   roi: number
+}
+
+interface ColumnConfig {
+  key: string
+  label: string
+  visible: boolean
+  order: number
+  width?: string
 }
 
 const mapRedTrackCampaign = (item: any) => {
@@ -85,6 +95,44 @@ const Campaigns: React.FC = () => {
   const { apiKey } = useAuthStore()
   const { currency } = useCurrencyStore()
   
+  // Configuração padrão das colunas
+  const defaultColumns: ColumnConfig[] = [
+    { key: 'name', label: 'Campanha', visible: true, order: 1 },
+    { key: 'source', label: 'Fonte', visible: true, order: 2 },
+    { key: 'status', label: 'Status', visible: true, order: 3 },
+    { key: 'clicks', label: 'Cliques', visible: true, order: 4 },
+    { key: 'unique_clicks', label: 'Cliques Únicos', visible: true, order: 5 },
+    { key: 'impressions', label: 'Impressões', visible: true, order: 6 },
+    { key: 'conversions', label: 'Conversões', visible: true, order: 7 },
+    { key: 'all_conversions', label: 'Todas Conversões', visible: true, order: 8 },
+    { key: 'approved', label: 'Aprovadas', visible: true, order: 9 },
+    { key: 'pending', label: 'Pendentes', visible: true, order: 10 },
+    { key: 'declined', label: 'Recusadas', visible: true, order: 11 },
+    { key: 'ctr', label: 'CTR', visible: true, order: 12 },
+    { key: 'conversion_rate', label: 'Taxa Conv.', visible: true, order: 13 },
+    { key: 'spend', label: 'Gasto', visible: true, order: 14 },
+    { key: 'revenue', label: 'Receita', visible: true, order: 15 },
+    { key: 'roi', label: 'ROI', visible: true, order: 16 },
+    { key: 'cpa', label: 'CPA', visible: true, order: 17 },
+    { key: 'cpc', label: 'CPC', visible: true, order: 18 },
+    { key: 'epc', label: 'EPC', visible: true, order: 19 },
+    { key: 'epl', label: 'EPL', visible: true, order: 20 },
+    { key: 'roas', label: 'ROAS', visible: true, order: 21 },
+    { key: 'prelp_views', label: 'Pre-LP Views', visible: true, order: 22 },
+    { key: 'prelp_clicks', label: 'Pre-LP Clicks', visible: true, order: 23 },
+    { key: 'lp_views', label: 'LP Views', visible: true, order: 24 },
+    { key: 'lp_clicks', label: 'LP Clicks', visible: true, order: 25 },
+    { key: 'initiatecheckout', label: 'InitiateCheckout', visible: true, order: 26 }
+  ]
+  
+  // Estados para gerenciar colunas
+  const [columns, setColumns] = useState<ColumnConfig[]>(() => {
+    const saved = localStorage.getItem('campaigns-columns')
+    return saved ? JSON.parse(saved) : defaultColumns
+  })
+  const [showColumnManager, setShowColumnManager] = useState(false)
+  const [draggedColumn, setDraggedColumn] = useState<string | null>(null)
+  
   // Função para formatar moeda
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -92,6 +140,127 @@ const Campaigns: React.FC = () => {
       currency: currency,
       minimumFractionDigits: 2
     }).format(value)
+  }
+  
+  // Funções para gerenciar colunas
+  const saveColumnsToStorage = (newColumns: ColumnConfig[]) => {
+    localStorage.setItem('campaigns-columns', JSON.stringify(newColumns))
+  }
+  
+  const toggleColumnVisibility = (columnKey: string) => {
+    const newColumns = columns.map(col => 
+      col.key === columnKey ? { ...col, visible: !col.visible } : col
+    )
+    setColumns(newColumns)
+    saveColumnsToStorage(newColumns)
+  }
+  
+  const moveColumn = (fromIndex: number, toIndex: number) => {
+    const newColumns = [...columns]
+    const [movedColumn] = newColumns.splice(fromIndex, 1)
+    newColumns.splice(toIndex, 0, movedColumn)
+    
+    // Reordenar os índices
+    newColumns.forEach((col, index) => {
+      col.order = index + 1
+    })
+    
+    setColumns(newColumns)
+    saveColumnsToStorage(newColumns)
+  }
+  
+  const resetColumns = () => {
+    setColumns(defaultColumns)
+    saveColumnsToStorage(defaultColumns)
+  }
+  
+  const getVisibleColumns = () => {
+    return columns.filter(col => col.visible).sort((a, b) => a.order - b.order)
+  }
+  
+  // Função para renderizar célula baseada na coluna
+  const renderCell = (campaign: any, column: ColumnConfig) => {
+    switch (column.key) {
+      case 'name':
+        return <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+      case 'source':
+        return <div className="text-sm text-gray-500">{campaign.source}</div>
+      case 'status':
+        return (
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+            {getStatusIcon(campaign.status)}
+            <span className="ml-1">{campaign.status}</span>
+          </span>
+        )
+      case 'clicks':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
+      case 'unique_clicks':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
+      case 'impressions':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
+      case 'conversions':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
+      case 'all_conversions':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
+      case 'approved':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
+      case 'pending':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
+      case 'declined':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
+      case 'ctr':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.ctr}%</div>
+      case 'conversion_rate':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.conversion_rate}%</div>
+      case 'spend':
+        return <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
+      case 'revenue':
+        return <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
+      case 'roi':
+        return <div className="text-xs sm:text-sm text-gray-900">{campaign.roi}%</div>
+      case 'cpa':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
+      case 'cpc':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
+      case 'epc':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
+      case 'epl':
+        return <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
+      case 'roas':
+        return <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
+      case 'prelp_views':
+        return (
+          <div className="text-sm text-gray-900">
+            {campaign.prelp_views !== undefined ? campaign.prelp_views.toLocaleString() : '0'}
+          </div>
+        )
+      case 'prelp_clicks':
+        return (
+          <div className="text-sm text-gray-900">
+            {campaign.prelp_clicks !== undefined ? campaign.prelp_clicks.toLocaleString() : '0'}
+          </div>
+        )
+      case 'lp_views':
+        return (
+          <div className="text-sm text-gray-900">
+            {campaign.lp_views !== undefined ? campaign.lp_views.toLocaleString() : '0'}
+          </div>
+        )
+      case 'lp_clicks':
+        return (
+          <div className="text-sm text-gray-900">
+            {campaign.lp_clicks !== undefined ? campaign.lp_clicks.toLocaleString() : '0'}
+          </div>
+        )
+      case 'initiatecheckout':
+        return (
+          <div className="text-sm text-gray-900">
+            {campaign.initiatecheckout !== undefined ? campaign.initiatecheckout.toLocaleString() : '0'}
+          </div>
+        )
+      default:
+        return <div className="text-sm text-gray-900">-</div>
+    }
   }
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [utmCreatives, setUtmCreatives] = useState<UTMCreative[]>([])
@@ -554,17 +723,31 @@ const Campaigns: React.FC = () => {
         </button>
       </div>
 
-          {/* Botão de filtros alinhado à direita */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
-          >
-          <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
-          <span className="hidden xs:inline">Filtros</span>
-          <span className="xs:hidden">Filt.</span>
-          </Button>
+          {/* Botões de controle alinhados à direita */}
+          <div className="flex gap-2">
+            {activeTab === 'campaigns' && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowColumnManager(!showColumnManager)}
+                className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
+              >
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
+                <span className="hidden xs:inline">Colunas</span>
+                <span className="xs:hidden">Col.</span>
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
+            >
+              <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
+              <span className="hidden xs:inline">Filtros</span>
+              <span className="xs:hidden">Filt.</span>
+            </Button>
+          </div>
         </div>
 
       {/* Filtro de período padronizado - sempre visível */}
@@ -740,6 +923,79 @@ const Campaigns: React.FC = () => {
             >
               Aplicar Filtros
             </Button>
+          </div>
+        </motion.div>
+      )}
+      
+      {/* Gerenciador de Colunas */}
+      {showColumnManager && activeTab === 'campaigns' && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-white rounded-xl p-6 shadow-sm border border-trackview-accent mb-4"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-trackview-primary">Gerenciar Colunas</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetColumns}
+              >
+                Resetar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowColumnManager(false)}
+              >
+                Fechar
+              </Button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {columns.map((column, index) => (
+              <div key={column.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={column.visible}
+                      onChange={() => toggleColumnVisibility(column.key)}
+                      className="rounded border-gray-300 text-trackview-primary focus:ring-trackview-primary"
+                    />
+                    <span className="text-sm font-medium">{column.label}</span>
+                  </label>
+                </div>
+                <div className="flex gap-1">
+                  {index > 0 && (
+                    <button
+                      onClick={() => moveColumn(index, index - 1)}
+                      className="p-1 text-gray-500 hover:text-trackview-primary"
+                    >
+                      ↑
+                    </button>
+                  )}
+                  {index < columns.length - 1 && (
+                    <button
+                      onClick={() => moveColumn(index, index + 1)}
+                      className="p-1 text-gray-500 hover:text-trackview-primary"
+                    >
+                      ↓
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-4 text-sm text-gray-600">
+            <p>• Marque/desmarque as colunas para mostrar/ocultar</p>
+            <p>• Use as setas para reordenar as colunas</p>
+            <p>• Clique em "Resetar" para voltar à configuração padrão</p>
           </div>
         </motion.div>
       )}
@@ -1023,90 +1279,17 @@ const Campaigns: React.FC = () => {
             <table className="w-full min-w-[1200px]">
               <thead className="bg-trackview-background">
                 <tr>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Campanha
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fonte
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cliques
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cliques Únicos
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Impressões
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Conversões
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Todas Conversões
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aprovadas
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pendentes
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Recusadas
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CTR
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Taxa Conv.
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Gasto
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Receita
-                  </th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ROI
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CPA
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    CPC
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    EPC
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    EPL
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ROAS
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pre-LP Views
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pre-LP Clicks
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    LP Views
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    LP Clicks
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    InitiateCheckout
-                  </th>
+                  {getVisibleColumns().map((column) => (
+                    <th key={column.key} className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {column.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-trackview-background">
                 {filteredCampaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={27} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={getVisibleColumns().length} className="px-4 py-8 text-center text-gray-500">
                       {searchTerm || Object.values(filters).some(v => v) ? 
                         'Nenhuma campanha encontrada com os filtros aplicados.' :
                         'Nenhuma campanha encontrada para o período selecionado.'
@@ -1122,97 +1305,11 @@ const Campaigns: React.FC = () => {
                       transition={{ delay: index * 0.05 }}
                       className="hover:bg-trackview-background"
                     >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{campaign.source}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
-                          {getStatusIcon(campaign.status)}
-                          <span className="ml-1">{campaign.status}</span>
-                        </span>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.clicks.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.unique_clicks.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.impressions.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.conversions.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.all_conversions.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.approved.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.pending.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.declined.toLocaleString()}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.ctr}%</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.conversion_rate}%</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.spend)}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{formatCurrency(campaign.revenue)}</div>
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
-                        <div className="text-xs sm:text-sm text-gray-900">{campaign.roi}%</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatCurrency(campaign.cpa)}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatCurrency(campaign.cpc || 0)}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatCurrency(campaign.epc || 0)}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatCurrency(campaign.epl || 0)}</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{campaign.roas || 0}%</div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {campaign.prelp_views !== undefined ? campaign.prelp_views.toLocaleString() : '0'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {campaign.prelp_clicks !== undefined ? campaign.prelp_clicks.toLocaleString() : '0'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {campaign.lp_views !== undefined ? campaign.lp_views.toLocaleString() : '0'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {campaign.lp_clicks !== undefined ? campaign.lp_clicks.toLocaleString() : '0'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {campaign.initiatecheckout !== undefined ? campaign.initiatecheckout.toLocaleString() : '0'}
-                        </div>
-                      </td>
+                      {getVisibleColumns().map((column) => (
+                        <td key={column.key} className="px-4 py-3 whitespace-nowrap">
+                          {renderCell(campaign, column)}
+                        </td>
+                      ))}
                     </motion.tr>
                   ))
                 )}
