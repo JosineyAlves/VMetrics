@@ -75,7 +75,8 @@ const mapRedTrackCampaign = (item: any) => {
     prelp_clicks: stat.prelp_clicks || 0,
     lp_views: stat.lp_views || 0,
     lp_clicks: stat.lp_clicks || 0,
-    initiatecheckout: stat.initiatecheckout || 0
+    // InitiateCheckout usando convtype1 (mesmo padrão do Dashboard)
+    initiatecheckout: stat.convtype1 || 0
   };
 }
 
