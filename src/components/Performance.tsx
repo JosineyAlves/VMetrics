@@ -658,9 +658,17 @@ const Performance: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Cards de Resumo */}
+    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+             {/* Header */}
+               <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
+          </div>
+        </div>
+
+      
+
+             {/* Cards de Resumo */}
        {performanceData && (
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <motion.div
@@ -701,9 +709,8 @@ const Performance: React.FC = () => {
          </div>
        )}
 
-              {/* Seletor de Análise */}
-        <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
-          <div className="flex flex-wrap gap-3">
+             {/* Seletor de Análise */}
+       <div className="flex flex-wrap gap-3">
          <Button
            onClick={() => setSelectedAnalysis('device')}
            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
@@ -781,114 +788,107 @@ const Performance: React.FC = () => {
             <Clock className="w-5 h-5 mr-2" />
             Horário
           </Button>
-        </div>
-      </div>
+       </div>
 
       {/* Gráfico de Análise */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-white rounded-2xl p-6 shadow-lg"
+        className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"
       >
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            {getAnalysisIcon()}
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
-        </div>
+                 <div className="flex items-center gap-3 mb-6">
+           {getAnalysisIcon()}
+           <h2 className="text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
+         </div>
 
         {getAnalysisData().length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Gráfico de Barras */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey={selectedAnalysis === 'device' ? 'device' : 
-                               selectedAnalysis === 'source' ? 'source' : 
-                               selectedAnalysis === 'placement' ? 'placement' : 
-                               selectedAnalysis === 'location' ? 'city' : 
-                               selectedAnalysis === 'browser' ? 'browser' : 
-                               selectedAnalysis === 'os' ? 'os' : 'hour'} 
-                      tick={{ fontSize: 12, fill: '#6b7280' }}
-                      tickFormatter={(value) => {
-                        if (selectedAnalysis === 'hourly') {
-                          return `${value}h`
-                        }
-                        return value
-                      }}
-                    />
-                    <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} />
-                    <Tooltip 
-                      formatter={(value: any) => formatCurrency(value)}
-                      contentStyle={{ 
-                        borderRadius: 12, 
-                        background: '#fff', 
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                        border: '1px solid #e5e7eb'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="revenue" 
-                      name="Receita" 
-                      radius={[6, 6, 0, 0]}
-                      fill="#6366f1"
-                    />
-                    <Legend />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                         {/* Gráfico de Barras */}
+             <div className="h-80">
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                                     <XAxis 
+                     dataKey={selectedAnalysis === 'device' ? 'device' : 
+                              selectedAnalysis === 'source' ? 'source' : 
+                              selectedAnalysis === 'placement' ? 'placement' : 
+                              selectedAnalysis === 'location' ? 'city' : 
+                              selectedAnalysis === 'browser' ? 'browser' : 
+                              selectedAnalysis === 'os' ? 'os' : 'hour'} 
+                     tick={{ fontSize: 12 }}
+                     tickFormatter={(value) => {
+                       if (selectedAnalysis === 'hourly') {
+                         return `${value}h`
+                       }
+                       return value
+                     }}
+                   />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip 
+                    formatter={(value: any) => formatCurrency(value)}
+                    contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }}
+                  />
+                                     <Bar 
+                     dataKey="revenue" 
+                     name="Receita" 
+                     radius={[4, 4, 0, 0]}
+                     fill={(entry) => {
+                       if (selectedAnalysis === 'hourly') {
+                         return entry.revenue > 0 ? '#6366f1' : '#e5e7eb'
+                       }
+                       return '#6366f1'
+                     }}
+                   />
+                   <Legend />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Tabela de Dados */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                        {selectedAnalysis === 'device' ? 'Dispositivo' : 
-                         selectedAnalysis === 'source' ? 'Fonte' : 
-                         selectedAnalysis === 'placement' ? 'Posicionamento' : 
-                         selectedAnalysis === 'location' ? 'Localização' : 
-                         selectedAnalysis === 'browser' ? 'Navegador' : 
-                         selectedAnalysis === 'os' ? 'Sistema' : 'Hora'}
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Conversões</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">Receita</th>
-                      <th className="text-right py-3 px-4 font-semibold text-gray-700">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                                         <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                       {selectedAnalysis === 'device' ? 'Dispositivo' : 
+                        selectedAnalysis === 'source' ? 'Fonte' : 
+                        selectedAnalysis === 'placement' ? 'Posicionamento' : 
+                        selectedAnalysis === 'location' ? 'Localização' : 
+                        selectedAnalysis === 'browser' ? 'Navegador' : 
+                        selectedAnalysis === 'os' ? 'Sistema' : 'Hora'}
+                     </th>
+                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Conversões</th>
+                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Receita</th>
+                                           <th className="text-right py-3 px-4 font-semibold text-gray-700">
                         Ticket Médio
                       </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)).map((item, index) => (
-                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-4 font-medium">
-                          {selectedAnalysis === 'device' ? item.device : 
-                           selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 
-                           selectedAnalysis === 'placement' ? `${item.placement} (${item.placement_id})` : 
-                           selectedAnalysis === 'location' ? `${item.city}, ${item.country}` : 
-                           selectedAnalysis === 'browser' ? item.browser : 
-                           selectedAnalysis === 'os' ? item.os : 
-                           selectedAnalysis === 'hourly' ? `${item.hour.toString().padStart(2, '0')}:00` : 
-                           `${item.hour}h`}
-                        </td>
-                        <td className="text-right py-3 px-4">{item.conversions}</td>
-                        <td className="text-right py-3 px-4 font-semibold">{formatCurrency(item.revenue)}</td>
-                        <td className="text-right py-3 px-4">
+                  </tr>
+                </thead>
+                                 <tbody>
+                   {(selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)).map((item, index) => (
+                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                                             <td className="py-3 px-4 font-medium">
+                         {selectedAnalysis === 'device' ? item.device : 
+                          selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 
+                          selectedAnalysis === 'placement' ? `${item.placement} (${item.placement_id})` : 
+                          selectedAnalysis === 'location' ? `${item.city}, ${item.country}` : 
+                          selectedAnalysis === 'browser' ? item.browser : 
+                          selectedAnalysis === 'os' ? item.os : 
+                          selectedAnalysis === 'hourly' ? `${item.hour.toString().padStart(2, '0')}:00` : 
+                          `${item.hour}h`}
+                       </td>
+                                             <td className="text-right py-3 px-4">{item.conversions}</td>
+                       <td className="text-right py-3 px-4 font-semibold">{formatCurrency(item.revenue)}</td>
+                                               <td className="text-right py-3 px-4">
                           <span className="font-semibold text-gray-900">
                             {formatCurrency(item.avgTicket)}
                           </span>
                         </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         ) : (
@@ -899,7 +899,6 @@ const Performance: React.FC = () => {
           </div>
         )}
       </motion.div>
-      </div>
     </div>
   )
 }

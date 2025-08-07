@@ -624,11 +624,11 @@ const Funnel: React.FC = () => {
                 <div className="text-sm text-gray-600">
                   {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}% de conversão
                 </div>
-                                 {stage.dropoffRate > 0 && (
-                   <div className="text-xs text-red-500">
-                     -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% perda
-                   </div>
-                 )}
+                {stage.dropoffRate > 0 && (
+                  <div className="text-xs text-red-500">
+                    -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% dropoff
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
@@ -748,11 +748,8 @@ const Funnel: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8 pb-16">
-                {/* Controles */}
-        <div className="mb-6">
-          
-          {/* Controles */}
-          <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
+        {/* Controles */}
+        <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {/* Seletor de Campanha */}
               <div>
@@ -799,14 +796,15 @@ const Funnel: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Modo de Visualização
                 </label>
-                                 <select
-                   value={viewMode}
-                   onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                 >
-                   <option value="3d">Visualização 3D</option>
-                   <option value="2d">Análise Detalhada</option>
-                 </select>
+                <select
+                  value={viewMode}
+                  onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="3d">Visualização 3D</option>
+                  <option value="2d">Análise Detalhada</option>
+                  <option value="comparison">Comparação</option>
+                </select>
               </div>
               
               {/* Botão Comparar */}

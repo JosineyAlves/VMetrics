@@ -988,16 +988,10 @@ const Campaigns: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-trackview-text"
                   >
                     <option value="">Todos</option>
-                    <option value="cpc">CPC (Cost Per Click)</option>
-                    <option value="cpm">CPM (Cost Per Mille)</option>
+                    <option value="cpc">CPC</option>
+                    <option value="cpm">CPM</option>
                     <option value="social">Social</option>
                     <option value="email">Email</option>
-                    <option value="banner">Banner</option>
-                    <option value="affiliate">Affiliate</option>
-                    <option value="organic">Organic</option>
-                    <option value="referral">Referral</option>
-                    <option value="paid">Paid</option>
-                    <option value="display">Display</option>
                   </select>
                 </div>
                 
