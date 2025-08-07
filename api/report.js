@@ -4,7 +4,7 @@ const CACHE_DURATION = 60000; // 60 segundos (aumentado de 30s)
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições para evitar rate limiting
+const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -44,8 +44,8 @@ async function processRequestQueue() {
         
         // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [REPORT] Rate limiting detectado - aguardando 10 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 10000));
+          console.log('⚠️ [REPORT] Rate limiting detectado - aguardando 5 segundos...');
+          await new Promise(resolve => setTimeout(resolve, 5000));
           
           // Tentar novamente uma vez
           const retryResponse = await fetch(url, {
@@ -125,14 +125,6 @@ export default async function handler(req, res) {
     }
   });
   
-  // Verificar se force_refresh foi removido incorretamente
-  if (params.force_refresh === 'true') {
-    console.log('🔄 [REPORT] force_refresh detectado - não enviando para RedTrack')
-  }
-  
-  console.log('🔍 [REPORT] Parâmetros recebidos:', params);
-  console.log('🔍 [REPORT] Parâmetros enviados para RedTrack:', Object.fromEntries(url.searchParams.entries()));
-  
   // Adicionar API Key como parâmetro da query
   url.searchParams.set('api_key', finalApiKey);
 
@@ -144,18 +136,10 @@ export default async function handler(req, res) {
 
   // Verificar cache
   const cacheKey = url.toString();
-  console.log('🔍 [REPORT] Chave do cache:', cacheKey);
   const cachedData = requestCache.get(cacheKey);
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [REPORT] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
-  }
-  
-  // Se for uma atualização forçada, limpar cache
-  if (params.force_refresh === 'true') {
-    console.log('🔄 [REPORT] Atualização forçada - limpando cache');
-    requestCache.delete(cacheKey);
-    console.log('🔄 [REPORT] Cache limpo para:', cacheKey);
   }
 
   try {
@@ -169,15 +153,6 @@ export default async function handler(req, res) {
     });
     
     console.log('✅ [REPORT] Dados recebidos com sucesso');
-    console.log('🔍 [REPORT] Tipo dos dados recebidos:', typeof responseData);
-    console.log('🔍 [REPORT] É array?', Array.isArray(responseData));
-    console.log('🔍 [REPORT] Tamanho dos dados:', Array.isArray(responseData) ? responseData.length : 'N/A');
-    
-    // Log dos primeiros itens se for array
-    if (Array.isArray(responseData) && responseData.length > 0) {
-      console.log('🔍 [REPORT] Primeiro item:', responseData[0]);
-      console.log('🔍 [REPORT] Campos do primeiro item:', Object.keys(responseData[0]));
-    }
     
     // Salvar no cache
     requestCache.set(cacheKey, {

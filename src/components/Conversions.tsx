@@ -240,7 +240,7 @@ const Conversions: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [showAdvancedData, setShowAdvancedData] = useState(false)
 
-  const loadConversions = async (isRefresh = false) => {
+  const loadConversions = async (isRefresh = false, forceRefresh = false) => {
     if (!apiKey) return
     
     if (isRefresh) {
@@ -263,7 +263,8 @@ const Conversions: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         per: 1000, // Máximo para obter mais dados
-        ...filters
+        ...filters,
+        ...(forceRefresh && { force_refresh: 'true' })
       }
       
       const response = await api.getConversions(params)
@@ -296,7 +297,7 @@ const Conversions: React.FC = () => {
             conversionsData = Array.isArray(response.conversions) ? response.conversions : [response.conversions]
           } else if (response.conversion) {
             conversionsData = Array.isArray(response.conversion) ? response.conversion : [response.conversion]
-          } else {
+      } else {
             // Se não encontrar estrutura específica, usar o próprio response
             conversionsData = [response]
           }
@@ -527,7 +528,8 @@ const Conversions: React.FC = () => {
     const handleForceRefresh = (event: CustomEvent) => {
       if (event.detail?.section === 'conversions') {
         console.log('🔄 [CONVERSIONS] Evento forceRefresh recebido')
-        loadConversions(true)
+        const isForceRefresh = event.detail?.forceNewData === true
+        loadConversions(true, isForceRefresh)
       }
     }
 
@@ -610,7 +612,7 @@ const Conversions: React.FC = () => {
       {/* Nav Container */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
-          <Button
+          <Button 
             variant="outline"
             size="sm"
             onClick={() => setShowAdvancedData(!showAdvancedData)}
@@ -622,15 +624,15 @@ const Conversions: React.FC = () => {
         </div>
         
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
-          >
-            <Filter className="w-4 h-4 mr-2 inline" />
-            Filtros
-          </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+        >
+          <Filter className="w-4 h-4 mr-2 inline" />
+          Filtros
+        </Button>
         </div>
       </div>
 

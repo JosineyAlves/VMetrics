@@ -141,14 +141,23 @@ export default async function handler(req, res) {
       per
     })
 
+    // Verificar se é uma atualização forçada
+    const isForceRefresh = req.query.force_refresh === 'true';
+    
     // Criar cache key
     const cacheKey = `funnel_${apiKey}_${date_from}_${date_to}_${campaign_id || 'all'}_${status}_${type}_${per}`
     
     // Verificar cache
     const cachedData = requestCache.get(cacheKey)
-    if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+    if (!isForceRefresh && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
       console.log('✅ [FUNNEL] Retornando dados do cache')
       return res.status(200).json(cachedData.data)
+    }
+    
+    // Se for atualização forçada, limpar cache
+    if (isForceRefresh) {
+      console.log('🔄 [FUNNEL] Atualização forçada - ignorando cache')
+      requestCache.delete(cacheKey)
     }
 
     // Buscar dados de campanhas do RedTrack
