@@ -95,11 +95,11 @@ const Dashboard: React.FC = () => {
 
   const trafficChannelOptions = [
     { value: '', label: 'Todos os canais' },
-    { value: 'facebook', label: 'Facebook Ads' },
-    { value: 'google', label: 'Google Ads' },
-    { value: 'tiktok', label: 'TikTok Ads' },
-    { value: 'taboola', label: 'Taboola' },
-    { value: 'outbrain', label: 'Outbrain' }
+    { value: '687efdfc1cb5b42adc7b3f9e', label: 'Taboola' },
+    { value: 'facebook_id', label: 'Facebook Ads' },
+    { value: 'google_id', label: 'Google Ads' },
+    { value: 'tiktok_id', label: 'TikTok Ads' },
+    { value: 'outbrain_id', label: 'Outbrain' }
   ]
 
   // Atualizar label do período para customizado
@@ -240,35 +240,38 @@ const Dashboard: React.FC = () => {
       const appliedFilters: any = {}
       
       // Mapear filtros para o sistema do RedTrack (apenas um filtro por vez)
+      console.log('🔍 [DASHBOARD] Verificando filtros para aplicar...')
+      console.log('🔍 [DASHBOARD] traffic_channel:', filters.traffic_channel)
+      console.log('🔍 [DASHBOARD] country:', filters.country)
+      console.log('🔍 [DASHBOARD] device:', filters.device)
+      console.log('🔍 [DASHBOARD] browser:', filters.browser)
+      console.log('🔍 [DASHBOARD] os:', filters.os)
+      console.log('🔍 [DASHBOARD] utm_source:', filters.utm_source)
+      
       if (filters.traffic_channel) {
-        appliedFilters.filter_by = 'source'
-        appliedFilters.filter_value = filters.traffic_channel
+        appliedFilters.source_id = filters.traffic_channel
         console.log('🔍 [DASHBOARD] Aplicando filtro de fonte:', filters.traffic_channel)
       } else if (filters.country) {
-        appliedFilters.filter_by = 'country_code'
-        appliedFilters.filter_value = filters.country
+        appliedFilters.country = filters.country
         console.log('🔍 [DASHBOARD] Aplicando filtro de país:', filters.country)
       } else if (filters.device) {
-        appliedFilters.filter_by = 'device'
-        appliedFilters.filter_value = filters.device
+        appliedFilters.device = filters.device
         console.log('🔍 [DASHBOARD] Aplicando filtro de dispositivo:', filters.device)
       } else if (filters.browser) {
-        appliedFilters.filter_by = 'browser'
-        appliedFilters.filter_value = filters.browser
+        appliedFilters.browser = filters.browser
         console.log('🔍 [DASHBOARD] Aplicando filtro de navegador:', filters.browser)
       } else if (filters.os) {
-        appliedFilters.filter_by = 'os'
-        appliedFilters.filter_value = filters.os
+        appliedFilters.os = filters.os
         console.log('🔍 [DASHBOARD] Aplicando filtro de SO:', filters.os)
       } else if (filters.utm_source) {
-        appliedFilters.filter_by = 'utm_source'
-        appliedFilters.filter_value = filters.utm_source
+        appliedFilters.utm_source = filters.utm_source
         console.log('🔍 [DASHBOARD] Aplicando filtro de UTM source:', filters.utm_source)
       }
       
       console.log('🔍 [DASHBOARD] Filtros originais:', filters)
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
       console.log('🔍 [DASHBOARD] Traffic channel selecionado:', filters.traffic_channel)
+      console.log('🔍 [DASHBOARD] Há filtros para aplicar?', Object.keys(appliedFilters).length > 0)
 
       const params = {
         date_from: dateRange.startDate,
@@ -277,9 +280,18 @@ const Dashboard: React.FC = () => {
         ...appliedFilters
       }
       
+      console.log('🔍 [DASHBOARD] Parâmetros finais:', params)
+      
       // Adicionar parâmetro de atualização forçada se necessário
       if (isRefresh) {
         params.force_refresh = 'true'
+      }
+      
+      // Verificar se há filtros aplicados
+      if (Object.keys(appliedFilters).length > 0) {
+        console.log('🔍 [DASHBOARD] Filtros serão aplicados:', appliedFilters)
+      } else {
+        console.log('🔍 [DASHBOARD] Nenhum filtro será aplicado')
       }
       
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
@@ -289,11 +301,33 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Resposta da API:', realData)
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
-      console.log('🔍 [DASHBOARD] Tamanho da resposta:', Array.isArray(realData) ? realData.length : 'N/A')
+      console.log('🔍 [DASHBOARD] É objeto?', typeof realData === 'object' && !Array.isArray(realData))
+      
+      // Verificar se a resposta tem estrutura { items: [...], total: {...} }
+      let items = []
+      let total = {}
+      
+      if (typeof realData === 'object' && !Array.isArray(realData) && realData.items) {
+        console.log('🔍 [DASHBOARD] Resposta com estrutura { items, total }')
+        items = realData.items || []
+        total = realData.total || {}
+        console.log('🔍 [DASHBOARD] Items encontrados:', items.length)
+        console.log('🔍 [DASHBOARD] Total encontrado:', Object.keys(total).length > 0 ? 'SIM' : 'NÃO')
+      } else if (Array.isArray(realData)) {
+        console.log('🔍 [DASHBOARD] Resposta é array direto')
+        items = realData
+        total = {}
+      }
       
       // Verificar se a resposta está vazia devido ao filtro
-      if (Array.isArray(realData) && realData.length === 0) {
+      if (items.length === 0) {
         console.log('⚠️ [DASHBOARD] Resposta vazia - pode ser devido ao filtro aplicado')
+      }
+      
+      // Log detalhado se houver dados
+      if (items.length > 0) {
+        console.log('🔍 [DASHBOARD] Primeiro item da resposta:', items[0])
+        console.log('🔍 [DASHBOARD] Campos disponíveis:', Object.keys(items[0]))
       }
       
 
@@ -313,9 +347,12 @@ const Dashboard: React.FC = () => {
       
       let summary: any = {};
       let daily: any[] = [];
-      if (Array.isArray(realData)) {
+      if (items.length > 0) {
         // Filtrar dados de campanhas deletadas e apenas campanhas com atividade (cliques ou conversões)
-        const filteredData = realData.filter((item: any) => {
+        console.log('🔍 [DASHBOARD] Dados antes do filtro de atividade:', items.length, 'itens')
+        console.log('🔍 [DASHBOARD] Filtros aplicados:', Object.keys(appliedFilters).length > 0 ? 'SIM' : 'NÃO')
+        
+        const filteredData = items.filter((item: any) => {
           const campaignName = item.campaign || item.campaign_name || item.title || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           
@@ -324,14 +361,32 @@ const Dashboard: React.FC = () => {
           const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
           const hasActivity = hasClicks || hasConversionsToday;
           
-          return !isDeleted && hasActivity;
+          // Log para debug do filtro
+          if (!hasActivity) {
+            console.log(`⏸️ [DASHBOARD] Item sem atividade: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`)
+          }
+          
+          // Se há filtro aplicado, ser menos restritivo com atividade
+          const hasFilterApplied = Object.keys(appliedFilters).length > 0;
+          const shouldInclude = hasFilterApplied ? !isDeleted : (!isDeleted && hasActivity);
+          
+          return shouldInclude;
         });
         
-        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        console.log('🔍 [DASHBOARD] Dados filtrados:', filteredData.length, 'de', items.length, 'itens');
         console.log('🔍 [DASHBOARD] Dados filtrados (primeiros 3 itens):', filteredData.slice(0, 3));
         
+        // Verificar se todos os dados foram removidos pelo filtro
+        if (filteredData.length === 0 && items.length > 0) {
+          console.log('⚠️ [DASHBOARD] TODOS os dados foram removidos pelo filtro!')
+          console.log('⚠️ [DASHBOARD] Isso pode indicar que:')
+          console.log('⚠️ [DASHBOARD] 1. O filtro está muito restritivo')
+          console.log('⚠️ [DASHBOARD] 2. Não há dados para a fonte selecionada')
+          console.log('⚠️ [DASHBOARD] 3. Os dados não têm atividade no período')
+        }
+        
         // Log detalhado das campanhas filtradas
-        realData.forEach((item: any) => {
+        items.forEach((item: any) => {
           const campaignName = item.campaign || item.campaign_name || item.title || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
@@ -348,31 +403,41 @@ const Dashboard: React.FC = () => {
         });
         
         daily = filteredData;
-        summary = filteredData.reduce((acc: any, item: any) => {
-          // Processar campos diretos
-          Object.keys(item).forEach(key => {
-            if (key !== 'stat' && typeof item[key] === 'number') {
-              acc[key] = (acc[key] || 0) + item[key];
-            }
-          });
-          
-          // Processar estrutura stat se existir
-          if (item.stat && typeof item.stat === 'object') {
-            Object.keys(item.stat).forEach(key => {
-              if (typeof item.stat[key] === 'number') {
-                acc[key] = (acc[key] || 0) + item.stat[key];
+        
+        // Se temos total da API, usar ele; senão calcular dos items
+        if (Object.keys(total).length > 0) {
+          console.log('🔍 [DASHBOARD] Usando total da API:', total)
+          summary = total
+        } else {
+          console.log('🔍 [DASHBOARD] Calculando total dos items')
+          summary = filteredData.reduce((acc: any, item: any) => {
+            // Processar campos diretos
+            Object.keys(item).forEach(key => {
+              if (key !== 'stat' && typeof item[key] === 'number') {
+                acc[key] = (acc[key] || 0) + item[key];
               }
             });
-          }
-          
-          return acc;
-        }, {});
+            
+            // Processar estrutura stat se existir
+            if (item.stat && typeof item.stat === 'object') {
+              Object.keys(item.stat).forEach(key => {
+                if (typeof item.stat[key] === 'number') {
+                  acc[key] = (acc[key] || 0) + item.stat[key];
+                }
+              });
+            }
+            
+            return acc;
+          }, {});
+        }
         
-        // Adicionar dados de InitiateCheckout do campo convtype1
-        summary.initiate_checkout = filteredData.reduce((total: number, item: any) => {
-          return total + (item.convtype1 || 0);
-        }, 0);
-        console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
+        // Adicionar dados de InitiateCheckout do campo convtype1 (se não estiver no total)
+        if (!summary.initiate_checkout) {
+          summary.initiate_checkout = filteredData.reduce((total: number, item: any) => {
+            return total + (item.convtype1 || 0);
+          }, 0);
+          console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
+        }
         console.log('🔍 [DASHBOARD] Summary final:', summary);
         
         // Debug: verificar se EPC está sendo agregado
@@ -615,6 +680,7 @@ const Dashboard: React.FC = () => {
   }
 
   const handleApplyFilters = () => {
+    console.log('🔍 [DASHBOARD] Aplicando filtros:', tempFilters)
     setFilters(tempFilters)
     // Forçar recarregamento dos dados com os novos filtros
     loadDashboardData(true)

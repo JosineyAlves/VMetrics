@@ -144,6 +144,7 @@ export default async function handler(req, res) {
 
   // Verificar cache
   const cacheKey = url.toString();
+  console.log('🔍 [REPORT] Chave do cache:', cacheKey);
   const cachedData = requestCache.get(cacheKey);
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [REPORT] Dados retornados do cache');
@@ -168,6 +169,15 @@ export default async function handler(req, res) {
     });
     
     console.log('✅ [REPORT] Dados recebidos com sucesso');
+    console.log('🔍 [REPORT] Tipo dos dados recebidos:', typeof responseData);
+    console.log('🔍 [REPORT] É array?', Array.isArray(responseData));
+    console.log('🔍 [REPORT] Tamanho dos dados:', Array.isArray(responseData) ? responseData.length : 'N/A');
+    
+    // Log dos primeiros itens se for array
+    if (Array.isArray(responseData) && responseData.length > 0) {
+      console.log('🔍 [REPORT] Primeiro item:', responseData[0]);
+      console.log('🔍 [REPORT] Campos do primeiro item:', Object.keys(responseData[0]));
+    }
     
     // Salvar no cache
     requestCache.set(cacheKey, {
