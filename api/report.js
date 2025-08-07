@@ -125,6 +125,9 @@ export default async function handler(req, res) {
     }
   });
   
+  console.log('🔍 [REPORT] Parâmetros recebidos:', params);
+  console.log('🔍 [REPORT] Parâmetros enviados para RedTrack:', Object.fromEntries(url.searchParams.entries()));
+  
   // Adicionar API Key como parâmetro da query
   url.searchParams.set('api_key', finalApiKey);
 
@@ -140,6 +143,13 @@ export default async function handler(req, res) {
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [REPORT] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
+  }
+  
+  // Se for uma atualização forçada, limpar cache
+  if (params.force_refresh === 'true') {
+    console.log('🔄 [REPORT] Atualização forçada - limpando cache');
+    requestCache.delete(cacheKey);
+    console.log('🔄 [REPORT] Cache limpo para:', cacheKey);
   }
 
   try {

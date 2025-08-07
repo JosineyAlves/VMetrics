@@ -217,6 +217,7 @@ const Dashboard: React.FC = () => {
   const loadDashboardData = async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true)
+      console.log('🔄 [DASHBOARD] Atualização forçada - limpando cache...')
     } else {
       setLoading(true)
     }
@@ -243,12 +244,20 @@ const Dashboard: React.FC = () => {
       if (filters.browser) appliedFilters.browser = filters.browser
       if (filters.os) appliedFilters.os = filters.os
       if (filters.utm_source) appliedFilters.utm_source = filters.utm_source
+      
+      console.log('🔍 [DASHBOARD] Filtros originais:', filters)
+      console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
 
       const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         group_by: 'date', // Agrupamento por data para dashboard
         ...appliedFilters
+      }
+      
+      // Adicionar parâmetro de atualização forçada se necessário
+      if (isRefresh) {
+        params.force_refresh = 'true'
       }
       
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
@@ -258,6 +267,7 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Resposta da API:', realData)
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
+      console.log('🔍 [DASHBOARD] Tamanho da resposta:', Array.isArray(realData) ? realData.length : 'N/A')
       
 
       
@@ -291,6 +301,7 @@ const Dashboard: React.FC = () => {
         });
         
         console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        console.log('🔍 [DASHBOARD] Dados filtrados (primeiros 3 itens):', filteredData.slice(0, 3));
         
         // Log detalhado das campanhas filtradas
         realData.forEach((item: any) => {
@@ -335,6 +346,7 @@ const Dashboard: React.FC = () => {
           return total + (item.convtype1 || 0);
         }, 0);
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
+        console.log('🔍 [DASHBOARD] Summary final:', summary);
         
         // Debug: verificar se EPC está sendo agregado
         console.log('🔍 [DASHBOARD DEBUG] EPC nos dados filtrados:', {
@@ -402,6 +414,8 @@ const Dashboard: React.FC = () => {
           console.log('🔍 [DASHBOARD] Campo cost mapeado para spend (dados diretos):', summary.spend);
         }
       }
+      console.log('🔍 [DASHBOARD] Definindo dados no estado - Summary:', summary)
+      console.log('🔍 [DASHBOARD] Definindo dados no estado - Daily:', daily.length, 'itens')
       setDailyData(daily);
       setDashboardData(summary);
       
@@ -557,6 +571,7 @@ const Dashboard: React.FC = () => {
 
   // Carregar dados quando componente montar ou parâmetros mudarem
   useEffect(() => {
+    console.log('🔄 [DASHBOARD] useEffect executado - apiKey:', !!apiKey, 'selectedPeriod:', selectedPeriod, 'filters:', filters)
     if (apiKey) {
       loadDashboardData()
     }
@@ -566,6 +581,9 @@ const Dashboard: React.FC = () => {
 
   const handleRefresh = () => {
     console.log('🔄 [DASHBOARD] Forçando atualização de dados...')
+    console.log('🔄 [DASHBOARD] Filtros atuais:', filters)
+    console.log('🔄 [DASHBOARD] Período selecionado:', selectedPeriod)
+    console.log('🔄 [DASHBOARD] Range customizado:', customRange)
     loadDashboardData(true)
   }
 

@@ -12,7 +12,7 @@ import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
-import { RefreshCw, Play, Pause } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore()
@@ -20,8 +20,6 @@ const App: React.FC = () => {
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [isAutoEnabled, setIsAutoEnabled] = useState(false)
-  const autoRefreshInterval = useRef<number | null>(null)
   // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 
@@ -70,32 +68,7 @@ const App: React.FC = () => {
     }
   }
 
-  // Função para alternar modo auto
-  const handleAutoToggle = () => {
-    if (isAutoEnabled) {
-      // Desabilitar auto refresh
-      if (autoRefreshInterval.current) {
-        clearInterval(autoRefreshInterval.current)
-        autoRefreshInterval.current = null
-      }
-      setIsAutoEnabled(false)
-    } else {
-      // Habilitar auto refresh (a cada 30 segundos)
-      autoRefreshInterval.current = setInterval(() => {
-        handleRefresh()
-      }, 30000)
-      setIsAutoEnabled(true)
-    }
-  }
-
-  // Limpar intervalo quando componente for desmontado
-  React.useEffect(() => {
-    return () => {
-      if (autoRefreshInterval.current) {
-        clearInterval(autoRefreshInterval.current)
-      }
-    }
-  }, [])
+  // Remover função de auto toggle e limpeza de intervalo
 
   const renderSection = () => {
     switch (currentSection) {
@@ -129,7 +102,6 @@ const App: React.FC = () => {
 
   // Definir quais botões mostrar por tela
   const showRefresh = ['dashboard', 'campaigns', 'conversions', 'performance', 'funnel'].includes(currentSection)
-  const showAuto = currentSection === 'dashboard'
   // Filtros agora só nas telas específicas
 
   if (!isAuthenticated) {
@@ -181,19 +153,7 @@ const App: React.FC = () => {
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}
               </button>
             )}
-            {showAuto && (
-              <button 
-                onClick={handleAutoToggle}
-                className={`inline-flex items-center px-4 py-2 rounded-xl border font-semibold transition ${
-                  isAutoEnabled 
-                    ? 'border-purple-500 text-purple-600 bg-purple-50' 
-                    : 'border-purple-500 text-purple-600 hover:bg-purple-50'
-                }`}
-              >
-                {isAutoEnabled ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                {isAutoEnabled ? 'Auto ON' : 'Auto'}
-              </button>
-            )}
+
           </div>
         </div>
         <AnimatePresence mode="wait">
