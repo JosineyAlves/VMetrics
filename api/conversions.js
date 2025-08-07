@@ -124,7 +124,7 @@ export default async function handler(req, res) {
   }
 
   // Verificar se é uma atualização forçada
-  const isForceRefresh = req.query.force_refresh === 'true';
+  const isForceRefresh = req.query.force_refresh === 'true' || req.query._t;
   
   // Verificar cache
   const cacheKey = `conversions_${JSON.stringify(req.query)}`;

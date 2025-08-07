@@ -142,7 +142,7 @@ export default async function handler(req, res) {
     })
 
     // Verificar se é uma atualização forçada
-    const isForceRefresh = req.query.force_refresh === 'true';
+    const isForceRefresh = req.query.force_refresh === 'true' || req.query._t;
     
     // Criar cache key
     const cacheKey = `funnel_${apiKey}_${date_from}_${date_to}_${campaign_id || 'all'}_${status}_${type}_${per}`

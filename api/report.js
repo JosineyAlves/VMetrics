@@ -135,7 +135,7 @@ export default async function handler(req, res) {
   };
 
   // Verificar se é uma atualização forçada
-  const isForceRefresh = params.force_refresh === 'true';
+  const isForceRefresh = params.force_refresh === 'true' || params._t;
   
   // Verificar cache
   const cacheKey = url.toString();

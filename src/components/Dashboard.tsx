@@ -250,7 +250,8 @@ const Dashboard: React.FC = () => {
         date_to: dateRange.endDate,
         group_by: 'date', // Agrupamento por data para dashboard
         ...appliedFilters,
-        ...(forceRefresh && { force_refresh: 'true' })
+        ...(forceRefresh && { force_refresh: 'true' }),
+        ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
@@ -653,7 +654,7 @@ const Dashboard: React.FC = () => {
         if (data.stat) {
           value = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
         } else {
-          value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+          value = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0
         }
         
         // Debug: verificar valores de gasto/cost
@@ -676,7 +677,7 @@ const Dashboard: React.FC = () => {
         if (data.stat) {
           value = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
         } else {
-          value = data.revenue ?? data.income ?? data.total_revenue ?? 0
+          value = data.revenue ?? data.total_revenue ?? data.income ?? 0
         }
       } else if (metricId === 'profit') {
         let revenue = 0
@@ -687,8 +688,8 @@ const Dashboard: React.FC = () => {
           revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
           cost = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
         } else {
-          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
-          cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+          revenue = data.revenue ?? data.total_revenue ?? data.income ?? 0
+          cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0
         }
         value = revenue - cost
       } else if (metricId === 'initiate_checkout') {

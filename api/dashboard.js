@@ -102,7 +102,7 @@ export default async function (req, res) {
     console.log('🔍 [DASHBOARD] API Key recebida:', apiKey ? 'SIM' : 'NÃO')
 
     // Verificar se é uma atualização forçada
-    const isForceRefresh = req.query.force_refresh === 'true';
+    const isForceRefresh = req.query.force_refresh === 'true' || req.query._t;
     
     // Verificar cache
     const cacheKey = `dashboard_${JSON.stringify(req.query)}`;

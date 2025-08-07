@@ -486,7 +486,8 @@ const Campaigns: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         group_by: 'campaign',
-        ...(forceRefresh && { force_refresh: 'true' })
+        ...(forceRefresh && { force_refresh: 'true' }),
+        ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       console.log('Campanhas - Parâmetros enviados:', params);
@@ -575,6 +576,8 @@ const Campaigns: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         per: '10000', // Máximo para obter mais dados
+        ...(forceRefresh && { force_refresh: 'true' }),
+        ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       // Montar URL para buscar conversões

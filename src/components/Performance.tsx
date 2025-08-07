@@ -137,7 +137,8 @@ const Performance: React.FC = () => {
          date_from: dateRange.startDate,
          date_to: dateRange.endDate,
          per: 1000, // Máximo para obter mais dados
-         ...(forceRefresh && { force_refresh: 'true' })
+         ...(forceRefresh && { force_refresh: 'true' }),
+         ...(forceRefresh && { _t: Date.now().toString() })
        }
       
       const response = await api.getConversions(params)

@@ -264,7 +264,8 @@ const Conversions: React.FC = () => {
         date_to: dateRange.endDate,
         per: 1000, // Máximo para obter mais dados
         ...filters,
-        ...(forceRefresh && { force_refresh: 'true' })
+        ...(forceRefresh && { force_refresh: 'true' }),
+        ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       const response = await api.getConversions(params)

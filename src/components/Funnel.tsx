@@ -111,7 +111,8 @@ const Funnel: React.FC = () => {
         api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        ...(forceRefresh && { force_refresh: 'true' })
+        ...(forceRefresh && { force_refresh: 'true' }),
+        ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       const url = new URL('/api/campaigns', window.location.origin)
