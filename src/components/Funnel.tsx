@@ -480,6 +480,25 @@ const Funnel: React.FC = () => {
     loadCampaigns()
   }, [apiKey, selectedPeriod, customRange])
 
+  // Listener para evento de atualização forçada
+  useEffect(() => {
+    const handleForceRefresh = (event: CustomEvent) => {
+      if (event.detail?.section === 'funnel') {
+        console.log('🔄 [FUNNEL] Evento forceRefresh recebido')
+        loadCampaigns()
+        if (selectedCampaign) {
+          loadFunnelData(selectedCampaign)
+        }
+      }
+    }
+
+    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
+    
+    return () => {
+      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
+    }
+  }, [selectedCampaign])
+
   useEffect(() => {
     if (selectedCampaign) {
       loadFunnelData(selectedCampaign)

@@ -576,9 +576,25 @@ const Performance: React.FC = () => {
      }
   }
 
-     useEffect(() => {
-     loadPerformanceData()
-   }, [apiKey, selectedPeriod, customRange])
+       useEffect(() => {
+    loadPerformanceData()
+  }, [apiKey, selectedPeriod, customRange])
+
+  // Listener para evento de atualização forçada
+  useEffect(() => {
+    const handleForceRefresh = (event: CustomEvent) => {
+      if (event.detail?.section === 'performance') {
+        console.log('🔄 [PERFORMANCE] Evento forceRefresh recebido')
+        loadPerformanceData(true)
+      }
+    }
+
+    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
+    
+    return () => {
+      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
+    }
+  }, [])
 
   const handleRefresh = () => {
     loadPerformanceData(true)

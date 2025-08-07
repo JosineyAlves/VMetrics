@@ -75,6 +75,22 @@ const Dashboard: React.FC = () => {
   // Remover estados locais de datas
   const { selectedPeriod, customRange } = useDateRangeStore()
 
+  // Listener para evento de atualização forçada
+  useEffect(() => {
+    const handleForceRefresh = (event: CustomEvent) => {
+      if (event.detail?.section === 'dashboard') {
+        console.log('🔄 [DASHBOARD] Evento forceRefresh recebido')
+        handleRefresh()
+      }
+    }
+
+    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
+    
+    return () => {
+      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
+    }
+  }, [])
+
   // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
 
   const trafficChannelOptions = [
@@ -219,12 +235,23 @@ const Dashboard: React.FC = () => {
         timezone: 'UTC'
       })
 
+      // Aplicar filtros apenas se não estiverem vazios
+      const appliedFilters: any = {}
+      if (filters.traffic_channel) appliedFilters.traffic_channel = filters.traffic_channel
+      if (filters.country) appliedFilters.country = filters.country
+      if (filters.device) appliedFilters.device = filters.device
+      if (filters.browser) appliedFilters.browser = filters.browser
+      if (filters.os) appliedFilters.os = filters.os
+      if (filters.utm_source) appliedFilters.utm_source = filters.utm_source
+
       const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         group_by: 'date', // Agrupamento por data para dashboard
-        ...filters
+        ...appliedFilters
       }
+      
+      console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
       
       console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
       const realData = await api.getReport(params)
@@ -538,11 +565,14 @@ const Dashboard: React.FC = () => {
   // Remover handlePeriodChange e qualquer uso de setSelectedPeriod
 
   const handleRefresh = () => {
+    console.log('🔄 [DASHBOARD] Forçando atualização de dados...')
     loadDashboardData(true)
   }
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
+    // Forçar recarregamento dos dados com os novos filtros
+    loadDashboardData(true)
   }
 
   const handleResetFilters = () => {
@@ -558,6 +588,8 @@ const Dashboard: React.FC = () => {
     }
     setFilters(resetFilters)
     setTempFilters(resetFilters)
+    // Forçar recarregamento dos dados sem filtros
+    loadDashboardData(true)
   }
 
   // Corrigir a função formatValue:

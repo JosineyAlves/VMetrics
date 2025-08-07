@@ -760,6 +760,26 @@ const Campaigns: React.FC = () => {
     }
   }, [showPeriodDropdown])
 
+  // Listener para evento de atualização forçada
+  useEffect(() => {
+    const handleForceRefresh = (event: CustomEvent) => {
+      if (event.detail?.section === 'campaigns') {
+        console.log('🔄 [CAMPAIGNS] Evento forceRefresh recebido')
+        if (activeTab === 'campaigns') {
+          loadCampaigns()
+        } else if (activeTab === 'utm') {
+          loadUTMCreatives()
+        }
+      }
+    }
+
+    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
+    
+    return () => {
+      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
+    }
+  }, [activeTab])
+
 
 
   const getStatusColor = (status: string) => {

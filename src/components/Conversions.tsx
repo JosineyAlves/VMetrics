@@ -522,6 +522,22 @@ const Conversions: React.FC = () => {
     }
   }, [apiKey, selectedPeriod, filters])
 
+  // Listener para evento de atualização forçada
+  useEffect(() => {
+    const handleForceRefresh = (event: CustomEvent) => {
+      if (event.detail?.section === 'conversions') {
+        console.log('🔄 [CONVERSIONS] Evento forceRefresh recebido')
+        loadConversions(true)
+      }
+    }
+
+    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
+    
+    return () => {
+      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
+    }
+  }, [])
+
   const handleRefresh = () => {
     loadConversions(true)
   }
