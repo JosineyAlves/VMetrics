@@ -1,10 +1,10 @@
 // Cache em memória para evitar múltiplas requisições
 const requestCache = new Map();
-const CACHE_DURATION = 60000; // 60 segundos (aumentado de 30s)
+const CACHE_DURATION = 300000; // 5 minutos
 
 // Controle de rate limiting
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições para evitar rate limiting
+const MIN_REQUEST_INTERVAL = 5000; // 5 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
@@ -25,7 +25,7 @@ async function processRequestQueue() {
         await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
       }
       
-      console.log('⏳ [REPORT] Processando requisição da fila...');
+      console.log('⏳ [SOURCES] Processando requisição da fila...');
       const response = await fetch(url, {
         method: 'GET',
         headers
@@ -35,7 +35,7 @@ async function processRequestQueue() {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('🔴 [REPORT] Erro da RedTrack:', {
+        console.error('🔴 [SOURCES] Erro da RedTrack:', {
           status: response.status,
           url: url,
           errorData,
@@ -44,7 +44,7 @@ async function processRequestQueue() {
         
         // Se for rate limiting, aguardar e tentar novamente
         if (response.status === 429) {
-          console.log('⚠️ [REPORT] Rate limiting detectado - aguardando 10 segundos...');
+          console.log('⚠️ [SOURCES] Rate limiting detectado - aguardando 10 segundos...');
           await new Promise(resolve => setTimeout(resolve, 10000));
           
           // Tentar novamente uma vez
@@ -54,7 +54,7 @@ async function processRequestQueue() {
           });
           
           if (!retryResponse.ok) {
-            console.log('⚠️ [REPORT] Rate limiting persistente - retornando dados vazios');
+            console.log('⚠️ [SOURCES] Rate limiting persistente - retornando dados vazios');
             resolve([]);
             continue;
           }
@@ -69,7 +69,7 @@ async function processRequestQueue() {
         resolve(data);
       }
     } catch (error) {
-      console.error('❌ [REPORT] Erro de conexão:', error);
+      console.error('❌ [SOURCES] Erro de conexão:', error);
       reject(error);
     }
   }
@@ -78,9 +78,7 @@ async function processRequestQueue() {
 }
 
 export default async function handler(req, res) {
-  console.log('🔍 [REPORT] Requisição recebida:', req.method, req.url)
-  console.log('🔍 [REPORT] Headers recebidos:', Object.keys(req.headers))
-  console.log('🔍 [REPORT] Authorization header:', req.headers['authorization'])
+  console.log('🔍 [SOURCES] Requisição recebida:', req.method, req.url)
   
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -89,7 +87,7 @@ export default async function handler(req, res) {
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('🔍 [REPORT] Preflight request - retornando 200')
+    console.log('🔍 [SOURCES] Preflight request - retornando 200')
     res.status(200).end()
     return
   }
@@ -101,11 +99,11 @@ export default async function handler(req, res) {
   let apiKey = params.api_key;
   let frontendAuth = req.headers['authorization'];
   
-  console.log('🔍 [REPORT] API Key da query:', apiKey ? 'SIM' : 'NÃO');
-  console.log('🔍 [REPORT] Authorization header:', frontendAuth ? 'SIM' : 'NÃO');
+  console.log('🔍 [SOURCES] API Key da query:', apiKey ? 'SIM' : 'NÃO');
+  console.log('🔍 [SOURCES] Authorization header:', frontendAuth ? 'SIM' : 'NÃO');
   
   if (!apiKey && !frontendAuth) {
-    console.log('❌ [REPORT] Nenhuma API Key fornecida');
+    console.log('❌ [SOURCES] Nenhuma API Key fornecida');
     return res.status(401).json({ error: 'API Key required' });
   }
 
@@ -113,28 +111,26 @@ export default async function handler(req, res) {
   const finalApiKey = apiKey || (frontendAuth ? frontendAuth.replace('Bearer ', '') : null);
   
   if (!finalApiKey) {
-    console.log('❌ [REPORT] API Key final não encontrada');
+    console.log('❌ [SOURCES] API Key final não encontrada');
     return res.status(401).json({ error: 'API Key required' });
   }
 
-  // Monta a URL do RedTrack
+  // Monta a URL do RedTrack para buscar fontes
   const url = new URL('https://api.redtrack.io/report');
-  Object.entries(params).forEach(([key, value]) => {
-    if (key !== 'api_key' && value !== undefined && value !== null && value !== '') {
+  
+  // Parâmetros para buscar fontes
+  const sourceParams = {
+    date_from: params.date_from || '2025-01-01',
+    date_to: params.date_to || '2025-12-31',
+    group_by: 'source',
+    api_key: finalApiKey
+  };
+  
+  Object.entries(sourceParams).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, value.toString());
     }
   });
-  
-  // Verificar se force_refresh foi removido incorretamente
-  if (params.force_refresh === 'true') {
-    console.log('🔄 [REPORT] force_refresh detectado - não enviando para RedTrack')
-  }
-  
-  console.log('🔍 [REPORT] Parâmetros recebidos:', params);
-  console.log('🔍 [REPORT] Parâmetros enviados para RedTrack:', Object.fromEntries(url.searchParams.entries()));
-  
-  // Adicionar API Key como parâmetro da query
-  url.searchParams.set('api_key', finalApiKey);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -144,23 +140,16 @@ export default async function handler(req, res) {
 
   // Verificar cache
   const cacheKey = url.toString();
-  console.log('🔍 [REPORT] Chave do cache:', cacheKey);
+  console.log('🔍 [SOURCES] Chave do cache:', cacheKey);
   const cachedData = requestCache.get(cacheKey);
   if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
-    console.log('✅ [REPORT] Dados retornados do cache');
+    console.log('✅ [SOURCES] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
-  }
-  
-  // Se for uma atualização forçada, limpar cache
-  if (params.force_refresh === 'true') {
-    console.log('🔄 [REPORT] Atualização forçada - limpando cache');
-    requestCache.delete(cacheKey);
-    console.log('🔄 [REPORT] Cache limpo para:', cacheKey);
   }
 
   try {
-    console.log('🔍 [REPORT] URL final:', url.toString());
-    console.log('🔍 [REPORT] Headers enviados:', headers);
+    console.log('🔍 [SOURCES] URL final:', url.toString());
+    console.log('🔍 [SOURCES] Headers enviados:', headers);
     
     // Adicionar requisição à fila
     const responseData = await new Promise((resolve, reject) => {
@@ -168,15 +157,15 @@ export default async function handler(req, res) {
       processRequestQueue();
     });
     
-    console.log('✅ [REPORT] Dados recebidos com sucesso');
-    console.log('🔍 [REPORT] Tipo dos dados recebidos:', typeof responseData);
-    console.log('🔍 [REPORT] É array?', Array.isArray(responseData));
-    console.log('🔍 [REPORT] Tamanho dos dados:', Array.isArray(responseData) ? responseData.length : 'N/A');
+    console.log('✅ [SOURCES] Dados recebidos com sucesso');
+    console.log('🔍 [SOURCES] Tipo dos dados recebidos:', typeof responseData);
+    console.log('🔍 [SOURCES] É array?', Array.isArray(responseData));
+    console.log('🔍 [SOURCES] Tamanho dos dados:', Array.isArray(responseData) ? responseData.length : 'N/A');
     
     // Log dos primeiros itens se for array
     if (Array.isArray(responseData) && responseData.length > 0) {
-      console.log('🔍 [REPORT] Primeiro item:', responseData[0]);
-      console.log('🔍 [REPORT] Campos do primeiro item:', Object.keys(responseData[0]));
+      console.log('🔍 [SOURCES] Primeiro item:', responseData[0]);
+      console.log('🔍 [SOURCES] Campos do primeiro item:', Object.keys(responseData[0]));
     }
     
     // Salvar no cache
@@ -188,11 +177,11 @@ export default async function handler(req, res) {
     res.status(200).json(responseData);
 
   } catch (error) {
-    console.error('❌ [REPORT] Erro de conexão:', error);
+    console.error('❌ [SOURCES] Erro de conexão:', error);
     res.status(500).json({ 
       error: 'Erro de conexão com a API do RedTrack',
       details: error.message,
-      endpoint: '/report'
+      endpoint: '/sources'
     });
   }
 } 

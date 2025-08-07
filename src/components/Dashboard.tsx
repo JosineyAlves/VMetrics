@@ -93,14 +93,10 @@ const Dashboard: React.FC = () => {
 
   // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
 
-  const trafficChannelOptions = [
+  const [trafficChannelOptions, setTrafficChannelOptions] = useState([
     { value: '', label: 'Todos os canais' },
-    { value: '687efdfc1cb5b42adc7b3f9e', label: 'Taboola' },
-    { value: 'facebook_id', label: 'Facebook Ads' },
-    { value: 'google_id', label: 'Google Ads' },
-    { value: 'tiktok_id', label: 'TikTok Ads' },
-    { value: 'outbrain_id', label: 'Outbrain' }
-  ]
+    { value: '687efdfc1cb5b42adc7b3f9e', label: 'Taboola' }
+  ])
 
   // Atualizar label do período para customizado
   // Função para calcular datas reais baseadas no período (não utilizada)
@@ -120,6 +116,47 @@ const Dashboard: React.FC = () => {
   const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([])
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all')
   const [funnelData, setFunnelData] = useState<any>({})
+
+  // Buscar fontes disponíveis
+  useEffect(() => {
+    const fetchSources = async () => {
+      if (!apiKey) return
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      
+      const params = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+      }
+      const url = new URL('/api/sources', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
+        }
+      })
+      try {
+        const response = await fetch(url.toString())
+        const data = await response.json()
+        console.log('🔍 [DASHBOARD] Fontes carregadas:', data)
+        
+        if (Array.isArray(data) && data.length > 0) {
+          const sources = data.map((item: any) => ({
+            value: item.source_id || item.id || '',
+            label: item.source || item.name || 'Fonte sem nome'
+          })).filter(source => source.value && source.value !== '')
+          
+          setTrafficChannelOptions([
+            { value: '', label: 'Todos os canais' },
+            ...sources
+          ])
+          console.log('🔍 [DASHBOARD] Fontes mapeadas:', sources)
+        }
+      } catch (err) {
+        console.error('❌ [DASHBOARD] Erro ao carregar fontes:', err)
+      }
+    }
+    fetchSources()
+  }, [apiKey, selectedPeriod, customRange])
 
   // Buscar campanhas ao carregar
   useEffect(() => {
@@ -249,8 +286,14 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] utm_source:', filters.utm_source)
       
       if (filters.traffic_channel) {
-        appliedFilters.source_id = filters.traffic_channel
-        console.log('🔍 [DASHBOARD] Aplicando filtro de fonte:', filters.traffic_channel)
+        // Verificar se o ID é válido (não contém '_id' no final)
+        if (filters.traffic_channel.includes('_id')) {
+          console.log('⚠️ [DASHBOARD] ID inválido detectado:', filters.traffic_channel)
+          console.log('⚠️ [DASHBOARD] Use apenas IDs válidos do RedTrack')
+        } else {
+          appliedFilters.source_id = filters.traffic_channel
+          console.log('🔍 [DASHBOARD] Aplicando filtro de fonte:', filters.traffic_channel)
+        }
       } else if (filters.country) {
         appliedFilters.country = filters.country
         console.log('🔍 [DASHBOARD] Aplicando filtro de país:', filters.country)
