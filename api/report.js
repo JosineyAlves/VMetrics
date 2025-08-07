@@ -125,6 +125,11 @@ export default async function handler(req, res) {
     }
   });
   
+  // Verificar se force_refresh foi removido incorretamente
+  if (params.force_refresh === 'true') {
+    console.log('🔄 [REPORT] force_refresh detectado - não enviando para RedTrack')
+  }
+  
   console.log('🔍 [REPORT] Parâmetros recebidos:', params);
   console.log('🔍 [REPORT] Parâmetros enviados para RedTrack:', Object.fromEntries(url.searchParams.entries()));
   

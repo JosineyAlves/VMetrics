@@ -236,17 +236,39 @@ const Dashboard: React.FC = () => {
         timezone: 'UTC'
       })
 
-      // Aplicar filtros apenas se não estiverem vazios
+      // Aplicar filtros usando o sistema correto do RedTrack (filter_by + filter_value)
       const appliedFilters: any = {}
-      if (filters.traffic_channel) appliedFilters.traffic_channel = filters.traffic_channel
-      if (filters.country) appliedFilters.country = filters.country
-      if (filters.device) appliedFilters.device = filters.device
-      if (filters.browser) appliedFilters.browser = filters.browser
-      if (filters.os) appliedFilters.os = filters.os
-      if (filters.utm_source) appliedFilters.utm_source = filters.utm_source
+      
+      // Mapear filtros para o sistema do RedTrack (apenas um filtro por vez)
+      if (filters.traffic_channel) {
+        appliedFilters.filter_by = 'source'
+        appliedFilters.filter_value = filters.traffic_channel
+        console.log('🔍 [DASHBOARD] Aplicando filtro de fonte:', filters.traffic_channel)
+      } else if (filters.country) {
+        appliedFilters.filter_by = 'country_code'
+        appliedFilters.filter_value = filters.country
+        console.log('🔍 [DASHBOARD] Aplicando filtro de país:', filters.country)
+      } else if (filters.device) {
+        appliedFilters.filter_by = 'device'
+        appliedFilters.filter_value = filters.device
+        console.log('🔍 [DASHBOARD] Aplicando filtro de dispositivo:', filters.device)
+      } else if (filters.browser) {
+        appliedFilters.filter_by = 'browser'
+        appliedFilters.filter_value = filters.browser
+        console.log('🔍 [DASHBOARD] Aplicando filtro de navegador:', filters.browser)
+      } else if (filters.os) {
+        appliedFilters.filter_by = 'os'
+        appliedFilters.filter_value = filters.os
+        console.log('🔍 [DASHBOARD] Aplicando filtro de SO:', filters.os)
+      } else if (filters.utm_source) {
+        appliedFilters.filter_by = 'utm_source'
+        appliedFilters.filter_value = filters.utm_source
+        console.log('🔍 [DASHBOARD] Aplicando filtro de UTM source:', filters.utm_source)
+      }
       
       console.log('🔍 [DASHBOARD] Filtros originais:', filters)
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
+      console.log('🔍 [DASHBOARD] Traffic channel selecionado:', filters.traffic_channel)
 
       const params = {
         date_from: dateRange.startDate,
@@ -268,6 +290,11 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
       console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       console.log('🔍 [DASHBOARD] Tamanho da resposta:', Array.isArray(realData) ? realData.length : 'N/A')
+      
+      // Verificar se a resposta está vazia devido ao filtro
+      if (Array.isArray(realData) && realData.length === 0) {
+        console.log('⚠️ [DASHBOARD] Resposta vazia - pode ser devido ao filtro aplicado')
+      }
       
 
       
