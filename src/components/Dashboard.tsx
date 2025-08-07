@@ -972,10 +972,7 @@ const Dashboard: React.FC = () => {
 
       {/* KPIs Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {getSelectedMetricsInOrder().map((metric) => {
-          const value = dashboardData[metric.id as keyof typeof dashboardData] || 0
-          const formattedValue = formatValue(value, metric.format || 'integer')
-          
+        {getMetricsFromData(dashboardData).map((metric) => {
           return (
           <motion.div
             key={metric.id}
@@ -988,7 +985,7 @@ const Dashboard: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
                   <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                    {formattedValue}
+                    {metric.value}
                   </p>
                   <p className="text-xs text-gray-500 line-clamp-2">{metric.description}</p>
               </div>
