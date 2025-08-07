@@ -99,22 +99,11 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'API Key required' });
   }
 
-  // Verificar se é uma atualização forçada
-      const isForceRefresh = params.force_refresh === 'true' || params._t;
-  
   const cacheKey = `campaigns_${JSON.stringify(params)}`;
   const cachedData = requestCache.get(cacheKey);
-  
-  // Se não for atualização forçada e há cache válido, usar cache
-  if (!isForceRefresh && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [CAMPAIGNS] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
-  }
-  
-  // Se for atualização forçada, limpar cache
-  if (isForceRefresh) {
-    console.log('🔄 [CAMPAIGNS] Atualização forçada - ignorando cache');
-    requestCache.delete(cacheKey);
   }
 
   try {

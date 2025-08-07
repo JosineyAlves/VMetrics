@@ -118,7 +118,7 @@ const Performance: React.FC = () => {
     }).format(value)
   }
 
-  const loadPerformanceData = async (isRefresh = false, forceRefresh = false) => {
+  const loadPerformanceData = async (isRefresh = false) => {
     if (!apiKey) return
     
     if (isRefresh) {
@@ -136,9 +136,7 @@ const Performance: React.FC = () => {
              const params = {
          date_from: dateRange.startDate,
          date_to: dateRange.endDate,
-         per: 1000, // Máximo para obter mais dados
-         ...(forceRefresh && { force_refresh: 'true' }),
-         ...(forceRefresh && { _t: Date.now().toString() })
+         per: 1000 // Máximo para obter mais dados
        }
       
       const response = await api.getConversions(params)
@@ -578,26 +576,9 @@ const Performance: React.FC = () => {
      }
   }
 
-       useEffect(() => {
-    loadPerformanceData()
-  }, [apiKey, selectedPeriod, customRange])
-
-  // Listener para evento de atualização forçada
-  useEffect(() => {
-    const handleForceRefresh = (event: CustomEvent) => {
-      if (event.detail?.section === 'performance') {
-        console.log('🔄 [PERFORMANCE] Evento forceRefresh recebido')
-        const isForceRefresh = event.detail?.forceNewData === true
-        loadPerformanceData(true, isForceRefresh)
-      }
-    }
-
-    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
-    
-    return () => {
-      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
-    }
-  }, [])
+     useEffect(() => {
+     loadPerformanceData()
+   }, [apiKey, selectedPeriod, customRange])
 
   const handleRefresh = () => {
     loadPerformanceData(true)

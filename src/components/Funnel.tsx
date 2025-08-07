@@ -98,7 +98,7 @@ const Funnel: React.FC = () => {
   }
 
   // Carregar campanhas disponíveis
-  const loadCampaigns = async (forceRefresh = false) => {
+  const loadCampaigns = async () => {
     if (!apiKey) return
     
     try {
@@ -110,9 +110,7 @@ const Funnel: React.FC = () => {
       const params = {
         api_key: apiKey,
         date_from: dateRange.startDate,
-        date_to: dateRange.endDate,
-        ...(forceRefresh && { force_refresh: 'true' }),
-        ...(forceRefresh && { _t: Date.now().toString() })
+        date_to: dateRange.endDate
       }
       
       const url = new URL('/api/campaigns', window.location.origin)
@@ -156,7 +154,7 @@ const Funnel: React.FC = () => {
   }
 
   // Carregar dados do funil para uma campanha específica
-  const loadFunnelData = async (campaignId?: string, forceRefresh = false) => {
+  const loadFunnelData = async (campaignId?: string) => {
     if (!apiKey || !campaignId) return
     
     setLoading(true)
@@ -481,26 +479,6 @@ const Funnel: React.FC = () => {
   useEffect(() => {
     loadCampaigns()
   }, [apiKey, selectedPeriod, customRange])
-
-  // Listener para evento de atualização forçada
-  useEffect(() => {
-    const handleForceRefresh = (event: CustomEvent) => {
-      if (event.detail?.section === 'funnel') {
-        console.log('🔄 [FUNNEL] Evento forceRefresh recebido')
-        const isForceRefresh = event.detail?.forceNewData === true
-        loadCampaigns(isForceRefresh)
-        if (selectedCampaign) {
-          loadFunnelData(selectedCampaign, isForceRefresh)
-        }
-      }
-    }
-
-    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
-    
-    return () => {
-      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
-    }
-  }, [selectedCampaign])
 
   useEffect(() => {
     if (selectedCampaign) {

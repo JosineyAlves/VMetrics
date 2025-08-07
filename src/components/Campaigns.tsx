@@ -462,8 +462,8 @@ const Campaigns: React.FC = () => {
 
   // Remover uso de getDateRange e garantir parâmetros obrigatórios na chamada de campanhas
   // Novo fluxo: buscar campanhas usando /api/campaigns que agora retorna dados combinados
-  const loadCampaigns = async (forceRefresh = false) => {
-    console.log('Chamando loadCampaigns', forceRefresh ? '(forçando nova busca)' : '')
+  const loadCampaigns = async () => {
+    console.log('Chamando loadCampaigns')
     if (!apiKey) {
       console.log('API Key não definida, não vai buscar campanhas')
       return
@@ -485,9 +485,7 @@ const Campaigns: React.FC = () => {
         api_key: apiKey,
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        group_by: 'campaign',
-        ...(forceRefresh && { force_refresh: 'true' }),
-        ...(forceRefresh && { _t: Date.now().toString() })
+        group_by: 'campaign'
       }
       
       console.log('Campanhas - Parâmetros enviados:', params);
@@ -556,7 +554,7 @@ const Campaigns: React.FC = () => {
   }
 
   // Função para carregar dados de RT Campaign, RT Adgroup, RT Ad baseados em conversões
-  const loadUTMCreatives = async (forceRefresh = false) => {
+  const loadUTMCreatives = async () => {
     if (!apiKey) {
       console.log('API Key não definida, não vai buscar dados RT')
       return
@@ -576,8 +574,6 @@ const Campaigns: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         per: '10000', // Máximo para obter mais dados
-        ...(forceRefresh && { force_refresh: 'true' }),
-        ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       // Montar URL para buscar conversões
@@ -763,27 +759,6 @@ const Campaigns: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showPeriodDropdown])
-
-  // Listener para evento de atualização forçada
-  useEffect(() => {
-    const handleForceRefresh = (event: CustomEvent) => {
-      if (event.detail?.section === 'campaigns') {
-        console.log('🔄 [CAMPAIGNS] Evento forceRefresh recebido')
-        const isForceRefresh = event.detail?.forceNewData === true
-        if (activeTab === 'campaigns') {
-          loadCampaigns(isForceRefresh)
-        } else if (activeTab === 'utm') {
-          loadUTMCreatives(isForceRefresh)
-        }
-      }
-    }
-
-    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
-    
-    return () => {
-      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
-    }
-  }, [activeTab])
 
 
 

@@ -390,22 +390,19 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD' });
   }
 
-  // Verificar se é uma atualização forçada
-      const isForceRefresh = req.query.force_refresh === 'true' || req.query._t;
-  
   // Verificar cache (ignorar se _t (timestamp) for fornecido)
-  const { _t, force_refresh, ...queryParams } = req.query;
+  const { _t, ...queryParams } = req.query;
   const cacheKey = `performance_${JSON.stringify(queryParams)}`;
   const cachedData = requestCache.get(cacheKey);
   
-  // Se não for atualização forçada e não há _t (timestamp) e cache é válido, retornar cache
-  if (!isForceRefresh && !_t && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+  // Se não há _t (timestamp) e cache é válido, retornar cache
+  if (!_t && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [PERFORMANCE] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
   }
   
-  // Se for atualização forçada ou _t foi fornecido, limpar cache para forçar refresh
-  if (isForceRefresh || _t) {
+  // Se _t foi fornecido, limpar cache para forçar refresh
+  if (_t) {
     console.log('🔄 [PERFORMANCE] Forçando refresh - ignorando cache');
     requestCache.delete(cacheKey);
   }

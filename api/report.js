@@ -134,23 +134,12 @@ export default async function handler(req, res) {
     'User-Agent': 'TrackView-Dashboard/1.0'
   };
 
-  // Verificar se é uma atualização forçada
-  const isForceRefresh = params.force_refresh === 'true' || params._t;
-  
   // Verificar cache
   const cacheKey = url.toString();
   const cachedData = requestCache.get(cacheKey);
-  
-  // Se não for atualização forçada e há cache válido, usar cache
-  if (!isForceRefresh && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [REPORT] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
-  }
-  
-  // Se for atualização forçada, limpar cache
-  if (isForceRefresh) {
-    console.log('🔄 [REPORT] Atualização forçada - ignorando cache');
-    requestCache.delete(cacheKey);
   }
 
   try {

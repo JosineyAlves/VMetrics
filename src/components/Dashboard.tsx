@@ -75,23 +75,6 @@ const Dashboard: React.FC = () => {
   // Remover estados locais de datas
   const { selectedPeriod, customRange } = useDateRangeStore()
 
-  // Listener para evento de atualização forçada
-  useEffect(() => {
-    const handleForceRefresh = (event: CustomEvent) => {
-      if (event.detail?.section === 'dashboard') {
-        console.log('🔄 [DASHBOARD] Evento forceRefresh recebido')
-        const isForceRefresh = event.detail?.forceNewData === true
-        handleRefresh(isForceRefresh)
-      }
-    }
-
-    window.addEventListener('forceRefresh', handleForceRefresh as EventListener)
-    
-    return () => {
-      window.removeEventListener('forceRefresh', handleForceRefresh as EventListener)
-    }
-  }, [])
-
   // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
 
   const trafficChannelOptions = [
@@ -161,41 +144,38 @@ const Dashboard: React.FC = () => {
 
   // Buscar dados do funil ao trocar campanha
   useEffect(() => {
-      const fetchFunnel = async () => {
-    if (!apiKey) return
-    const dateRange = getDateRange(selectedPeriod, customRange)
-    
-    // Usar dados das campanhas em vez de fazer nova requisição
-    const campaignsParams = {
-      date_from: dateRange.startDate,
-      date_to: dateRange.endDate,
-      with_clicks: true,
-      total: true
-    }
-    
-    try {
-      const api = new RedTrackAPI(apiKey)
-      const campaignsData = await api.getCampaigns(campaignsParams)
-      
-      let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
-      
-      if (campaignsData && campaignsData.data && Array.isArray(campaignsData.data)) {
-        campaignsData.data.forEach((campaign: any) => {
-          if (campaign.stat) {
-            funnel.prelp_views += campaign.stat.prelp_views ?? 0
-            funnel.lp_views += campaign.stat.lp_views ?? 0
-            funnel.offer_views += campaign.stat.offer_views ?? 0
-            funnel.conversions += campaign.stat.conversions ?? 0
-          }
-        })
+    const fetchFunnel = async () => {
+      if (!apiKey) return
+      const dateRange = getDateRange(selectedPeriod, customRange)
+      const params: any = {
+        api_key: apiKey,
+        date_from: dateRange.startDate,
+        date_to: dateRange.endDate,
+        group_by: 'date',
       }
-      
-      setFunnelData(funnel)
-    } catch (err) {
-      console.error('❌ [DASHBOARD] Erro ao carregar dados do funil:', err)
-      setFunnelData({})
+      if (selectedCampaign !== 'all') params.campaign_id = selectedCampaign
+      const url = new URL('/api/report', window.location.origin)
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.set(key, value.toString())
+        }
+      })
+      try {
+        const response = await fetch(url.toString())
+        const data = await response.json()
+        let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
+        const arr = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
+        arr.forEach((d: any) => {
+          funnel.prelp_views += d.prelp_views ?? 0
+          funnel.lp_views += d.lp_views ?? 0
+          funnel.offer_views += d.offer_views ?? 0
+          funnel.conversions += d.conversions ?? 0
+        })
+        setFunnelData(funnel)
+      } catch (err) {
+        setFunnelData({})
+      }
     }
-  }
     fetchFunnel()
   }, [apiKey, selectedPeriod, customRange, selectedCampaign])
 
@@ -218,7 +198,7 @@ const Dashboard: React.FC = () => {
   }, [showPeriodDropdown])
 
   // Modificar a função loadDashboardData para adicionar logs detalhados:
-  const loadDashboardData = async (isRefresh = false, forceRefresh = false) => {
+  const loadDashboardData = async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true)
     } else {
@@ -239,35 +219,18 @@ const Dashboard: React.FC = () => {
         timezone: 'UTC'
       })
 
-      // Aplicar filtros apenas se não estiverem vazios
-      const appliedFilters: any = {}
-      if (filters.traffic_channel) appliedFilters.traffic_channel = filters.traffic_channel
-      if (filters.country) appliedFilters.country = filters.country
-      if (filters.device) appliedFilters.device = filters.device
-      if (filters.browser) appliedFilters.browser = filters.browser
-      if (filters.os) appliedFilters.os = filters.os
-      if (filters.utm_source) appliedFilters.utm_source = filters.utm_source
-
-      // Usar dados das campanhas em vez do endpoint /report para obter dados reais
-      const campaignsParams = {
+      const params = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        with_clicks: true,
-        total: true,
-        ...(forceRefresh && { force_refresh: 'true' }),
-        ...(forceRefresh && { _t: Date.now().toString() })
+        group_by: 'date', // Agrupamento por data para dashboard
+        ...filters
       }
       
-      console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
-      
-      console.log('🔍 [DASHBOARD] Chamando API de campanhas com parâmetros:', campaignsParams)
-      console.log('🔍 [DASHBOARD] URL da requisição:', `/api/campaigns?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}&with_clicks=true&total=true`)
-      const campaignsData = await api.getCampaigns(campaignsParams)
-      console.log('🔍 [DASHBOARD] Resposta da API de campanhas:', campaignsData)
-      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof campaignsData)
-      console.log('🔍 [DASHBOARD] Tem propriedade campaigns?', !!(campaignsData as any).campaigns)
-      console.log('🔍 [DASHBOARD] Campaigns é array?', Array.isArray((campaignsData as any).campaigns))
-      console.log('🔍 [DASHBOARD] Quantidade de campanhas:', (campaignsData as any).campaigns ? (campaignsData as any).campaigns.length : 0)
+      console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
+      const realData = await api.getReport(params)
+      console.log('🔍 [DASHBOARD] Resposta da API:', realData)
+      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
+      console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
       
 
       
@@ -277,57 +240,58 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Campanhas deletadas carregadas:', Array.from(deletedCampaigns))
       
       // Debug: verificar campos específicos para gasto
-      if (campaignsData && (campaignsData as any).campaigns && Array.isArray((campaignsData as any).campaigns) && (campaignsData as any).campaigns.length > 0) {
-        console.log('🔍 [DASHBOARD DEBUG] Primeira campanha da resposta:', (campaignsData as any).campaigns[0])
-        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na primeira campanha:', Object.keys((campaignsData as any).campaigns[0]))
-      } else if (campaignsData && typeof campaignsData === 'object') {
-        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(campaignsData))
+      if (Array.isArray(realData) && realData.length > 0) {
+        console.log('🔍 [DASHBOARD DEBUG] Primeiro item da resposta:', realData[0])
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis no primeiro item:', Object.keys(realData[0]))
+      } else if (realData && typeof realData === 'object') {
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(realData))
       }
       
       let summary: any = {};
       let daily: any[] = [];
-      if (campaignsData && (campaignsData as any).campaigns && Array.isArray((campaignsData as any).campaigns)) {
+      if (Array.isArray(realData)) {
         // Filtrar dados de campanhas deletadas e apenas campanhas com atividade (cliques ou conversões)
-        const filteredData = (campaignsData as any).campaigns.filter((item: any) => {
-          const campaignName = item.title || item.name || '';
+        const filteredData = realData.filter((item: any) => {
+          const campaignName = item.campaign || item.campaign_name || item.title || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           
           // Verificar se a campanha tem atividade (cliques ou conversões)
-          const hasClicks = item.stat && item.stat.clicks > 0;
-          const hasConversionsToday = item.stat && item.stat.conversions > 0;
+          const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
+          const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
           const hasActivity = hasClicks || hasConversionsToday;
           
           return !isDeleted && hasActivity;
         });
         
-        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', (campaignsData as any).campaigns.length, 'itens');
-        console.log('🔍 [DASHBOARD] Primeira campanha filtrada:', filteredData.length > 0 ? {
-          title: (filteredData[0] as any).title,
-          clicks: (filteredData[0] as any).stat?.clicks,
-          cost: (filteredData[0] as any).stat?.cost,
-          revenue: (filteredData[0] as any).stat?.revenue
-        } : 'Nenhuma campanha');
+        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
         
         // Log detalhado das campanhas filtradas
-        (campaignsData as any).campaigns.forEach((item: any) => {
-          const campaignName = item.title || item.name || '';
+        realData.forEach((item: any) => {
+          const campaignName = item.campaign || item.campaign_name || item.title || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
-          const hasClicks = item.stat && item.stat.clicks > 0;
-          const hasConversionsToday = item.stat && item.stat.conversions > 0;
+          const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
+          const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
           const hasActivity = hasClicks || hasConversionsToday;
           
           if (isDeleted) {
             console.log(`❌ [DASHBOARD] Campanha deletada ignorada: ${campaignName}`);
           } else if (!hasActivity) {
-            console.log(`⏸️ [DASHBOARD] Campanha sem atividade ignorada: ${campaignName} (cliques: ${item.stat?.clicks || 0}, conversões: ${item.stat?.conversions || 0})`);
+            console.log(`⏸️ [DASHBOARD] Campanha sem atividade ignorada: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`);
           } else {
-            console.log(`✅ [DASHBOARD] Campanha com atividade incluída: ${campaignName} (cliques: ${item.stat?.clicks || 0}, conversões: ${item.stat?.conversions || 0})`);
+            console.log(`✅ [DASHBOARD] Campanha com atividade incluída: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`);
           }
         });
         
         daily = filteredData;
-                summary = filteredData.reduce((acc: any, item: any) => {
-          // Processar campos do stat (dados reais das campanhas)
+        summary = filteredData.reduce((acc: any, item: any) => {
+          // Processar campos diretos
+          Object.keys(item).forEach(key => {
+            if (key !== 'stat' && typeof item[key] === 'number') {
+              acc[key] = (acc[key] || 0) + item[key];
+            }
+          });
+          
+          // Processar estrutura stat se existir
           if (item.stat && typeof item.stat === 'object') {
             Object.keys(item.stat).forEach(key => {
               if (typeof item.stat[key] === 'number') {
@@ -341,7 +305,7 @@ const Dashboard: React.FC = () => {
         
         // Adicionar dados de InitiateCheckout do campo convtype1
         summary.initiate_checkout = filteredData.reduce((total: number, item: any) => {
-          return total + (item.stat?.convtype1 || 0);
+          return total + (item.convtype1 || 0);
         }, 0);
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
         
@@ -349,8 +313,9 @@ const Dashboard: React.FC = () => {
         console.log('🔍 [DASHBOARD DEBUG] EPC nos dados filtrados:', {
           epc_in_summary: summary.epc,
           epc_in_items: filteredData.map((item: any) => ({
-            epc: item.stat?.epc,
-            campaign: item.title || item.name
+            epc: item.epc,
+            stat_epc: item.stat?.epc,
+            campaign: item.campaign || item.campaign_name || item.title
           }))
         });
         
@@ -360,15 +325,6 @@ const Dashboard: React.FC = () => {
           console.log('🔍 [DASHBOARD] Campo cost mapeado para spend:', summary.spend);
         }
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
-        console.log('🔍 [DASHBOARD] Resumo final:', {
-          clicks: summary.clicks,
-          cost: summary.cost,
-          revenue: summary.revenue,
-          conversions: summary.conversions,
-          cpc: summary.cpc,
-          epc: summary.epc,
-          cpa: summary.cpa
-        })
         
         // Debug: verificar campos específicos após agregação
         console.log('🔍 [DASHBOARD DEBUG] Campos após agregação:', {
@@ -389,8 +345,8 @@ const Dashboard: React.FC = () => {
           all_summary_keys: Object.keys(summary)
         });
       } else {
-        summary = {};
-        console.log('🔍 [DASHBOARD] Nenhum dado de campanha encontrado ou estrutura incorreta')
+        summary = realData || {};
+        console.log('🔍 [DASHBOARD] Dados diretos:', summary)
         
         // Debug: verificar campos específicos em dados diretos
         console.log('🔍 [DASHBOARD DEBUG] Campos em dados diretos:', {
@@ -404,13 +360,13 @@ const Dashboard: React.FC = () => {
         })
         
         // Adicionar dados de InitiateCheckout do campo convtype1 para dados diretos
-        summary.initiate_checkout = 0;
+        summary.initiate_checkout = realData.convtype1 || 0;
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary (dados diretos):', summary.initiate_checkout);
         
         // Debug: verificar se EPC está sendo processado em dados diretos
         console.log('🔍 [DASHBOARD DEBUG] EPC em dados diretos:', {
           epc_in_summary: summary.epc,
-          epc_in_campaignsData: 0
+          epc_in_realData: realData.epc
         });
         
         // Garantir que o campo cost seja mapeado para spend se não existir (dados diretos)
@@ -581,15 +537,12 @@ const Dashboard: React.FC = () => {
 
   // Remover handlePeriodChange e qualquer uso de setSelectedPeriod
 
-  const handleRefresh = (forceRefresh = false) => {
-    console.log('🔄 [DASHBOARD] Forçando atualização de dados...', forceRefresh ? '(forçando nova busca)' : '')
-    loadDashboardData(true, forceRefresh)
+  const handleRefresh = () => {
+    loadDashboardData(true)
   }
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
-    // Forçar recarregamento dos dados com os novos filtros
-    loadDashboardData(true)
   }
 
   const handleResetFilters = () => {
@@ -605,8 +558,6 @@ const Dashboard: React.FC = () => {
     }
     setFilters(resetFilters)
     setTempFilters(resetFilters)
-    // Forçar recarregamento dos dados sem filtros
-    loadDashboardData(true)
   }
 
   // Corrigir a função formatValue:
@@ -668,7 +619,7 @@ const Dashboard: React.FC = () => {
         if (data.stat) {
           value = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
         } else {
-          value = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0
+          value = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
         }
         
         // Debug: verificar valores de gasto/cost
@@ -691,7 +642,7 @@ const Dashboard: React.FC = () => {
         if (data.stat) {
           value = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
         } else {
-          value = data.revenue ?? data.total_revenue ?? data.income ?? 0
+          value = data.revenue ?? data.income ?? data.total_revenue ?? 0
         }
       } else if (metricId === 'profit') {
         let revenue = 0
@@ -702,8 +653,8 @@ const Dashboard: React.FC = () => {
           revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0
           cost = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
         } else {
-          revenue = data.revenue ?? data.total_revenue ?? data.income ?? 0
-          cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0
+          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0
+          cost = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
         }
         value = revenue - cost
       } else if (metricId === 'initiate_checkout') {
@@ -717,40 +668,65 @@ const Dashboard: React.FC = () => {
           initiate_checkout: data.initiate_checkout
         });
       } else if (metricId === 'cpc') {
-        // Calcular CPC manualmente em vez de usar o valor da API
-        const cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0;
-        const clicks = data.clicks || 0;
-        value = clicks > 0 ? cost / clicks : 0;
+        // Calcular CPC: spend / clicks
+        let spend = 0
+        let clicks = 0
         
-        console.log('🔍 [METRICS DEBUG] CPC calculado manualmente:', {
-          cost,
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          spend = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
+          clicks = data.stat.clicks ?? 0
+        } else {
+          spend = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+          clicks = data.clicks ?? 0
+        }
+        
+        // Calcular CPC
+        value = clicks > 0 ? spend / clicks : 0
+        
+        console.log('🔍 [METRICS DEBUG] CPC calculation:', {
+          spend,
           clicks,
-          calculated_cpc: value,
-          api_cpc: data.cpc
-        });
-      } else if (metricId === 'cpa') {
-        // Calcular CPA manualmente em vez de usar o valor da API
-        const cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0;
-        const conversions = data.conversions || 0;
-        value = conversions > 0 ? cost / conversions : 0;
-        
-        console.log('🔍 [METRICS DEBUG] CPA calculado manualmente:', {
-          cost,
-          conversions,
-          calculated_cpa: value,
-          api_cpa: data.cpa
+          cpc: value
         });
       } else if (metricId === 'epc') {
-        // Calcular EPC manualmente em vez de usar o valor da API
-        const revenue = data.revenue ?? data.total_revenue ?? data.income ?? 0;
-        const clicks = data.clicks || 0;
-        value = clicks > 0 ? revenue / clicks : 0;
+        // Debug: verificar dados de EPC
+        console.log('🔍 [METRICS DEBUG] EPC data fields:', {
+          epc: data.epc,
+          stat_epc: data.stat?.epc,
+          revenue: data.revenue,
+          clicks: data.clicks
+        });
         
-        console.log('🔍 [METRICS DEBUG] EPC calculado manualmente:', {
-          revenue,
-          clicks,
-          calculated_epc: value,
-          api_epc: data.epc
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          value = data.stat.epc ?? 0
+        } else {
+          value = data.epc ?? 0
+        }
+        
+        console.log('🔍 [METRICS DEBUG] EPC final value:', value);
+      } else if (metricId === 'cpa') {
+        // Calcular CPA: spend / conversions
+        let spend = 0
+        let conversions = 0
+        
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          spend = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
+          conversions = data.stat.conversions ?? data.stat.approved ?? 0
+        } else {
+          spend = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
+          conversions = data.conversions ?? data.approved ?? 0
+        }
+        
+        // Calcular CPA
+        value = conversions > 0 ? spend / conversions : 0
+        
+        console.log('🔍 [METRICS DEBUG] CPA calculation:', {
+          spend,
+          conversions,
+          cpa: value
         });
       }
       

@@ -101,23 +101,12 @@ export default async function (req, res) {
     console.log('🔍 [DASHBOARD] Headers recebidos:', Object.keys(req.headers))
     console.log('🔍 [DASHBOARD] API Key recebida:', apiKey ? 'SIM' : 'NÃO')
 
-    // Verificar se é uma atualização forçada
-    const isForceRefresh = req.query.force_refresh === 'true' || req.query._t;
-    
     // Verificar cache
     const cacheKey = `dashboard_${JSON.stringify(req.query)}`;
     const cachedData = requestCache.get(cacheKey);
-    
-    // Se não for atualização forçada e há cache válido, usar cache
-    if (!isForceRefresh && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+    if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
       console.log('✅ [DASHBOARD] Dados retornados do cache');
       return res.status(200).json(cachedData.data);
-    }
-    
-    // Se for atualização forçada, limpar cache
-    if (isForceRefresh) {
-      console.log('🔄 [DASHBOARD] Atualização forçada - ignorando cache');
-      requestCache.delete(cacheKey);
     }
 
     // Testar se a API key é válida usando fila
