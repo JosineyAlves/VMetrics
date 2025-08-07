@@ -702,23 +702,42 @@ const Dashboard: React.FC = () => {
           convtype1: data.convtype1,
           initiate_checkout: data.initiate_checkout
         });
-      } else if (metricId === 'epc') {
-        // Debug: verificar dados de EPC
-        console.log('🔍 [METRICS DEBUG] EPC data fields:', {
-          epc: data.epc,
-          stat_epc: data.stat?.epc,
-          revenue: data.revenue,
-          clicks: data.clicks
+      } else if (metricId === 'cpc') {
+        // Calcular CPC manualmente em vez de usar o valor da API
+        const cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0;
+        const clicks = data.clicks || 0;
+        value = clicks > 0 ? cost / clicks : 0;
+        
+        console.log('🔍 [METRICS DEBUG] CPC calculado manualmente:', {
+          cost,
+          clicks,
+          calculated_cpc: value,
+          api_cpc: data.cpc
         });
+      } else if (metricId === 'cpa') {
+        // Calcular CPA manualmente em vez de usar o valor da API
+        const cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0;
+        const conversions = data.conversions || 0;
+        value = conversions > 0 ? cost / conversions : 0;
         
-        // Verificar se há estrutura stat (como na tela de Campanhas)
-        if (data.stat) {
-          value = data.stat.epc ?? 0
-        } else {
-          value = data.epc ?? 0
-        }
+        console.log('🔍 [METRICS DEBUG] CPA calculado manualmente:', {
+          cost,
+          conversions,
+          calculated_cpa: value,
+          api_cpa: data.cpa
+        });
+      } else if (metricId === 'epc') {
+        // Calcular EPC manualmente em vez de usar o valor da API
+        const revenue = data.revenue ?? data.total_revenue ?? data.income ?? 0;
+        const clicks = data.clicks || 0;
+        value = clicks > 0 ? revenue / clicks : 0;
         
-        console.log('🔍 [METRICS DEBUG] EPC final value:', value);
+        console.log('🔍 [METRICS DEBUG] EPC calculado manualmente:', {
+          revenue,
+          clicks,
+          calculated_epc: value,
+          api_epc: data.epc
+        });
       }
       
       console.log(`🔍 [METRICS] ${metricId}: ${value} (${typeof value})`)
