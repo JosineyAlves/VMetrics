@@ -258,10 +258,13 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
       
       console.log('🔍 [DASHBOARD] Chamando API de campanhas com parâmetros:', campaignsParams)
+      console.log('🔍 [DASHBOARD] URL da requisição:', `/api/campaigns?api_key=${apiKey}&date_from=${dateRange.startDate}&date_to=${dateRange.endDate}&with_clicks=true&total=true`)
       const campaignsData = await api.getCampaigns(campaignsParams)
       console.log('🔍 [DASHBOARD] Resposta da API de campanhas:', campaignsData)
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof campaignsData)
-      console.log('🔍 [DASHBOARD] É array?', Array.isArray(campaignsData))
+      console.log('🔍 [DASHBOARD] Tem propriedade data?', !!campaignsData.data)
+      console.log('🔍 [DASHBOARD] Data é array?', Array.isArray(campaignsData.data))
+      console.log('🔍 [DASHBOARD] Quantidade de campanhas:', campaignsData.data ? campaignsData.data.length : 0)
       
 
       
@@ -295,6 +298,12 @@ const Dashboard: React.FC = () => {
         });
         
         console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', campaignsData.data.length, 'itens');
+        console.log('🔍 [DASHBOARD] Primeira campanha filtrada:', filteredData.length > 0 ? {
+          title: (filteredData[0] as any).title,
+          clicks: (filteredData[0] as any).stat?.clicks,
+          cost: (filteredData[0] as any).stat?.cost,
+          revenue: (filteredData[0] as any).stat?.revenue
+        } : 'Nenhuma campanha');
         
         // Log detalhado das campanhas filtradas
         campaignsData.data.forEach((item: any) => {
@@ -348,6 +357,15 @@ const Dashboard: React.FC = () => {
           console.log('🔍 [DASHBOARD] Campo cost mapeado para spend:', summary.spend);
         }
         console.log('🔍 [DASHBOARD] Dados agregados:', summary)
+        console.log('🔍 [DASHBOARD] Resumo final:', {
+          clicks: summary.clicks,
+          cost: summary.cost,
+          revenue: summary.revenue,
+          conversions: summary.conversions,
+          cpc: summary.cpc,
+          epc: summary.epc,
+          cpa: summary.cpa
+        })
         
         // Debug: verificar campos específicos após agregação
         console.log('🔍 [DASHBOARD DEBUG] Campos após agregação:', {
