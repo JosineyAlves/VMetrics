@@ -245,22 +245,23 @@ const Dashboard: React.FC = () => {
       if (filters.os) appliedFilters.os = filters.os
       if (filters.utm_source) appliedFilters.utm_source = filters.utm_source
 
-      const params = {
+      // Usar dados das campanhas em vez do endpoint /report para obter dados reais
+      const campaignsParams = {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
-        group_by: 'date', // Agrupamento por data para dashboard
-        ...appliedFilters,
+        with_clicks: true,
+        total: true,
         ...(forceRefresh && { force_refresh: 'true' }),
         ...(forceRefresh && { _t: Date.now().toString() })
       }
       
       console.log('🔍 [DASHBOARD] Filtros aplicados:', appliedFilters)
       
-      console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
-      const realData = await api.getReport(params)
-      console.log('🔍 [DASHBOARD] Resposta da API:', realData)
-      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof realData)
-      console.log('🔍 [DASHBOARD] É array?', Array.isArray(realData))
+      console.log('🔍 [DASHBOARD] Chamando API de campanhas com parâmetros:', campaignsParams)
+      const campaignsData = await api.getCampaigns(campaignsParams)
+      console.log('🔍 [DASHBOARD] Resposta da API de campanhas:', campaignsData)
+      console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof campaignsData)
+      console.log('🔍 [DASHBOARD] É array?', Array.isArray(campaignsData))
       
 
       
@@ -270,58 +271,51 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Campanhas deletadas carregadas:', Array.from(deletedCampaigns))
       
       // Debug: verificar campos específicos para gasto
-      if (Array.isArray(realData) && realData.length > 0) {
-        console.log('🔍 [DASHBOARD DEBUG] Primeiro item da resposta:', realData[0])
-        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis no primeiro item:', Object.keys(realData[0]))
-      } else if (realData && typeof realData === 'object') {
-        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(realData))
+      if (campaignsData && campaignsData.data && Array.isArray(campaignsData.data) && campaignsData.data.length > 0) {
+        console.log('🔍 [DASHBOARD DEBUG] Primeira campanha da resposta:', campaignsData.data[0])
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na primeira campanha:', Object.keys(campaignsData.data[0]))
+      } else if (campaignsData && typeof campaignsData === 'object') {
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(campaignsData))
       }
       
       let summary: any = {};
       let daily: any[] = [];
-      if (Array.isArray(realData)) {
+      if (campaignsData && campaignsData.data && Array.isArray(campaignsData.data)) {
         // Filtrar dados de campanhas deletadas e apenas campanhas com atividade (cliques ou conversões)
-        const filteredData = realData.filter((item: any) => {
-          const campaignName = item.campaign || item.campaign_name || item.title || '';
+        const filteredData = campaignsData.data.filter((item: any) => {
+          const campaignName = item.title || item.name || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           
           // Verificar se a campanha tem atividade (cliques ou conversões)
-          const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
-          const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
+          const hasClicks = item.stat && item.stat.clicks > 0;
+          const hasConversionsToday = item.stat && item.stat.conversions > 0;
           const hasActivity = hasClicks || hasConversionsToday;
           
           return !isDeleted && hasActivity;
         });
         
-        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', realData.length, 'itens');
+        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', campaignsData.data.length, 'itens');
         
         // Log detalhado das campanhas filtradas
-        realData.forEach((item: any) => {
-          const campaignName = item.campaign || item.campaign_name || item.title || '';
+        campaignsData.data.forEach((item: any) => {
+          const campaignName = item.title || item.name || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
-          const hasClicks = item.clicks > 0 || (item.stat && item.stat.clicks > 0);
-          const hasConversionsToday = item.conversions > 0 || (item.stat && item.stat.conversions > 0);
+          const hasClicks = item.stat && item.stat.clicks > 0;
+          const hasConversionsToday = item.stat && item.stat.conversions > 0;
           const hasActivity = hasClicks || hasConversionsToday;
           
           if (isDeleted) {
             console.log(`❌ [DASHBOARD] Campanha deletada ignorada: ${campaignName}`);
           } else if (!hasActivity) {
-            console.log(`⏸️ [DASHBOARD] Campanha sem atividade ignorada: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`);
+            console.log(`⏸️ [DASHBOARD] Campanha sem atividade ignorada: ${campaignName} (cliques: ${item.stat?.clicks || 0}, conversões: ${item.stat?.conversions || 0})`);
           } else {
-            console.log(`✅ [DASHBOARD] Campanha com atividade incluída: ${campaignName} (cliques: ${item.clicks || 0}, conversões: ${item.conversions || 0})`);
+            console.log(`✅ [DASHBOARD] Campanha com atividade incluída: ${campaignName} (cliques: ${item.stat?.clicks || 0}, conversões: ${item.stat?.conversions || 0})`);
           }
         });
         
         daily = filteredData;
-        summary = filteredData.reduce((acc: any, item: any) => {
-          // Processar campos diretos
-          Object.keys(item).forEach(key => {
-            if (key !== 'stat' && typeof item[key] === 'number') {
-              acc[key] = (acc[key] || 0) + item[key];
-            }
-          });
-          
-          // Processar estrutura stat se existir
+                summary = filteredData.reduce((acc: any, item: any) => {
+          // Processar campos do stat (dados reais das campanhas)
           if (item.stat && typeof item.stat === 'object') {
             Object.keys(item.stat).forEach(key => {
               if (typeof item.stat[key] === 'number') {
@@ -335,7 +329,7 @@ const Dashboard: React.FC = () => {
         
         // Adicionar dados de InitiateCheckout do campo convtype1
         summary.initiate_checkout = filteredData.reduce((total: number, item: any) => {
-          return total + (item.convtype1 || 0);
+          return total + (item.stat?.convtype1 || 0);
         }, 0);
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary:', summary.initiate_checkout);
         
@@ -343,9 +337,8 @@ const Dashboard: React.FC = () => {
         console.log('🔍 [DASHBOARD DEBUG] EPC nos dados filtrados:', {
           epc_in_summary: summary.epc,
           epc_in_items: filteredData.map((item: any) => ({
-            epc: item.epc,
-            stat_epc: item.stat?.epc,
-            campaign: item.campaign || item.campaign_name || item.title
+            epc: item.stat?.epc,
+            campaign: item.title || item.name
           }))
         });
         
@@ -375,8 +368,8 @@ const Dashboard: React.FC = () => {
           all_summary_keys: Object.keys(summary)
         });
       } else {
-        summary = realData || {};
-        console.log('🔍 [DASHBOARD] Dados diretos:', summary)
+        summary = {};
+        console.log('🔍 [DASHBOARD] Nenhum dado de campanha encontrado')
         
         // Debug: verificar campos específicos em dados diretos
         console.log('🔍 [DASHBOARD DEBUG] Campos em dados diretos:', {
@@ -390,13 +383,13 @@ const Dashboard: React.FC = () => {
         })
         
         // Adicionar dados de InitiateCheckout do campo convtype1 para dados diretos
-        summary.initiate_checkout = realData.convtype1 || 0;
+        summary.initiate_checkout = 0;
         console.log('🔍 [DASHBOARD] InitiateCheckout (convtype1) adicionado ao summary (dados diretos):', summary.initiate_checkout);
         
         // Debug: verificar se EPC está sendo processado em dados diretos
         console.log('🔍 [DASHBOARD DEBUG] EPC em dados diretos:', {
           epc_in_summary: summary.epc,
-          epc_in_realData: realData.epc
+          epc_in_campaignsData: 0
         });
         
         // Garantir que o campo cost seja mapeado para spend se não existir (dados diretos)
