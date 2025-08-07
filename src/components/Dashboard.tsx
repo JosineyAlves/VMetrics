@@ -161,38 +161,41 @@ const Dashboard: React.FC = () => {
 
   // Buscar dados do funil ao trocar campanha
   useEffect(() => {
-    const fetchFunnel = async () => {
-      if (!apiKey) return
-      const dateRange = getDateRange(selectedPeriod, customRange)
-      const params: any = {
-        api_key: apiKey,
-        date_from: dateRange.startDate,
-        date_to: dateRange.endDate,
-        group_by: 'date',
-      }
-      if (selectedCampaign !== 'all') params.campaign_id = selectedCampaign
-      const url = new URL('/api/report', window.location.origin)
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          url.searchParams.set(key, value.toString())
-        }
-      })
-      try {
-        const response = await fetch(url.toString())
-        const data = await response.json()
-        let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
-        const arr = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []
-        arr.forEach((d: any) => {
-          funnel.prelp_views += d.prelp_views ?? 0
-          funnel.lp_views += d.lp_views ?? 0
-          funnel.offer_views += d.offer_views ?? 0
-          funnel.conversions += d.conversions ?? 0
-        })
-        setFunnelData(funnel)
-      } catch (err) {
-        setFunnelData({})
-      }
+      const fetchFunnel = async () => {
+    if (!apiKey) return
+    const dateRange = getDateRange(selectedPeriod, customRange)
+    
+    // Usar dados das campanhas em vez de fazer nova requisição
+    const campaignsParams = {
+      date_from: dateRange.startDate,
+      date_to: dateRange.endDate,
+      with_clicks: true,
+      total: true
     }
+    
+    try {
+      const api = new RedTrackAPI(apiKey)
+      const campaignsData = await api.getCampaigns(campaignsParams)
+      
+      let funnel = { prelp_views: 0, lp_views: 0, offer_views: 0, conversions: 0 }
+      
+      if (campaignsData && campaignsData.data && Array.isArray(campaignsData.data)) {
+        campaignsData.data.forEach((campaign: any) => {
+          if (campaign.stat) {
+            funnel.prelp_views += campaign.stat.prelp_views ?? 0
+            funnel.lp_views += campaign.stat.lp_views ?? 0
+            funnel.offer_views += campaign.stat.offer_views ?? 0
+            funnel.conversions += campaign.stat.conversions ?? 0
+          }
+        })
+      }
+      
+      setFunnelData(funnel)
+    } catch (err) {
+      console.error('❌ [DASHBOARD] Erro ao carregar dados do funil:', err)
+      setFunnelData({})
+    }
+  }
     fetchFunnel()
   }, [apiKey, selectedPeriod, customRange, selectedCampaign])
 
@@ -262,9 +265,9 @@ const Dashboard: React.FC = () => {
       const campaignsData = await api.getCampaigns(campaignsParams)
       console.log('🔍 [DASHBOARD] Resposta da API de campanhas:', campaignsData)
       console.log('🔍 [DASHBOARD] Tipo da resposta:', typeof campaignsData)
-      console.log('🔍 [DASHBOARD] Tem propriedade data?', !!campaignsData.data)
-      console.log('🔍 [DASHBOARD] Data é array?', Array.isArray(campaignsData.data))
-      console.log('🔍 [DASHBOARD] Quantidade de campanhas:', campaignsData.data ? campaignsData.data.length : 0)
+      console.log('🔍 [DASHBOARD] Tem propriedade campaigns?', !!(campaignsData as any).campaigns)
+      console.log('🔍 [DASHBOARD] Campaigns é array?', Array.isArray((campaignsData as any).campaigns))
+      console.log('🔍 [DASHBOARD] Quantidade de campanhas:', (campaignsData as any).campaigns ? (campaignsData as any).campaigns.length : 0)
       
 
       
@@ -274,18 +277,18 @@ const Dashboard: React.FC = () => {
       console.log('🔍 [DASHBOARD] Campanhas deletadas carregadas:', Array.from(deletedCampaigns))
       
       // Debug: verificar campos específicos para gasto
-      if (campaignsData && campaignsData.data && Array.isArray(campaignsData.data) && campaignsData.data.length > 0) {
-        console.log('🔍 [DASHBOARD DEBUG] Primeira campanha da resposta:', campaignsData.data[0])
-        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na primeira campanha:', Object.keys(campaignsData.data[0]))
+      if (campaignsData && (campaignsData as any).campaigns && Array.isArray((campaignsData as any).campaigns) && (campaignsData as any).campaigns.length > 0) {
+        console.log('🔍 [DASHBOARD DEBUG] Primeira campanha da resposta:', (campaignsData as any).campaigns[0])
+        console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na primeira campanha:', Object.keys((campaignsData as any).campaigns[0]))
       } else if (campaignsData && typeof campaignsData === 'object') {
         console.log('🔍 [DASHBOARD DEBUG] Campos disponíveis na resposta:', Object.keys(campaignsData))
       }
       
       let summary: any = {};
       let daily: any[] = [];
-      if (campaignsData && campaignsData.data && Array.isArray(campaignsData.data)) {
+      if (campaignsData && (campaignsData as any).campaigns && Array.isArray((campaignsData as any).campaigns)) {
         // Filtrar dados de campanhas deletadas e apenas campanhas com atividade (cliques ou conversões)
-        const filteredData = campaignsData.data.filter((item: any) => {
+        const filteredData = (campaignsData as any).campaigns.filter((item: any) => {
           const campaignName = item.title || item.name || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           
@@ -297,7 +300,7 @@ const Dashboard: React.FC = () => {
           return !isDeleted && hasActivity;
         });
         
-        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', campaignsData.data.length, 'itens');
+        console.log('🔍 [DASHBOARD] Dados filtrados (apenas campanhas com atividade e não deletadas):', filteredData.length, 'de', (campaignsData as any).campaigns.length, 'itens');
         console.log('🔍 [DASHBOARD] Primeira campanha filtrada:', filteredData.length > 0 ? {
           title: (filteredData[0] as any).title,
           clicks: (filteredData[0] as any).stat?.clicks,
@@ -306,7 +309,7 @@ const Dashboard: React.FC = () => {
         } : 'Nenhuma campanha');
         
         // Log detalhado das campanhas filtradas
-        campaignsData.data.forEach((item: any) => {
+        (campaignsData as any).campaigns.forEach((item: any) => {
           const campaignName = item.title || item.name || '';
           const isDeleted = deletedCampaigns.has(campaignName.toLowerCase().trim());
           const hasClicks = item.stat && item.stat.clicks > 0;
@@ -387,7 +390,7 @@ const Dashboard: React.FC = () => {
         });
       } else {
         summary = {};
-        console.log('🔍 [DASHBOARD] Nenhum dado de campanha encontrado')
+        console.log('🔍 [DASHBOARD] Nenhum dado de campanha encontrado ou estrutura incorreta')
         
         // Debug: verificar campos específicos em dados diretos
         console.log('🔍 [DASHBOARD DEBUG] Campos em dados diretos:', {
