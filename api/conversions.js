@@ -123,12 +123,23 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Parâmetros obrigatórios: date_from e date_to no formato YYYY-MM-DD' });
   }
 
+  // Verificar se é uma atualização forçada
+  const isForceRefresh = req.query.force_refresh === 'true';
+  
   // Verificar cache
   const cacheKey = `conversions_${JSON.stringify(req.query)}`;
   const cachedData = requestCache.get(cacheKey);
-  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+  
+  // Se não for atualização forçada e há cache válido, usar cache
+  if (!isForceRefresh && cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
     console.log('✅ [CONVERSIONS] Dados retornados do cache');
     return res.status(200).json(cachedData.data);
+  }
+  
+  // Se for atualização forçada, limpar cache
+  if (isForceRefresh) {
+    console.log('🔄 [CONVERSIONS] Atualização forçada - ignorando cache');
+    requestCache.delete(cacheKey);
   }
 
   try {
