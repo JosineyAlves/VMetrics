@@ -624,11 +624,11 @@ const Funnel: React.FC = () => {
                 <div className="text-sm text-gray-600">
                   {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}% de conversão
                 </div>
-                {stage.dropoffRate > 0 && (
-                  <div className="text-xs text-red-500">
-                    -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% dropoff
-                  </div>
-                )}
+                                 {stage.dropoffRate > 0 && (
+                   <div className="text-xs text-red-500">
+                     -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% perda
+                   </div>
+                 )}
               </div>
             </motion.div>
           ))}
@@ -799,15 +799,14 @@ const Funnel: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Modo de Visualização
                 </label>
-                <select
-                  value={viewMode}
-                  onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="3d">Visualização 3D</option>
-                  <option value="2d">Análise Detalhada</option>
-                  <option value="comparison">Comparação</option>
-                </select>
+                                 <select
+                   value={viewMode}
+                   onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 >
+                   <option value="3d">Visualização 3D</option>
+                   <option value="2d">Análise Detalhada</option>
+                 </select>
               </div>
               
               {/* Botão Comparar */}
