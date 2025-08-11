@@ -2,7 +2,6 @@
   "buildCommand": "rm -rf node_modules && npm install && npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "domains": ["vmetrics.com.br"],
   "rewrites": [
     {
       "source": "/(.*)",
