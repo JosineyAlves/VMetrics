@@ -1,4 +1,4 @@
-# TrackView – Assinaturas (Stripe), Autenticação (Supabase) e E-mail
+# VMetrics – Assinaturas (Stripe), Autenticação (Supabase) e E-mail
 
 Variáveis de ambiente necessárias (configure no Vercel):
 
@@ -18,7 +18,7 @@ Tabelas recomendadas no Supabase:
 
 profiles: { id uuid (pk, = auth.uid()), email text unique, stripe_customer_id text, subscription_status text, is_active boolean }
 
-# 🚀 TrackView - Dashboard RedTrack
+# 🚀 VMetrics - Dashboard RedTrack
 
 Um dashboard profissional para análise de dados do RedTrack.io, construído com React + Vite, Tailwind CSS, shadcn/ui, Recharts, Framer Motion, Zustand e localStorage.
 
@@ -67,7 +67,7 @@ O dashboard agora permite que cada gestor de tráfego personalize quais métrica
 
 ## 💰 Configuração de Moeda
 
-O TrackView permite configurar manualmente a moeda da sua conta RedTrack através de um dropdown simples. Isso garante que todos os valores monetários sejam exibidos na moeda correta, independentemente do país ou configuração da conta.
+O VMetrics permite configurar manualmente a moeda da sua conta RedTrack através de um dropdown simples. Isso garante que todos os valores monetários sejam exibidos na moeda correta, independentemente do país ou configuração da conta.
 
 ### 🔍 Como Funciona
 1. **Seleção Manual**: Escolha diretamente a moeda configurada no seu RedTrack através do dropdown
@@ -93,8 +93,8 @@ O TrackView permite configurar manualmente a moeda da sua conta RedTrack atravé
 
 1. **Clone o repositório:**
 ```bash
-git clone <url-do-repositorio>
-cd TrackView
+git clone https://github.com/JosineyAlves/VMetrics.git
+cd VMetrics
 ```
 
 2. **Instale as dependências:**
@@ -233,4 +233,9 @@ Este projeto é privado e desenvolvido para uso interno.
 
 ## 🤝 Suporte
 
-Para suporte técnico ou dúvidas sobre integração com RedTrack, entre em contato com a equipe de desenvolvimento. 
+Para suporte técnico ou dúvidas sobre integração com RedTrack, entre em contato com a equipe de desenvolvimento.
+
+## 🌐 Links
+
+- **Repositório**: [https://github.com/JosineyAlves/VMetrics](https://github.com/JosineyAlves/VMetrics)
+- **Site**: [https://vmetrics.com.br](https://vmetrics.com.br) 

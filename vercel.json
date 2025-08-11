@@ -12,5 +12,6 @@
     { "src": "/api/stripe/(.*)", "dest": "/api/stripe/$1" },
     { "src": "/api/auth/(.*)", "dest": "/api/auth/$1" },
     { "src": "/((?!api).*)", "dest": "/index.html" }
-  ]
+  ],
+  "name": "vmetrics"
 }

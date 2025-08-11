@@ -45,7 +45,7 @@ const LoginForm: React.FC = () => {
             <h1 className="text-3xl font-bold gradient-text mb-2">
               VMetrics
             </h1>
-            <p className="text-slate-600">Acesse com seu e-mail para iniciar sua assinatura e usar o VMetrics.</p>
+            <p className="text-slate-600">Acesse com seu e-mail para iniciar sua assinatura e usar o VMetrics Dashboard.</p>
           </div>
 
           {!isUserLogged ? (
@@ -62,7 +62,7 @@ const LoginForm: React.FC = () => {
               )}
             </div>
           ) : (
-            <p className="text-sm text-slate-600 mb-6">Logado como {userEmail}. Configure sua API Key do RedTrack:</p>
+            <p className="text-sm text-slate-600 mb-6">Logado como {userEmail}. Configure sua API Key do RedTrack para acessar o dashboard:</p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
@@ -145,14 +145,14 @@ const LoginForm: React.FC = () => {
                 </>
               ) : (
                 <>
-                  🔑 Conectar ao RedTrack
+                  🔑 Conectar ao VMetrics
                 </>
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">Sua API Key será salva localmente para facilitar o acesso futuro</p>
+            <p className="text-xs text-slate-500">Sua API Key será salva localmente para facilitar o acesso futuro ao VMetrics Dashboard</p>
           </div>
         </div>
       </div>
