@@ -36,7 +36,7 @@ interface AccountSettings {
   [key: string]: any
 }
 
-type TabType = 'general' | 'billing' | 'security' | 'about'
+type TabType = 'general' | 'billing'
 
 const Settings: React.FC = () => {
   const { apiKey, setApiKey } = useAuthStore()
@@ -83,9 +83,7 @@ const Settings: React.FC = () => {
 
   const tabs = [
     { id: 'general', label: 'Geral', icon: SettingsIcon },
-    { id: 'billing', label: 'Planos & Faturas', icon: CreditCard },
-    { id: 'security', label: 'Segurança', icon: Shield },
-    { id: 'about', label: 'Sobre', icon: Info }
+    { id: 'billing', label: 'Planos & Faturas', icon: CreditCard }
   ]
 
   const handleSave = async () => {
@@ -385,6 +383,42 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* API Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-purple-100 rounded-2xl">
+            <Shield className="w-7 h-7 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Status da API</h3>
+            <p className="text-sm text-gray-600">
+              Status da conexão com RedTrack
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600">Status da API Key</label>
+            <div className="flex items-center mt-1">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <span className="text-green-600 font-medium">Ativa</span>
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">API Key (mascarada)</label>
+            <p className="text-lg font-mono bg-gray-100 p-2 rounded">
+              {apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'Não definida'}
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   )
 
@@ -649,157 +683,12 @@ const Settings: React.FC = () => {
     </div>
   )
 
-  const renderSecurityTab = () => (
-    <div className="space-y-8">
-      {/* API Status */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-      >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-purple-100 rounded-2xl">
-            <Shield className="w-7 h-7 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Status da API</h3>
-            <p className="text-sm text-gray-600">
-              Status da conexão com RedTrack
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-600">Status da API Key</label>
-            <div className="flex items-center mt-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-green-600 font-medium">Ativa</span>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">API Key (mascarada)</label>
-            <p className="text-lg font-mono bg-gray-100 p-2 rounded">
-              {apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'Não definida'}
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Security Features */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-      >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-green-100 rounded-2xl">
-            <Shield className="w-7 h-7 text-green-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Recursos de Segurança</h3>
-            <p className="text-sm text-gray-600">
-              Medidas de segurança implementadas
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">HTTPS/SSL criptografado</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">API Key mascarada</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">Dados não armazenados</span>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">Conexão segura RedTrack</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">Logs de acesso</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-700">Backup automático</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-
-  const renderAboutTab = () => (
-    <div className="space-y-8">
-      {/* Information Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-      >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-purple-100 rounded-2xl">
-            <SettingsIcon className="w-7 h-7 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Informações</h3>
-            <p className="text-sm text-gray-600">
-              Sobre o VMetrics
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-6 text-sm text-gray-700">
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-3">Sobre</h4>
-            <p className="text-gray-600 leading-relaxed">
-              O VMetrics é uma plataforma de análise de campanhas que integra com a API do RedTrack 
-              para fornecer insights detalhados sobre performance de marketing digital.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-3">Funcionalidades</h4>
-            <ul className="list-disc list-inside space-y-2 text-gray-600">
-              <li>Dashboard com métricas em tempo real</li>
-              <li>Análise de campanhas e conversões</li>
-              <li>Análise geográfica de performance</li>
-              <li>Filtros avançados e relatórios</li>
-              <li>Integração completa com RedTrack API</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-3">Versão</h4>
-            <p className="text-gray-600">
-              VMetrics v1.0.0
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'general':
         return renderGeneralTab()
       case 'billing':
         return renderBillingTab()
-      case 'security':
-        return renderSecurityTab()
-      case 'about':
-        return renderAboutTab()
       default:
         return renderGeneralTab()
     }
