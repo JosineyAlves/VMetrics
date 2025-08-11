@@ -1,7 +1,7 @@
 {
-  "name": "mydash",
-  "private": true,
-  "version": "0.0.0",
+  "name": "vmetrics",
+  "private": false,
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,8 +18,11 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cors": "^2.8.5",
+    "@supabase/supabase-js": "^2.45.0",
     "date-fns": "^2.30.0",
     "express": "^4.21.2",
+    "resend": "^3.2.0",
+    "stripe": "^14.25.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",

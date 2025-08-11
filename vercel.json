@@ -1,5 +1,16 @@
 {
-  "buildCommand": "rm -rf node_modules && npm install && npm run build",
+  "buildCommand": "npm ci && npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install"
-} 
+  "installCommand": "npm ci",
+  "functions": {
+    "api/**/*.js": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    { "src": "/api/stripe/(.*)", "dest": "/api/stripe/$1" },
+    { "src": "/api/auth/(.*)", "dest": "/api/auth/$1" },
+    { "src": "/((?!api).*)", "dest": "/index.html" }
+  ]
+}

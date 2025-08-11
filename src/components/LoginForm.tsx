@@ -2,11 +2,21 @@ import React, { useState } from 'react'
 import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
+import { supabase } from '../services/supabase'
 
 const LoginForm: React.FC = () => {
   const [apiKeyInput, setApiKeyInput] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const { testApiKey, setApiKey, isLoading, error } = useAuthStore()
+  const { testApiKey, setApiKey, isLoading, error, isUserLogged, setUser, userEmail } = useAuthStore()
+
+  const [email, setEmail] = useState('')
+  const [magicSent, setMagicSent] = useState(false)
+
+  const sendMagicLink = async () => {
+    if (!email) return
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })
+    if (!error) setMagicSent(true)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,14 +43,29 @@ const LoginForm: React.FC = () => {
               <div className="w-10 h-10 text-white text-2xl">🔑</div>
             </div>
             <h1 className="text-3xl font-bold gradient-text mb-2">
-              TrackView
+              VMetrics
             </h1>
-            <p className="text-slate-600">
-              Insira sua API Key para acessar o dashboard
-            </p>
+            <p className="text-slate-600">Acesse com seu e-mail para iniciar sua assinatura e usar o VMetrics.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {!isUserLogged ? (
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">E-mail</label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" />
+              </div>
+              <Button onClick={sendMagicLink} className="w-full modern-button" disabled={!email}>
+                Enviar link mágico
+              </Button>
+              {magicSent && (
+                <p className="text-xs text-green-600">Verifique seu e-mail para o link de acesso.</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-600 mb-6">Logado como {userEmail}. Configure sua API Key do RedTrack:</p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div>
               <label htmlFor="apiKey" className="block text-sm font-medium text-slate-700 mb-2">
                 API Key do RedTrack
@@ -127,9 +152,7 @@ const LoginForm: React.FC = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              Sua API Key será salva localmente para facilitar o acesso futuro
-            </p>
+            <p className="text-xs text-slate-500">Sua API Key será salva localmente para facilitar o acesso futuro</p>
           </div>
         </div>
       </div>

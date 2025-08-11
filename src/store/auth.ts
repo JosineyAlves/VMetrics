@@ -10,6 +10,10 @@ interface AuthState {
   setApiKey: (key: string) => void
   logout: () => void
   testApiKey: (key: string) => Promise<boolean>
+  // Novo: sessão de usuário (Supabase)
+  userEmail: string | null
+  isUserLogged: boolean
+  setUser: (email: string | null) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,6 +23,9 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      userEmail: null,
+      isUserLogged: false,
+      setUser: (email: string | null) => set({ userEmail: email, isUserLogged: !!email }),
       setApiKey: (key: string) => {
         console.log('[AUTH] Salvando API Key:', key)
         set({ apiKey: key, isAuthenticated: true })

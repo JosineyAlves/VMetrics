@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import Sidebar from "./components/Sidebar"
@@ -11,11 +11,27 @@ import Settings from "./components/Settings"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
+import { supabase } from './services/supabase'
 import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, isUserLogged, setUser } = useAuthStore()
+  // Supabase auth listener
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const email = session?.user?.email || null
+      setUser(email)
+    })
+    // bootstrap current session
+    supabase.auth.getSession().then(({ data }) => {
+      const email = data.session?.user?.email || null
+      setUser(email)
+    })
+    return () => {
+      sub.subscription.unsubscribe()
+    }
+  }, [setUser])
   const { isCollapsed, toggle } = useSidebarStore()
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -132,7 +148,7 @@ const App: React.FC = () => {
   const showAuto = currentSection === 'dashboard'
   // Filtros agora só nas telas específicas
 
-  if (!isAuthenticated) {
+  if (!isUserLogged || !isAuthenticated) {
     return <LoginForm />
   }
 

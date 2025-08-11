@@ -29,3 +29,4 @@ Thumbs.db
 # Cache
 .npm-cache/
 .cache/
+node_modules

@@ -1,3 +1,23 @@
+# TrackView – Assinaturas (Stripe), Autenticação (Supabase) e E-mail
+
+Variáveis de ambiente necessárias (configure no Vercel):
+
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- STRIPE_SECRET_KEY
+- STRIPE_PRICE_ID
+- STRIPE_WEBHOOK_SECRET
+- SITE_URL (ex.: https://seu-dominio.vercel.app)
+
+Fluxo:
+
+1) Usuário entra com e-mail e recebe link mágico (Supabase). 2) Após logado, configura a API Key do RedTrack. 3) Para assinar, crie uma chamada POST para `/api/stripe/checkout` com `{ email, user_id }` (user_id opcional). 4) Webhooks do Stripe mantêm `profiles.subscription_status` e `is_active` atualizados.
+
+Tabelas recomendadas no Supabase:
+
+profiles: { id uuid (pk, = auth.uid()), email text unique, stripe_customer_id text, subscription_status text, is_active boolean }
+
 # 🚀 TrackView - Dashboard RedTrack
 
 Um dashboard profissional para análise de dados do RedTrack.io, construído com React + Vite, Tailwind CSS, shadcn/ui, Recharts, Framer Motion, Zustand e localStorage.
