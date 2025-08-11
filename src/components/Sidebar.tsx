@@ -14,6 +14,7 @@ import {
   TrendingDown
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
+import Logo from './ui/Logo'
 
 interface SidebarProps {
   currentSection: string
@@ -111,17 +112,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Header */}
           <div className={`border-b border-gray-100 ${isSidebarCollapsed ? 'p-4' : 'p-8'}`}>
             <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-4'}`}>
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <Target className="w-7 h-7 text-white" />
-              </div>
-              {!isSidebarCollapsed && (
-                <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  VMetrics
-                </h1>
-                <p className="text-sm text-gray-500 font-medium">RedTrack Dashboard</p>
-              </div>
-              )}
+              <Logo 
+                size={isSidebarCollapsed ? 'md' : 'md'} 
+                showText={!isSidebarCollapsed}
+                className="flex-shrink-0"
+              />
               {/* Toggle Button */}
               {!isSidebarCollapsed && (
                 <button

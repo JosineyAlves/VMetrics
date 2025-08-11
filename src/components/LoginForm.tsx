@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
+import Logo from './ui/Logo'
 
 const LoginForm: React.FC = () => {
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -29,12 +30,9 @@ const LoginForm: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="modern-card p-8">
           <div className="text-center mb-8">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-              <div className="w-10 h-10 text-white text-2xl">🔑</div>
+            <div className="flex justify-center mb-4">
+              <Logo size="xl" variant="gradient" />
             </div>
-            <h1 className="text-3xl font-bold gradient-text mb-2">
-              VMetrics
-            </h1>
             <p className="text-slate-600">
               Insira sua API Key para acessar o dashboard
             </p>
