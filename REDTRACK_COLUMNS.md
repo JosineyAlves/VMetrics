@@ -2,7 +2,7 @@
 
 ## 🎯 Visão Geral
 
-Este documento lista todas as colunas e métricas disponíveis no painel do RedTrack.io que podem ser implementadas no TrackView.
+Este documento lista todas as colunas e métricas disponíveis no painel do RedTrack.io que podem ser implementadas no VMetrics.
 
 ## 📈 Métricas Principais
 
@@ -165,7 +165,7 @@ Este documento lista todas as colunas e métricas disponíveis no painel do RedT
 - **OS** - Sistema operacional
 - **Browser** - Navegador
 
-## 🚀 Implementação no TrackView
+## 🚀 Implementação no VMetrics
 
 ### ✅ Colunas Já Implementadas
 - **Clicks** - ✅ Implementado

@@ -127,7 +127,7 @@ export default async function handler(req, res) {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'User-Agent': 'TrackView-Dashboard/1.0 (https://my-dash-two.vercel.app)',
+          'User-Agent': 'VMetrics-Dashboard/1.0 (https://vmetrics.com.br)',
           'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'

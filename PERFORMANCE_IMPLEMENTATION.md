@@ -167,7 +167,7 @@ campaign_id, campaign, offer_id, offer, rt_ad_id, rt_ad, payout, cost, conversio
    ```
 
 3. **Interface:**
-   - Acesse a seção Campanhas no TrackView
+   - Acesse a seção Campanhas no VMetrics
    - Selecione um período
    - Os blocos de performance serão atualizados automaticamente
    - Use os botões de refresh para forçar atualização

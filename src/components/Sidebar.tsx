@@ -117,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               {!isSidebarCollapsed && (
                 <div className="flex-1 min-w-0">
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  TrackView
+                  VMetrics
                 </h1>
                 <p className="text-sm text-gray-500 font-medium">RedTrack Dashboard</p>
               </div>

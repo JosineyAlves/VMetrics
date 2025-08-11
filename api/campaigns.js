@@ -133,7 +133,7 @@ export default async function handler(req, res) {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'User-Agent': 'TrackView-Dashboard/1.0'
+            'User-Agent': 'VMetrics-Dashboard/1.0'
           }
         });
         processRequestQueue();
@@ -161,7 +161,7 @@ export default async function handler(req, res) {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'User-Agent': 'TrackView-Dashboard/1.0'
+          'User-Agent': 'VMetrics-Dashboard/1.0'
         }
       });
       processRequestQueue();

@@ -58,7 +58,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        trackview: {
+        vmetrics: {
           primary: '#2563EB',        // Azul tech
           secondary: '#7C3AED',      // Roxo insight
           background: '#F8FAFC',     // Fundo base claro

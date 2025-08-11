@@ -2,7 +2,7 @@
 
 ## Resumo Executivo
 
-Após análise detalhada da documentação da API RedTrack e do código atual do TrackView, foram identificados **problemas críticos** na implementação que causam divergências entre os dados exibidos no painel e os valores reais do RedTrack.
+Após análise detalhada da documentação da API RedTrack e do código atual do VMetrics, foram identificados **problemas críticos** na implementação que causam divergências entre os dados exibidos no painel e os valores reais do RedTrack.
 
 ## Problemas Identificados
 

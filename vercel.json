@@ -1,17 +1,12 @@
 {
-  "buildCommand": "npm ci && npm run build",
+  "buildCommand": "rm -rf node_modules && npm install && npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm ci",
-  "functions": {
-    "api/**/*.js": {
-      "memory": 512,
-      "maxDuration": 30
+  "installCommand": "npm install",
+  "domains": ["vmetrics.com.br"],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  },
-  "routes": [
-    { "src": "/api/stripe/(.*)", "dest": "/api/stripe/$1" },
-    { "src": "/api/auth/(.*)", "dest": "/api/auth/$1" },
-    { "src": "/((?!api).*)", "dest": "/index.html" }
-  ],
-  "name": "vmetrics"
-}
+  ]
+} 

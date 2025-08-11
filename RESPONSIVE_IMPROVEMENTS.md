@@ -1,8 +1,8 @@
-# 🎨 Melhorias de Responsividade - TrackView
+# 🎨 Melhorias de Responsividade - VMetrics
 
 ## 📱 Problema Identificado
 
-O TrackView não estava se adaptando adequadamente a diferentes tamanhos de tela, especialmente para resoluções menores como **1366x768**, causando:
+O VMetrics não estava se adaptando adequadamente a diferentes tamanhos de tela, especialmente para resoluções menores como **1366x768**, causando:
 
 - **Elementos muito grandes** para o espaço disponível
 - **Layout desconfigurado** em telas pequenas
@@ -228,7 +228,7 @@ w-3 h-3 lg:w-4 lg:h-4  /* Ícones escaláveis */
 
 ---
 
-**Resultado**: TrackView agora é **100% responsivo** e oferece uma experiência excelente em qualquer dispositivo! 🎉
+**Resultado**: VMetrics agora é **100% responsivo** e oferece uma experiência excelente em qualquer dispositivo! 🎉
 
 ## 🔧 Correções Técnicas Recentes
 

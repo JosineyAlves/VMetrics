@@ -407,7 +407,7 @@ const Settings: React.FC = () => {
           <div>
             <h3 className="text-xl font-bold text-gray-800">Informações</h3>
             <p className="text-sm text-gray-600">
-              Sobre o TrackView
+              Sobre o VMetrics
             </p>
           </div>
         </div>
@@ -416,7 +416,7 @@ const Settings: React.FC = () => {
           <div>
             <h4 className="font-semibold text-gray-800 mb-3">Sobre</h4>
             <p className="text-gray-600 leading-relaxed">
-              O TrackView é uma plataforma de análise de campanhas que integra com a API do RedTrack 
+              O VMetrics é uma plataforma de análise de campanhas que integra com a API do RedTrack 
               para fornecer insights detalhados sobre performance de marketing digital.
             </p>
           </div>
@@ -435,7 +435,7 @@ const Settings: React.FC = () => {
           <div>
             <h4 className="font-semibold text-gray-800 mb-3">Versão</h4>
             <p className="text-gray-600">
-              TrackView v1.0.0
+              VMetrics v1.0.0
             </p>
           </div>
         </div>

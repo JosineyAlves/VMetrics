@@ -1,8 +1,8 @@
-# 🚀 Guia de Deploy - TrackView Dashboard
+# 🚀 Guia de Deploy - VMetrics Dashboard
 
 ## 📋 Visão Geral
 
-Este guia mostra como fazer deploy do TrackView Dashboard em diferentes plataformas gratuitas para testar a integração real com a API do RedTrack.
+Este guia mostra como fazer deploy do VMetrics Dashboard em diferentes plataformas gratuitas para testar a integração real com a API do RedTrack.
 
 ## 🎯 Por que Deploy?
 

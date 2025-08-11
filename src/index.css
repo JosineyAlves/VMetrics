@@ -83,14 +83,14 @@
   }
 }
 
-/* Tipografia TrackView */
-.trackview-title {
+/* Tipografia VMetrics */
+.vmetrics-title {
   @apply font-sans font-bold text-3xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
 }
-.trackview-text {
+.vmetrics-text {
   @apply font-sans text-base text-slate-700;
 }
-.trackview-caption {
+.vmetrics-caption {
   @apply font-sans text-sm text-slate-500;
 }
 

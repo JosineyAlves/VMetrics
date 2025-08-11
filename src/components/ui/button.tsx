@@ -10,12 +10,12 @@ const base =
   "inline-flex items-center justify-center font-semibold rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none font-sans"
 
 const variants = {
-  primary: "bg-trackview-primary text-white hover:bg-trackview-accent focus:ring-trackview-primary",
-  secondary: "bg-trackview-secondary text-white hover:bg-trackview-accent focus:ring-trackview-secondary",
-  accent: "bg-trackview-accent text-white hover:bg-trackview-primary focus:ring-trackview-accent",
-  outline: "border border-trackview-primary text-trackview-primary bg-white hover:bg-trackview-background focus:ring-trackview-primary",
-  danger: "bg-trackview-danger text-white hover:bg-red-600 focus:ring-trackview-danger",
-  success: "bg-trackview-success text-white hover:bg-green-600 focus:ring-trackview-success",
+  primary: "bg-vmetrics-primary text-white hover:bg-vmetrics-accent focus:ring-vmetrics-primary",
+  secondary: "bg-vmetrics-secondary text-white hover:bg-vmetrics-accent focus:ring-vmetrics-secondary",
+  accent: "bg-vmetrics-accent text-white hover:bg-vmetrics-primary focus:ring-vmetrics-primary",
+  outline: "border border-vmetrics-primary text-vmetrics-primary bg-white hover:bg-vmetrics-background focus:ring-vmetrics-primary",
+  danger: "bg-vmetrics-danger text-white hover:bg-red-600 focus:ring-vmetrics-primary",
+  success: "bg-vmetrics-success text-white hover:bg-green-600 focus:ring-vmetrics-primary",
 }
 
 const sizes = {
