@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -7,14 +7,13 @@ interface LogoProps {
   className?: string
 }
 
-const Logo: React.FC<LogoProps> = ({ 
-  size = 'md', 
+const Logo: React.FC<LogoProps> = ({
+  size = 'md',
   variant = 'default',
   showText = true,
   className = ''
 }) => {
-  // Debug log
-  console.log('Logo component rendered:', { size, variant, showText, className })
+  const [imageError, setImageError] = useState(false)
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -49,20 +48,28 @@ const Logo: React.FC<LogoProps> = ({
     gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'
   }
 
+  const handleImageError = () => {
+    setImageError(true)
+  }
+
   return (
     <div className={`flex items-center ${className}`}>
       {/* Logo Icon */}
       <div className={`${sizeClasses[size]} ${variantClasses[variant]} rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
-        {/* Placeholder icon - você pode substituir por sua logo SVG */}
-        <svg 
-          className={`${iconSizes[size]} ${variant === 'white' ? 'text-blue-600' : 'text-white'}`}
-          viewBox="0 0 24 24" 
-          fill="currentColor"
-        >
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-        </svg>
+        {!imageError ? (
+          <img
+            src="/assets/images/logo.svg"
+            alt="VMetrics Logo"
+            className={`${iconSizes[size]} w-full h-full object-contain p-1`}
+            onError={handleImageError}
+          />
+        ) : (
+          <div className={`${iconSizes[size]} ${variant === 'white' ? 'text-blue-600' : 'text-white'} text-center`}>
+            🔑
+          </div>
+        )}
       </div>
-      
+
       {/* Logo Text */}
       {showText && (
         <div className="ml-3">
