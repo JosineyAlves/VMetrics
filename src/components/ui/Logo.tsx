@@ -10,36 +10,29 @@ interface LogoProps {
 const Logo: React.FC<LogoProps> = ({
   size = 'md',
   variant = 'default',
-  showText = true,
+  showText = false, // Por padrão, não mostrar texto
   className = ''
 }) => {
   const [imageError, setImageError] = useState(false)
 
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16',
-    xl: 'w-20 h-20'
-  }
-
-  const textSizes = {
-    sm: 'text-lg',
-    md: 'text-xl',
-    lg: 'text-2xl',
-    xl: 'text-3xl'
+    sm: 'w-16 h-4',    // Proporção 4:1 para logo retangular
+    md: 'w-24 h-6',    // Proporção 4:1 para logo retangular
+    lg: 'w-32 h-8',    // Proporção 4:1 para logo retangular
+    xl: 'w-40 h-10'    // Proporção 4:1 para logo retangular
   }
 
   const iconSizes = {
-    sm: 'w-5 h-5',
-    md: 'w-7 h-7',
-    lg: 'w-9 h-9',
-    xl: 'w-12 h-12'
+    sm: 'w-16 h-4',    // Proporção 4:1 para logo retangular
+    md: 'w-24 h-6',    // Proporção 4:1 para logo retangular
+    lg: 'w-32 h-8',    // Proporção 4:1 para logo retangular
+    xl: 'w-40 h-10'    // Proporção 4:1 para logo retangular
   }
 
   const variantClasses = {
-    default: 'bg-gradient-to-r from-blue-600 to-purple-600',
-    white: 'bg-white',
-    gradient: 'bg-gradient-to-br from-blue-500 to-indigo-600'
+    default: '',
+    white: '',
+    gradient: ''
   }
 
   const textClasses = {
@@ -48,35 +41,32 @@ const Logo: React.FC<LogoProps> = ({
     gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'
   }
 
-  const handleImageError = () => {
-    setImageError(true)
-  }
-
   return (
     <div className={`flex items-center ${className}`}>
-      {/* Logo Icon */}
-      <div className={`${sizeClasses[size]} ${variantClasses[variant]} rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0`}>
+      {/* Logo Image - Sem background */}
+      <div className={`${sizeClasses[size]} flex items-center justify-center flex-shrink-0`}>
         {!imageError ? (
           <img
             src="/assets/images/logo.svg"
             alt="VMetrics Logo"
-            className={`${iconSizes[size]} w-full h-full object-contain p-1`}
-            onError={handleImageError}
+            className={`${iconSizes[size]} object-contain`}
+            onError={() => setImageError(true)}
           />
         ) : (
-          <div className={`${iconSizes[size]} ${variant === 'white' ? 'text-blue-600' : 'text-white'} text-center`}>
-            🔑
+          // Fallback se a imagem falhar
+          <div className={`${iconSizes[size]} bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center`}>
+            <span className="text-white font-bold text-xs">VM</span>
           </div>
         )}
       </div>
 
-      {/* Logo Text */}
+      {/* Logo Text - Só mostra se showText for true */}
       {showText && (
         <div className="ml-3">
-          <h1 className={`${textSizes[size]} font-bold ${textClasses[variant]}`}>
+          <h1 className={`text-xl font-bold ${textClasses[variant]}`}>
             VMetrics
           </h1>
-          <p className={`text-xs ${variant === 'white' ? 'text-white/80' : 'text-gray-500'} font-medium`}>
+          <p className="text-xs text-gray-500 font-medium">
             Dashboard Integrado
           </p>
         </div>

@@ -114,7 +114,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-4'}`}>
               <Logo 
                 size={isSidebarCollapsed ? 'md' : 'md'} 
-                showText={!isSidebarCollapsed}
                 className="flex-shrink-0"
               />
               {/* Toggle Button */}
