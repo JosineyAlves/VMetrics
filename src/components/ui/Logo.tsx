@@ -5,26 +5,28 @@ interface LogoProps {
   variant?: 'default' | 'white' | 'gradient'
   showText?: boolean
   className?: string
+  showIconOnly?: boolean // Nova prop para mostrar apenas o ícone
 }
 
 const Logo: React.FC<LogoProps> = ({
   size = 'md',
   variant = 'default',
   showText = false, // Por padrão, não mostrar texto
-  className = ''
+  className = '',
+  showIconOnly = false // Por padrão, mostrar logo completa
 }) => {
   const [imageError, setImageError] = useState(false)
 
   const sizeClasses = {
     sm: 'w-16 h-4',    // Proporção 4:1 para logo retangular
-    md: 'w-24 h-6',    // Proporção 4:1 para logo retangular
+    md: 'w-12 h-12',   // Quadrado para favicon quando colapsado
     lg: 'w-32 h-8',    // Proporção 4:1 para logo retangular
     xl: 'w-40 h-10'    // Proporção 4:1 para logo retangular
   }
 
   const iconSizes = {
     sm: 'w-16 h-4',    // Proporção 4:1 para logo retangular
-    md: 'w-24 h-6',    // Proporção 4:1 para logo retangular
+    md: 'w-12 h-12',   // Quadrado para favicon quando colapsado
     lg: 'w-32 h-8',    // Proporção 4:1 para logo retangular
     xl: 'w-40 h-10'    // Proporção 4:1 para logo retangular
   }
@@ -47,8 +49,8 @@ const Logo: React.FC<LogoProps> = ({
       <div className={`${sizeClasses[size]} flex items-center justify-center flex-shrink-0`}>
         {!imageError ? (
           <img
-            src="/assets/images/logo.svg"
-            alt="VMetrics Logo"
+            src={showIconOnly ? "/assets/icons/favicon.svg" : "/assets/images/logo.svg"}
+            alt={showIconOnly ? "VMetrics Icon" : "VMetrics Logo"}
             className={`${iconSizes[size]} object-contain`}
             onError={() => setImageError(true)}
           />
