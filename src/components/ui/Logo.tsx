@@ -13,6 +13,9 @@ const Logo: React.FC<LogoProps> = ({
   showText = true,
   className = ''
 }) => {
+  // Debug log
+  console.log('Logo component rendered:', { size, variant, showText, className })
+
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-12 h-12',
