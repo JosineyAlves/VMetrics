@@ -15,7 +15,11 @@ import {
   Calendar,
   DollarSign,
   Info,
-  ChevronDown
+  ChevronDown,
+  CreditCard,
+  Receipt,
+  Crown,
+  Zap
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -32,9 +36,12 @@ interface AccountSettings {
   [key: string]: any
 }
 
+type TabType = 'general' | 'billing' | 'security' | 'about'
+
 const Settings: React.FC = () => {
   const { apiKey, setApiKey } = useAuthStore()
   const { currency, currencySymbol, setCurrency } = useCurrencyStore()
+  const [activeTab, setActiveTab] = useState<TabType>('general')
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -46,6 +53,40 @@ const Settings: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+
+  // Estados para dados de faturamento (mock para futura integração Stripe)
+  const [currentPlan, setCurrentPlan] = useState({
+    name: 'Starter',
+    price: 'R$ 29,90',
+    period: 'mês',
+    features: ['Até 10 campanhas', 'Relatórios básicos', 'Suporte por email'],
+    status: 'active',
+    nextBilling: '2024-02-15'
+  })
+
+  const [invoices, setInvoices] = useState([
+    {
+      id: 'INV-001',
+      date: '2024-01-15',
+      amount: 'R$ 29,90',
+      status: 'paid',
+      description: 'Plano Starter - Janeiro 2024'
+    },
+    {
+      id: 'INV-002',
+      date: '2023-12-15',
+      amount: 'R$ 29,90',
+      status: 'paid',
+      description: 'Plano Starter - Dezembro 2023'
+    }
+  ])
+
+  const tabs = [
+    { id: 'general', label: 'Geral', icon: SettingsIcon },
+    { id: 'billing', label: 'Planos & Faturas', icon: CreditCard },
+    { id: 'security', label: 'Segurança', icon: Shield },
+    { id: 'about', label: 'Sobre', icon: Info }
+  ]
 
   const handleSave = async () => {
     if (!tempApiKey.trim()) {
@@ -122,20 +163,8 @@ const Settings: React.FC = () => {
     })
   }
 
-  return (
-    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Configurações
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Gerencie suas configurações da conta
-          </p>
-        </div>
-      </div>
-
+  const renderGeneralTab = () => (
+    <div className="space-y-8">
       {/* API Key Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -356,12 +385,276 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </motion.div>
+    </div>
+  )
 
-      {/* API Status */}
+  const renderBillingTab = () => (
+    <div className="space-y-8">
+      {/* Current Plan */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
+            <Crown className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Plano Atual</h3>
+            <p className="text-sm text-gray-600">
+              Seu plano atual e próximas cobranças
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h4 className="text-2xl font-bold text-gray-800 mb-2">{currentPlan.name}</h4>
+              <div className="flex items-baseline space-x-2">
+                <span className="text-3xl font-bold text-blue-600">{currentPlan.price}</span>
+                <span className="text-gray-600">/{currentPlan.period}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                {currentPlan.status === 'active' ? 'Ativo' : 'Inativo'}
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Próxima cobrança: {new Date(currentPlan.nextBilling).toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h5 className="font-semibold text-gray-700 mb-3">Recursos incluídos:</h5>
+            {currentPlan.features.map((feature, index) => (
+              <div key={index} className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-gray-700">{feature}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-blue-200">
+            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+              <Zap className="w-5 h-5 mr-2" />
+              Fazer Upgrade do Plano
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Available Plans */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-green-100 rounded-2xl">
+            <CreditCard className="w-7 h-7 text-green-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Planos Disponíveis</h3>
+            <p className="text-sm text-gray-600">
+              Escolha o plano ideal para suas necessidades
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Plano Starter */}
+          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">Starter</h4>
+              <div className="text-3xl font-bold text-blue-600 mb-1">R$ 29,90</div>
+              <div className="text-gray-600">por mês</div>
+            </div>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Até 10 campanhas</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Relatórios básicos</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Suporte por email</span>
+              </li>
+            </ul>
+            <Button variant="outline" className="w-full rounded-xl">
+              Plano Atual
+            </Button>
+          </div>
+
+          {/* Plano Pro */}
+          <div className="border-2 border-blue-500 rounded-2xl p-6 bg-blue-50 relative">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                Popular
+              </span>
+            </div>
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">Pro</h4>
+              <div className="text-3xl font-bold text-blue-600 mb-1">R$ 79,90</div>
+              <div className="text-gray-600">por mês</div>
+            </div>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Campanhas ilimitadas</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Relatórios avançados</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Suporte prioritário</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">API personalizada</span>
+              </li>
+            </ul>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+              Fazer Upgrade
+            </Button>
+          </div>
+
+          {/* Plano Enterprise */}
+          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">Enterprise</h4>
+              <div className="text-3xl font-bold text-blue-600 mb-1">Sob consulta</div>
+              <div className="text-gray-600">personalizado</div>
+            </div>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Tudo do plano Pro</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Suporte 24/7</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Integrações customizadas</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">SLA garantido</span>
+              </li>
+            </ul>
+            <Button variant="outline" className="w-full rounded-xl">
+              Contatar Vendas
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Invoices */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-purple-100 rounded-2xl">
+            <Receipt className="w-7 h-7 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Histórico de Faturas</h3>
+            <p className="text-sm text-gray-600">
+              Suas faturas e pagamentos
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {invoices.map((invoice) => (
+            <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Receipt className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">{invoice.description}</p>
+                  <p className="text-sm text-gray-600">{invoice.id}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-gray-800">{invoice.amount}</p>
+                <p className="text-sm text-gray-600">{new Date(invoice.date).toLocaleDateString('pt-BR')}</p>
+                <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
+                  {invoice.status === 'paid' ? 'Pago' : 'Pendente'}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 text-center">
+          <Button variant="outline" className="rounded-xl">
+            <Receipt className="w-4 h-4 mr-2" />
+            Ver Todas as Faturas
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Stripe Integration Info */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-6">
+          <div className="p-3 bg-blue-100 rounded-2xl">
+            <Info className="w-7 h-7 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Integração com Stripe</h3>
+            <p className="text-sm text-gray-600">
+              Informações sobre pagamentos e faturamento
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-2">🚀 Em breve: Integração completa com Stripe</p>
+            <p className="mb-3">
+              Estamos trabalhando para integrar completamente com a plataforma Stripe, 
+              oferecendo:
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li>Pagamentos seguros e automatizados</li>
+              <li>Faturas automáticas</li>
+              <li>Múltiplas formas de pagamento</li>
+              <li>Gestão de assinaturas</li>
+              <li>Relatórios financeiros detalhados</li>
+            </ul>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+
+  const renderSecurityTab = () => (
+    <div className="space-y-8">
+      {/* API Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
         <div className="flex items-center space-x-4 mb-8">
@@ -393,11 +686,65 @@ const Settings: React.FC = () => {
         </div>
       </motion.div>
 
+      {/* Security Features */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-green-100 rounded-2xl">
+            <Shield className="w-7 h-7 text-green-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Recursos de Segurança</h3>
+            <p className="text-sm text-gray-600">
+              Medidas de segurança implementadas
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-gray-700">HTTPS/SSL criptografado</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-gray-700">API Key mascarada</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-gray-700">Dados não armazenados</span>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-gray-700">Conexão segura RedTrack</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-gray-700">Logs de acesso</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-gray-700">Backup automático</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+
+  const renderAboutTab = () => (
+    <div className="space-y-8">
       {/* Information Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
         <div className="flex items-center space-x-4 mb-8">
@@ -440,6 +787,63 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </motion.div>
+    </div>
+  )
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return renderGeneralTab()
+      case 'billing':
+        return renderBillingTab()
+      case 'security':
+        return renderSecurityTab()
+      case 'about':
+        return renderAboutTab()
+      default:
+        return renderGeneralTab()
+    }
+  }
+
+  return (
+    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Configurações
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
+            Gerencie suas configurações da conta
+          </p>
+        </div>
+      </div>
+
+      {/* Tabs Navigation */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-2 shadow-2xl border border-white/20">
+        <div className="flex space-x-2">
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      {renderTabContent()}
     </div>
   )
 }
