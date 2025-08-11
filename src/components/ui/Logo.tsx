@@ -18,17 +18,17 @@ const Logo: React.FC<LogoProps> = ({
   const [imageError, setImageError] = useState(false)
 
   const sizeClasses = {
-    sm: 'w-16 h-4',    // Proporção 4:1 para logo retangular
-    md: 'w-12 h-12',   // Quadrado para favicon quando colapsado
-    lg: 'w-32 h-8',    // Proporção 4:1 para logo retangular
-    xl: 'w-40 h-10'    // Proporção 4:1 para logo retangular
+    sm: 'w-16 h-4',     // Proporção 4:1 para logo retangular pequena
+    md: showIconOnly ? 'w-12 h-12' : 'w-32 h-8',   // Favicon quando colapsado, logo média quando expandido
+    lg: 'w-40 h-10',    // Proporção 4:1 para logo retangular grande
+    xl: 'w-48 h-12'     // Proporção 4:1 para logo retangular extra grande (página de login)
   }
 
   const iconSizes = {
-    sm: 'w-16 h-4',    // Proporção 4:1 para logo retangular
-    md: 'w-12 h-12',   // Quadrado para favicon quando colapsado
-    lg: 'w-32 h-8',    // Proporção 4:1 para logo retangular
-    xl: 'w-40 h-10'    // Proporção 4:1 para logo retangular
+    sm: 'w-16 h-4',     // Proporção 4:1 para logo retangular pequena
+    md: showIconOnly ? 'w-12 h-12' : 'w-32 h-8',   // Favicon quando colapsado, logo média quando expandido
+    lg: 'w-40 h-10',    // Proporção 4:1 para logo retangular grande
+    xl: 'w-48 h-12'     // Proporção 4:1 para logo retangular extra grande (página de login)
   }
 
   const variantClasses = {
