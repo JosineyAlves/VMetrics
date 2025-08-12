@@ -698,15 +698,15 @@ const Settings: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
+          <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Configurações
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
             Gerencie suas configurações da conta
-          </p>
+            </p>
+          </div>
         </div>
-      </div>
 
       {/* Tabs Navigation */}
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-2 shadow-2xl border border-white/20">

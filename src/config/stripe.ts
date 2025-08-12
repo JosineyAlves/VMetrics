@@ -1,9 +1,9 @@
 // Configuração do Stripe
 export const STRIPE_CONFIG = {
   // Chaves de API (configuradas via variáveis de ambiente)
-  publishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_...',
-  secretKey: process.env.STRIPE_SECRET_KEY || 'sk_test_...',
-  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_...',
+  publishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
+  secretKey: process.env.STRIPE_SECRET_KEY || '',
+  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
   
   // Configurações de ambiente
   isProduction: process.env.NODE_ENV === 'production',
