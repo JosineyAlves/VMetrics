@@ -92,3 +92,4 @@ export const getResetPasswordUrl = (): string => {
 }
 
 export default APP_URLS
+

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
@@ -9,53 +9,41 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const { signIn, loading, error: authError, resetPassword } = useAuth()
+  const { testApiKey, setApiKey } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
     setError('')
 
     try {
-      // Validar campos obrigatórios
-      if (!email || !password) {
+      // TODO: Implementar autenticação real com Supabase
+      // Por enquanto, vamos simular um login bem-sucedido
+      if (email && password) {
+        // Simular verificação de credenciais
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Se login bem-sucedido, verificar se tem API Key
+        const hasApiKey = false // TODO: Verificar no banco
+        
+        if (hasApiKey) {
+          // Usuário já tem API Key configurada
+          console.log('✅ Login bem-sucedido, API Key já configurada')
+          // TODO: Redirecionar para dashboard
+        } else {
+          // Usuário precisa configurar API Key
+          console.log('⚠️ Login bem-sucedido, mas precisa configurar API Key')
+          // TODO: Mostrar tela de configuração de API Key
+        }
+      } else {
         setError('Por favor, preencha todos os campos')
-        return
-      }
-
-      console.log('🔄 Tentando autenticar:', email)
-      
-      // Autenticação real com Supabase
-      const result = await signIn(email, password)
-      
-      if (result.success) {
-        console.log('✅ Login bem-sucedido via Supabase')
-        // O hook useAuth já gerencia o estado de autenticação
-        // O usuário será redirecionado automaticamente pelo App.tsx
-      } else {
-        setError(result.error || 'Erro ao fazer login')
       }
     } catch (err) {
-      setError('Erro inesperado ao fazer login')
-    }
-  }
-
-  // Função para reset de senha
-  const handleResetPassword = async () => {
-    if (!email) {
-      setError('Digite seu email para redefinir a senha')
-      return
-    }
-
-    try {
-      const result = await resetPassword(email)
-      if (result.success) {
-        alert('Email de redefinição enviado! Verifique sua caixa de entrada.')
-      } else {
-        setError(result.error || 'Erro ao enviar email de redefinição')
-      }
-    } catch (err) {
-      setError('Erro ao solicitar redefinição de senha')
+      setError('Erro ao fazer login. Tente novamente.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -70,7 +58,6 @@ const LoginForm: React.FC = () => {
             <p className="text-slate-600">
               Faça login na sua conta VMetrics
             </p>
-            
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
               <a 
@@ -78,19 +65,6 @@ const LoginForm: React.FC = () => {
                 className="text-blue-600 hover:text-blue-700 underline"
               >
                 Conheça nossos planos
-              </a>
-            </div>
-            
-            <div className="mt-2 text-sm text-slate-500">
-              <a 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault()
-                  handleResetPassword()
-                }}
-                className="text-blue-600 hover:text-blue-700 underline"
-              >
-                Esqueci minha senha
               </a>
             </div>
           </div>
@@ -107,7 +81,7 @@ const LoginForm: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seu@email.com"
                 className="modern-input"
-                disabled={loading}
+                disabled={isLoading}
                 required
               />
             </div>
@@ -124,7 +98,7 @@ const LoginForm: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Sua senha"
                   className="pr-10 modern-input"
-                  disabled={loading}
+                  disabled={isLoading}
                   required
                 />
                 <button
@@ -140,9 +114,9 @@ const LoginForm: React.FC = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? (
+              {isLoading ? (
                 <>
                   <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
                   Entrando...
@@ -153,38 +127,43 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
 
-          {(error || authError) && (
+          {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
-              <p className="text-sm text-red-600 font-medium mb-2">{error || authError}</p>
-              
-              {(error || authError)?.includes('401') && (
+              <p className="text-sm text-red-600 font-medium mb-2">{error}</p>
+              {error.includes('401') && (
                 <div className="mt-3">
                   <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
                   <ul className="text-xs text-red-500 space-y-1">
-                    <li>• Verifique se suas credenciais estão corretas</li>
-                    <li>• A senha pode ter sido alterada</li>
-                    <li>• Verifique se o email está correto</li>
-                    <li>• Use a opção "Esqueci minha senha" se necessário</li>
+                    <li>• Verifique se a API Key está correta</li>
+                    <li>• A API Key pode ter expirado - gere uma nova no RedTrack</li>
+                    <li>• Certifique-se de que a API Key tem permissões adequadas</li>
+                    <li>• Plano Solo pode ter acesso limitado - tente endpoints básicos primeiro</li>
                   </ul>
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-xs text-blue-600 font-medium">🔍 Testando endpoint /report...</p>
+                    <p className="text-xs text-blue-500">Usando endpoint /report que é mais compatível com planos básicos do RedTrack</p>
+                  </div>
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-700 font-medium">⚠️ Informação do Plano:</p>
+                    <p className="text-xs text-yellow-600">Plano Solo tem API access limitado. Considere upgrade para API completa.</p>
+                  </div>
                 </div>
               )}
-              
-              {(error || authError)?.includes('403') && (
+              {error.includes('403') && (
                 <div className="mt-3">
                   <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
                   <ul className="text-xs text-red-500 space-y-1">
-                    <li>• Verifique se sua conta está ativa</li>
-                    <li>• Entre em contato com o suporte</li>
+                    <li>• Verifique se a API Key tem permissões para acessar os dados</li>
+                    <li>• Entre em contato com o administrador da conta RedTrack</li>
                   </ul>
                 </div>
               )}
-              
-              {(error || authError)?.includes('429') && (
+              {error.includes('429') && (
                 <div className="mt-3">
                   <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
                   <ul className="text-xs text-red-500 space-y-1">
                     <li>• Aguarde alguns minutos antes de tentar novamente</li>
-                    <li>• Muitas tentativas de login</li>
+                    <li>• Verifique o plano da sua conta RedTrack</li>
                   </ul>
                 </div>
               )}
@@ -193,7 +172,7 @@ const LoginForm: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
-              Suas credenciais são validadas no banco de dados do Supabase
+              Sua API Key será salva localmente para facilitar o acesso futuro
             </p>
             <div className="mt-4 pt-4 border-t border-slate-200">
               <a 

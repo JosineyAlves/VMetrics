@@ -1,28 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Configuração do Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-// Debug: Log das variáveis para verificar
-console.log('🔍 Debug - Variáveis de ambiente:')
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL)
-console.log('NEXT_PUBLIC_SUPABASE_URL:', import.meta.env.NEXT_PUBLIC_SUPABASE_URL)
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada')
-console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ Não configurada')
-
-// Verificar se as variáveis estão configuradas
-if (!supabaseUrl) {
-  console.error('❌ Nenhuma URL do Supabase encontrada!')
-  console.error('Variáveis disponíveis:', Object.keys(import.meta.env).filter(key => key.includes('SUPABASE')))
-  throw new Error('❌ VITE_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_URL não configurada! Configure no Vercel Dashboard.')
-}
-
-if (!supabaseAnonKey) {
-  console.error('❌ Nenhuma chave anônima do Supabase encontrada!')
-  console.error('Variáveis disponíveis:', Object.keys(import.meta.env).filter(key => key.includes('SUPABASE')))
-  throw new Error('❌ VITE_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_ANON_KEY não configurada! Configure no Vercel Dashboard.')
-}
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
 
 // Cliente público (frontend)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -211,3 +191,4 @@ export type WebhookLog = Database['public']['Tables']['webhook_logs']['Row']
 // Funções utilitárias
 export const getSupabaseUrl = () => supabaseUrl
 export const getSupabaseAnonKey = () => supabaseAnonKey
+

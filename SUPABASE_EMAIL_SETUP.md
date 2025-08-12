@@ -320,3 +320,4 @@ Com essa configuração, o fluxo completo será:
 6. **Dashboard ativo** → Cliente
 
 **Agora você tem um sistema 100% automatizado e profissional! 🚀**
+

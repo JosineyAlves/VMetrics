@@ -12,13 +12,13 @@ import Settings from "./components/Settings"
 import LandingPage from "./components/LandingPage"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
-import { useAuth } from './hooks/useAuth'
+import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuthStore()
   const { isCollapsed, toggle } = useSidebarStore()
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const [needsSignup, setNeedsSignup] = useState(false)
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPlanType, setSignupPlanType] = useState('')
-  const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null)
+  const autoRefreshInterval = useRef<number | null>(null)
   // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 

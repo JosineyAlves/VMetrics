@@ -182,3 +182,4 @@ Com essas configurações, você terá:
 - ✅ Performance otimizada pelo Cloudflare
 - ✅ Segurança reforçada
 - ✅ URLs separadas funcionando perfeitamente
+
