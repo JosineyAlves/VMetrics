@@ -14,10 +14,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 // Cliente com service role (backend apenas)
-// Nota: SUPABASE_SERVICE_ROLE_KEY só está disponível no backend
 export const supabaseAdmin = createClient(
   supabaseUrl, 
-  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key',
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key',
   {
     auth: {
       autoRefreshToken: false,

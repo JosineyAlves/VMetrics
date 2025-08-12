@@ -126,12 +126,12 @@ npm run stripe:test
 
 ### **4. Testar Webhooks com Stripe CLI**
 
-```bash
+   ```bash
 # Simular eventos específicos
-stripe trigger checkout.session.completed
-stripe trigger customer.subscription.created
+   stripe trigger checkout.session.completed
+   stripe trigger customer.subscription.created
 stripe trigger invoice.payment_succeeded
-```
+   ```
 
 ## 🚀 Deploy para Produção
 

@@ -129,42 +129,6 @@ export const useAuth = () => {
         return { success: false, error: error.message }
       }
 
-      if (data.user) {
-        // Verificar se o usuário tem plano ativo
-        const { data: userPlan, error: planError } = await supabase
-          .from('user_plans')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .eq('status', 'active')
-          .single()
-        
-        if (planError && planError.code !== 'PGRST116') {
-          console.error('Erro ao verificar plano:', planError)
-        }
-        
-        // Verificar se tem API Key configurada
-        const { data: apiKeyData, error: apiKeyError } = await supabase
-          .from('users')
-          .select('redtrack_api_key')
-          .eq('id', data.user.id)
-          .single()
-        
-        if (apiKeyError && apiKeyError.code !== 'PGRST116') {
-          console.error('Erro ao verificar API Key:', apiKeyError)
-        }
-        
-        const hasApiKey = apiKeyData?.redtrack_api_key && apiKeyData.redtrack_api_key.trim() !== ''
-        const hasActivePlan = userPlan && userPlan.status === 'active'
-        
-        return { 
-          success: true, 
-          data,
-          hasApiKey,
-          hasActivePlan,
-          userPlan: userPlan || null
-        }
-      }
-
       return { success: true, data }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro inesperado'
