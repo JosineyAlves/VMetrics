@@ -1,4 +1,6 @@
 import { STRIPE_PRODUCTS } from '../config/stripe'
+import { supabase, supabaseAdmin } from '../lib/supabase'
+import type { User, UserPlan as DBUserPlan } from '../lib/supabase'
 
 export interface UserPlan {
   id: string
@@ -165,18 +167,53 @@ export class PlanService {
    * Busca plano ativo de um usuário
    */
   async getUserActivePlan(userId: string): Promise<UserPlan | null> {
-    // TODO: Implementar busca no banco de dados
-    // Por enquanto, retorna null
-    return null
+    try {
+      const { data: dbPlan, error } = await supabase
+        .from('user_plans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') { // No rows returned
+          return null
+        }
+        console.error('Erro ao buscar plano ativo:', error)
+        return null
+      }
+
+      return this.mapDBPlanToUserPlan(dbPlan)
+    } catch (error) {
+      console.error('Erro ao buscar plano ativo:', error)
+      return null
+    }
   }
 
   /**
    * Busca plano por ID de subscription do Stripe
    */
   async getPlanBySubscriptionId(stripeSubscriptionId: string): Promise<UserPlan | null> {
-    // TODO: Implementar busca no banco de dados
-    // Por enquanto, retorna null
-    return null
+    try {
+      const { data: dbPlan, error } = await supabase
+        .from('user_plans')
+        .select('*')
+        .eq('stripe_subscription_id', stripeSubscriptionId)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') { // No rows returned
+          return null
+        }
+        console.error('Erro ao buscar plano por subscription:', error)
+        return null
+      }
+
+      return this.mapDBPlanToUserPlan(dbPlan)
+    } catch (error) {
+      console.error('Erro ao buscar plano por subscription:', error)
+      return null
+    }
   }
 
   // Métodos auxiliares privados
@@ -185,9 +222,47 @@ export class PlanService {
   }
 
   private async findOrCreateUserId(stripeCustomerId: string): Promise<string | null> {
-    // TODO: Implementar busca/criação de usuário no banco
-    // Por enquanto, retorna um ID mock
-    return `user_${Date.now()}`
+    try {
+      // 1. Buscar usuário existente por stripe_customer_id
+      const { data: existingUser, error: searchError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('stripe_customer_id', stripeCustomerId)
+        .single()
+
+      if (existingUser && !searchError) {
+        console.log(`✅ [PLAN] Usuário encontrado: ${existingUser.id}`)
+        return existingUser.id
+      }
+
+      // 2. Se não encontrou, buscar por email do webhook
+      // TODO: Implementar busca por email quando disponível no webhook
+      console.log(`⚠️ [PLAN] Usuário não encontrado para customer ${stripeCustomerId}`)
+      
+      // Por enquanto, criar usuário temporário
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          email: `temp_${Date.now()}@vmetrics.com`,
+          full_name: 'Usuário Temporário',
+          stripe_customer_id: stripeCustomerId,
+          is_active: true
+        })
+        .select('id')
+        .single()
+
+      if (createError) {
+        console.error('Erro ao criar usuário temporário:', createError)
+        return null
+      }
+
+      console.log(`✅ [PLAN] Usuário temporário criado: ${newUser.id}`)
+      return newUser.id
+
+    } catch (error) {
+      console.error('Erro ao buscar/criar usuário:', error)
+      return null
+    }
   }
 
   private async createNewPlan(
@@ -197,8 +272,36 @@ export class PlanService {
     planType: string,
     subscriptionData: any
   ): Promise<void> {
-    // TODO: Implementar criação no banco de dados
-    console.log(`📝 [PLAN] Criando novo plano no banco de dados`)
+    try {
+      console.log(`📝 [PLAN] Criando novo plano no banco de dados`)
+
+      const { error } = await supabase
+        .from('user_plans')
+        .insert({
+          user_id: userId,
+          plan_type: planType,
+          stripe_subscription_id: stripeSubscriptionId,
+          stripe_customer_id: stripeCustomerId,
+          status: 'active',
+          current_period_start: subscriptionData.current_period_start 
+            ? new Date(subscriptionData.current_period_start * 1000).toISOString()
+            : new Date().toISOString(),
+          current_period_end: subscriptionData.current_period_end
+            ? new Date(subscriptionData.current_period_end * 1000).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        })
+
+      if (error) {
+        console.error('Erro ao criar plano no banco:', error)
+        throw error
+      }
+
+      console.log(`✅ [PLAN] Plano criado com sucesso no banco`)
+
+    } catch (error) {
+      console.error('Erro ao criar novo plano:', error)
+      throw error
+    }
   }
 
   private async updateExistingPlan(
@@ -206,8 +309,35 @@ export class PlanService {
     planType: string,
     subscriptionData: any
   ): Promise<void> {
-    // TODO: Implementar atualização no banco de dados
-    console.log(`📝 [PLAN] Atualizando plano existente no banco de dados`)
+    try {
+      console.log(`📝 [PLAN] Atualizando plano existente no banco de dados`)
+
+      const { error } = await supabase
+        .from('user_plans')
+        .update({
+          plan_type: planType,
+          status: 'active',
+          current_period_start: subscriptionData.current_period_start 
+            ? new Date(subscriptionData.current_period_start * 1000).toISOString()
+            : new Date().toISOString(),
+          current_period_end: subscriptionData.current_period_end
+            ? new Date(subscriptionData.current_period_end * 1000).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', planId)
+
+      if (error) {
+        console.error('Erro ao atualizar plano no banco:', error)
+        throw error
+      }
+
+      console.log(`✅ [PLAN] Plano atualizado com sucesso no banco`)
+
+    } catch (error) {
+      console.error('Erro ao atualizar plano existente:', error)
+      throw error
+    }
   }
 
   private async updatePlanData(
@@ -235,8 +365,28 @@ export class PlanService {
   }
 
   private async markPlanAsCanceled(planId: string): Promise<void> {
-    // TODO: Implementar marcação como cancelado no banco
-    console.log(`📝 [PLAN] Marcando plano como cancelado no banco de dados`)
+    try {
+      console.log(`📝 [PLAN] Marcando plano como cancelado no banco de dados`)
+
+      const { error } = await supabase
+        .from('user_plans')
+        .update({
+          status: 'canceled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', planId)
+
+      if (error) {
+        console.error('Erro ao marcar plano como cancelado:', error)
+        throw error
+      }
+
+      console.log(`✅ [PLAN] Plano marcado como cancelado no banco`)
+
+    } catch (error) {
+      console.error('Erro ao marcar plano como cancelado:', error)
+      throw error
+    }
   }
 
   private async activatePlanFeatures(userId: string, planType: string): Promise<void> {
@@ -284,6 +434,27 @@ export class PlanService {
     // - Confirmação de cancelamento
     // - Data de término do acesso
     // - Opções de reativação
+  }
+
+  /**
+   * Mapeia plano do banco para interface UserPlan
+   */
+  private mapDBPlanToUserPlan(dbPlan: DBUserPlan): UserPlan {
+    const plan = STRIPE_PRODUCTS[dbPlan.plan_type as keyof typeof STRIPE_PRODUCTS]
+    
+    return {
+      id: dbPlan.id,
+      userId: dbPlan.user_id,
+      stripeCustomerId: dbPlan.stripe_customer_id || '',
+      stripeSubscriptionId: dbPlan.stripe_subscription_id || '',
+      planType: dbPlan.plan_type as 'starter' | 'pro' | 'enterprise',
+      status: dbPlan.status as 'active' | 'canceled' | 'past_due' | 'unpaid',
+      currentPeriodStart: dbPlan.current_period_start ? new Date(dbPlan.current_period_start) : new Date(),
+      currentPeriodEnd: dbPlan.current_period_end ? new Date(dbPlan.current_period_end) : new Date(),
+      features: plan?.features || [],
+      createdAt: new Date(dbPlan.created_at),
+      updatedAt: new Date(dbPlan.updated_at)
+    }
   }
 }
 

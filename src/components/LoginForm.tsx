@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
+import { APP_URLS } from '../config/urls'
 
 const LoginForm: React.FC = () => {
   const [apiKeyInput, setApiKeyInput] = useState('')
@@ -36,6 +37,15 @@ const LoginForm: React.FC = () => {
             <p className="text-slate-600">
               Insira sua API Key para acessar o dashboard
             </p>
+            <div className="mt-4 text-sm text-slate-500">
+              <p>Novo por aqui? </p>
+              <a 
+                href={APP_URLS.LANDING_PAGE} 
+                className="text-blue-600 hover:text-blue-700 underline"
+              >
+                Conheça nossos planos
+              </a>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -128,6 +138,14 @@ const LoginForm: React.FC = () => {
             <p className="text-xs text-slate-500">
               Sua API Key será salva localmente para facilitar o acesso futuro
             </p>
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <a 
+                href={APP_URLS.LANDING_PAGE} 
+                className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                ← Voltar à página principal
+              </a>
+            </div>
           </div>
         </div>
       </div>

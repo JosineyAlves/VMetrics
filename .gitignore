@@ -31,6 +31,15 @@ Thumbs.db
 # Vercel
 .vercel
 
+# Supabase
+.env.local
+.env.production
+.env.staging
+.env.*.local
+
+# Supabase local
+.supabase/
+
 # Cache
 .npm-cache/
 .cache/

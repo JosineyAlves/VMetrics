@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import Sidebar from "./components/Sidebar"
@@ -8,11 +8,13 @@ import Conversions from "./components/Conversions"
 import Performance from "./components/Performance"
 import Funnel from "./components/Funnel"
 import Settings from "./components/Settings"
+import LandingPage from "./components/LandingPage"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
+import { isDashboardApp } from './config/urls'
 
 const App: React.FC = () => {
   const { isAuthenticated } = useAuthStore()
@@ -21,12 +23,21 @@ const App: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isAutoEnabled, setIsAutoEnabled] = useState(false)
+  const [isDashboardApp, setIsDashboardApp] = useState(false)
   const autoRefreshInterval = useRef<number | null>(null)
   // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
+
+  // Detectar se está na URL do dashboard ou landing page
+  useEffect(() => {
+    const isApp = isDashboardApp()
+    setIsDashboardApp(isApp)
+    
+    console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
+  }, [])
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -130,12 +141,18 @@ const App: React.FC = () => {
   // Definir quais botões mostrar por tela
   const showRefresh = ['dashboard', 'campaigns', 'conversions', 'performance', 'funnel'].includes(currentSection)
   const showAuto = currentSection === 'dashboard'
-  // Filtros agora só nas telas específicas
 
+  // Se não for dashboard app, mostrar landing page
+  if (!isDashboardApp) {
+    return <LandingPage />
+  }
+
+  // Se for dashboard app mas não estiver autenticado, mostrar login
   if (!isAuthenticated) {
     return <LoginForm />
   }
 
+  // Dashboard app autenticado
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white">
       <Sidebar

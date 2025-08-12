@@ -1,11 +1,21 @@
 {
-  "buildCommand": "rm -rf node_modules && npm install && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "@vite_supabase_url",
+    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
+    "VITE_STRIPE_PUBLISHABLE_KEY": "@vite_stripe_publishable_key"
+  },
+  "domains": [
+    "vmetrics.com.br",
+    "app.vmetrics.com.br"
   ]
 } 
