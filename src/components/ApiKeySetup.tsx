@@ -9,10 +9,9 @@ import AuthService from '../services/authService'
 
 interface ApiKeySetupProps {
   onComplete: () => void
-  onSkip?: () => void
 }
 
-const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
+const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete }) => {
   const [apiKey, setApiKey] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -61,8 +60,6 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
     }
   }
 
-
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <motion.div
@@ -96,9 +93,9 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
                 className="w-full"
                 disabled={isLoading}
               />
-                             <p className="text-xs text-gray-500 mt-1">
-                 Encontre sua API Key no RedTrack: Tools → Integrations → General → Generate New
-               </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Encontre sua API Key no RedTrack: Tools → Integrations → General → Generate New
+              </p>
             </div>
 
             {/* Error Message */}
@@ -143,8 +140,6 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
               💡 Caminho: Tools → Integrations → General → Generate New
             </p>
           </div>
-
-
         </div>
       </motion.div>
     </div>
