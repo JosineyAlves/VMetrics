@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import { APP_URLS } from '../config/urls'
+import AuthService from '../services/authService'
 
 interface ApiKeySetupProps {
   onComplete: () => void
@@ -31,7 +32,18 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
       const isValid = await testApiKey(apiKey)
       
       if (isValid) {
-        // API Key válida - salvar e continuar
+        // API Key válida - salvar no banco e continuar
+        const currentUser = await AuthService.getCurrentUser()
+        if (currentUser) {
+          const saved = await AuthService.saveApiKey(currentUser.id, apiKey)
+          if (saved) {
+            console.log('✅ API Key salva no banco com sucesso')
+          } else {
+            console.warn('⚠️ Erro ao salvar API Key no banco')
+          }
+        }
+        
+        // Salvar no store local também
         setAuthApiKey(apiKey)
         onComplete()
       } else {
@@ -70,9 +82,6 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Insira sua API Key para acessar o dashboard
             </h1>
-            <p className="text-gray-600">
-              Configure sua chave de API do RedTrack para começar a usar o VMetrics
-            </p>
           </div>
 
           {/* Form */}
@@ -90,9 +99,9 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
                 className="w-full"
                 disabled={isLoading}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Encontre sua API Key no painel do RedTrack em Settings → API
-              </p>
+                             <p className="text-xs text-gray-500 mt-1">
+                 Encontre sua API Key no painel do RedTrack
+               </p>
             </div>
 
             {/* Error Message */}
@@ -144,21 +153,16 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
           </div>
 
           {/* Help Section */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">💡 Como obter sua API Key:</h3>
-            <ol className="text-sm text-gray-600 space-y-2">
-              <li>1. Acesse sua conta no RedTrack</li>
-              <li>2. Vá em Settings → API</li>
-              <li>3. Clique em "Generate New API Key"</li>
-              <li>4. Copie a chave gerada</li>
-              <li>5. Cole aqui e clique em "Testar e Configurar"</li>
-            </ol>
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <p className="text-xs text-gray-500 text-center">
+              💡 Acesse Settings → API no RedTrack para gerar sua chave
+            </p>
           </div>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              Sua API Key será salva para facilitar o acesso futuro
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-400">
+              API Key salva automaticamente
             </p>
           </div>
         </div>

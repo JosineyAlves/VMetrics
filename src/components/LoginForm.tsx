@@ -5,6 +5,7 @@ import { Input } from './ui/input'
 import Logo from './ui/Logo'
 import { APP_URLS } from '../config/urls'
 import ApiKeySetup from './ApiKeySetup'
+import AuthService from '../services/authService'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -21,29 +22,35 @@ const LoginForm: React.FC = () => {
     setError('')
 
     try {
-      // TODO: Implementar autenticação real com Supabase
-      // Por enquanto, vamos simular um login bem-sucedido
-      if (email && password) {
-        // Simular verificação de credenciais
-        await new Promise(resolve => setTimeout(resolve, 1000))
+      if (!email || !password) {
+        setError('Por favor, preencha todos os campos')
+        return
+      }
+
+      // Fazer login real com Supabase
+      const authResult = await AuthService.login({ email, password })
+      
+      if (authResult.success && authResult.user) {
+        console.log('✅ Login bem-sucedido para:', authResult.user.email)
         
-        // Se login bem-sucedido, verificar se tem API Key
-        const hasApiKey = useAuthStore.getState().apiKey !== null
+        // Verificar se usuário tem API Key configurada
+        const hasApiKey = await AuthService.hasApiKey(authResult.user.id)
         
         if (hasApiKey) {
           // Usuário já tem API Key configurada
-          console.log('✅ Login bem-sucedido, API Key já configurada')
+          console.log('✅ Usuário tem API Key configurada, redirecionando para dashboard')
           // TODO: Redirecionar para dashboard
         } else {
           // Usuário precisa configurar API Key
-          console.log('⚠️ Login bem-sucedido, mas precisa configurar API Key')
+          console.log('⚠️ Usuário precisa configurar API Key')
           setShowApiKeySetup(true)
         }
       } else {
-        setError('Por favor, preencha todos os campos')
+        setError(authResult.error || 'Erro ao fazer login')
       }
     } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.')
+      console.error('❌ Erro inesperado no login:', err)
+      setError('Erro interno do servidor. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
