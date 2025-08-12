@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
-import { ROUTES } from '../config/routes'
+import { APP_URLS } from '../config/urls'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -129,7 +128,7 @@ const LoginForm: React.FC = () => {
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
               <a 
-                href={ROUTES.LANDING} 
+                href={APP_URLS.LANDING_PAGE} 
                 className="text-blue-600 hover:text-blue-700 underline"
               >
                 Conheça nossos planos
@@ -254,7 +253,7 @@ const LoginForm: React.FC = () => {
             </p>
             <div className="mt-4 pt-4 border-t border-slate-200">
               <a 
-                href={ROUTES.LANDING} 
+                href={APP_URLS.LANDING_PAGE} 
                 className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
               >
                 ← Voltar à página principal
