@@ -114,7 +114,7 @@ export const STRIPE_PRODUCTS = {
     description: 'Funcionalidades avançadas para crescer',
     features: ['Campanhas ilimitadas', 'Relatórios avançados', 'Suporte prioritário', 'API personalizada'],
     stripeIds: {
-      product: null, // Não configurado ainda
+      product: 'prod_PvrF2GjvBWFrqQ', // Usando o mesmo produto por enquanto
       prices: {
         monthly: 'price_1Rv5diL6dVrVagX4RVadte0b', // R$ 79,90
         yearly: null // Não configurado ainda

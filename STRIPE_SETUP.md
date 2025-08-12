@@ -11,27 +11,34 @@ Este documento contém instruções detalhadas para configurar a integração co
 
 ## 🔑 Configuração das Chaves de API
 
-### ✅ **CHAVES JÁ CONFIGURADAS!**
-
-As seguintes chaves já estão configuradas no projeto:
-
-- **Publishable Key**: `pk_test_...` (configure no arquivo .env)
-- **Secret Key**: `sk_test_...` (configure no arquivo .env)
-
 ### **Produtos e Preços Configurados:**
 
 - **Plano Starter** (produto: `prod_PvrF2GjvBWFrqQ`)
   - Mensal: `price_1Rv5d9L6dVrVagX4T9MjZETw` (R$ 29,90)
-- **Plano Pro** (preço mensal: `price_1Rv5diL6dVrVagX4RVadte0b` (R$ 79,90))
+- **Plano Pro** (produto: `prod_PvrF2GjvBWFrqQ`)
+  - Mensal: `price_1Rv5diL6dVrVagX4RVadte0b` (R$ 79,90)
+
+### **Chaves do Stripe Configuradas:**
+
+- **Publishable Key**: `pk_test_51P2yvFL6dVrVagX4vr02IPi1zlchaO9YgmhNF7PlK4tn7QQUpzQdwQavnA8GfIQTcsuEN2PBusNZziQoT1ljB4ev006FJP20a6`
+- **Secret Key**: `sk_test_51P2yvFL6dVrVagX4CJAKUsJvyC5HS3O50E8PFIdsVIqXxRD15LfKB9isOiLrX2w6n0sEjRrBAfYJZjlTDf1WQ4jd00mD4NN9Aj`
 
 ### **1. Configurar Variáveis de Ambiente**
 
-1. **Copie o arquivo `stripe-keys.env` para `.env`:**
+1. **Copie o arquivo `env.example` para `.env`:**
    ```bash
-   cp stripe-keys.env .env
+   cp env.example .env
    ```
 
-2. **O arquivo `.env` já contém as chaves corretas!**
+2. **Edite o arquivo `.env` e configure as chaves reais:**
+   ```env
+   # Configurações do Stripe
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_test_51P2yvFL6dVrVagX4vr02IPi1zlchaO9YgmhNF7PlK4tn7QQUpzQdwQavnA8GfIQTcsuEN2PBusNZziQoT1ljB4ev006FJP20a6
+   STRIPE_SECRET_KEY=sk_test_51P2yvFL6dVrVagX4CJAKUsJvyC5HS3O50E8PFIdsVIqXxRD15LfKB9isOiLrX2w6n0sEjRrBAfYJZjlTDf1WQ4jd00mD4NN9Aj
+   STRIPE_WEBHOOK_SECRET=whsec_seu_webhook_secret_aqui
+   ```
+
+3. **⚠️ IMPORTANTE**: O arquivo `.env` NÃO será commitado no GitHub (está no .gitignore)
 
 ## 🌐 Configuração de Webhooks
 
@@ -142,75 +149,11 @@ stripe trigger invoice.payment_succeeded
    VITE_STRIPE_PORTAL_RETURN_URL=https://vmetrics.com.br/dashboard
    ```
 
-### **2. Atualizar Webhook**
-
-1. **No Stripe Dashboard, atualize a URL do webhook para:**
-   ```
-   https://vmetrics.com.br/api/webhooks/stripe
-   ```
-
-2. **Teste o endpoint de produção**
-
-### **3. Mudar para Chaves de Produção**
-
-1. **Substitua as chaves de teste pelas de produção**
-2. **Atualize as variáveis de ambiente**
-3. **Teste o checkout com cartões reais**
-
-## 🔍 Troubleshooting
-
-### **Problemas Comuns**
-
-1. **"Stripe não configurado"**
-   - ✅ **RESOLVIDO** - As chaves já estão configuradas
-   - Verifique se o arquivo `.env` existe e está correto
-
-2. **Servidor não está rodando**
-   - Execute `npm run dev:server` em um terminal separado
-   - Verifique se a porta 3001 está disponível
-
-3. **Erro de webhook**
-   - Verifique se o `STRIPE_WEBHOOK_SECRET` está correto
-   - Confirme se o endpoint está acessível publicamente
-   - Reinicie o servidor após configurar o webhook
-
-4. **Produtos não aparecem**
-   - ✅ **RESOLVIDO** - Os produtos já estão configurados com IDs reais
-   - Execute `npm run stripe:sync` se necessário
-
-5. **Checkout não funciona**
-   - ✅ **RESOLVIDO** - As chaves estão configuradas
-   - Verifique se as URLs de retorno estão corretas
-   - Confirme se o servidor está rodando
-
-### **Logs e Debug**
-
-Para debug, verifique:
-- Console do navegador
-- Logs do servidor (terminal onde roda `npm run dev:server`)
-- Stripe Dashboard → Logs
-- Stripe CLI logs
-
-## 📚 Recursos Adicionais
-
-- [Documentação Oficial do Stripe](https://docs.stripe.com/)
-- [Guia de Integração SaaS](https://docs.stripe.com/saas)
-- [Referência da API](https://docs.stripe.com/api)
-- [Webhooks](https://docs.stripe.com/webhooks)
-
-## 🆘 Suporte
-
-Se encontrar problemas:
-1. Verifique os logs de erro
-2. Consulte a documentação do Stripe
-3. Teste com o Stripe CLI
-4. Verifique as variáveis de ambiente
-
 ## 🎯 **Status Atual da Integração**
 
 - ✅ **Fase 1: Configuração Base** - COMPLETA
-- ✅ **Chaves do Stripe** - CONFIGURADAS
-- ✅ **Produtos e Preços** - SINCRONIZADOS
+- ✅ **Chaves do Stripe** - CONFIGURADAS (dados reais implementados)
+- ✅ **Produtos e Preços** - SINCRONIZADOS (IDs reais do Stripe)
 - ✅ **Servidor Backend** - IMPLEMENTADO
 - ✅ **Endpoints Stripe** - FUNCIONANDO
 - ✅ **Serviço de Webhook** - IMPLEMENTADO
