@@ -15,8 +15,8 @@ Este documento contém instruções detalhadas para configurar a integração co
 
 As seguintes chaves já estão configuradas no projeto:
 
-- **Publishable Key**: `pk_test_51P2yvFL6dVrVagX4vr02IPi1zlchaO9YgmhNF7PlK4tn7QQUpzQdwQavnA8GfIQTcsuEN2PBusNZziQoT1ljB4ev006FJP20a6`
-- **Secret Key**: `sk_test_51P2yvFL6dVrVagX4CJAKUsJvyC5HS3O50E8PFIdsVIqXxRD15LfKB9isOiLrX2w6n0sEjRrBAfYJZjlTDf1WQ4jd00mD4NN9Aj`
+- **Publishable Key**: `pk_test_...` (configure no arquivo .env)
+- **Secret Key**: `sk_test_...` (configure no arquivo .env)
 
 ### **Produtos e Preços Configurados:**
 
