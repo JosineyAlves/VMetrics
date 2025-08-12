@@ -40,7 +40,8 @@ const LoginForm: React.FC = () => {
 
   const handleApiKeySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const apiKeyInput = (e.target as HTMLFormElement).apiKey?.value
+    const formData = new FormData(e.target as HTMLFormElement)
+    const apiKeyInput = formData.get('apiKey') as string
     
     if (apiKeyInput?.trim()) {
       setIsLoading(true)
@@ -124,7 +125,7 @@ const LoginForm: React.FC = () => {
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
-                            </div>
+              </div>
 
               <Button
                 type="submit"
@@ -197,65 +198,47 @@ const LoginForm: React.FC = () => {
           )}
 
           {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-                <p className="text-sm text-red-600 font-medium mb-2">{error}</p>
-                {error.includes('401') && (
-                  <div className="mt-3">
-                    <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
-                    <ul className="text-xs text-red-500 space-y-1">
-                      <li>• Verifique se a API Key está correta</li>
-                      <li>• A API Key pode ter expirado - gere uma nova no RedTrack</li>
-                      <li>• Certifique-se de que a API Key tem permissões adequadas</li>
-                      <li>• Plano Solo pode ter acesso limitado - tente endpoints básicos primeiro</li>
-                    </ul>
-                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                      <p className="text-xs text-blue-600 font-medium">🔍 Testando endpoint /report...</p>
-                      <p className="text-xs text-blue-500">Usando endpoint /report que é mais compatível com planos básicos do RedTrack</p>
-                    </div>
-                    <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                      <p className="text-xs text-yellow-700 font-medium">⚠️ Informação do Plano:</p>
-                      <p className="text-xs text-yellow-600">Plano Solo tem API access limitado. Considere upgrade para API completa.</p>
-                    </div>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
+              <p className="text-sm text-red-600 font-medium mb-2">{error}</p>
+              {error.includes('401') && (
+                <div className="mt-3">
+                  <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                  <ul className="text-xs text-red-500 space-y-1">
+                    <li>• Verifique se a API Key está correta</li>
+                    <li>• A API Key pode ter expirado - gere uma nova no RedTrack</li>
+                    <li>• Certifique-se de que a API Key tem permissões adequadas</li>
+                    <li>• Plano Solo pode ter acesso limitado - tente endpoints básicos primeiro</li>
+                  </ul>
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-xs text-blue-600 font-medium">🔍 Testando endpoint /report...</p>
+                    <p className="text-xs text-blue-500">Usando endpoint /report que é mais compatível com planos básicos do RedTrack</p>
                   </div>
-                )}
-                {error.includes('403') && (
-                  <div className="mt-3">
-                    <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
-                    <ul className="text-xs text-red-500 space-y-1">
-                      <li>• Verifique se a API Key tem permissões para acessar os dados</li>
-                      <li>• Entre em contato com o administrador da conta RedTrack</li>
-                    </ul>
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-700 font-medium">⚠️ Informação do Plano:</p>
+                    <p className="text-xs text-yellow-600">Plano Solo tem API access limitado. Considere upgrade para API completa.</p>
                   </div>
-                )}
-                {error.includes('429') && (
-                  <div className="mt-3">
-                    <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
-                    <ul className="text-xs text-red-500 space-y-1">
-                      <li>• Aguarde alguns minutos antes de tentar novamente</li>
-                      <li>• Verifique o plano da sua conta RedTrack</li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full modern-button"
-              disabled={isLoading || !apiKeyInput.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                  Testando API Key...
-                </>
-              ) : (
-                <>
-                  🔑 Conectar ao RedTrack
-                </>
+                </div>
               )}
-            </Button>
-          </form>
+              {error.includes('403') && (
+                <div className="mt-3">
+                  <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                  <ul className="text-xs text-red-500 space-y-1">
+                    <li>• Verifique se a API Key tem permissões para acessar os dados</li>
+                    <li>• Entre em contato com o administrador da conta RedTrack</li>
+                  </ul>
+                </div>
+              )}
+              {error.includes('429') && (
+                <div className="mt-3">
+                  <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                  <ul className="text-xs text-red-500 space-y-1">
+                    <li>• Aguarde alguns minutos antes de tentar novamente</li>
+                    <li>• Verifique o plano da sua conta RedTrack</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
