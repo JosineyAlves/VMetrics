@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
-import { ROUTES, getDefaultRoute, isProtectedRoute } from '../config/routes'
+import { ROUTES } from '../config/routes'
 import LandingPage from './LandingPage'
 import LoginForm from './LoginForm'
 import SignupForm from './SignupForm'
+import ForgotPasswordForm from './ForgotPasswordForm'
 import Dashboard from './Dashboard'
 import Campaigns from './Campaigns'
 import Conversions from './Conversions'
@@ -11,118 +13,137 @@ import Performance from './Performance'
 import Funnel from './Funnel'
 import Settings from './Settings'
 import IntegrationApiKey from './IntegrationApiKey'
-import OnboardingWelcome from './OnboardingWelcome'
+import ProtectedRoute from './ProtectedRoute'
+import PublicRoute from './PublicRoute'
 
 const AppRouter: React.FC = () => {
   const { isAuthenticated, apiKey } = useAuthStore()
-  const [currentRoute, setCurrentRoute] = useState<string>('/')
-  const [isFirstAccess, setIsFirstAccess] = useState(false)
 
-  // Detectar rota atual
-  useEffect(() => {
-    const path = window.location.pathname
-    setCurrentRoute(path)
-    
-    // Verificar se é primeiro acesso (usuário recém-criado)
-    const urlParams = new URLSearchParams(window.location.search)
-    const isNewUser = urlParams.get('new_user') === 'true'
-    setIsFirstAccess(isNewUser)
-    
-    console.log(`🌐 Rota atual: ${path} | Primeiro acesso: ${isNewUser}`)
-  }, [])
-
-  // Escutar mudanças de rota
-  useEffect(() => {
-    const handleRouteChange = () => {
-      const path = window.location.pathname
-      setCurrentRoute(path)
-      console.log(`🔄 Mudança de rota para: ${path}`)
-    }
-
-    window.addEventListener('popstate', handleRouteChange)
-    return () => window.removeEventListener('popstate', handleRouteChange)
-  }, [])
-
-  // Verificar se usuário pode acessar rota protegida
-  const canAccessProtectedRoute = (route: string): boolean => {
-    if (!isAuthenticated) return false
-    
-    // Se não tem API Key, só pode acessar tela de integração
-    if (!apiKey && route !== ROUTES.INTEGRATION_API_KEY) {
-      return false
-    }
-    
-    return true
-  }
-
-  // Renderizar componente baseado na rota
-  const renderComponent = () => {
-    // Rotas públicas
-    if (currentRoute === ROUTES.LANDING_PAGE) {
-      return <LandingPage />
-    }
-
-    if (currentRoute === ROUTES.LOGIN) {
-      return <LoginForm />
-    }
-
-    if (currentRoute === ROUTES.SIGNUP) {
-      return <SignupForm />
-    }
-
-    if (currentRoute === ROUTES.FORGOT_PASSWORD) {
-      return <LoginForm showForgotPassword={true} />
-    }
-
-    // Rotas protegidas (requerem autenticação)
-    if (isProtectedRoute(currentRoute)) {
-      if (!canAccessProtectedRoute(currentRoute)) {
-        // Redirecionar para rota apropriada
-        const defaultRoute = getDefaultRoute(!!apiKey, isFirstAccess)
-        console.log(`🚫 Acesso negado. Redirecionando para: ${defaultRoute}`)
-        window.location.href = defaultRoute
-        return null
-      }
-
-      // Renderizar componente baseado na rota
-      switch (currentRoute) {
-        case ROUTES.DASHBOARD:
-          return <Dashboard />
-        
-        case ROUTES.CAMPAIGNS:
-          return <Campaigns />
-        
-        case ROUTES.CONVERSIONS:
-          return <Conversions />
-        
-        case ROUTES.PERFORMANCE:
-          return <Performance />
-        
-        case ROUTES.FUNNEL:
-          return <Funnel />
-        
-        case ROUTES.SETTINGS:
-          return <Settings />
-        
-        case ROUTES.INTEGRATION_API_KEY:
-          return <IntegrationApiKey />
-        
-        default:
-          return <Dashboard />
-      }
-    }
-
-    // Rota não encontrada - redirecionar para landing page
-    console.log(`❌ Rota não encontrada: ${currentRoute}. Redirecionando para landing page.`)
-    window.location.href = ROUTES.LANDING_PAGE
-    return null
-  }
-
-  // Renderizar roteador
   return (
-    <div className="app-router">
-      {renderComponent()}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Rotas públicas */}
+        <Route 
+          path={ROUTES.LANDING} 
+          element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          } 
+        />
+
+        {/* Rotas de autenticação */}
+        <Route 
+          path={ROUTES.LOGIN} 
+          element={
+            <PublicRoute>
+              <LoginForm />
+            </PublicRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.SIGNUP} 
+          element={
+            <PublicRoute>
+              <SignupForm />
+            </PublicRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.FORGOT_PASSWORD} 
+          element={
+            <PublicRoute>
+              <ForgotPasswordForm />
+            </PublicRoute>
+          } 
+        />
+
+        {/* Rotas protegidas do dashboard */}
+        <Route 
+          path={ROUTES.DASHBOARD} 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.CAMPAIGNS} 
+          element={
+            <ProtectedRoute>
+              <Campaigns />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.CONVERSIONS} 
+          element={
+            <ProtectedRoute>
+              <Conversions />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.PERFORMANCE} 
+          element={
+            <ProtectedRoute>
+              <Performance />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.FUNNEL} 
+          element={
+            <ProtectedRoute>
+              <Funnel />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path={ROUTES.SETTINGS} 
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Rota de integração com RedTrack */}
+        <Route 
+          path={ROUTES.INTEGRATION} 
+          element={
+            <ProtectedRoute>
+              <IntegrationApiKey />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Redirecionamentos */}
+        <Route 
+          path="/" 
+          element={<Navigate to={ROUTES.LANDING} replace />} 
+        />
+
+        {/* Rota padrão - redirecionar para dashboard se autenticado, senão para login */}
+        <Route 
+          path="*" 
+          element={
+            isAuthenticated ? (
+              <Navigate to={ROUTES.DASHBOARD} replace />
+            ) : (
+              <Navigate to={ROUTES.LOGIN} replace />
+            )
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
-import { APP_URLS } from '../config/urls'
+import { ROUTES } from '../config/routes'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -12,7 +13,7 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showForgotPassword, setShowForgotPassword] = useState(false)
-  const { testApiKey, setApiKey, apiKey } = useAuthStore()
+  const { testApiKey, setApiKey } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,22 +27,12 @@ const LoginForm: React.FC = () => {
         // Simular verificação de credenciais
         await new Promise(resolve => setTimeout(resolve, 1000))
         
-        // Login bem-sucedido
-        console.log('✅ Login bem-sucedido')
+        // Login bem-sucedido - ir direto para dashboard
+        console.log('✅ Login bem-sucedido, redirecionando para dashboard')
         
         // TODO: Implementar autenticação real com Supabase
         // Por enquanto, simular sucesso
         setApiKey('demo_key') // Simular API Key para desenvolvimento
-        
-        // Redirecionar baseado no status do usuário
-        // Se não tem API Key, vai para tela de integração
-        // Se tem API Key, vai para dashboard
-        const hasApiKey = apiKey && apiKey !== 'demo_key'
-        if (!hasApiKey) {
-          window.location.href = '/integration-api-key'
-        } else {
-          window.location.href = '/dashboard'
-        }
         
       } else {
         setError('Por favor, preencha todos os campos')
@@ -138,7 +129,7 @@ const LoginForm: React.FC = () => {
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
               <a 
-                href={APP_URLS.LANDING_PAGE} 
+                href={ROUTES.LANDING} 
                 className="text-blue-600 hover:text-blue-700 underline"
               >
                 Conheça nossos planos
@@ -263,7 +254,7 @@ const LoginForm: React.FC = () => {
             </p>
             <div className="mt-4 pt-4 border-t border-slate-200">
               <a 
-                href={APP_URLS.LANDING_PAGE} 
+                href={ROUTES.LANDING} 
                 className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
               >
                 ← Voltar à página principal
