@@ -11,6 +11,7 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
   const { testApiKey, setApiKey } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -25,18 +26,13 @@ const LoginForm: React.FC = () => {
         // Simular verificação de credenciais
         await new Promise(resolve => setTimeout(resolve, 1000))
         
-        // Se login bem-sucedido, verificar se tem API Key
-        const hasApiKey = false // TODO: Verificar no banco
+        // Login bem-sucedido - ir direto para dashboard
+        console.log('✅ Login bem-sucedido, redirecionando para dashboard')
         
-        if (hasApiKey) {
-          // Usuário já tem API Key configurada
-          console.log('✅ Login bem-sucedido, API Key já configurada')
-          // TODO: Redirecionar para dashboard
-        } else {
-          // Usuário precisa configurar API Key
-          console.log('⚠️ Login bem-sucedido, mas precisa configurar API Key')
-          // TODO: Mostrar tela de configuração de API Key
-        }
+        // TODO: Implementar autenticação real com Supabase
+        // Por enquanto, simular sucesso
+        setApiKey('demo_key') // Simular API Key para desenvolvimento
+        
       } else {
         setError('Por favor, preencha todos os campos')
       }
@@ -45,6 +41,77 @@ const LoginForm: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true)
+    // TODO: Implementar fluxo de redefinir senha
+    console.log('🔄 Redefinir senha para:', email)
+  }
+
+  // Se mostrar tela de redefinir senha
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <div className="modern-card p-8">
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <Logo size="xl" variant="gradient" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Redefinir Senha
+              </h2>
+              <p className="text-slate-600">
+                Digite seu email para receber um link de redefinição
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="reset-email" className="block text-sm font-medium text-slate-700 mb-2">
+                  Email
+                </label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="modern-input"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+
+              <Button
+                onClick={handleForgotPassword}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar Link de Redefinição'
+                )}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  onClick={() => setShowForgotPassword(false)}
+                  className="text-sm text-slate-600 hover:text-slate-800 underline"
+                >
+                  ← Voltar ao login
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -126,6 +193,16 @@ const LoginForm: React.FC = () => {
               )}
             </Button>
           </form>
+
+          {/* Opção de redefinir senha */}
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleForgotPassword}
+              className="text-sm text-blue-600 hover:text-blue-700 underline"
+            >
+              Esqueceu sua senha?
+            </button>
+          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">

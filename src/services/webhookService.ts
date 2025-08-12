@@ -431,9 +431,47 @@ export class WebhookService {
       
       console.log(`📧 Enviando email de boas-vindas para: ${email}`)
 
-      // TODO: Implementar envio via Supabase
-      // Por enquanto, apenas log
-      const emailContent = `
+      // Chamar função Edge do Supabase para envio de email
+      const response = await fetch(
+        `${process.env.SUPABASE_URL}/functions/v1/send-welcome-email`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({
+            email,
+            temp_password,
+            plan_type,
+            customer_name: userData.customer_name || 'Cliente'
+          })
+        }
+      )
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ Email enviado via Supabase:', result.message)
+      } else {
+        console.error('❌ Erro ao enviar email via Supabase:', await response.text())
+        // Fallback: log do email (para desenvolvimento)
+        this.logEmailContent(userData)
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao enviar email de boas-vindas:', error)
+      // Fallback: log do email (para desenvolvimento)
+      this.logEmailContent(userData)
+    }
+  }
+
+  /**
+   * Fallback: Log do conteúdo do email (para desenvolvimento)
+   */
+  private logEmailContent(userData: any): void {
+    const { email, temp_password, plan_type } = userData
+    
+    const emailContent = `
 🎉 Bem-vindo ao VMetrics!
 
 Seu plano ${plan_type.toUpperCase()} foi ativado com sucesso!
@@ -451,15 +489,10 @@ Senha: ${temp_password}
 https://app.vmetrics.com.br
 
 Se você não solicitou este plano, entre em contato conosco.
-      `.trim()
+    `.trim()
 
-      console.log('📧 Email de boas-vindas:', emailContent)
-      console.log(`✅ Email enviado para: ${email}`)
-
-    } catch (error) {
-      console.error('❌ Erro ao enviar email de boas-vindas:', error)
-      throw error
-    }
+    console.log('📧 [FALLBACK] Conteúdo do email:', emailContent)
+    console.log(`✅ [FALLBACK] Email simulado para: ${email}`)
   }
 }
 
