@@ -70,28 +70,29 @@ const LoginForm: React.FC = () => {
             <p className="text-slate-600">
               Faça login na sua conta VMetrics
             </p>
-                                 <div className="mt-4 text-sm text-slate-500">
-                       <p>Novo por aqui? </p>
-                       <a 
-                         href={APP_URLS.LANDING_PAGE} 
-                         className="text-blue-600 hover:text-blue-700 underline"
-                       >
-                         Conheça nossos planos
-                       </a>
-                     </div>
-                     
-                     <div className="mt-2 text-sm text-slate-500">
-                       <a 
-                         href="#" 
-                         onClick={(e) => {
-                           e.preventDefault()
-                           handleResetPassword()
-                         }}
-                         className="text-blue-600 hover:text-blue-700 underline"
-                       >
-                         Esqueci minha senha
-                       </a>
-                     </div>
+            
+            <div className="mt-4 text-sm text-slate-500">
+              <p>Novo por aqui? </p>
+              <a 
+                href={APP_URLS.LANDING_PAGE} 
+                className="text-blue-600 hover:text-blue-700 underline"
+              >
+                Conheça nossos planos
+              </a>
+            </div>
+            
+            <div className="mt-2 text-sm text-slate-500">
+              <a 
+                href="#" 
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleResetPassword()
+                }}
+                className="text-blue-600 hover:text-blue-700 underline"
+              >
+                Esqueci minha senha
+              </a>
+            </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -119,12 +120,12 @@ const LoginForm: React.FC = () => {
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                                             value={password}
-                           onChange={(e) => setPassword(e.target.value)}
-                           placeholder="Sua senha"
-                           className="pr-10 modern-input"
-                           disabled={loading}
-                           required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Sua senha"
+                  className="pr-10 modern-input"
+                  disabled={loading}
+                  required
                 />
                 <button
                   type="button"
@@ -136,12 +137,12 @@ const LoginForm: React.FC = () => {
               </div>
             </div>
 
-                                 <Button
-                       type="submit"
-                       className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-                       disabled={loading}
-                     >
-                       {loading ? (
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
+              disabled={loading}
+            >
+              {loading ? (
                 <>
                   <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
                   Entrando...
@@ -152,44 +153,47 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
 
-                             {(error || authError) && (
-                     <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
-                       <p className="text-sm text-red-600 font-medium mb-2">{error || authError}</p>
-                                     {(error || authError)?.includes('401') && (
-                         <div className="mt-3">
-                           <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
-                           <ul className="text-xs text-red-500 space-y-1">
-                             <li>• Verifique se suas credenciais estão corretas</li>
-                             <li>• A senha pode ter sido alterada</li>
-                             <li>• Verifique se o email está correto</li>
-                             <li>• Use a opção "Esqueci minha senha" se necessário</li>
-                           </ul>
-                         </div>
-                       )}
-                       {(error || authError)?.includes('403') && (
-                         <div className="mt-3">
-                           <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
-                           <ul className="text-xs text-red-500 space-y-1">
-                             <li>• Verifique se sua conta está ativa</li>
-                             <li>• Entre em contato com o suporte</li>
-                           </ul>
-                         </div>
-                       )}
-                       {(error || authError)?.includes('429') && (
-                         <div className="mt-3">
-                           <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
-                           <ul className="text-xs text-red-500 space-y-1">
-                             <li>• Aguarde alguns minutos antes de tentar novamente</li>
-                             <li>• Muitas tentativas de login</li>
-                           </ul>
-                         </div>
-                       )}
+          {(error || authError) && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
+              <p className="text-sm text-red-600 font-medium mb-2">{error || authError}</p>
+              
+              {(error || authError)?.includes('401') && (
+                <div className="mt-3">
+                  <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                  <ul className="text-xs text-red-500 space-y-1">
+                    <li>• Verifique se suas credenciais estão corretas</li>
+                    <li>• A senha pode ter sido alterada</li>
+                    <li>• Verifique se o email está correto</li>
+                    <li>• Use a opção "Esqueci minha senha" se necessário</li>
+                  </ul>
+                </div>
+              )}
+              
+              {(error || authError)?.includes('403') && (
+                <div className="mt-3">
+                  <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                  <ul className="text-xs text-red-500 space-y-1">
+                    <li>• Verifique se sua conta está ativa</li>
+                    <li>• Entre em contato com o suporte</li>
+                  </ul>
+                </div>
+              )}
+              
+              {(error || authError)?.includes('429') && (
+                <div className="mt-3">
+                  <p className="text-xs text-red-500 mb-2">💡 Sugestões para resolver:</p>
+                  <ul className="text-xs text-red-500 space-y-1">
+                    <li>• Aguarde alguns minutos antes de tentar novamente</li>
+                    <li>• Muitas tentativas de login</li>
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
-              Sua API Key será salva localmente para facilitar o acesso futuro
+              Suas credenciais são validadas no banco de dados do Supabase
             </p>
             <div className="mt-4 pt-4 border-t border-slate-200">
               <a 
