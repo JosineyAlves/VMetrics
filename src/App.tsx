@@ -23,7 +23,7 @@ const App: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isAutoEnabled, setIsAutoEnabled] = useState(false)
-  const [isDashboardApp, setIsDashboardApp] = useState(false)
+  const [isDashboardAppState, setIsDashboardAppState] = useState(false)
   const autoRefreshInterval = useRef<number | null>(null)
   // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
@@ -34,7 +34,7 @@ const App: React.FC = () => {
   // Detectar se está na URL do dashboard ou landing page
   useEffect(() => {
     const isApp = isDashboardApp()
-    setIsDashboardApp(isApp)
+    setIsDashboardAppState(isApp)
     
     console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
   }, [])
@@ -143,7 +143,7 @@ const App: React.FC = () => {
   const showAuto = currentSection === 'dashboard'
 
   // Se não for dashboard app, mostrar landing page
-  if (!isDashboardApp) {
+  if (!isDashboardAppState) {
     return <LandingPage />
   }
 
