@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Key, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react'
+import { Key, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
@@ -45,6 +45,10 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
         
         // Salvar no store local também
         setAuthApiKey(apiKey)
+        
+        // Aguardar um pouco para garantir que foi salvo
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         onComplete()
       } else {
         setError('API Key inválida. Verifique se está correta e tem permissões adequadas.')
@@ -57,14 +61,7 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
     }
   }
 
-  const handleSkip = () => {
-    if (onSkip) {
-      onSkip()
-    } else {
-      // Redirecionar para dashboard sem API Key
-      window.location.href = APP_URLS.DASHBOARD
-    }
-  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -100,7 +97,7 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
                 disabled={isLoading}
               />
                              <p className="text-xs text-gray-500 mt-1">
-                 Encontre sua API Key no painel do RedTrack
+                 Encontre sua API Key no RedTrack: Tools > Integrations > General > Generate New
                </p>
             </div>
 
@@ -137,34 +134,17 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
                   </>
                 )}
               </Button>
-
-              {onSkip && (
-                <Button
-                  onClick={handleSkip}
-                  variant="outline"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  <ArrowRight className="w-4 h-4 mr-2" />
-                  Configurar Depois
-                </Button>
-              )}
             </div>
           </div>
 
           {/* Help Section */}
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              💡 Acesse Settings → API no RedTrack para gerar sua chave
+              💡 Caminho: Tools > Integrations > General > Generate New
             </p>
           </div>
 
-          {/* Footer */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-400">
-              API Key salva automaticamente
-            </p>
-          </div>
+
         </div>
       </motion.div>
     </div>

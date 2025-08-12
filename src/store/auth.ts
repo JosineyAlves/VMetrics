@@ -19,32 +19,13 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      setApiKey: async (key: string) => {
+      setApiKey: (key: string) => {
         console.log('[AUTH] Salvando API Key:', key)
         set({ apiKey: key, isAuthenticated: true })
         
         // Detectar moeda automaticamente quando API Key for configurada
         const { detectCurrency } = useCurrencyStore.getState()
         detectCurrency(key)
-        
-        // Salvar API Key no banco de dados (Supabase)
-        try {
-          const response = await fetch('/api/user/update-api-key', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ apiKey: key })
-          })
-          
-          if (response.ok) {
-            console.log('[AUTH] ✅ API Key salva no banco com sucesso')
-          } else {
-            console.warn('[AUTH] ⚠️ Erro ao salvar API Key no banco:', await response.text())
-          }
-        } catch (error) {
-          console.warn('[AUTH] ⚠️ Erro ao salvar API Key no banco:', error)
-        }
         
         // Verificar se foi salvo no localStorage
         setTimeout(() => {

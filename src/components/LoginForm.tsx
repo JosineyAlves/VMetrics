@@ -33,8 +33,9 @@ const LoginForm: React.FC = () => {
       if (authResult.success && authResult.user) {
         console.log('✅ Login bem-sucedido para:', authResult.user.email)
         
-        // Verificar se usuário tem API Key configurada
-        const hasApiKey = await AuthService.hasApiKey(authResult.user.id)
+        // Verificar se usuário tem API Key configurada (primeiro no store local, depois no banco)
+        const localApiKey = useAuthStore.getState().apiKey
+        const hasApiKey = localApiKey || await AuthService.hasApiKey(authResult.user.id)
         
         if (hasApiKey) {
           // Usuário já tem API Key configurada
