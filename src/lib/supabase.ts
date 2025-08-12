@@ -1,8 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Configuração do Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+// Verificar se as variáveis estão configuradas
+if (!supabaseUrl || supabaseUrl === 'https://your-project-id.supabase.co') {
+  throw new Error('❌ VITE_SUPABASE_URL não configurada! Configure no Vercel Dashboard.')
+}
+
+if (!supabaseAnonKey || supabaseAnonKey === 'your-anon-key-here') {
+  throw new Error('❌ VITE_SUPABASE_ANON_KEY não configurada! Configure no Vercel Dashboard.')
+}
 
 // Cliente público (frontend)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
