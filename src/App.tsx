@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
+import SignupForm from "./components/SignupForm"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -24,6 +25,9 @@ const App: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isAutoEnabled, setIsAutoEnabled] = useState(false)
   const [isDashboardAppState, setIsDashboardAppState] = useState(false)
+  const [needsSignup, setNeedsSignup] = useState(false)
+  const [signupEmail, setSignupEmail] = useState('')
+  const [signupPlanType, setSignupPlanType] = useState('')
   const autoRefreshInterval = useRef<number | null>(null)
   // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
@@ -37,6 +41,20 @@ const App: React.FC = () => {
     setIsDashboardAppState(isApp)
     
     console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
+    
+    // Verificar se há parâmetros de cadastro na URL
+    if (isApp) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const email = urlParams.get('email')
+      const planType = urlParams.get('plan')
+      
+      if (email && planType) {
+        setSignupEmail(email)
+        setSignupPlanType(planType)
+        setNeedsSignup(true)
+        console.log(`📝 Cadastro necessário para: ${email} - Plano: ${planType}`)
+      }
+    }
   }, [])
 
   const toggleMobileMenu = () => {
@@ -147,8 +165,21 @@ const App: React.FC = () => {
     return <LandingPage />
   }
 
-  // Se for dashboard app mas não estiver autenticado, mostrar login
+  // Se for dashboard app mas não estiver autenticado, mostrar login ou cadastro
   if (!isAuthenticated) {
+    if (needsSignup) {
+      return (
+        <SignupForm
+          email={signupEmail}
+          planType={signupPlanType}
+          onSuccess={() => {
+            setNeedsSignup(false)
+            setSignupEmail('')
+            setSignupPlanType('')
+          }}
+        />
+      )
+    }
     return <LoginForm />
   }
 

@@ -8,11 +8,11 @@ const LandingPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Links diretos do Stripe (já configurados)
+  // Links diretos do Stripe - ATUALIZAR COM SUAS URLs REAIS
   const STRIPE_CHECKOUT_LINKS = {
-    starter: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV',
-    pro: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV',
-    enterprise: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV'
+    starter: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV', // Remover /test_ para produção
+    pro: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV',     // Remover /test_ para produção
+    enterprise: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV' // Remover /test_ para produção
   }
 
   const handlePlanSelection = (planType: string) => {
