@@ -12,7 +12,7 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showForgotPassword, setShowForgotPassword] = useState(false)
-  const { testApiKey, setApiKey } = useAuthStore()
+  const { testApiKey, setApiKey, apiKey } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,12 +26,22 @@ const LoginForm: React.FC = () => {
         // Simular verificação de credenciais
         await new Promise(resolve => setTimeout(resolve, 1000))
         
-        // Login bem-sucedido - ir direto para dashboard
-        console.log('✅ Login bem-sucedido, redirecionando para dashboard')
+        // Login bem-sucedido
+        console.log('✅ Login bem-sucedido')
         
         // TODO: Implementar autenticação real com Supabase
         // Por enquanto, simular sucesso
         setApiKey('demo_key') // Simular API Key para desenvolvimento
+        
+        // Redirecionar baseado no status do usuário
+        // Se não tem API Key, vai para tela de integração
+        // Se tem API Key, vai para dashboard
+        const hasApiKey = apiKey && apiKey !== 'demo_key'
+        if (!hasApiKey) {
+          window.location.href = '/integration-api-key'
+        } else {
+          window.location.href = '/dashboard'
+        }
         
       } else {
         setError('Por favor, preencha todos os campos')
