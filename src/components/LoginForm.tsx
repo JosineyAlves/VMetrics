@@ -11,7 +11,6 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState<'login' | 'apiKey'>('login')
   const { testApiKey, setApiKey } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -26,8 +25,18 @@ const LoginForm: React.FC = () => {
         // Simular verificação de credenciais
         await new Promise(resolve => setTimeout(resolve, 1000))
         
-        // Se login bem-sucedido, ir para próximo passo
-        setStep('apiKey')
+        // Se login bem-sucedido, verificar se tem API Key
+        const hasApiKey = false // TODO: Verificar no banco
+        
+        if (hasApiKey) {
+          // Usuário já tem API Key configurada
+          console.log('✅ Login bem-sucedido, API Key já configurada')
+          // TODO: Redirecionar para dashboard
+        } else {
+          // Usuário precisa configurar API Key
+          console.log('⚠️ Login bem-sucedido, mas precisa configurar API Key')
+          // TODO: Mostrar tela de configuração de API Key
+        }
       } else {
         setError('Por favor, preencha todos os campos')
       }
@@ -35,30 +44,6 @@ const LoginForm: React.FC = () => {
       setError('Erro ao fazer login. Tente novamente.')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleApiKeySubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const apiKeyInput = formData.get('apiKey') as string
-    
-    if (apiKeyInput?.trim()) {
-      setIsLoading(true)
-      try {
-        const isValid = await testApiKey(apiKeyInput.trim())
-        if (isValid) {
-          setApiKey(apiKeyInput.trim())
-        } else {
-          setError('API Key inválida. Verifique e tente novamente.')
-        }
-      } catch (err) {
-        setError('Erro ao validar API Key. Tente novamente.')
-      } finally {
-        setIsLoading(false)
-      }
-    } else {
-      setError('Por favor, insira sua API Key')
     }
   }
 
@@ -71,7 +56,7 @@ const LoginForm: React.FC = () => {
               <Logo size="xl" variant="gradient" />
             </div>
             <p className="text-slate-600">
-              {step === 'login' ? 'Faça login na sua conta' : 'Configure sua API Key'}
+              Faça login na sua conta VMetrics
             </p>
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
@@ -84,118 +69,63 @@ const LoginForm: React.FC = () => {
             </div>
           </div>
 
-          {step === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                  Email
-                </label>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="modern-input"
+                disabled={isLoading}
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+                Senha
+              </label>
+              <div className="relative">
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="modern-input"
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Sua senha"
+                  className="pr-10 modern-input"
                   disabled={isLoading}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
               </div>
+            </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                  Senha
-                </label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Sua senha"
-                    className="pr-10 modern-input"
-                    disabled={isLoading}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                  </button>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                    Entrando...
-                  </>
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleApiKeySubmit} className="space-y-6">
-              <div>
-                <label htmlFor="apiKey" className="block text-sm font-medium text-slate-700 mb-2">
-                  API Key do RedTrack
-                </label>
-                <div className="relative">
-                  <Input
-                    id="apiKey"
-                    name="apiKey"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Digite sua API Key..."
-                    className="pr-10 modern-input"
-                    disabled={isLoading}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                  </button>
-                </div>
-                <p className="text-sm text-slate-500 mt-1">
-                  Conecte sua conta RedTrack para acessar o dashboard
-                </p>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                    Conectando...
-                  </>
-                ) : (
-                  'Conectar API Key'
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                onClick={() => setStep('login')}
-                variant="outline"
-                className="w-full"
-              >
-                ← Voltar ao Login
-              </Button>
-            </form>
-          )}
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                  Entrando...
+                </>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </form>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
