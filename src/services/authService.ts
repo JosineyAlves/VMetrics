@@ -131,18 +131,26 @@ export class AuthService {
         return false
       }
       
+      console.log('🔍 [AUTH] Verificando API Key para usuário:', userId)
+      
       const { data, error } = await supabase
-        .from('users')
-        .select('api_key')
+        .from('profiles')
+        .select('redtrack_api_key')
         .eq('id', userId)
         .single()
       
       if (error) {
+        if (error.code === 'PGRST116') {
+          console.log('📝 [AUTH] Perfil não encontrado na tabela profiles')
+          return false
+        }
         console.error('❌ [AUTH] Erro ao verificar API Key:', error)
         return false
       }
       
-      return !!(data?.api_key)
+      const hasKey = !!(data?.redtrack_api_key)
+      console.log('🔑 [AUTH] Usuário tem API Key?', hasKey)
+      return hasKey
       
     } catch (error) {
       console.error('❌ [AUTH] Erro ao verificar API Key:', error)
@@ -160,11 +168,13 @@ export class AuthService {
         return false
       }
       
+      console.log('🔑 [AUTH] Tentando salvar API Key para usuário:', userId)
+      
+      // Atualizar perfil existente (o trigger já criou automaticamente)
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .update({ 
-          api_key: apiKey,
-          updated_at: new Date().toISOString()
+          redtrack_api_key: apiKey
         })
         .eq('id', userId)
       
