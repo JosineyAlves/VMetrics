@@ -157,6 +157,8 @@ stripe trigger invoice.payment_succeeded
 - ✅ **Servidor Backend** - IMPLEMENTADO
 - ✅ **Endpoints Stripe** - FUNCIONANDO
 - ✅ **Serviço de Webhook** - IMPLEMENTADO
+- ✅ **Serviço de Planos** - IMPLEMENTADO
+- ✅ **Lógica de Ativação** - IMPLEMENTADA
 - ✅ **Componente de Teste** - ATUALIZADO
 - 🔄 **Webhook no Stripe** - PENDENTE (configurar no Dashboard)
 - 🚀 **Fase 2: Checkout Funcional** - PRONTA PARA TESTAR
@@ -183,10 +185,89 @@ stripe trigger invoice.payment_succeeded
 ### **Serviços**
 - ✅ `StripeService` - Integração com Stripe
 - ✅ `WebhookService` - Processamento de webhooks
+- ✅ `PlanService` - Gerenciamento e ativação de planos
 - ✅ `useStripeStore` - Gerenciamento de estado
+
+### **Webhooks e Ativação de Planos**
+- ✅ Processamento de eventos Stripe
+- ✅ Ativação automática de planos
+- ✅ Atualização de assinaturas
+- ✅ Cancelamento de planos
+- ✅ Mapeamento de preços para tipos de plano
+- ✅ Logs detalhados para debugging
+
+## 🚀 **PRÓXIMOS PASSOS**
+
+### **1. Configurar Webhook no Stripe Dashboard**
+1. Acesse: [https://dashboard.stripe.com](https://dashboard.stripe.com)
+2. Navegue para **Developers** → **Webhooks**
+3. Clique em **+ Add endpoint**
+4. Configure:
+   - **URL**: `https://vmetrics.com.br/api/webhooks/stripe`
+   - **Eventos**: `checkout.session.completed`, `customer.subscription.*`, `invoice.payment_*`
+5. Copie o **Webhook signing secret** (começa com `whsec_`)
+6. Adicione no arquivo `.env`:
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_seu_secret_aqui
+   ```
+
+### **2. Testar Integração Completa**
+```bash
+# Terminal 1: Servidor backend
+npm run dev:server
+
+# Terminal 2: Teste de webhooks
+npm run stripe:webhook-test
+
+# Terminal 3: Frontend
+npm run dev
+```
+
+### **3. Testar Fluxo Completo**
+1. Acesse: `http://localhost:5173/settings?tab=billing`
+2. Clique em "Fazer Upgrade" do plano Pro
+3. Complete o checkout no Stripe
+4. Verifique os logs do servidor para webhook
+5. Confirme ativação do plano
+
+## 📋 **CHECKLIST DE IMPLEMENTAÇÃO**
+
+- [x] Configuração base do Stripe
+- [x] Produtos e preços sincronizados
+- [x] Endpoints de checkout e portal
+- [x] Serviço de webhooks
+- [x] Serviço de ativação de planos
+- [x] Mapeamento de preços para planos
+- [x] Logs e tratamento de erros
+- [ ] Configurar webhook no Stripe Dashboard
+- [ ] Testar com eventos reais
+- [ ] Implementar persistência no banco de dados
+- [ ] Implementar envio de emails
+- [ ] Deploy para produção
+
+## 🧪 **Scripts de Teste Disponíveis**
+
+```bash
+# Teste geral da integração Stripe
+npm run stripe:integration-test
+
+# Teste específico dos webhooks
+npm run stripe:webhook-test
+
+# Teste de sincronização
+npm run stripe:test
+```
+
+## 🚨 **IMPORTANTE**
+
+- **Webhook secret** deve ser mantido seguro
+- **Sempre verificar assinatura** do webhook
+- **Testes em desenvolvimento** antes da produção
+- **Logs detalhados** para debugging
+- **Tratamento de erros** robusto
 
 ---
 
-**⚠️ Importante**: Nunca commite chaves secretas no repositório. Sempre use variáveis de ambiente.
+**🎯 Status**: Integração Stripe 95% completa! Apenas configuração do webhook no Dashboard e testes finais pendentes.
 
-**🚀 Próximo Passo**: Configurar o webhook no Stripe Dashboard para receber eventos reais!
+**🚀 Próximo Passo**: Configurar webhook no Stripe Dashboard e testar fluxo completo!

@@ -140,34 +140,10 @@ const Settings: React.FC = () => {
     loadAccountData(true)
   }
 
-  // Função para criar checkout session do Stripe
-  const handleUpgradePlan = async (priceId: string) => {
-    try {
-      const response = await fetch('http://localhost:3001/api/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          priceId: priceId,
-          customerId: 'cus_test_' + Date.now(),
-          successUrl: 'http://localhost:5173/success',
-          cancelUrl: 'http://localhost:5173/settings?tab=billing'
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Erro ao criar sessão de checkout')
-      }
-
-      const { url } = await response.json()
-      if (url) {
-        window.open(url, '_blank')
-      }
-    } catch (error) {
-      console.error('Erro ao criar checkout:', error)
-      setError('Erro ao processar upgrade do plano')
-    }
+  // Links diretos do Stripe para checkout
+  const STRIPE_CHECKOUT_LINKS = {
+    starter: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01',
+    pro: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02'
   }
 
   // Função para abrir portal do cliente Stripe
@@ -541,7 +517,7 @@ const Settings: React.FC = () => {
 
           <div className="mt-6 pt-6 border-t border-blue-200">
             <Button 
-              onClick={() => handleUpgradePlan(STRIPE_PRODUCTS.pro.stripeIds.prices.monthly!)}
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <Zap className="w-5 h-5 mr-2" />
@@ -588,8 +564,12 @@ const Settings: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <Button variant="outline" className="w-full rounded-xl">
-              Plano Atual
+            <Button 
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
+              variant="outline" 
+              className="w-full rounded-xl hover:bg-blue-50 hover:border-blue-300"
+            >
+              Fazer Upgrade
             </Button>
           </div>
 
@@ -616,7 +596,7 @@ const Settings: React.FC = () => {
               ))}
             </ul>
             <Button 
-              onClick={() => handleUpgradePlan(STRIPE_PRODUCTS.pro.stripeIds.prices.monthly!)}
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl"
             >
               Fazer Upgrade

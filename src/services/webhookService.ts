@@ -1,5 +1,6 @@
 import { stripeService } from './stripe'
 import { STRIPE_CONFIG } from '../config/stripe'
+import { planService } from './planService'
 
 // Tipos para eventos do webhook
 export interface WebhookEvent {
@@ -116,28 +117,52 @@ export class WebhookService {
    * Handler para checkout concluído
    */
   private async handleCheckoutCompleted(session: CheckoutSession): Promise<void> {
-    console.log('✅ Checkout concluído:', session.id)
+    console.log('✅ [WEBHOOK] Checkout completado:', session.id)
     
     try {
-      // Buscar informações do cliente
-      const customer = await stripeService.getCustomer(session.customer)
+      // Extrair informações da sessão
+      const customerId = session.customer as string
+      const subscriptionId = session.subscription as string
       
-      // Buscar assinatura se existir
-      let subscription = null
-      if (session.subscription) {
-        subscription = await stripeService.getSubscription(session.subscription)
+      if (!customerId || !subscriptionId) {
+        console.warn('⚠️ [WEBHOOK] Sessão sem customer ou subscription ID')
+        return
       }
+
+      // Buscar detalhes da assinatura
+      const subscription = await stripeService.getSubscription(subscriptionId)
+      if (!subscription) {
+        console.error('❌ [WEBHOOK] Assinatura não encontrada:', subscriptionId)
+        return
+      }
+
+      // Identificar tipo de plano
+      const priceId = subscription.items.data[0]?.price.id
+      const planType = this.getPlanTypeFromPriceId(priceId)
       
-      // TODO: Implementar lógica de negócio
-      // - Ativar acesso do usuário
-      // - Enviar email de boas-vindas
-      // - Registrar no sistema de analytics
-      
-      console.log('✅ Checkout processado com sucesso para:', customer.email)
-      
-    } catch (error) {
-      console.error('❌ Erro ao processar checkout:', error)
-      throw error
+      if (!planType) {
+        console.error('❌ [WEBHOOK] Tipo de plano não identificado para price:', priceId)
+        return
+      }
+
+      // Ativar plano no sistema
+      const result = await planService.activateUserPlan(
+        customerId,
+        subscriptionId,
+        planType,
+        subscription
+      )
+
+      if (result.success) {
+        console.log('✅ [WEBHOOK] Plano ativado com sucesso:', result.message)
+      } else {
+        console.error('❌ [WEBHOOK] Erro ao ativar plano:', result.error)
+      }
+
+        } catch (error) {
+      console.error('❌ [WEBHOOK] Erro ao processar checkout:', error)
+    }
+  }
     }
   }
 
@@ -145,22 +170,34 @@ export class WebhookService {
    * Handler para assinatura criada
    */
   private async handleSubscriptionCreated(subscription: Subscription): Promise<void> {
-    console.log('✅ Assinatura criada:', subscription.id)
+    console.log('🚀 [WEBHOOK] Nova assinatura criada:', subscription.id)
     
     try {
-      // Buscar informações do cliente
-      const customer = await stripeService.getCustomer(subscription.customer)
+      const customerId = subscription.customer as string
+      const priceId = subscription.items.data[0]?.price.id
+      const planType = this.getPlanTypeFromPriceId(priceId)
       
-      // TODO: Implementar lógica de negócio
-      // - Provisionar acesso ao serviço
-      // - Enviar email de confirmação
-      // - Atualizar status do usuário
-      
-      console.log('✅ Assinatura processada para:', customer.email)
-      
+      if (!planType) {
+        console.error('❌ [WEBHOOK] Tipo de plano não identificado para price:', priceId)
+        return
+      }
+
+      // Ativar plano no sistema
+      const result = await planService.activateUserPlan(
+        customerId,
+        subscription.id,
+        planType,
+        subscription
+      )
+
+      if (result.success) {
+        console.log('✅ [WEBHOOK] Assinatura ativada com sucesso:', result.message)
+      } else {
+        console.error('❌ [WEBHOOK] Erro ao ativar assinatura:', result.error)
+      }
+
     } catch (error) {
-      console.error('❌ Erro ao processar assinatura criada:', error)
-      throw error
+      console.error('❌ [WEBHOOK] Erro ao processar nova assinatura:', error)
     }
   }
 
@@ -168,22 +205,32 @@ export class WebhookService {
    * Handler para assinatura atualizada
    */
   private async handleSubscriptionUpdated(subscription: Subscription): Promise<void> {
-    console.log('🔄 Assinatura atualizada:', subscription.id)
+    console.log('🔄 [WEBHOOK] Assinatura atualizada:', subscription.id)
     
     try {
-      // Buscar informações do cliente
-      const customer = await stripeService.getCustomer(subscription.customer)
+      const priceId = subscription.items.data[0]?.price.id
+      const planType = this.getPlanTypeFromPriceId(priceId)
       
-      // TODO: Implementar lógica de negócio
-      // - Atualizar permissões do usuário
-      // - Enviar email de confirmação
-      // - Registrar mudança de plano
-      
-      console.log('✅ Assinatura atualizada para:', customer.email)
-      
+      if (!planType) {
+        console.error('❌ [WEBHOOK] Tipo de plano não identificado para price:', priceId)
+        return
+      }
+
+      // Atualizar plano no sistema
+      const result = await planService.updateUserPlan(
+        subscription.id,
+        planType,
+        subscription
+      )
+
+      if (result.success) {
+        console.log('✅ [WEBHOOK] Plano atualizado com sucesso:', result.message)
+      } else {
+        console.error('❌ [WEBHOOK] Erro ao atualizar plano:', result.error)
+      }
+
     } catch (error) {
-      console.error('❌ Erro ao processar assinatura atualizada:', error)
-      throw error
+      console.error('❌ [WEBHOOK] Erro ao processar assinatura atualizada:', error)
     }
   }
 
@@ -191,22 +238,20 @@ export class WebhookService {
    * Handler para assinatura cancelada
    */
   private async handleSubscriptionCanceled(subscription: Subscription): Promise<void> {
-    console.log('❌ Assinatura cancelada:', subscription.id)
+    console.log('❌ [WEBHOOK] Assinatura cancelada:', subscription.id)
     
     try {
-      // Buscar informações do cliente
-      const customer = await stripeService.getCustomer(subscription.customer)
-      
-      // TODO: Implementar lógica de negócio
-      // - Revogar acesso ao serviço
-      // - Enviar email de cancelamento
-      // - Oferecer retenção
-      
-      console.log('✅ Assinatura cancelada para:', customer.email)
-      
+      // Cancelar plano no sistema
+      const result = await planService.cancelUserPlan(subscription.id)
+
+      if (result.success) {
+        console.log('✅ [WEBHOOK] Plano cancelado com sucesso:', result.message)
+      } else {
+        console.error('❌ [WEBHOOK] Erro ao cancelar plano:', result.error)
+      }
+
     } catch (error) {
-      console.error('❌ Erro ao processar assinatura cancelada:', error)
-      throw error
+      console.error('❌ [WEBHOOK] Erro ao processar assinatura cancelada:', error)
     }
   }
 
@@ -308,6 +353,21 @@ export class WebhookService {
    */
   getSupportedEvents(): string[] {
     return STRIPE_CONFIG.webhookEvents
+  }
+
+  /**
+   * Identificar tipo de plano baseado no ID do preço
+   */
+  private getPlanTypeFromPriceId(priceId: string): string | null {
+    if (!priceId) return null
+
+    // Mapear IDs de preço para tipos de plano
+    const priceToPlanMap: Record<string, string> = {
+      'price_1Rv5d9L6dVrVagX4T9MjZETw': 'starter',  // R$ 29,90
+      'price_1Rv5diL6dVrVagX4RVadte0b': 'pro'       // R$ 79,90
+    }
+
+    return priceToPlanMap[priceId] || null
   }
 }
 
