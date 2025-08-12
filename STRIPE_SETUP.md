@@ -40,7 +40,7 @@ As seguintes chaves já estão configuradas no projeto:
 1. No Stripe Dashboard, vá para **Developers** → **Webhooks**
 2. Clique em **Add endpoint**
 3. Configure o endpoint:
-   - **Endpoint URL**: `https://vmetrics.com.br/api/webhooks/stripe` (produção)
+   - **Endpoint URL**: `http://localhost:3001/api/webhooks/stripe` (desenvolvimento)
    - **Events to send**: Selecione os eventos necessários:
      - `checkout.session.completed`
      - `customer.subscription.created`
@@ -70,7 +70,7 @@ Para desenvolvimento local, use o Stripe CLI:
 stripe login
 
 # Testar webhooks localmente
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
+stripe listen --forward-to localhost:3001/api/webhooks/stripe
 ```
 
 ## 🧪 Testando a Integração
@@ -82,30 +82,49 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 npm run stripe:test
 ```
 
-### **2. Testar Checkout**
+### **2. Iniciar Servidor de Desenvolvimento**
 
-1. **Inicie o servidor de desenvolvimento:**
+1. **Inicie o servidor backend:**
+   ```bash
+   npm run dev:server
+   ```
+
+2. **Em outro terminal, inicie o frontend:**
    ```bash
    npm run dev
    ```
 
-2. **Acesse o componente de teste:**
+3. **Acesse o componente de teste:**
    - Navegue para `/stripe-test` (se configurado)
    - Ou use o componente `StripeTest` diretamente
 
-3. **Teste os produtos:**
+### **3. Testar Funcionalidades**
+
+1. **Verificar Status:**
+   - ✅ Stripe configurado
+   - ✅ Servidor online
+   - ✅ Webhook configurado (após configurar)
+
+2. **Testar Checkout:**
    - Clique em "Testar" nos planos disponíveis
    - Verifique se o checkout do Stripe é redirecionado
 
-### **3. Testar Webhooks**
+3. **Testar Portal do Cliente:**
+   - Clique em "Testar Portal do Cliente"
+   - Verifique se o portal é aberto
 
-1. **Use o Stripe CLI para simular eventos:**
-   ```bash
-   stripe trigger checkout.session.completed
-   stripe trigger customer.subscription.created
-   ```
+4. **Testar Webhooks:**
+   - Use os botões de teste de webhook
+   - Verifique os logs do servidor
 
-2. **Verifique os logs do servidor para confirmar recebimento**
+### **4. Testar Webhooks com Stripe CLI**
+
+```bash
+# Simular eventos específicos
+stripe trigger checkout.session.completed
+stripe trigger customer.subscription.created
+stripe trigger invoice.payment_succeeded
+```
 
 ## 🚀 Deploy para Produção
 
@@ -146,23 +165,29 @@ npm run stripe:test
    - ✅ **RESOLVIDO** - As chaves já estão configuradas
    - Verifique se o arquivo `.env` existe e está correto
 
-2. **Erro de webhook**
+2. **Servidor não está rodando**
+   - Execute `npm run dev:server` em um terminal separado
+   - Verifique se a porta 3001 está disponível
+
+3. **Erro de webhook**
    - Verifique se o `STRIPE_WEBHOOK_SECRET` está correto
    - Confirme se o endpoint está acessível publicamente
+   - Reinicie o servidor após configurar o webhook
 
-3. **Produtos não aparecem**
+4. **Produtos não aparecem**
    - ✅ **RESOLVIDO** - Os produtos já estão configurados com IDs reais
    - Execute `npm run stripe:sync` se necessário
 
-4. **Checkout não funciona**
+5. **Checkout não funciona**
    - ✅ **RESOLVIDO** - As chaves estão configuradas
    - Verifique se as URLs de retorno estão corretas
+   - Confirme se o servidor está rodando
 
 ### **Logs e Debug**
 
 Para debug, verifique:
 - Console do navegador
-- Logs do servidor
+- Logs do servidor (terminal onde roda `npm run dev:server`)
 - Stripe Dashboard → Logs
 - Stripe CLI logs
 
@@ -186,9 +211,39 @@ Se encontrar problemas:
 - ✅ **Fase 1: Configuração Base** - COMPLETA
 - ✅ **Chaves do Stripe** - CONFIGURADAS
 - ✅ **Produtos e Preços** - SINCRONIZADOS
-- 🔄 **Webhook** - PENDENTE (configurar no Dashboard)
-- 🚀 **Fase 2: Checkout** - PRONTA PARA IMPLEMENTAR
+- ✅ **Servidor Backend** - IMPLEMENTADO
+- ✅ **Endpoints Stripe** - FUNCIONANDO
+- ✅ **Serviço de Webhook** - IMPLEMENTADO
+- ✅ **Componente de Teste** - ATUALIZADO
+- 🔄 **Webhook no Stripe** - PENDENTE (configurar no Dashboard)
+- 🚀 **Fase 2: Checkout Funcional** - PRONTA PARA TESTAR
+- 🚀 **Fase 3: Webhooks Reais** - PRONTA PARA IMPLEMENTAR
+
+## 🔧 **Funcionalidades Implementadas**
+
+### **Backend (server.js)**
+- ✅ Endpoint de checkout: `/api/stripe/create-checkout-session`
+- ✅ Endpoint do portal: `/api/stripe/create-portal-session`
+- ✅ Endpoint de webhook: `/api/webhooks/stripe`
+- ✅ Endpoint de status: `/api/stripe/webhook-status`
+- ✅ Endpoint de teste: `/api/stripe/test-webhook` (DEV)
+
+### **Frontend (StripeTest.tsx)**
+- ✅ Verificação de configuração
+- ✅ Status do servidor
+- ✅ Status do webhook
+- ✅ Teste de checkout
+- ✅ Teste do portal
+- ✅ Teste de webhooks
+- ✅ Interface responsiva
+
+### **Serviços**
+- ✅ `StripeService` - Integração com Stripe
+- ✅ `WebhookService` - Processamento de webhooks
+- ✅ `useStripeStore` - Gerenciamento de estado
 
 ---
 
 **⚠️ Importante**: Nunca commite chaves secretas no repositório. Sempre use variáveis de ambiente.
+
+**🚀 Próximo Passo**: Configurar o webhook no Stripe Dashboard para receber eventos reais!

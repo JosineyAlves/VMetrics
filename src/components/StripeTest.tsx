@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useStripeStore } from '../store/stripe'
-import { stripeService } from '../services/stripe'
 import { STRIPE_CONFIG } from '../config/stripe'
 import { Button } from './ui/button'
-import { CheckCircle, XCircle, AlertTriangle, Loader2 } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, Loader2, ExternalLink, Zap, TestTube } from 'lucide-react'
 
 const StripeTest: React.FC = () => {
   const { 
@@ -21,34 +20,83 @@ const StripeTest: React.FC = () => {
     publishableKey: string | null
     secretKey: string | null
     webhookSecret: string | null
+    serverStatus: 'online' | 'offline' | 'checking'
+    webhookStatus: 'configured' | 'not_configured' | 'checking'
   }>({
     stripeConfigured: false,
     publishableKey: null,
     secretKey: null,
-    webhookSecret: null
+    webhookSecret: null,
+    serverStatus: 'checking',
+    webhookStatus: 'checking'
   })
+
+  const [webhookTestResult, setWebhookTestResult] = useState<string | null>(null)
+  const [webhookTestLoading, setWebhookTestLoading] = useState(false)
 
   useEffect(() => {
     // Verificar configuração do Stripe
     const checkStripeConfig = () => {
-      const isConfigured = stripeService.isConfigured()
-      const config = stripeService.getConfig()
+      const isConfigured = !!process.env.VITE_STRIPE_PUBLISHABLE_KEY
+      const config = STRIPE_CONFIG
       
-      setConfigStatus({
+      setConfigStatus(prev => ({
+        ...prev,
         stripeConfigured: isConfigured,
         publishableKey: config.publishableKey,
         secretKey: config.secretKey ? `${config.secretKey.substring(0, 20)}...` : null,
         webhookSecret: config.webhookSecret
-      })
+      }))
+    }
+
+    // Verificar status do servidor
+    const checkServerStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/stripe/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ priceId: 'test', customerId: 'test' })
+        })
+        
+        // Se chegou até aqui, o servidor está online
+        setConfigStatus(prev => ({ ...prev, serverStatus: 'online' }))
+        
+        // Verificar status do webhook
+        await checkWebhookStatus()
+      } catch (error) {
+        setConfigStatus(prev => ({ ...prev, serverStatus: 'offline' }))
+      }
+    }
+
+    // Verificar status do webhook
+    const checkWebhookStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/stripe/webhook-status')
+        if (response.ok) {
+          const data = await response.json()
+          setConfigStatus(prev => ({ 
+            ...prev, 
+            webhookStatus: data.webhookConfigured ? 'configured' : 'not_configured' 
+          }))
+        }
+      } catch (error) {
+        setConfigStatus(prev => ({ ...prev, webhookStatus: 'not_configured' }))
+      }
     }
 
     checkStripeConfig()
+    checkServerStatus()
     loadProducts()
   }, [loadProducts])
 
   const handleTestCheckout = async (priceId: string) => {
-    if (!stripeService.isConfigured()) {
+    if (!configStatus.stripeConfigured) {
       setCheckoutError('Stripe não está configurado')
+      return
+    }
+
+    if (configStatus.serverStatus !== 'online') {
+      setCheckoutError('Servidor não está rodando. Execute: npm run dev:server')
       return
     }
 
@@ -56,32 +104,106 @@ const StripeTest: React.FC = () => {
     setCheckoutError(null)
 
     try {
-      // Simular criação de cliente (em produção, isso viria do usuário logado)
-      const testCustomer = await stripeService.createCustomer({
-        email: 'teste@vmetrics.com.br',
-        name: 'Usuário Teste',
-        metadata: { test: 'true' }
+      // Primeiro, criar um cliente de teste via API
+      const customerResponse = await fetch('http://localhost:3001/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: priceId,
+          customerId: 'cus_test_' + Date.now(), // ID temporário para teste
+          successUrl: 'http://localhost:5173/success',
+          cancelUrl: 'http://localhost:5173/pricing'
+        })
       })
 
-      // Criar sessão de checkout
-      const session = await stripeService.createCheckoutSession({
-        customerId: testCustomer.id,
-        priceId: priceId,
-        metadata: { test: 'true' }
-      })
+      if (!customerResponse.ok) {
+        throw new Error(`Erro do servidor: ${customerResponse.status}`)
+      }
 
-      console.log('✅ Sessão de checkout criada:', session)
-      
-      // Redirecionar para checkout (em produção)
-      if (session.url) {
-        window.open(session.url, '_blank')
+      const { url } = await customerResponse.json()
+
+      if (url) {
+        console.log('✅ Sessão de checkout criada, redirecionando...')
+        window.open(url, '_blank')
+      } else {
+        throw new Error('URL de checkout não recebida')
       }
       
     } catch (error) {
       console.error('❌ Erro ao criar checkout:', error)
-      setCheckoutError(`Erro: ${error}`)
+      setCheckoutError(`Erro: ${error instanceof Error ? error.message : String(error)}`)
     } finally {
       setCheckoutLoading(false)
+    }
+  }
+
+  const handleTestPortal = async () => {
+    if (configStatus.serverStatus !== 'online') {
+      setCheckoutError('Servidor não está rodando')
+      return
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/api/stripe/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: 'cus_test_portal',
+          returnUrl: 'http://localhost:5173/dashboard'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro do servidor: ${response.status}`)
+      }
+
+      const { url } = await response.json()
+
+      if (url) {
+        console.log('✅ Sessão do portal criada, redirecionando...')
+        window.open(url, '_blank')
+      }
+    } catch (error) {
+      console.error('❌ Erro ao criar sessão do portal:', error)
+      setCheckoutError(`Erro do portal: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  const handleTestWebhook = async (eventType: string) => {
+    if (configStatus.serverStatus !== 'online') {
+      setCheckoutError('Servidor não está rodando')
+      return
+    }
+
+    setWebhookTestLoading(true)
+    setWebhookTestResult(null)
+
+    try {
+      const response = await fetch('http://localhost:3001/api/stripe/test-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: eventType,
+          eventData: {
+            id: 'test_' + Date.now(),
+            customer: 'cus_test_webhook',
+            metadata: { test: 'true' }
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro do servidor: ${response.status}`)
+      }
+
+      const result = await response.json()
+      setWebhookTestResult(`✅ ${result.message}`)
+      
+    } catch (error) {
+      console.error('❌ Erro ao testar webhook:', error)
+      setWebhookTestResult(`❌ Erro: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setWebhookTestLoading(false)
     }
   }
 
@@ -145,6 +267,32 @@ const StripeTest: React.FC = () => {
                 Chave Secreta: {configStatus.secretKey ? 'Configurada' : 'Não configurada'}
               </span>
             </div>
+
+            <div className="flex items-center space-x-3">
+              {configStatus.serverStatus === 'online' ? (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              ) : configStatus.serverStatus === 'offline' ? (
+                <XCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
+              )}
+              <span className="font-medium">
+                Servidor: {configStatus.serverStatus === 'online' ? 'Online' : configStatus.serverStatus === 'offline' ? 'Offline' : 'Verificando...'}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              {configStatus.webhookStatus === 'configured' ? (
+                <CheckCircle className="w-5 h-5 text-green-500" />
+              ) : configStatus.webhookStatus === 'not_configured' ? (
+                <XCircle className="w-5 h-5 text-red-500" />
+              ) : (
+                <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
+              )}
+              <span className="font-medium">
+                Webhook: {configStatus.webhookStatus === 'configured' ? 'Configurado' : configStatus.webhookStatus === 'not_configured' ? 'Não configurado' : 'Verificando...'}
+              </span>
+            </div>
           </div>
           
           <div className="space-y-4">
@@ -154,7 +302,68 @@ const StripeTest: React.FC = () => {
                 <div>Ambiente: {STRIPE_CONFIG.isProduction ? 'Produção' : 'Desenvolvimento'}</div>
                 <div>Moeda: {STRIPE_CONFIG.defaultCurrency.toUpperCase()}</div>
                 <div>Trial: {STRIPE_CONFIG.trialPeriodDays} dias</div>
+                <div>Servidor: http://localhost:3001</div>
               </div>
+            </div>
+
+            {/* Botão para testar portal */}
+            <Button
+              onClick={handleTestPortal}
+              disabled={configStatus.serverStatus !== 'online'}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Testar Portal do Cliente
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Teste de Webhooks */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+          <Zap className="w-6 h-6 mr-3 text-purple-500" />
+          Teste de Webhooks
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-lg font-medium text-gray-700 mb-4">Eventos Disponíveis:</h3>
+            <div className="space-y-2">
+              {STRIPE_CONFIG.webhookEvents.map((eventType) => (
+                <Button
+                  key={eventType}
+                  onClick={() => handleTestWebhook(eventType)}
+                  disabled={webhookTestLoading || configStatus.serverStatus !== 'online'}
+                  size="sm"
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <TestTube className="w-4 h-4 mr-2" />
+                  {eventType}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-medium text-gray-700 mb-4">Resultado do Teste:</h3>
+            <div className="bg-gray-50 p-4 rounded-lg min-h-[120px]">
+              {webhookTestLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                  <span className="ml-3 text-gray-600">Testando webhook...</span>
+                </div>
+              ) : webhookTestResult ? (
+                <div className="text-sm">
+                  <div className="font-medium text-gray-700 mb-2">Último teste:</div>
+                  <div className="text-gray-600">{webhookTestResult}</div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-sm">
+                  Clique em um evento para testar o webhook
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -206,7 +415,7 @@ const StripeTest: React.FC = () => {
                       </div>
                       <Button
                         onClick={() => handleTestCheckout(product.prices.monthly!.id)}
-                        disabled={checkoutLoading || !product.stripeIds.prices.monthly}
+                        disabled={checkoutLoading || !product.stripeIds.prices.monthly || configStatus.serverStatus !== 'online'}
                         size="sm"
                         className="bg-blue-600 hover:bg-blue-700"
                       >
@@ -229,7 +438,7 @@ const StripeTest: React.FC = () => {
                       </div>
                       <Button
                         onClick={() => handleTestCheckout(product.prices.yearly!.id)}
-                        disabled={checkoutLoading || !product.stripeIds.prices.yearly}
+                        disabled={checkoutLoading || !product.stripeIds.prices.yearly || configStatus.serverStatus !== 'online'}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
@@ -263,9 +472,23 @@ const StripeTest: React.FC = () => {
         <h3 className="text-lg font-bold text-blue-800 mb-3">📝 Próximos Passos:</h3>
         <div className="text-blue-700 space-y-2">
           <div>1. ✅ <strong>Chaves configuradas</strong> - Stripe está funcionando</div>
-          <div>2. 🔄 <strong>Configurar webhook</strong> - Para receber eventos do Stripe</div>
-          <div>3. 🧪 <strong>Testar checkout</strong> - Use os botões acima para testar</div>
-          <div>4. 🚀 <strong>Implementar Fase 2</strong> - Checkout e pagamentos</div>
+          <div>2. ✅ <strong>Servidor configurado</strong> - Endpoints Stripe implementados</div>
+          <div>3. ✅ <strong>Webhooks implementados</strong> - Serviço de processamento criado</div>
+          <div>4. 🔄 <strong>Configurar webhook no Stripe</strong> - Para receber eventos reais</div>
+          <div>5. 🧪 <strong>Testar checkout</strong> - Use os botões acima para testar</div>
+          <div>6. 🚀 <strong>Implementar Fase 4</strong> - Lógica de negócio nos webhooks</div>
+        </div>
+      </div>
+
+      {/* Configuração do Webhook */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6">
+        <h3 className="text-lg font-bold text-yellow-800 mb-3">🔧 Configurar Webhook:</h3>
+        <div className="text-yellow-700 space-y-2 text-sm">
+          <div>1. No Stripe Dashboard → Developers → Webhooks</div>
+          <div>2. Add endpoint: <code className="bg-yellow-100 px-2 py-1 rounded">http://localhost:3001/api/webhooks/stripe</code></div>
+          <div>3. Events: checkout.session.completed, customer.subscription.*, invoice.payment_*</div>
+          <div>4. Copie o signing secret e adicione ao .env como STRIPE_WEBHOOK_SECRET</div>
+          <div>5. Reinicie o servidor após configurar o webhook</div>
         </div>
       </div>
     </div>

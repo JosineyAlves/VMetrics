@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "stripe:sync": "tsx src/scripts/sync-stripe.ts",
     "stripe:test": "tsx src/scripts/sync-stripe.ts --test",
-    "stripe:setup": "npm run stripe:sync"
+    "stripe:setup": "npm run stripe:sync",
+    "stripe:integration-test": "node test-stripe-integration.js"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

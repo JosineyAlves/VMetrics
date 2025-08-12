@@ -17,6 +17,16 @@ export const STRIPE_CONFIG = {
   
   // Configurações de webhook
   webhookEndpoint: '/api/webhooks/stripe',
+  webhookEvents: [
+    'checkout.session.completed',
+    'customer.subscription.created',
+    'customer.subscription.updated',
+    'customer.subscription.deleted',
+    'invoice.payment_succeeded',
+    'invoice.payment_failed',
+    'customer.created',
+    'customer.updated'
+  ],
   
   // Configurações de checkout
   checkoutMode: 'subscription' as const,
@@ -30,7 +40,15 @@ export const STRIPE_CONFIG = {
   prorationBehavior: 'create_prorations' as const,
   
   // Configurações de portal do cliente
-  portalReturnUrl: process.env.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard'
+  portalReturnUrl: process.env.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard',
+  
+  // Configurações do servidor
+  serverUrl: process.env.VITE_SERVER_URL || 'http://localhost:3001',
+  apiEndpoints: {
+    checkout: '/api/stripe/create-checkout-session',
+    portal: '/api/stripe/create-portal-session',
+    webhook: '/api/webhooks/stripe'
+  }
 }
 
 // Tipos para configuração
@@ -48,6 +66,17 @@ export const validateStripeConfig = () => {
   if (missingKeys.length > 0) {
     console.warn('⚠️ Chaves do Stripe não configuradas:', missingKeys)
     console.warn('Configure as variáveis de ambiente necessárias')
+    return false
+  }
+  
+  return true
+}
+
+// Validação específica para webhooks
+export const validateWebhookConfig = () => {
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.warn('⚠️ STRIPE_WEBHOOK_SECRET não configurado')
+    console.warn('Configure o webhook secret para receber eventos do Stripe')
     return false
   }
   
