@@ -187,4 +187,3 @@ Quando tudo estiver configurado:
 ---
 
 **🎯 Status: [ ] CONFIGURAÇÃO INCOMPLETA | [x] CONFIGURAÇÃO COMPLETA**
-

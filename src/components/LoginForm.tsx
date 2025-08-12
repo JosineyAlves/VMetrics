@@ -4,6 +4,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
 import { APP_URLS } from '../config/urls'
+import ApiKeySetup from './ApiKeySetup'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -11,6 +12,7 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showApiKeySetup, setShowApiKeySetup] = useState(false)
   const { testApiKey, setApiKey } = useAuthStore()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -35,7 +37,7 @@ const LoginForm: React.FC = () => {
         } else {
           // Usuário precisa configurar API Key
           console.log('⚠️ Login bem-sucedido, mas precisa configurar API Key')
-          // TODO: Mostrar tela de configuração de API Key
+          setShowApiKeySetup(true)
         }
       } else {
         setError('Por favor, preencha todos os campos')
@@ -45,6 +47,23 @@ const LoginForm: React.FC = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Se mostrar configuração de API Key, renderizar ApiKeySetup
+  if (showApiKeySetup) {
+    return (
+      <ApiKeySetup
+        onComplete={() => {
+          console.log('✅ API Key configurada com sucesso')
+          // TODO: Redirecionar para dashboard
+          window.location.href = APP_URLS.DASHBOARD_APP
+        }}
+        onSkip={() => {
+          console.log('⚠️ Usuário pulou configuração de API Key')
+          setShowApiKeySetup(false)
+        }}
+      />
+    )
   }
 
   return (

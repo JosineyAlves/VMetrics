@@ -442,4 +442,3 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
 }
 
 export default SignupForm
-

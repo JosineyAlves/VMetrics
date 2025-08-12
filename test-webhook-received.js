@@ -167,4 +167,3 @@ main().catch(error => {
   console.error(colors.red('❌ Erro na execução:'), error);
   process.exit(1);
 });
-

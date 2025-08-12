@@ -191,4 +191,3 @@ export type WebhookLog = Database['public']['Tables']['webhook_logs']['Row']
 // Funções utilitárias
 export const getSupabaseUrl = () => supabaseUrl
 export const getSupabaseAnonKey = () => supabaseAnonKey
-
