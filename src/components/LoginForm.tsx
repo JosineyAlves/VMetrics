@@ -28,7 +28,7 @@ const LoginForm: React.FC = () => {
         await new Promise(resolve => setTimeout(resolve, 1000))
         
         // Se login bem-sucedido, verificar se tem API Key
-        const hasApiKey = false // TODO: Verificar no banco
+        const hasApiKey = useAuthStore.getState().apiKey !== null
         
         if (hasApiKey) {
           // Usuário já tem API Key configurada
@@ -77,15 +77,6 @@ const LoginForm: React.FC = () => {
             <p className="text-slate-600">
               Faça login na sua conta VMetrics
             </p>
-            <div className="mt-4 text-sm text-slate-500">
-              <p>Novo por aqui? </p>
-              <a 
-                href={APP_URLS.LANDING_PAGE} 
-                className="text-blue-600 hover:text-blue-700 underline"
-              >
-                Conheça nossos planos
-              </a>
-            </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -189,19 +180,16 @@ const LoginForm: React.FC = () => {
             </div>
           )}
 
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              Sua API Key será salva localmente para facilitar o acesso futuro
-            </p>
-            <div className="mt-4 pt-4 border-t border-slate-200">
-              <a 
-                href={APP_URLS.LANDING_PAGE} 
-                className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                ← Voltar à página principal
-              </a>
-            </div>
-          </div>
+                              <div className="mt-6 text-center">
+                      <div className="pt-4 border-t border-slate-200">
+                        <a
+                          href={APP_URLS.LANDING_PAGE}
+                          className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          ← Voltar à página principal
+                        </a>
+                      </div>
+                    </div>
         </div>
       </div>
     </div>

@@ -68,10 +68,10 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
               <Key className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Configure sua API Key
+              Insira sua API Key para acessar o dashboard
             </h1>
             <p className="text-gray-600">
-              Para acessar o dashboard, você precisa configurar sua API Key do RedTrack
+              Configure sua chave de API do RedTrack para começar a usar o VMetrics
             </p>
           </div>
 
@@ -158,7 +158,7 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-xs text-gray-500">
-              Sua API Key será salva localmente para facilitar o acesso futuro
+              Sua API Key será salva para facilitar o acesso futuro
             </p>
           </div>
         </div>
