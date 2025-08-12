@@ -97,7 +97,7 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
                 disabled={isLoading}
               />
                              <p className="text-xs text-gray-500 mt-1">
-                 Encontre sua API Key no RedTrack: Tools > Integrations > General > Generate New
+                 Encontre sua API Key no RedTrack: Tools → Integrations → General → Generate New
                </p>
             </div>
 
@@ -140,7 +140,7 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete, onSkip }) => {
           {/* Help Section */}
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500 text-center">
-              💡 Caminho: Tools > Integrations > General > Generate New
+              💡 Caminho: Tools → Integrations → General → Generate New
             </p>
           </div>
 
