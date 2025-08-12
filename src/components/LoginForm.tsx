@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { useAuthStore } from '../store/auth'
+import { useAuth } from '../hooks/useAuth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
 import { APP_URLS } from '../config/urls'
+import ResetPasswordModal from './ResetPasswordModal'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -11,8 +12,8 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showForgotPassword, setShowForgotPassword] = useState(false)
-  const { testApiKey, setApiKey } = useAuthStore()
+  const [showResetModal, setShowResetModal] = useState(false)
+  const { signIn, loading: authLoading } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,98 +21,42 @@ const LoginForm: React.FC = () => {
     setError('')
 
     try {
-      // TODO: Implementar autenticação real com Supabase
-      // Por enquanto, vamos simular um login bem-sucedido
-      if (email && password) {
-        // Simular verificação de credenciais
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Login bem-sucedido - ir direto para dashboard
-        console.log('✅ Login bem-sucedido, redirecionando para dashboard')
-        
-        // TODO: Implementar autenticação real com Supabase
-        // Por enquanto, simular sucesso
-        setApiKey('demo_key') // Simular API Key para desenvolvimento
-        
-      } else {
+      // Validar campos obrigatórios
+      if (!email || !password) {
         setError('Por favor, preencha todos os campos')
+        return
+      }
+
+      // Autenticação real com Supabase
+      const result = await signIn(email, password)
+      
+      if (result.success) {
+        const { hasApiKey, hasActivePlan, userPlan } = result
+        
+        if (!hasActivePlan) {
+          setError('❌ Nenhum plano ativo encontrado. Entre em contato com o suporte.')
+          return
+        }
+        
+        if (!hasApiKey) {
+          // Usuário precisa configurar API Key primeiro
+          console.log('⚠️ Login bem-sucedido, mas precisa configurar API Key')
+          // TODO: Redirecionar para tela de configuração de API Key
+          setError('⚠️ Login bem-sucedido, mas precisa configurar API Key do RedTrack')
+        } else {
+          // Usuário já tem API Key configurada
+          console.log('✅ Login bem-sucedido, API Key já configurada')
+          // TODO: Redirecionar para dashboard principal
+          setError('✅ Login bem-sucedido! Redirecionando...')
+        }
+      } else {
+        setError(result.error || 'Erro ao fazer login. Tente novamente.')
       }
     } catch (err) {
       setError('Erro ao fazer login. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleForgotPassword = () => {
-    setShowForgotPassword(true)
-    // TODO: Implementar fluxo de redefinir senha
-    console.log('🔄 Redefinir senha para:', email)
-  }
-
-  // Se mostrar tela de redefinir senha
-  if (showForgotPassword) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-md">
-          <div className="modern-card p-8">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <Logo size="xl" variant="gradient" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Redefinir Senha
-              </h2>
-              <p className="text-slate-600">
-                Digite seu email para receber um link de redefinição
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <label htmlFor="reset-email" className="block text-sm font-medium text-slate-700 mb-2">
-                  Email
-                </label>
-                <Input
-                  id="reset-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
-                  className="modern-input"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-
-              <Button
-                onClick={handleForgotPassword}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                    Enviando...
-                  </>
-                ) : (
-                  'Enviar Link de Redefinição'
-                )}
-              </Button>
-
-              <div className="text-center">
-                <button
-                  onClick={() => setShowForgotPassword(false)}
-                  className="text-sm text-slate-600 hover:text-slate-800 underline"
-                >
-                  ← Voltar ao login
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -125,15 +70,25 @@ const LoginForm: React.FC = () => {
             <p className="text-slate-600">
               Faça login na sua conta VMetrics
             </p>
-            <div className="mt-4 text-sm text-slate-500">
-              <p>Novo por aqui? </p>
-              <a 
-                href={APP_URLS.LANDING_PAGE} 
-                className="text-blue-600 hover:text-blue-700 underline"
-              >
-                Conheça nossos planos
-              </a>
-            </div>
+                                 <div className="mt-4 text-sm text-slate-500">
+                       <p>Novo por aqui? </p>
+                       <a 
+                         href={APP_URLS.LANDING_PAGE} 
+                         className="text-blue-600 hover:text-blue-700 underline"
+                       >
+                         Conheça nossos planos
+                       </a>
+                     </div>
+                     
+                     <div className="mt-2 text-sm text-slate-500">
+                       <button 
+                         type="button"
+                         onClick={() => setShowResetModal(true)}
+                         className="text-blue-600 hover:text-blue-700 underline"
+                       >
+                         Esqueci minha senha
+                       </button>
+                     </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -194,16 +149,6 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
 
-          {/* Opção de redefinir senha */}
-          <div className="mt-4 text-center">
-            <button
-              onClick={handleForgotPassword}
-              className="text-sm text-blue-600 hover:text-blue-700 underline"
-            >
-              Esqueceu sua senha?
-            </button>
-          </div>
-
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
               <p className="text-sm text-red-600 font-medium mb-2">{error}</p>
@@ -259,11 +204,17 @@ const LoginForm: React.FC = () => {
                 ← Voltar à página principal
               </a>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+                     </div>
+         </div>
+       </div>
+       
+       {/* Modal de Redefinição de Senha */}
+       <ResetPasswordModal
+         isOpen={showResetModal}
+         onClose={() => setShowResetModal(false)}
+       />
+     </div>
+   )
+ }
 
 export default LoginForm 
