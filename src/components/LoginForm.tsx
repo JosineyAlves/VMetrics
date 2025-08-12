@@ -6,23 +6,58 @@ import Logo from './ui/Logo'
 import { APP_URLS } from '../config/urls'
 
 const LoginForm: React.FC = () => {
-  const [apiKeyInput, setApiKeyInput] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const { testApiKey, setApiKey, isLoading, error } = useAuthStore()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [step, setStep] = useState<'login' | 'apiKey'>('login')
+  const { testApiKey, setApiKey } = useAuthStore()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🚨 FORM SUBMIT CHAMADO!')
-    console.log('🚨 API Key no form:', apiKeyInput ? 'SIM' : 'NÃO')
+    setIsLoading(true)
+    setError('')
+
+    try {
+      // TODO: Implementar autenticação real com Supabase
+      // Por enquanto, vamos simular um login bem-sucedido
+      if (email && password) {
+        // Simular verificação de credenciais
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Se login bem-sucedido, ir para próximo passo
+        setStep('apiKey')
+      } else {
+        setError('Por favor, preencha todos os campos')
+      }
+    } catch (err) {
+      setError('Erro ao fazer login. Tente novamente.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleApiKeySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const apiKeyInput = (e.target as HTMLFormElement).apiKey?.value
     
-    if (apiKeyInput.trim()) {
-      console.log('🚨 CHAMANDO testApiKey...')
-      const isValid = await testApiKey(apiKeyInput.trim())
-      if (isValid) {
-        setApiKey(apiKeyInput.trim())
+    if (apiKeyInput?.trim()) {
+      setIsLoading(true)
+      try {
+        const isValid = await testApiKey(apiKeyInput.trim())
+        if (isValid) {
+          setApiKey(apiKeyInput.trim())
+        } else {
+          setError('API Key inválida. Verifique e tente novamente.')
+        }
+      } catch (err) {
+        setError('Erro ao validar API Key. Tente novamente.')
+      } finally {
+        setIsLoading(false)
       }
     } else {
-      console.log('🚨 API Key vazia!')
+      setError('Por favor, insira sua API Key')
     }
   }
 
@@ -35,7 +70,7 @@ const LoginForm: React.FC = () => {
               <Logo size="xl" variant="gradient" />
             </div>
             <p className="text-slate-600">
-              Insira sua API Key para acessar o dashboard
+              {step === 'login' ? 'Faça login na sua conta' : 'Configure sua API Key'}
             </p>
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
@@ -48,32 +83,120 @@ const LoginForm: React.FC = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="apiKey" className="block text-sm font-medium text-slate-700 mb-2">
-                API Key do RedTrack
-              </label>
-              <div className="relative">
+          {step === 'login' ? (
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                  Email
+                </label>
                 <Input
-                  id="apiKey"
-                  type={showPassword ? 'text' : 'password'}
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder="Digite sua API Key..."
-                  className="pr-10 modern-input"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="modern-input"
                   disabled={isLoading}
+                  required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
               </div>
-            </div>
 
-            {error && (
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+                  Senha
+                </label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Sua senha"
+                    className="pr-10 modern-input"
+                    disabled={isLoading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                            </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                    Entrando...
+                  </>
+                ) : (
+                  'Entrar'
+                )}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleApiKeySubmit} className="space-y-6">
+              <div>
+                <label htmlFor="apiKey" className="block text-sm font-medium text-slate-700 mb-2">
+                  API Key do RedTrack
+                </label>
+                <div className="relative">
+                  <Input
+                    id="apiKey"
+                    name="apiKey"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Digite sua API Key..."
+                    className="pr-10 modern-input"
+                    disabled={isLoading}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                <p className="text-sm text-slate-500 mt-1">
+                  Conecte sua conta RedTrack para acessar o dashboard
+                </p>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                    Conectando...
+                  </>
+                ) : (
+                  'Conectar API Key'
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() => setStep('login')}
+                variant="outline"
+                className="w-full"
+              >
+                ← Voltar ao Login
+              </Button>
+            </form>
+          )}
+
+          {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3">
                 <p className="text-sm text-red-600 font-medium mb-2">{error}</p>
                 {error.includes('401') && (

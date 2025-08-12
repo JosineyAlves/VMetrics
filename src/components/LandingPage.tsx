@@ -10,22 +10,36 @@ const LandingPage: React.FC = () => {
 
   // Links diretos do Stripe - ATUALIZAR COM SUAS URLs REAIS
   const STRIPE_CHECKOUT_LINKS = {
-    starter: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV', // Remover /test_ para produção
-    pro: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV',     // Remover /test_ para produção
-    enterprise: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV' // Remover /test_ para produção
+    starter: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV', // URL de teste
+    pro: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV',     // URL de teste
+    enterprise: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV' // URL de teste
   }
 
-  const handlePlanSelection = (planType: string) => {
+  const handlePlanSelection = async (planType: string) => {
     setSelectedPlan(planType)
     setIsLoading(true)
     
-    // Redirecionar para checkout do Stripe
-    const checkoutUrl = STRIPE_CHECKOUT_LINKS[planType as keyof typeof STRIPE_CHECKOUT_LINKS]
-    if (checkoutUrl) {
-      window.open(checkoutUrl, '_blank')
+    try {
+      // Redirecionar para checkout do Stripe
+      const checkoutUrl = STRIPE_CHECKOUT_LINKS[planType as keyof typeof STRIPE_CHECKOUT_LINKS]
+      if (checkoutUrl) {
+        // Verificar se a URL é válida
+        if (checkoutUrl.includes('stripe.com')) {
+          window.open(checkoutUrl, '_blank')
+        } else {
+          console.error('❌ URL do Stripe inválida:', checkoutUrl)
+          alert('Erro: URL de checkout inválida. Entre em contato com o suporte.')
+        }
+      } else {
+        console.error('❌ URL não encontrada para o plano:', planType)
+        alert('Erro: Plano não configurado. Entre em contato com o suporte.')
+      }
+    } catch (error) {
+      console.error('❌ Erro ao abrir checkout:', error)
+      alert('Erro ao abrir checkout. Tente novamente.')
+    } finally {
+      setIsLoading(false)
     }
-    
-    setIsLoading(false)
   }
 
   const features = [
