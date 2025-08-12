@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/supabase-js": "^2.39.0",
     "@types/react-beautiful-dnd": "^13.1.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
