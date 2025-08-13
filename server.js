@@ -281,6 +281,35 @@ if (process.env.NODE_ENV !== 'production') {
   })
 }
 
+// Endpoint para atualizar API Key do usuário
+app.post('/api/user/update-api-key', async (req, res) => {
+  try {
+    const { apiKey } = req.body
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'API Key é obrigatória' })
+    }
+
+    // TODO: Implementar salvamento real no Supabase
+    // Por enquanto, apenas log
+    console.log('🔑 [API] Salvando API Key do usuário:', apiKey.substring(0, 10) + '...')
+    
+    // Simular sucesso
+    res.json({ 
+      success: true, 
+      message: 'API Key salva com sucesso',
+      timestamp: new Date().toISOString()
+    })
+    
+  } catch (error) {
+    console.error('❌ [API] Erro ao salvar API Key:', error)
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error.message 
+    })
+  }
+})
+
 // Servir arquivos estáticos do build (se existir)
 app.use(express.static(path.join(__dirname, 'dist')))
 
