@@ -15,11 +15,6 @@ export interface WebhookEvent {
 export interface CheckoutSession {
   id: string
   customer: string
-  customer_email?: string
-  customer_details?: {
-    name?: string
-    email?: string
-  }
   subscription?: string
   metadata?: Record<string, string>
 }
@@ -125,46 +120,49 @@ export class WebhookService {
     console.log('✅ [WEBHOOK] Checkout completado:', session.id)
     
     try {
-      // 1. Criar usuário automaticamente
-      const userData = await this.createUserAutomatically(session)
+      // Extrair informações da sessão
+      const customerId = session.customer as string
+      const subscriptionId = session.subscription as string
       
-      // 2. Enviar email de boas-vindas com credenciais
-      await this.sendWelcomeEmail(userData)
-      
-      // 3. Ativar plano no sistema (se houver subscription)
-      if (session.subscription) {
-        const customerId = session.customer as string
-        const subscriptionId = session.subscription as string
-        
-        // Buscar detalhes da assinatura
-        const subscription = await stripeService.getSubscription(subscriptionId)
-        if (subscription) {
-          // Identificar tipo de plano
-          const priceId = subscription.items.data[0]?.price.id
-          const planType = this.getPlanTypeFromPriceId(priceId)
-          
-          if (planType) {
-            // Ativar plano no sistema
-            const result = await planService.activateUserPlan(
-              customerId,
-              subscriptionId,
-              planType,
-              subscription
-            )
-
-            if (result.success) {
-              console.log('✅ [WEBHOOK] Plano ativado com sucesso:', result.message)
-            } else {
-              console.error('❌ [WEBHOOK] Erro ao ativar plano:', result.error)
-            }
-          }
-        }
+      if (!customerId || !subscriptionId) {
+        console.warn('⚠️ [WEBHOOK] Sessão sem customer ou subscription ID')
+        return
       }
 
-      console.log('✅ [WEBHOOK] Checkout processado com sucesso para:', userData.email)
+      // Buscar detalhes da assinatura
+      const subscription = await stripeService.getSubscription(subscriptionId)
+      if (!subscription) {
+        console.error('❌ [WEBHOOK] Assinatura não encontrada:', subscriptionId)
+        return
+      }
 
-    } catch (error) {
+      // Identificar tipo de plano
+      const priceId = subscription.items.data[0]?.price.id
+      const planType = this.getPlanTypeFromPriceId(priceId)
+      
+      if (!planType) {
+        console.error('❌ [WEBHOOK] Tipo de plano não identificado para price:', priceId)
+        return
+      }
+
+      // Ativar plano no sistema
+      const result = await planService.activateUserPlan(
+        customerId,
+        subscriptionId,
+        planType,
+        subscription
+      )
+
+      if (result.success) {
+        console.log('✅ [WEBHOOK] Plano ativado com sucesso:', result.message)
+      } else {
+        console.error('❌ [WEBHOOK] Erro ao ativar plano:', result.error)
+      }
+
+        } catch (error) {
       console.error('❌ [WEBHOOK] Erro ao processar checkout:', error)
+    }
+  }
     }
   }
 
@@ -370,129 +368,6 @@ export class WebhookService {
     }
 
     return priceToPlanMap[priceId] || null
-  }
-
-  /**
-   * Criar usuário automaticamente após checkout
-   */
-  private async createUserAutomatically(session: CheckoutSession): Promise<any> {
-    try {
-      const email = session.customer_email || session.customer_details?.email
-      if (!email) {
-        throw new Error('Email do cliente não encontrado')
-      }
-
-      // Gerar senha temporária
-      const tempPassword = this.generateTempPassword()
-      
-      // Determinar tipo do plano
-      const planType = this.getPlanTypeFromPriceId(session.items?.data[0]?.price?.id || '')
-      
-      console.log(`🔄 Criando usuário automaticamente para: ${email} - Plano: ${planType}`)
-
-      // TODO: Implementar criação no Supabase
-      // Por enquanto, retornar dados simulados
-      const userData = {
-        id: `user_${Date.now()}`,
-        email,
-        plan_type: planType || 'starter',
-        temp_password: tempPassword,
-        stripe_customer_id: session.customer,
-        created_at: new Date().toISOString()
-      }
-
-      console.log(`✅ Usuário criado automaticamente:`, userData)
-      return userData
-
-    } catch (error) {
-      console.error('❌ Erro ao criar usuário automaticamente:', error)
-      throw error
-    }
-  }
-
-  /**
-   * Gerar senha temporária
-   */
-  private generateTempPassword(): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#'
-    let password = 'VM2024!' // Prefixo fixo
-    for (let i = 0; i < 5; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return password
-  }
-
-  /**
-   * Enviar email de boas-vindas com credenciais
-   */
-  private async sendWelcomeEmail(userData: any): Promise<void> {
-    try {
-      const { email, temp_password, plan_type } = userData
-      
-      console.log(`📧 Enviando email de boas-vindas para: ${email}`)
-
-      // Chamar função Edge do Supabase para envio de email
-      const response = await fetch(
-        `${process.env.SUPABASE_URL}/functions/v1/send-welcome-email`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({
-            email,
-            temp_password,
-            plan_type,
-            customer_name: userData.customer_name || 'Cliente'
-          })
-        }
-      )
-
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ Email enviado via Supabase:', result.message)
-      } else {
-        console.error('❌ Erro ao enviar email via Supabase:', await response.text())
-        // Fallback: log do email (para desenvolvimento)
-        this.logEmailContent(userData)
-      }
-
-    } catch (error) {
-      console.error('❌ Erro ao enviar email de boas-vindas:', error)
-      // Fallback: log do email (para desenvolvimento)
-      this.logEmailContent(userData)
-    }
-  }
-
-  /**
-   * Fallback: Log do conteúdo do email (para desenvolvimento)
-   */
-  private logEmailContent(userData: any): void {
-    const { email, temp_password, plan_type } = userData
-    
-    const emailContent = `
-🎉 Bem-vindo ao VMetrics!
-
-Seu plano ${plan_type.toUpperCase()} foi ativado com sucesso!
-
-📋 SUAS CREDENCIAIS DE ACESSO:
-Email: ${email}
-Senha: ${temp_password}
-
-⚠️ IMPORTANTE:
-• Esta é uma senha temporária
-• Altere sua senha no primeiro login
-• Mantenha suas credenciais seguras
-
-🚀 ACESSAR DASHBOARD:
-https://app.vmetrics.com.br
-
-Se você não solicitou este plano, entre em contato conosco.
-    `.trim()
-
-    console.log('📧 [FALLBACK] Conteúdo do email:', emailContent)
-    console.log(`✅ [FALLBACK] Email simulado para: ${email}`)
   }
 }
 

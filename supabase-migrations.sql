@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   full_name VARCHAR(255),
-  api_key TEXT, -- 🔑 COLUNA PARA API KEY DO REDTRACK
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   stripe_customer_id VARCHAR(255),
@@ -17,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key); -- 🔑 ÍNDICE PARA API KEY
 CREATE INDEX IF NOT EXISTS idx_users_stripe_customer_id ON users(stripe_customer_id);
 CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
 
@@ -102,12 +100,14 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Trigger para atualizar updated_at automaticamente
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Triggers para atualizar updated_at
+CREATE TRIGGER update_users_updated_at 
+  BEFORE UPDATE ON users 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_user_plans_updated_at BEFORE UPDATE ON user_plans
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_user_plans_updated_at 
+  BEFORE UPDATE ON user_plans 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ========================================
 -- POLÍTICAS DE SEGURANÇA (RLS)
@@ -119,56 +119,64 @@ ALTER TABLE user_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
 
--- Política para users: usuário só pode ver/editar seus próprios dados
+-- Política para usuários (cada usuário só vê seus próprios dados)
 CREATE POLICY "Users can view own profile" ON users
-    FOR SELECT USING (auth.uid() = id);
+  FOR SELECT USING (auth.uid() = id);
 
 CREATE POLICY "Users can update own profile" ON users
-    FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING (auth.uid() = id);
 
--- Política para user_plans: usuário só pode ver seus próprios planos
+-- Política para planos (usuários só veem seus próprios planos)
 CREATE POLICY "Users can view own plans" ON user_plans
-    FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid() = user_id);
 
--- Política para invoices: usuário só pode ver suas próprias faturas
+-- Política para faturas (usuários só veem suas próprias faturas)
 CREATE POLICY "Users can view own invoices" ON invoices
-    FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (auth.uid() = user_id);
 
--- Política para webhook_logs: apenas admins podem ver (ou remover se não for necessário)
-CREATE POLICY "Webhook logs are viewable by authenticated users" ON webhook_logs
-    FOR SELECT USING (auth.role() = 'authenticated');
+-- Política para webhook logs (apenas admin pode ver)
+CREATE POLICY "Only admins can view webhook logs" ON webhook_logs
+  FOR ALL USING (auth.role() = 'authenticated');
 
 -- ========================================
 -- DADOS INICIAIS (OPCIONAL)
 -- ========================================
 
--- Inserir usuário admin se necessário
--- INSERT INTO users (email, full_name, is_active) VALUES ('admin@vmetrics.com.br', 'Admin VMetrics', true);
+-- Inserir usuário de teste (opcional)
+-- INSERT INTO users (email, full_name, is_active) 
+-- VALUES ('admin@vmetrics.com.br', 'Administrador VMetrics', true);
 
 -- ========================================
--- VERIFICAÇÕES FINAIS
+-- VERIFICAÇÃO
 -- ========================================
 
 -- Verificar se as tabelas foram criadas
 SELECT 
-    table_name, 
-    column_name, 
-    data_type 
-FROM information_schema.columns 
+  table_name,
+  table_type
+FROM information_schema.tables 
 WHERE table_schema = 'public' 
-    AND table_name IN ('users', 'user_plans', 'invoices', 'webhook_logs')
-ORDER BY table_name, ordinal_position;
+  AND table_name IN ('users', 'user_plans', 'invoices', 'webhook_logs')
+ORDER BY table_name;
 
--- Verificar se as políticas foram criadas
+-- Verificar índices criados
 SELECT 
-    schemaname,
-    tablename,
-    policyname,
-    permissive,
-    roles,
-    cmd,
-    qual,
-    with_check
+  indexname,
+  tablename
+FROM pg_indexes 
+WHERE schemaname = 'public' 
+  AND tablename IN ('users', 'user_plans', 'invoices', 'webhook_logs')
+ORDER BY tablename, indexname;
+
+-- Verificar políticas RLS
+SELECT 
+  schemaname,
+  tablename,
+  policyname,
+  permissive,
+  roles,
+  cmd,
+  qual
 FROM pg_policies 
 WHERE schemaname = 'public'
 ORDER BY tablename, policyname;

@@ -7,8 +7,8 @@
     "dev": "vite",
     "dev:server": "node server.js",
     "dev:full": "concurrently \"npm run dev:server\" \"npm run dev\"",
-    "build": "vite build",
-    "build:vercel": "vite build",
+    "build": "node node_modules/vite/bin/vite.js build",
+    "build:vercel": "node node_modules/vite/bin/vite.js build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "stripe:sync": "tsx src/scripts/sync-stripe.ts",
@@ -23,10 +23,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
-    "@supabase/supabase-js": "^2.55.0",
     "@types/react-beautiful-dnd": "^13.1.8",
-    "@vitejs/plugin-react": "^4.0.3",
-    "autoprefixer": "^10.4.14",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cors": "^2.8.5",
@@ -34,7 +31,6 @@
     "express": "^4.21.2",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.263.1",
-    "postcss": "^8.4.27",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
@@ -42,10 +38,7 @@
     "recharts": "^2.5.0",
     "stripe": "^18.4.0",
     "tailwind-merge": "^1.14.0",
-    "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
@@ -53,11 +46,17 @@
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.14",
     "concurrently": "^8.2.2",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
-    "tsx": "^4.20.3"
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3",
+    "tsx": "^4.20.3",
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5"
   },
   "engines": {
     "node": "22.x"

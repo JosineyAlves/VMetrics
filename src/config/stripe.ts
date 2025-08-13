@@ -107,11 +107,6 @@ export const STRIPE_PRODUCTS = {
         currency: 'brl',
         interval: 'year'
       }
-    },
-    // URLs diretas do Stripe Checkout
-    checkoutUrls: {
-      monthly: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01',
-      yearly: null
     }
   },
   pro: {
@@ -136,11 +131,6 @@ export const STRIPE_PRODUCTS = {
         currency: 'brl',
         interval: 'year'
       }
-    },
-    // URLs diretas do Stripe Checkout
-    checkoutUrls: {
-      monthly: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02',
-      yearly: null
     }
   },
   enterprise: {
@@ -159,10 +149,6 @@ export const STRIPE_PRODUCTS = {
         currency: 'brl',
         interval: 'custom'
       }
-    },
-    // URLs diretas do Stripe Checkout
-    checkoutUrls: {
-      custom: null // Sob consulta
     }
   }
 }
