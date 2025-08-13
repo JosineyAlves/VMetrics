@@ -21,16 +21,25 @@ import { isDashboardApp } from './config/urls'
 
 // Componente de roteamento protegido
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, apiKey, isLoading } = useAuthStore()
+  const { isAuthenticated, apiKey, isLoading, syncWithSupabase } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
 
   useEffect(() => {
+    // Sincronizar com Supabase ao montar o componente
+    syncWithSupabase()
+  }, [syncWithSupabase])
+
+  useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
+        console.log('🚫 [ROUTE] Usuário não autenticado, redirecionando para /login')
         navigate('/login', { replace: true })
       } else if (!apiKey && location.pathname !== '/setup') {
+        console.log('🔑 [ROUTE] Usuário sem API Key, redirecionando para /setup')
         navigate('/setup', { replace: true })
+      } else {
+        console.log('✅ [ROUTE] Acesso permitido para:', location.pathname)
       }
     }
   }, [isAuthenticated, apiKey, isLoading, navigate, location])

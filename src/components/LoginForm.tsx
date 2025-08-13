@@ -33,13 +33,16 @@ const LoginForm: React.FC = () => {
       if (authResult.success && authResult.user) {
         console.log('✅ Login bem-sucedido para:', authResult.user.email)
         
+        // Sincronizar estado com Supabase
+        await useAuthStore.getState().syncWithSupabase()
+        
         // Verificar se usuário tem API Key configurada
         const hasApiKey = await AuthService.hasApiKey(authResult.user.id)
         
         if (hasApiKey) {
-                  // Usuário já tem API Key configurada
-        console.log('✅ Usuário tem API Key configurada, redirecionando para dashboard')
-        window.location.href = APP_URLS.DASHBOARD_APP
+          // Usuário já tem API Key configurada
+          console.log('✅ Usuário tem API Key configurada, redirecionando para dashboard')
+          window.location.href = APP_URLS.DASHBOARD_APP
         } else {
           // Usuário precisa configurar API Key
           console.log('⚠️ Usuário precisa configurar API Key')
