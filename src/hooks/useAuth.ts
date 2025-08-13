@@ -63,7 +63,7 @@ export const useAuth = () => {
   const loadUserProfile = async (supabaseUser: User) => {
     try {
       const { data: profile, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single()
@@ -90,7 +90,7 @@ export const useAuth = () => {
   const createUserProfile = async (supabaseUser: User) => {
     try {
       const { data: profile, error } = await supabase
-        .from('users')
+        .from('profiles')
         .insert({
           id: supabaseUser.id,
           email: supabaseUser.email!,
@@ -225,7 +225,7 @@ export const useAuth = () => {
       setError(null)
 
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
