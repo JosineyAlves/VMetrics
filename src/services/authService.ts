@@ -132,8 +132,8 @@ export class AuthService {
       }
       
       const { data, error } = await supabase
-        .from('profiles')
-        .select('redtrack_api_key')
+        .from('users')
+        .select('api_key')
         .eq('id', userId)
         .single()
       
@@ -142,8 +142,7 @@ export class AuthService {
         return false
       }
       
-      console.log('🔍 [AUTH] API Key encontrada:', !!data?.redtrack_api_key)
-      return !!(data?.redtrack_api_key)
+      return !!(data?.api_key)
       
     } catch (error) {
       console.error('❌ [AUTH] Erro ao verificar API Key:', error)
@@ -162,9 +161,9 @@ export class AuthService {
       }
       
       const { error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({ 
-          redtrack_api_key: apiKey,
+          api_key: apiKey,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId)

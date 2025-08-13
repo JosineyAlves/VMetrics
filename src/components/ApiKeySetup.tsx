@@ -42,11 +42,11 @@ const ApiKeySetup: React.FC<ApiKeySetupProps> = ({ onComplete }) => {
           }
         }
         
-        // Salvar no store local também
-        setAuthApiKey(apiKey)
+        // Salvar no store local também (aguardar a persistência)
+        await setAuthApiKey(apiKey)
         
         // Aguardar um pouco para garantir que foi salvo
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 1000))
         
         onComplete()
       } else {

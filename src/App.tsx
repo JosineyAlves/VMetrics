@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
 import Sidebar from "./components/Sidebar"
@@ -11,7 +10,6 @@ import Performance from "./components/Performance"
 import Funnel from "./components/Funnel"
 import Settings from "./components/Settings"
 import LandingPage from "./components/LandingPage"
-import ApiKeySetup from "./components/ApiKeySetup"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
@@ -19,62 +17,19 @@ import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 
-// Componente de roteamento protegido
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, apiKey, isLoading, syncWithSupabase } = useAuthStore()
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  useEffect(() => {
-    // Sincronizar com Supabase ao montar o componente
-    syncWithSupabase()
-  }, [syncWithSupabase])
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        console.log('🚫 [ROUTE] Usuário não autenticado, redirecionando para /login')
-        navigate('/login', { replace: true })
-      } else if (!apiKey && location.pathname !== '/setup') {
-        console.log('🔑 [ROUTE] Usuário sem API Key, redirecionando para /setup')
-        navigate('/setup', { replace: true })
-      } else {
-        console.log('✅ [ROUTE] Acesso permitido para:', location.pathname)
-      }
-    }
-  }, [isAuthenticated, apiKey, isLoading, navigate, location])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="text-center">
-          <div className="w-8 h-8 mx-auto animate-spin border-4 border-blue-600 border-t-transparent rounded-full"></div>
-          <p className="mt-2 text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
-  if (!apiKey && location.pathname !== '/setup') {
-    return <Navigate to="/setup" replace />
-  }
-
-  return <>{children}</>
-}
-
-// Componente principal da aplicação
 const App: React.FC = () => {
+  const { isAuthenticated } = useAuthStore()
   const { isCollapsed, toggle } = useSidebarStore()
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isAutoEnabled, setIsAutoEnabled] = useState(false)
   const [isDashboardAppState, setIsDashboardAppState] = useState(false)
-  const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null)
+  const [needsSignup, setNeedsSignup] = useState(false)
+  const [signupEmail, setSignupEmail] = useState('')
+  const [signupPlanType, setSignupPlanType] = useState('')
+  const autoRefreshInterval = useRef<number | null>(null)
+  // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
 
   // Estado global de datas
@@ -86,6 +41,20 @@ const App: React.FC = () => {
     setIsDashboardAppState(isApp)
     
     console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
+    
+    // Verificar se há parâmetros de cadastro na URL
+    if (isApp) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const email = urlParams.get('email')
+      const planType = urlParams.get('plan')
+      
+      if (email && planType) {
+        setSignupEmail(email)
+        setSignupPlanType(planType)
+        setNeedsSignup(true)
+        console.log(`📝 Cadastro necessário para: ${email} - Plano: ${planType}`)
+      }
+    }
   }, [])
 
   const toggleMobileMenu = () => {
@@ -196,120 +165,25 @@ const App: React.FC = () => {
     return <LandingPage />
   }
 
-  // Se for dashboard app, usar roteamento
-  return (
-    <Router>
-      <Routes>
-        {/* Rota pública - Login */}
-        <Route path="/login" element={<LoginForm />} />
-        
-        {/* Rota pública - Signup */}
-        <Route path="/signup" element={<SignupForm />} />
-        
-        {/* Rota protegida - Setup da API Key */}
-        <Route path="/setup" element={
-          <ProtectedRoute>
-            <ApiKeySetup onComplete={() => {}} />
-          </ProtectedRoute>
-        } />
-        
-        {/* Rota protegida - Dashboard principal */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <DashboardApp 
-              currentSection={currentSection}
-              setCurrentSection={setCurrentSection}
-              isMobileMenuOpen={isMobileMenuOpen}
-              setIsMobileMenuOpen={setIsMobileMenuOpen}
-              isCollapsed={isCollapsed}
-              toggle={toggle}
-              isRefreshing={isRefreshing}
-              setIsRefreshing={setIsRefreshing}
-              isAutoEnabled={isAutoEnabled}
-              setIsAutoEnabled={setIsAutoEnabled}
-              lastUpdateTime={lastUpdateTime}
-              setLastUpdateTime={setLastUpdateTime}
-              selectedPeriod={selectedPeriod}
-              customRange={customRange}
-              setSelectedPeriod={setSelectedPeriod}
-              setCustomRange={setCustomRange}
-              handleRefresh={handleRefresh}
-              handleAutoToggle={handleAutoToggle}
-              getTimeSinceLastUpdate={getTimeSinceLastUpdate}
-              renderSection={renderSection}
-              sectionTitle={sectionTitle}
-              showRefresh={showRefresh}
-              showAuto={showAuto}
-            />
-          </ProtectedRoute>
-        } />
-        
-        {/* Rota padrão - redirecionar para dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        
-        {/* Rota de fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Router>
-  )
-}
-
-// Componente DashboardApp (lógica do dashboard principal)
-function DashboardApp(props: {
-  currentSection: string
-  setCurrentSection: (section: string) => void
-  isMobileMenuOpen: boolean
-  setIsMobileMenuOpen: (open: boolean) => void
-  isCollapsed: boolean
-  toggle: () => void
-  isRefreshing: boolean
-  setIsRefreshing: (refreshing: boolean) => void
-  isAutoEnabled: boolean
-  setIsAutoEnabled: (enabled: boolean) => void
-  lastUpdateTime: Date | null
-  setLastUpdateTime: (time: Date | null) => void
-  selectedPeriod: string
-  customRange: { from: string; to: string }
-  setSelectedPeriod: (period: string) => void
-  setCustomRange: (range: { from: string; to: string }) => void
-  handleRefresh: () => void
-  handleAutoToggle: () => void
-  getTimeSinceLastUpdate: () => string | null
-  renderSection: () => React.ReactNode
-  sectionTitle: string
-  showRefresh: boolean
-  showAuto: boolean
-}) {
-  const {
-    currentSection,
-    setCurrentSection,
-    isMobileMenuOpen,
-    setIsMobileMenuOpen,
-    isCollapsed,
-    toggle,
-    isRefreshing,
-    setIsRefreshing,
-    isAutoEnabled,
-    setIsAutoEnabled,
-    lastUpdateTime,
-    setLastUpdateTime,
-    selectedPeriod,
-    customRange,
-    setSelectedPeriod,
-    setCustomRange,
-    handleRefresh,
-    handleAutoToggle,
-    getTimeSinceLastUpdate,
-    renderSection,
-    sectionTitle,
-    showRefresh,
-    showAuto
-  } = props
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
+  // Se for dashboard app mas não estiver autenticado, mostrar login ou cadastro
+  if (!isAuthenticated) {
+    if (needsSignup) {
+      return (
+        <SignupForm
+          email={signupEmail}
+          planType={signupPlanType}
+          onSuccess={() => {
+            setNeedsSignup(false)
+            setSignupEmail('')
+            setSignupPlanType('')
+          }}
+        />
+      )
+    }
+    return <LoginForm />
   }
 
+  // Dashboard app autenticado
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white">
       <Sidebar

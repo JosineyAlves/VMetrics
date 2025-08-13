@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   full_name VARCHAR(255),
-  api_key TEXT, -- 🔑 CAMPO PARA API KEY DO REDTRACK
+  api_key TEXT, -- 🔑 COLUNA PARA API KEY DO REDTRACK
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   stripe_customer_id VARCHAR(255),
@@ -17,32 +17,9 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key); -- 🔑 ÍNDICE PARA API KEY
 CREATE INDEX IF NOT EXISTS idx_users_stripe_customer_id ON users(stripe_customer_id);
 CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at);
-CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(api_key); -- 🔑 ÍNDICE PARA API KEY
-
--- ========================================
--- FUNÇÃO PARA SINCRONIZAR AUTH.USERS COM USERS
--- ========================================
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO users (id, email, created_at)
-  VALUES (NEW.id, NEW.email, NEW.created_at)
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- ========================================
--- TRIGGER PARA AUTOMATICAMENTE CRIAR USUÁRIO
--- ========================================
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- ========================================
 -- TABELA DE PLANOS/ASSINATURAS
@@ -123,7 +100,7 @@ BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ language 'plpgsql';
 
 -- Trigger para atualizar updated_at automaticamente
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
@@ -143,10 +120,10 @@ ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
 
 -- Política para users: usuário só pode ver/editar seus próprios dados
-CREATE POLICY "Users can view own data" ON users
+CREATE POLICY "Users can view own profile" ON users
     FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "Users can update own data" ON users
+CREATE POLICY "Users can update own profile" ON users
     FOR UPDATE USING (auth.uid() = id);
 
 -- Política para user_plans: usuário só pode ver seus próprios planos
@@ -157,8 +134,8 @@ CREATE POLICY "Users can view own plans" ON user_plans
 CREATE POLICY "Users can view own invoices" ON invoices
     FOR SELECT USING (auth.uid() = user_id);
 
--- Política para webhook_logs: apenas admins podem ver
-CREATE POLICY "Only admins can view webhook logs" ON webhook_logs
+-- Política para webhook_logs: apenas admins podem ver (ou remover se não for necessário)
+CREATE POLICY "Webhook logs are viewable by authenticated users" ON webhook_logs
     FOR SELECT USING (auth.role() = 'authenticated');
 
 -- ========================================
@@ -166,31 +143,32 @@ CREATE POLICY "Only admins can view webhook logs" ON webhook_logs
 -- ========================================
 
 -- Inserir usuário admin se necessário
--- INSERT INTO users (id, email, full_name, is_active) 
--- VALUES ('00000000-0000-0000-0000-000000000000', 'admin@vmetrics.com.br', 'Admin VMetrics', true)
--- ON CONFLICT (id) DO NOTHING;
+-- INSERT INTO users (email, full_name, is_active) VALUES ('admin@vmetrics.com.br', 'Admin VMetrics', true);
 
 -- ========================================
--- VERIFICAÇÃO FINAL
+-- VERIFICAÇÕES FINAIS
 -- ========================================
 
--- Verificar se as tabelas foram criadas corretamente
+-- Verificar se as tabelas foram criadas
 SELECT 
-    table_name,
-    column_name,
-    data_type,
-    is_nullable
+    table_name, 
+    column_name, 
+    data_type 
 FROM information_schema.columns 
 WHERE table_schema = 'public' 
-AND table_name IN ('users', 'user_plans', 'invoices', 'webhook_logs')
+    AND table_name IN ('users', 'user_plans', 'invoices', 'webhook_logs')
 ORDER BY table_name, ordinal_position;
 
--- Verificar se os triggers foram criados
+-- Verificar se as políticas foram criadas
 SELECT 
-    trigger_name,
-    event_manipulation,
-    event_object_table,
-    action_statement
-FROM information_schema.triggers 
-WHERE trigger_schema = 'public'
-ORDER BY trigger_name;
+    schemaname,
+    tablename,
+    policyname,
+    permissive,
+    roles,
+    cmd,
+    qual,
+    with_check
+FROM pg_policies 
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;

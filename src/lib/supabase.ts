@@ -29,12 +29,11 @@ export const supabaseAdmin = createClient(
 export interface Database {
   public: {
     Tables: {
-      profiles: {
+      users: {
         Row: {
           id: string
           email: string
           full_name: string | null
-          redtrack_api_key: string | null
           created_at: string
           updated_at: string
           stripe_customer_id: string | null
@@ -44,7 +43,6 @@ export interface Database {
           id?: string
           email: string
           full_name?: string | null
-          redtrack_api_key?: string | null
           created_at?: string
           updated_at?: string
           stripe_customer_id?: string | null
@@ -54,7 +52,6 @@ export interface Database {
           id?: string
           email?: string
           full_name?: string | null
-          redtrack_api_key?: string | null
           created_at?: string
           updated_at?: string
           stripe_customer_id?: string | null
@@ -186,7 +183,7 @@ export interface Database {
 }
 
 // Tipos exportados
-export type Profile = Database['public']['Tables']['profiles']['Row']
+export type User = Database['public']['Tables']['users']['Row']
 export type UserPlan = Database['public']['Tables']['user_plans']['Row']
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type WebhookLog = Database['public']['Tables']['webhook_logs']['Row']

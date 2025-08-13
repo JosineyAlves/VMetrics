@@ -225,7 +225,7 @@ export class PlanService {
     try {
       // 1. Buscar usuário existente por stripe_customer_id
       const { data: existingUser, error: searchError } = await supabase
-        .from('profiles')
+        .from('users')
         .select('id')
         .eq('stripe_customer_id', stripeCustomerId)
         .single()
@@ -241,7 +241,7 @@ export class PlanService {
       
       // Por enquanto, criar usuário temporário
       const { data: newUser, error: createError } = await supabase
-        .from('profiles')
+        .from('users')
         .insert({
           email: `temp_${Date.now()}@vmetrics.com`,
           full_name: 'Usuário Temporário',
