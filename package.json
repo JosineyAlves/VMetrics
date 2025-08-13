@@ -16,7 +16,6 @@
     "stripe:setup": "npm run stripe:sync",
     "stripe:integration-test": "node test-stripe-integration.js",
     "stripe:webhook-test": "node test-webhook-integration.js",
-    "stripe:check-webhook": "node test-webhook-received.js",
     "supabase:test": "node test-supabase-connection.js",
     "supabase:migrate": "echo 'Execute supabase-migrations.sql no SQL Editor do Supabase'",
     "integration:check": "node test-integration-status.js"

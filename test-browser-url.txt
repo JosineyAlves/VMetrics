@@ -1,5 +1,0 @@
-Test this URL in your browser to see the debug logs:
-
-https://my-dash-two.vercel.app/api/campaigns?api_key=K0Y6dcsgEqmjQp0CKD49&date_from=2025-07-15&date_to=2025-07-25&_t=1753885429017
-
-This should show the debug logs in the browser's developer tools or in the Vercel logs. 
