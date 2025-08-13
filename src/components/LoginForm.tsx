@@ -37,9 +37,9 @@ const LoginForm: React.FC = () => {
         const hasApiKey = await AuthService.hasApiKey(authResult.user.id)
         
         if (hasApiKey) {
-          // Usuário já tem API Key configurada
-          console.log('✅ Usuário tem API Key configurada, redirecionando para dashboard')
-          // TODO: Redirecionar para dashboard
+                  // Usuário já tem API Key configurada
+        console.log('✅ Usuário tem API Key configurada, redirecionando para dashboard')
+        window.location.href = APP_URLS.DASHBOARD_APP
         } else {
           // Usuário precisa configurar API Key
           console.log('⚠️ Usuário precisa configurar API Key')
