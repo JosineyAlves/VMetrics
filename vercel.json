@@ -18,5 +18,10 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/webhooks/stripe.ts": {
+      "maxDuration": 30
+    }
+  }
 } 
