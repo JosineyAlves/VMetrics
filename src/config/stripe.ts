@@ -1,16 +1,16 @@
 // Configuração do Stripe
 export const STRIPE_CONFIG = {
   // Chaves de API (configuradas via variáveis de ambiente)
-  publishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
-  secretKey: process.env.STRIPE_SECRET_KEY || '',
-  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
+  secretKey: import.meta.env.STRIPE_SECRET_KEY || '',
+  webhookSecret: import.meta.env.STRIPE_WEBHOOK_SECRET || '',
   
   // Configurações de ambiente
-  isProduction: process.env.NODE_ENV === 'production',
+  isProduction: import.meta.env.MODE === 'production',
   
   // URLs de retorno
-  successUrl: process.env.VITE_STRIPE_SUCCESS_URL || 'http://localhost:5173/success',
-  cancelUrl: process.env.VITE_STRIPE_CANCEL_URL || 'http://localhost:5173/pricing',
+  successUrl: import.meta.env.VITE_STRIPE_SUCCESS_URL || 'http://localhost:5173/success',
+  cancelUrl: import.meta.env.VITE_STRIPE_CANCEL_URL || 'http://localhost:5173/pricing',
   
   // Configurações de moeda padrão
   defaultCurrency: 'brl',
@@ -40,10 +40,10 @@ export const STRIPE_CONFIG = {
   prorationBehavior: 'create_prorations' as const,
   
   // Configurações de portal do cliente
-  portalReturnUrl: process.env.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard',
+  portalReturnUrl: import.meta.env.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard',
   
   // Configurações do servidor
-  serverUrl: process.env.VITE_SERVER_URL || 'http://localhost:3001',
+  serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:3001',
   apiEndpoints: {
     checkout: '/api/stripe/create-checkout-session',
     portal: '/api/stripe/create-portal-session',
@@ -61,7 +61,7 @@ export const validateStripeConfig = () => {
     'STRIPE_SECRET_KEY'
   ]
   
-  const missingKeys = requiredKeys.filter(key => !process.env[key])
+  const missingKeys = requiredKeys.filter(key => !import.meta.env[key])
   
   if (missingKeys.length > 0) {
     console.warn('⚠️ Chaves do Stripe não configuradas:', missingKeys)
@@ -74,7 +74,7 @@ export const validateStripeConfig = () => {
 
 // Validação específica para webhooks
 export const validateWebhookConfig = () => {
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!import.meta.env.STRIPE_WEBHOOK_SECRET) {
     console.warn('⚠️ STRIPE_WEBHOOK_SECRET não configurado')
     console.warn('Configure o webhook secret para receber eventos do Stripe')
     return false

@@ -1,25 +1,25 @@
 // 🌐 Configuração de URLs da aplicação VMetrics
 
 export const APP_URLS = {
-  // URLs principais
-  LANDING_PAGE: 'https://vmetrics.com.br',
-  DASHBOARD_APP: 'https://app.vmetrics.com.br',
+  // URLs principais - usando variáveis de ambiente
+  LANDING_PAGE: import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br',
+  DASHBOARD_APP: import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br',
   
   // URLs de desenvolvimento
   LOCALHOST: 'http://localhost:5173',
   
   // URLs do Stripe
-  STRIPE_SUCCESS: 'https://app.vmetrics.com.br/success',
-  STRIPE_CANCEL: 'https://vmetrics.com.br/pricing',
-  STRIPE_PORTAL_RETURN: 'https://app.vmetrics.com.br/dashboard',
+  STRIPE_SUCCESS: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/success`,
+  STRIPE_CANCEL: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/pricing`,
+  STRIPE_PORTAL_RETURN: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/dashboard`,
   
   // URLs de autenticação
-  AUTH_CALLBACK: 'https://app.vmetrics.com.br/auth/callback',
-  AUTH_RESET_PASSWORD: 'https://app.vmetrics.com.br/auth/reset-password',
+  AUTH_CALLBACK: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/auth/callback`,
+  AUTH_RESET_PASSWORD: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/auth/reset-password`,
   
   // URLs de suporte
-  SUPPORT: 'https://vmetrics.com.br/support',
-  DOCS: 'https://docs.vmetrics.com.br',
+  SUPPORT: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/support`,
+  DOCS: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/docs`,
   
   // URLs sociais
   GITHUB: 'https://github.com/vmetrics',
