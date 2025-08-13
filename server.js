@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 // Middleware
 app.use(cors())
@@ -31,7 +31,7 @@ import Stripe from 'stripe'
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16'
+  apiVersion: '2025-07-30.basil'
 })
 
 // Rotas da API
@@ -107,34 +107,31 @@ app.get('/performance', async (req, res) => {
   }
 })
 
-// ===== ENDPOINTS DO STRIPE =====
-
 // Endpoint para criar sessão de checkout
 app.post('/api/stripe/create-checkout-session', async (req, res) => {
   try {
-    const { priceId, customerId, successUrl, cancelUrl } = req.body
+    const { priceId, successUrl, cancelUrl } = req.body
 
-    if (!priceId || !customerId) {
+    if (!priceId) {
       return res.status(400).json({ 
-        error: 'priceId e customerId são obrigatórios' 
+        error: 'priceId é obrigatório' 
       })
     }
 
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
       payment_method_types: ['card'],
-      line_items: [{
-        price: priceId,
-        quantity: 1
-      }],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
       mode: 'subscription',
-      success_url: successUrl || `${process.env.VITE_STRIPE_SUCCESS_URL || 'http://localhost:5173/success'}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: cancelUrl || process.env.VITE_STRIPE_CANCEL_URL || 'http://localhost:5173/pricing',
-      allow_promotion_codes: true,
-      billing_address_collection: 'required',
-      customer_update: {
-        address: 'auto',
-        name: 'auto'
+      success_url: successUrl || process.env.VITE_STRIPE_SUCCESS_URL || 'https://app.vmetrics.com.br/dashboard',
+      cancel_url: cancelUrl || process.env.VITE_STRIPE_CANCEL_URL || 'https://vmetrics.com.br',
+      customer_email: req.body.customerEmail,
+      metadata: {
+        source: 'vmetrics-webhook'
       }
     })
 
@@ -161,7 +158,7 @@ app.post('/api/stripe/create-portal-session', async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: returnUrl || process.env.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard'
+      return_url: returnUrl || process.env.VITE_STRIPE_PORTAL_RETURN_URL || 'https://app.vmetrics.com.br/dashboard'
     })
 
     res.json({ url: session.url })
@@ -207,21 +204,75 @@ async function processWebhookEvent(event) {
   try {
     console.log(`🔄 Processando evento: ${event.type}`)
     
-    // Importar o serviço de webhook dinamicamente
-    const { webhookService } = await import('./src/services/webhookService.js')
-    
-    // Processar o evento usando o serviço
-    await webhookService.processEvent(event)
+    // Processar eventos específicos
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object)
+        break
+      case 'customer.subscription.created':
+        await handleSubscriptionCreated(event.data.object)
+        break
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object)
+        break
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object)
+        break
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaymentSucceeded(event.data.object)
+        break
+      case 'invoice.payment_failed':
+        await handleInvoicePaymentFailed(event.data.object)
+        break
+      default:
+        console.log(`⚠️ Evento não tratado: ${event.type}`)
+    }
     
     console.log(`✅ Evento processado com sucesso: ${event.type}`)
   } catch (error) {
     console.error(`❌ Erro ao processar webhook ${event.type}:`, error)
-    
-    // Em produção, você pode querer:
-    // - Enviar notificação para um serviço de monitoramento
-    // - Registrar em um sistema de logs
-    // - Tentar reprocessar o evento
   }
+}
+
+// Handlers específicos para cada tipo de evento
+async function handleCheckoutSessionCompleted(session) {
+  console.log('🛒 Checkout completed:', session.id)
+  console.log('👤 Dados do cliente:', {
+    email: session.customer_details?.email,
+    name: session.customer_details?.name,
+    customerId: session.customer
+  })
+  
+  // TODO: Implementar criação de usuário no Supabase
+  console.log('📋 AÇÕES NECESSÁRIAS:')
+  console.log('1. Criar/atualizar usuário na tabela "profiles"')
+  console.log('2. Criar assinatura na tabela "subscriptions"')
+}
+
+async function handleSubscriptionCreated(subscription) {
+  console.log('📅 Nova assinatura criada:', subscription.id)
+  console.log('📋 Dados da assinatura:', {
+    id: subscription.id,
+    customerId: subscription.customer,
+    status: subscription.status,
+    priceId: subscription.items.data[0]?.price.id
+  })
+}
+
+async function handleSubscriptionUpdated(subscription) {
+  console.log('🔄 Assinatura atualizada:', subscription.id)
+}
+
+async function handleSubscriptionDeleted(subscription) {
+  console.log('❌ Assinatura cancelada:', subscription.id)
+}
+
+async function handleInvoicePaymentSucceeded(invoice) {
+  console.log('💰 Pagamento de fatura realizado:', invoice.id)
+}
+
+async function handleInvoicePaymentFailed(invoice) {
+  console.log('💸 Pagamento de fatura falhou:', invoice.id)
 }
 
 // Endpoint para verificar status dos webhooks
@@ -241,7 +292,8 @@ app.get('/api/stripe/webhook-status', (req, res) => {
       'customer.created',
       'customer.updated'
     ],
-    webhookUrl: `${req.protocol}://${req.get('host')}/api/webhooks/stripe`
+    webhookUrl: `${req.protocol}://${req.get('host')}/api/webhooks/stripe`,
+    serverUrl: process.env.VITE_APP_URL || 'https://app.vmetrics.com.br'
   })
 })
 
@@ -291,6 +343,7 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`)
+  console.log(`🌐 Ambiente: ${process.env.NODE_ENV || 'development'}`)
   console.log(`📡 API endpoints disponíveis:`)
   console.log(`   - GET /report`)
   console.log(`   - GET /dashboard`)
@@ -306,4 +359,5 @@ app.listen(PORT, () => {
   if (process.env.NODE_ENV !== 'production') {
     console.log(`   - POST /api/stripe/test-webhook (DEV)`)
   }
+  console.log(`\n🛒 Webhook URL: ${process.env.VITE_APP_URL || 'https://app.vmetrics.com.br'}/api/webhooks/stripe`)
 }) 

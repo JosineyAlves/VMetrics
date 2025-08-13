@@ -2,26 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "src": "server.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/webhooks/stripe",
-      "dest": "/api/webhooks/stripe.ts"
+      "src": "/api/(.*)",
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/server.js"
     }
-  ],
-  "functions": {
-    "api/webhooks/stripe.ts": {
-      "maxDuration": 30
-    }
-  }
+  ]
 } 
