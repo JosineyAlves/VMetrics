@@ -11,8 +11,8 @@
   ],
   "routes": [
     {
-      "src": "/api/webhooks/stripe",
-      "dest": "/api/webhooks/stripe.ts"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
       "src": "/assets/(.*)",
