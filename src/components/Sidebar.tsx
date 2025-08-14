@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               transition={{ delay: 0.1 }}
               className="w-full"
             >
-              <Logo size="lg" showText={true} className="w-full" />
+              <Logo size="lg" showText={false} className="w-full" />
             </motion.div>
           )}
           
@@ -190,9 +190,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                     className="flex-1 text-left"
                   >
                     <div className="font-medium text-[#1f1f1f]">{item.label}</div>
-                    <div className="text-xs text-gray-400">
-                      {item.description}
-                    </div>
                   </motion.div>
                 )}
               </motion.button>
@@ -272,9 +269,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <Icon className={`w-7 h-7 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
                   <div className="flex-1 text-left">
                     <div className="font-medium text-lg text-[#1f1f1f]">{item.label}</div>
-                    <div className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
-                      {item.description}
-                    </div>
                   </div>
                 </button>
               )
