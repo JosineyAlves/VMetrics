@@ -67,7 +67,7 @@ const ApiKeySetup: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10 py-12 px-4">
       <div className="w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -79,12 +79,12 @@ const ApiKeySetup: React.FC = () => {
             <div className="flex justify-center mb-6">
               <Logo size="xl" variant="gradient" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-3">
-              Configure sua API Key
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Conecte sua conta RedTrack para começar a usar o TrackView
-            </p>
+                         <h1 className="text-3xl font-bold text-[#1f1f1f] mb-3">
+               Configure sua API Key
+             </h1>
+             <p className="text-[#1f1f1f]/70 text-lg">
+               Conecte sua conta RedTrack para começar a usar o TrackView
+             </p>
           </div>
 
                      {/* Setup Steps */}
@@ -94,21 +94,21 @@ const ApiKeySetup: React.FC = () => {
                  <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
                    1
                  </div>
-                 <span className="text-sm font-medium text-gray-700">Obter API Key</span>
+                 <span className="text-sm font-medium text-[#1f1f1f]">Obter API Key</span>
                </div>
                <div className="w-16 h-1 bg-[#3cd48f]"></div>
                <div className="flex items-center space-x-3">
                  <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
                    2
                  </div>
-                 <span className="text-sm font-medium text-gray-700">Configurar</span>
+                 <span className="text-sm font-medium text-[#1f1f1f]">Configurar</span>
                </div>
                <div className="w-16 h-1 bg-[#3cd48f]"></div>
                <div className="flex items-center space-x-3">
                  <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
                    3
                  </div>
-                 <span className="text-sm font-medium text-gray-700">Começar</span>
+                 <span className="text-sm font-medium text-[#1f1f1f]">Começar</span>
                </div>
              </div>
            </div>
@@ -118,10 +118,10 @@ const ApiKeySetup: React.FC = () => {
              <div className="flex items-start space-x-4">
                <Info className="w-6 h-6 text-[#3cd48f] mt-1 flex-shrink-0" />
                <div>
-                 <h3 className="font-semibold text-[#3cd48f] mb-3 text-lg">
+                 <h3 className="font-semibold text-[#1f1f1f] mb-3 text-lg">
                    Como obter sua API Key do RedTrack
                  </h3>
-                 <ol className="text-[#3cd48f]/80 space-y-2 text-sm">
+                 <ol className="text-[#1f1f1f]/80 space-y-2 text-sm">
                   <li className="flex items-start">
                     <span className="font-medium mr-2">1.</span>
                                          Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
@@ -146,9 +146,9 @@ const ApiKeySetup: React.FC = () => {
           {/* API Key Input */}
           <div className="space-y-4 mb-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                API Key do RedTrack *
-              </label>
+                             <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                 API Key do RedTrack *
+               </label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
@@ -206,10 +206,10 @@ const ApiKeySetup: React.FC = () => {
             </Button>
 
             {validationResult === 'success' && (
-              <Button
-                onClick={handleContinue}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold"
-              >
+                             <Button
+                 onClick={handleContinue}
+                 className="flex-1 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white py-3 text-lg font-semibold"
+               >
                 Continuar para Dashboard
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -231,11 +231,11 @@ const ApiKeySetup: React.FC = () => {
             <div className="flex items-start space-x-3">
               <Shield className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-gray-600">
-                <p className="font-medium text-gray-700 mb-1">Segurança da API Key</p>
-                <p>
-                  Sua API Key é armazenada localmente e nunca é compartilhada. 
-                  Ela é usada apenas para conectar ao RedTrack e buscar dados das suas campanhas.
-                </p>
+                                 <p className="font-medium text-[#1f1f1f] mb-1">Segurança da API Key</p>
+                 <p>
+                   Sua API Key é armazenada localmente e nunca é compartilhada. 
+                   Ela é usada apenas para conectar ao RedTrack e buscar dados das suas campanhas.
+                 </p>
               </div>
             </div>
           </div>

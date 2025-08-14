@@ -107,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         onClick={onToggleMobileMenu}
         className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300"
       >
-        {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
+        {isMobileMenuOpen ? <X className="w-6 h-6 text-[#1f1f1f]" /> : <Menu className="w-6 h-6 text-[#1f1f1f]" />}
       </button>
 
       {/* Mobile Overlay */}
@@ -143,10 +143,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
           >
             {isSidebarCollapsed ? (
-              <ChevronRight className="w-4 h-4 text-gray-600" />
-            ) : (
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
-            )}
+                           <ChevronRight className="w-4 h-4 text-[#1f1f1f]" />
+           ) : (
+             <ChevronLeft className="w-4 h-4 text-[#1f1f1f]" />
+           )}
           </button>
         </div>
 
@@ -163,12 +163,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
                    isActive
                      ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
-                     : 'text-gray-600 hover:bg-white/50 hover:text-gray-800'
+                     : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]'}`} />
                 {!isSidebarCollapsed && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -176,8 +176,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     transition={{ delay: 0.1 }}
                     className="flex-1 text-left"
                   >
-                    <div className="font-medium">{item.label}</div>
-                                     <div className={`text-xs ${isActive ? 'text-[#3cd48f]/90' : 'text-gray-400'}`}>
+                                         <div className="font-medium text-[#1f1f1f]">{item.label}</div>
+                                     <div className={`text-xs ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
                    {item.description}
                  </div>
                   </motion.div>
@@ -191,20 +191,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 p-3 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+            className="w-full flex items-center gap-3 p-3 rounded-xl text-[#1f1f1f]/70 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <div className="w-5 h-5 rounded-full bg-red-100 group-hover:bg-red-200 transition-colors" />
             {!isSidebarCollapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="font-medium"
-              >
-                Sair
-              </motion.span>
+                             <motion.span
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 transition={{ delay: 0.1 }}
+                 className="font-medium text-[#1f1f1f]"
+               >
+                 Sair
+               </motion.span>
             )}
           </button>
         </div>
@@ -226,7 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={onToggleMobileMenu}
               className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
             >
-              <X className="w-6 h-6 text-gray-600" />
+                             <X className="w-6 h-6 text-[#1f1f1f]" />
             </button>
           </div>
 
@@ -242,16 +242,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => handleSectionChange(item.id)}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                      : 'text-gray-600 hover:bg-white/50 hover:text-gray-800'
+                      ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                      : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                   }`}
                 >
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
                   <div className="flex-1 text-left">
-                    <div className="font-medium text-lg">{item.label}</div>
-                    <div className={`text-sm ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
-                      {item.description}
-                    </div>
+                    <div className="font-medium text-lg text-[#1f1f1f]">{item.label}</div>
+                                         <div className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
+                       {item.description}
+                     </div>
                   </div>
                 </button>
               )
@@ -262,10 +262,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="p-4 border-t border-white/10">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-4 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+              className="w-full flex items-center gap-3 p-4 rounded-xl text-[#1f1f1f]/70 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
             >
               <div className="w-6 h-6 rounded-full bg-red-100" />
-              <span className="font-medium text-lg">Sair</span>
+                             <span className="font-medium text-lg text-[#1f1f1f]">Sair</span>
             </button>
           </div>
         </motion.div>

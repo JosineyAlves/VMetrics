@@ -174,7 +174,7 @@ const DashboardLayout: React.FC = () => {
         <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white/80 sticky top-0 z-20">
           {/* Título da tela à esquerda */}
           <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold text-gray-800">{sectionTitle}</div>
+                         <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
             {lastUpdateTime && (
               <div className="text-sm text-gray-500">
                 Atualizado {getTimeSinceLastUpdate()}

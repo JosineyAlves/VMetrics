@@ -58,9 +58,9 @@ const LoginForm: React.FC = () => {
             <div className="flex justify-center mb-4">
               <Logo size="xl" variant="gradient" />
             </div>
-            <p className="text-slate-600">
-              Faça login na sua conta
-            </p>
+                         <p className="text-[#1f1f1f]/70">
+               Faça login na sua conta
+             </p>
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
               <button 
@@ -74,9 +74,9 @@ const LoginForm: React.FC = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                Email
-              </label>
+                             <label htmlFor="email" className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                 Email
+               </label>
               <Input
                 id="email"
                 type="email"
@@ -90,9 +90,9 @@ const LoginForm: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                Senha
-              </label>
+                             <label htmlFor="password" className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                 Senha
+               </label>
               <div className="relative">
                 <Input
                   id="password"

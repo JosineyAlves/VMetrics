@@ -140,19 +140,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       className="space-y-6"
     >
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          Complete seu cadastro
-        </h2>
-        <p className="text-gray-600">
-          {planType ? `Plano selecionado: ${planType.toUpperCase()}` : 'Configure sua conta VMetrics'}
-        </p>
+                 <h2 className="text-3xl font-bold text-[#1f1f1f] mb-2">
+           Complete seu cadastro
+         </h2>
+         <p className="text-[#1f1f1f]/70">
+           {planType ? `Plano selecionado: ${planType.toUpperCase()}` : 'Configure sua conta VMetrics'}
+         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Nome *
-          </label>
+                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+             Nome *
+           </label>
           <Input
             type="text"
             value={formData.firstName}
@@ -166,9 +166,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Sobrenome *
-          </label>
+                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+             Sobrenome *
+           </label>
           <Input
             type="text"
             value={formData.lastName}
@@ -183,9 +183,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Email *
-        </label>
+                 <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+           Email *
+         </label>
         <Input
           type="email"
           value={formData.email}
@@ -199,9 +199,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Empresa *
-        </label>
+                 <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+           Empresa *
+         </label>
         <Input
           type="text"
           value={formData.company}
@@ -228,9 +228,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Senha *
-          </label>
+                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+             Senha *
+           </label>
           <div className="relative">
             <Input
               type={showPassword ? 'text' : 'password'}
@@ -253,9 +253,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Confirmar Senha *
-          </label>
+                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+             Confirmar Senha *
+           </label>
           <div className="relative">
             <Input
               type={showConfirmPassword ? 'text' : 'password'}
