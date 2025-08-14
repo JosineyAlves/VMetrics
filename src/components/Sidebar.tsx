@@ -189,22 +189,22 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Footer */}
         <div className="p-4 border-t border-white/10">
-          <button
+                    <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 p-3 rounded-xl text-[#1f1f1f]/70 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <div className="w-5 h-5 rounded-full bg-red-100 group-hover:bg-red-200 transition-colors" />
             {!isSidebarCollapsed && (
-                             <motion.span
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 transition={{ delay: 0.1 }}
-                 className="font-medium text-[#1f1f1f]"
-               >
-                 Sair
-               </motion.span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="font-medium text-white"
+              >
+                Sair
+              </motion.span>
             )}
           </button>
         </div>
@@ -260,12 +260,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Mobile Footer */}
           <div className="p-4 border-t border-white/10">
-            <button
+                        <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-4 rounded-xl text-[#1f1f1f]/70 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+              className="w-full flex items-center gap-3 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <div className="w-6 h-6 rounded-full bg-red-100" />
-                             <span className="font-medium text-lg text-[#1f1f1f]">Sair</span>
+              <span className="font-medium text-lg text-white">Sair</span>
             </button>
           </div>
         </motion.div>

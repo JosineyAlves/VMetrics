@@ -240,8 +240,8 @@ const Settings: React.FC = () => {
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
         <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-blue-100 rounded-2xl">
-            <Key className="w-7 h-7 text-blue-600" />
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <Key className="w-7 h-7 text-[#3cd48f]" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-gray-800">API Key</h3>
@@ -262,12 +262,12 @@ const Settings: React.FC = () => {
                 placeholder="Digite sua API Key"
                 value={tempApiKey}
                 onChange={(e) => setTempApiKey(e.target.value)}
-                className="pr-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="pr-12 rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f] shadow-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors duration-200"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#3cd48f] transition-colors duration-200"
               >
                 {showApiKey ? (
                   <EyeOff className="w-5 h-5" />
@@ -376,8 +376,8 @@ const Settings: React.FC = () => {
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
         <div className="flex items-center space-x-4 mb-6">
-          <div className="p-3 bg-blue-100 rounded-2xl">
-            <DollarSign className="w-7 h-7 text-blue-600" />
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <DollarSign className="w-7 h-7 text-[#3cd48f]" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-gray-800">Configuração de Moeda</h3>
@@ -397,7 +397,7 @@ const Settings: React.FC = () => {
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-[#3cd48f] appearance-none bg-white"
               >
                 {[
                   { code: 'BRL', name: 'Real Brasileiro', symbol: 'R$' },
@@ -429,8 +429,8 @@ const Settings: React.FC = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Moeda Atual</p>
               <div className="flex items-center mt-1">
-                <span className="text-2xl font-bold text-blue-600 mr-2">{currencySymbol}</span>
-                <span className="text-lg font-mono bg-blue-100 px-3 py-1 rounded">{currency}</span>
+                <span className="text-2xl font-bold text-[#3cd48f] mr-2">{currencySymbol}</span>
+                <span className="text-lg font-mono bg-[#3cd48f]/20 px-3 py-1 rounded">{currency}</span>
               </div>
             </div>
             <div className="text-right">
@@ -439,10 +439,10 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div className="text-sm text-blue-800">
+                  <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <Info className="w-5 h-5 text-[#3cd48f] mt-0.5" />
+            <div className="text-sm text-[#1f1f1f]">
                 <p className="font-medium mb-1">Configuração de Moeda</p>
                 <p>
                   A moeda selecionada será usada para exibir todos os valores monetários no dashboard. 
@@ -512,25 +512,25 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 border border-[#3cd48f]/20 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h4 className="text-2xl font-bold text-gray-800 mb-2">{currentPlan.name}</h4>
               <div className="flex items-baseline space-x-2">
-                <span className="text-3xl font-bold text-blue-600">{currentPlan.price}</span>
+                <span className="text-3xl font-bold text-[#3cd48f]">{currentPlan.price}</span>
                 <span className="text-gray-600">/{currentPlan.period}</span>
               </div>
             </div>
                          <div className="text-right">
                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                  currentPlan.status === 'active' ? 'bg-green-100 text-green-800' :
-                 currentPlan.status === 'loading' ? 'bg-blue-100 text-blue-800' :
+                                   currentPlan.status === 'loading' ? 'bg-[#3cd48f]/20 text-[#3cd48f]' :
                  currentPlan.status === 'error' ? 'bg-red-100 text-red-800' :
                  'bg-gray-100 text-gray-800'
                }`}>
                  <div className={`w-2 h-2 rounded-full mr-2 ${
                    currentPlan.status === 'active' ? 'bg-green-500' :
-                   currentPlan.status === 'loading' ? 'bg-blue-500' :
+                   currentPlan.status === 'loading' ? 'bg-[#3cd48f]' :
                    currentPlan.status === 'error' ? 'bg-red-500' :
                    'bg-gray-500'
                  }`}></div>
@@ -558,7 +558,7 @@ const Settings: React.FC = () => {
             ))}
           </div>
 
-                     <div className="mt-6 pt-6 border-t border-blue-200">
+                     <div className="mt-6 pt-6 border-t border-[#3cd48f]/20">
              {currentPlan.status === 'active' && currentPlan.name.includes('Pro') ? (
                <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
                  <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
@@ -602,7 +602,7 @@ const Settings: React.FC = () => {
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.starter.name}</h4>
-              <div className="text-3xl font-bold text-blue-600 mb-1">
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">
                 {currencySymbol}{(STRIPE_PRODUCTS.starter.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
@@ -618,7 +618,7 @@ const Settings: React.FC = () => {
                          <Button 
                onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
                variant="outline" 
-               className="w-full rounded-xl hover:bg-blue-50 hover:border-blue-300"
+               className="w-full rounded-xl hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30"
                disabled={currentPlan.status === 'loading'}
              >
                {currentPlan.status === 'loading' ? 'Carregando...' : 'Fazer Upgrade'}
@@ -626,15 +626,15 @@ const Settings: React.FC = () => {
           </div>
 
           {/* Plano Pro */}
-          <div className="border-2 border-blue-500 rounded-2xl p-6 bg-blue-50 relative">
+          <div className="border-2 border-[#3cd48f] rounded-2xl p-6 bg-[#3cd48f]/10 relative">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+              <span className="bg-[#3cd48f] text-white px-3 py-1 rounded-full text-xs font-medium">
                 Popular
               </span>
             </div>
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.pro.name}</h4>
-              <div className="text-3xl font-bold text-blue-600 mb-1">
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">
                 {currencySymbol}{(STRIPE_PRODUCTS.pro.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
@@ -649,7 +649,7 @@ const Settings: React.FC = () => {
             </ul>
                          <Button 
                onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
-               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl"
+               className="w-full bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white font-semibold rounded-xl"
                disabled={currentPlan.status === 'loading'}
              >
                {currentPlan.status === 'loading' ? 'Carregando...' : 'Fazer Upgrade'}
@@ -660,7 +660,7 @@ const Settings: React.FC = () => {
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">Enterprise</h4>
-              <div className="text-3xl font-bold text-blue-600 mb-1">Sob consulta</div>
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">Sob consulta</div>
               <div className="text-gray-600">personalizado</div>
             </div>
             <ul className="space-y-3 mb-6">
@@ -746,7 +746,7 @@ const Settings: React.FC = () => {
         <div className="mt-6 text-center space-y-3">
           <Button 
             onClick={handleManageBilling}
-            className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
+                            className="rounded-xl bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             Gerenciar Faturamento
@@ -764,52 +764,7 @@ const Settings: React.FC = () => {
         transition={{ delay: 0.3 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="p-3 bg-blue-100 rounded-2xl">
-            <Info className="w-7 h-7 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Integração com Stripe</h3>
-            <p className="text-sm text-gray-600">
-              Informações sobre pagamentos e faturamento
-            </p>
-          </div>
-        </div>
-
-                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-           <div className="text-sm text-green-800">
-             <p className="font-medium mb-2">✅ Integração com Stripe Implementada!</p>
-             <p className="mb-3">
-               A integração com a plataforma Stripe está funcionando e oferece:
-             </p>
-             <ul className="list-disc list-inside space-y-1 ml-4">
-               <li>✅ Pagamentos seguros e automatizados</li>
-               <li>✅ Faturas automáticas</li>
-               <li>✅ Múltiplas formas de pagamento</li>
-               <li>✅ Gestão de assinaturas</li>
-               <li>✅ Relatórios financeiros detalhados</li>
-             </ul>
-             <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
-               <p className="font-medium text-green-700 mb-2">🚀 Funcionalidades Ativas:</p>
-               <ul className="text-sm space-y-1">
-                 <li>• Checkout do Stripe para novos planos</li>
-                 <li>• Portal do cliente para gerenciar assinaturas</li>
-                 <li>• Webhooks para sincronização automática</li>
-                 <li>• Produtos e preços sincronizados com Stripe</li>
-                 <li>• Ativação automática de planos via webhooks</li>
-               </ul>
-             </div>
-             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-               <p className="font-medium text-blue-700 mb-2">📊 Status da Sincronização:</p>
-               <ul className="text-sm space-y-1">
-                 <li>• Webhook configurado: ✅ Ativo</li>
-                 <li>• Plano atual: {currentPlan.status === 'loading' ? '🔄 Carregando...' : 
-                   currentPlan.status === 'active' ? '✅ Ativo' : '❌ Inativo'}</li>
-                 <li>• Última sincronização: {new Date().toLocaleString('pt-BR')}</li>
-               </ul>
-             </div>
-           </div>
-         </div>
+        
       </motion.div>
     </div>
   )
@@ -829,15 +784,12 @@ const Settings: React.FC = () => {
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
-          <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
             Configurações
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-            Gerencie suas configurações da conta
-            </p>
-          </div>
         </div>
+      </div>
 
       {/* Tabs Navigation */}
       <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-2 shadow-2xl border border-white/20">
@@ -850,7 +802,7 @@ const Settings: React.FC = () => {
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white shadow-lg'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
               >

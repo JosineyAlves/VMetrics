@@ -659,12 +659,7 @@ const Performance: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-             {/* Header */}
-               <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Performance</h1>
-          </div>
-        </div>
+             
 
       
 
@@ -758,7 +753,7 @@ const Performance: React.FC = () => {
           <Button
             onClick={() => setSelectedAnalysis('browser')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              selectedAnalysis === 'location'
+              selectedAnalysis === 'browser'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
@@ -809,22 +804,22 @@ const Performance: React.FC = () => {
                <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)}>
                   <CartesianGrid strokeDasharray="3 3" />
-                                     <XAxis 
-                     dataKey={selectedAnalysis === 'device' ? 'device' : 
-                              selectedAnalysis === 'source' ? 'source' : 
-                              selectedAnalysis === 'placement' ? 'placement' : 
-                              selectedAnalysis === 'location' ? 'city' : 
-                              selectedAnalysis === 'browser' ? 'browser' : 
-                              selectedAnalysis === 'os' ? 'os' : 'hour'} 
-                     tick={{ fontSize: 12 }}
-                     tickFormatter={(value) => {
-                       if (selectedAnalysis === 'hourly') {
-                         return `${value}h`
-                       }
-                       return value
-                     }}
-                   />
-                  <YAxis tick={{ fontSize: 12 }} />
+                                                       <XAxis 
+                    dataKey={selectedAnalysis === 'device' ? 'device' : 
+                             selectedAnalysis === 'source' ? 'source' : 
+                             selectedAnalysis === 'placement' ? 'placement' : 
+                             selectedAnalysis === 'location' ? 'city' : 
+                             selectedAnalysis === 'browser' ? 'browser' : 
+                             selectedAnalysis === 'os' ? 'os' : 'hour'} 
+                    tick={{ fontSize: 12, fill: '#3cd48f' }}
+                    tickFormatter={(value) => {
+                      if (selectedAnalysis === 'hourly') {
+                        return `${value}h`
+                      }
+                      return value
+                    }}
+                  />
+                  <YAxis tick={{ fontSize: 12, fill: '#3cd48f' }} />
                   <Tooltip 
                     formatter={(value: any) => formatCurrency(value)}
                     contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }}
