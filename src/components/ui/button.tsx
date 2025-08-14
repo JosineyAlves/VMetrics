@@ -10,12 +10,12 @@ const base =
   "inline-flex items-center justify-center font-semibold rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none font-sans"
 
 const variants = {
-  primary: "bg-vmetrics-primary text-white hover:bg-vmetrics-accent focus:ring-vmetrics-primary",
-  secondary: "bg-vmetrics-secondary text-white hover:bg-vmetrics-accent focus:ring-vmetrics-secondary",
-  accent: "bg-vmetrics-accent text-white hover:bg-vmetrics-primary focus:ring-vmetrics-primary",
-  outline: "border border-vmetrics-primary text-vmetrics-primary bg-white hover:bg-vmetrics-background focus:ring-vmetrics-primary",
-  danger: "bg-vmetrics-danger text-white hover:bg-red-600 focus:ring-vmetrics-primary",
-  success: "bg-vmetrics-success text-white hover:bg-green-600 focus:ring-vmetrics-primary",
+  primary: "bg-[#3cd48f] text-white hover:bg-[#3cd48f]/90 focus:ring-[#3cd48f]/40",
+  secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-400",
+  accent: "bg-[#3cd48f]/80 text-white hover:bg-[#3cd48f] focus:ring-[#3cd48f]/40",
+  outline: "border border-[#3cd48f] text-[#3cd48f] bg-white hover:bg-[#3cd48f]/10 focus:ring-[#3cd48f]/40",
+  danger: "bg-red-500 text-white hover:bg-red-600 focus:ring-red-400",
+  success: "bg-green-500 text-white hover:bg-green-600 focus:ring-green-400",
 }
 
 const sizes = {

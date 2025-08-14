@@ -711,7 +711,7 @@ const Performance: React.FC = () => {
            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
              selectedAnalysis === 'device'
                ? 'bg-[#3cd48f] text-white shadow-lg'
-               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+               : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
            }`}
          >
            <DeviceIcon className="w-5 h-5 mr-2" />
@@ -722,7 +722,7 @@ const Performance: React.FC = () => {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'source'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
             <SourceIcon className="w-5 h-5 mr-2" />
@@ -733,7 +733,7 @@ const Performance: React.FC = () => {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'placement'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
             <Target className="w-5 h-5 mr-2" />
@@ -744,7 +744,7 @@ const Performance: React.FC = () => {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'location'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
             <MapPin className="w-5 h-5 mr-2" />
@@ -755,7 +755,7 @@ const Performance: React.FC = () => {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'browser'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
             <Monitor className="w-5 h-5 mr-2" />
@@ -766,7 +766,7 @@ const Performance: React.FC = () => {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'os'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
             <Smartphone className="w-5 h-5 mr-2" />
@@ -777,7 +777,7 @@ const Performance: React.FC = () => {
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'hourly'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
             <Clock className="w-5 h-5 mr-2" />
@@ -862,7 +862,7 @@ const Performance: React.FC = () => {
                 </thead>
                                  <tbody>
                    {(selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)).map((item, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={index} className="border-b border-gray-100 hover:bg-[#3cd48f]/5">
                                              <td className="py-3 px-4 font-medium">
                          {selectedAnalysis === 'device' ? item.device : 
                           selectedAnalysis === 'source' ? `${item.source} (${item.network})` : 

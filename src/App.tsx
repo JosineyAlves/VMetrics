@@ -44,7 +44,7 @@ const DashboardLayout: React.FC = () => {
   const { isCollapsed, toggle } = useSidebarStore()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [isAutoEnabled, setIsAutoEnabled] = useState(false)
+
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
@@ -115,34 +115,7 @@ const DashboardLayout: React.FC = () => {
     }
   }
 
-  // Função para alternar modo auto
-  const handleAutoToggle = () => {
-    if (isAutoEnabled) {
-      // Desabilitar auto refresh
-      if (autoRefreshInterval.current) {
-        clearInterval(autoRefreshInterval.current)
-        autoRefreshInterval.current = null
-      }
-      setIsAutoEnabled(false)
-    } else {
-      // Habilitar auto refresh (a cada 30 segundos)
-      autoRefreshInterval.current = setInterval(() => {
-        handleRefresh()
-      }, 30000)
-      setIsAutoEnabled(true)
-    }
-  }
 
-  const autoRefreshInterval = useRef<number | null>(null)
-
-  // Limpar intervalo quando componente for desmontado
-  React.useEffect(() => {
-    return () => {
-      if (autoRefreshInterval.current) {
-        clearInterval(autoRefreshInterval.current)
-      }
-    }
-  }, [])
 
   // Definir o título da tela selecionada
   const sectionTitles: Record<string, string> = {
@@ -157,7 +130,7 @@ const DashboardLayout: React.FC = () => {
 
   // Definir quais botões mostrar por tela
   const showRefresh = ['dashboard', 'campaigns', 'conversions', 'performance', 'funnel'].includes(currentSection)
-  const showAuto = currentSection === 'dashboard'
+
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white">
@@ -204,19 +177,7 @@ const DashboardLayout: React.FC = () => {
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}
               </button>
             )}
-            {showAuto && (
-              <button 
-                onClick={handleAutoToggle}
-                className={`inline-flex items-center px-4 py-2 rounded-xl border font-semibold transition ${
-                  isAutoEnabled 
-                                    ? 'border-[#3cd48f] text-[#3cd48f] bg-[#3cd48f]/10'
-                : 'border-[#3cd48f] text-[#3cd48f] hover:bg-[#3cd48f]/10'
-                }`}
-              >
-                {isAutoEnabled ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                {isAutoEnabled ? 'Auto ON' : 'Auto'}
-              </button>
-            )}
+            
           </div>
         </div>
         <AnimatePresence mode="wait">

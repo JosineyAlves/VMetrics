@@ -887,7 +887,7 @@ const Dashboard: React.FC = () => {
             variant="outline" 
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros

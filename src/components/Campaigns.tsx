@@ -223,7 +223,7 @@ const Campaigns: React.FC = () => {
         )
       case 'ctr':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {campaign.ctr}%
           </div>
         )
@@ -260,7 +260,7 @@ const Campaigns: React.FC = () => {
         )
       case 'cpc':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {formatCurrency(campaign.cpc || 0)}
           </div>
         )
@@ -284,13 +284,13 @@ const Campaigns: React.FC = () => {
         )
       case 'prelp_views':
         return (
-          <div className="text-sm font-semibold text-blue-600">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {campaign.prelp_views !== undefined ? campaign.prelp_views.toLocaleString() : '0'}
           </div>
         )
       case 'prelp_clicks':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {campaign.prelp_clicks !== undefined ? campaign.prelp_clicks.toLocaleString() : '0'}
           </div>
         )
@@ -338,31 +338,31 @@ const Campaigns: React.FC = () => {
         )
       case 'lp_clicks_cr':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {(campaign.lp_clicks_cr || 0).toFixed(2)}%
           </div>
         )
       case 'lp_views_cr':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {(campaign.lp_views_cr || 0).toFixed(2)}%
           </div>
         )
       case 'prelp_clicks_cr':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {(campaign.prelp_clicks_cr || 0).toFixed(2)}%
           </div>
         )
       case 'prelp_views_cr':
         return (
-          <div className="text-sm font-semibold text-blue-700">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {(campaign.prelp_views_cr || 0).toFixed(2)}%
           </div>
         )
       case 'impressions_visible':
         return (
-          <div className="text-sm font-semibold text-blue-600">
+          <div className="text-sm font-semibold text-[#3cd48f]">
             {campaign.impressions_visible !== undefined ? campaign.impressions_visible.toLocaleString() : '0'}
           </div>
         )
@@ -1099,25 +1099,25 @@ const Campaigns: React.FC = () => {
       {activeTab === 'campaigns' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
         {/* Best performing campaigns */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-blue-200">
+        <div className="bg-gradient-to-br from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-[#3cd48f]/20">
           <div className="flex items-center justify-between mb-3 lg:mb-4">
-            <h3 className="font-bold text-blue-800 text-sm lg:text-lg">🏆 Top Campanhas</h3>
+                          <h3 className="font-bold text-[#1f1f1f] text-sm lg:text-lg">🏆 Top Campanhas</h3>
             <div className="flex items-center space-x-1 lg:space-x-2">
-              <div className="bg-blue-200 rounded-full px-2 lg:px-3 py-1 text-xs font-semibold text-blue-800">
+                              <div className="bg-[#3cd48f]/30 rounded-full px-2 lg:px-3 py-1 text-xs font-semibold text-[#3cd48f]">
                 {bestCampaigns.length} encontradas
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
                 disabled={performanceLoading}
-                className="p-1 hover:bg-blue-200 rounded-full transition-colors disabled:opacity-50"
+                                  className="p-1 hover:bg-[#3cd48f]/30 rounded-full transition-colors disabled:opacity-50"
                 title="Atualizar dados"
               >
                 {performanceLoading ? (
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 ) : (
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
@@ -1127,7 +1127,7 @@ const Campaigns: React.FC = () => {
           <div className="space-y-2 lg:space-y-3">
             {performanceLoading ? (
               <div className="text-center text-gray-500 py-3 lg:py-4">
-                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-b-2 border-[#3cd48f] mx-auto mb-2"></div>
                 <div className="text-xs lg:text-sm">Carregando dados...</div>
               </div>
             ) : bestCampaigns.length === 0 ? (
@@ -1136,7 +1136,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-xs lg:text-sm">Nenhuma campanha encontrada</div>
               </div>
               ) : bestCampaigns.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-blue-100">
+                              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-[#3cd48f]/20">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center min-w-0 flex-1">
                     <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
@@ -1145,7 +1145,7 @@ const Campaigns: React.FC = () => {
                       {idx + 1}
                     </div>
                     <div className="ml-2 lg:ml-3 min-w-0 flex-1">
-                      <div className="font-semibold text-blue-900 text-xs lg:text-sm truncate">
+                      <div className="font-semibold text-[#1f1f1f] text-xs lg:text-sm truncate">
                         {item.name || 'Campanha sem nome'}
                       </div>
                     </div>
@@ -1159,11 +1159,11 @@ const Campaigns: React.FC = () => {
                 <div className="grid grid-cols-1 gap-1 text-xs text-gray-600">
                   <div className="flex justify-between">
                     <span>Conversões:</span>
-                    <span className="font-semibold text-blue-600">{item.conversions || 0}</span>
+                                            <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>CPA:</span>
-                    <span className="font-semibold text-blue-600">
+                                            <span className="font-semibold text-[#3cd48f]">
                       {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
                     </span>
                   </div>
@@ -1404,7 +1404,7 @@ const Campaigns: React.FC = () => {
                         <td 
                           key={column?.id} 
                           className={`px-6 py-4 whitespace-nowrap ${
-                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-blue-50 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
+                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-[#3cd48f]/5 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
                           }`}
                         >
                           {renderCell(campaign, column)}

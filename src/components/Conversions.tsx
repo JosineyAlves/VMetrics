@@ -598,7 +598,7 @@ const Conversions: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowAdvancedData(!showAdvancedData)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
           >
             {showAdvancedData ? <Eye className="w-4 h-4 mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
             {showAdvancedData ? 'Dados Básicos' : 'Dados Avançados'}
@@ -610,7 +610,7 @@ const Conversions: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition"
+            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
@@ -774,8 +774,8 @@ const Conversions: React.FC = () => {
               <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
               <p className="text-2xl font-bold text-gray-900">{totalConversions}</p>
             </div>
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
+                    <div className="p-3 bg-[#3cd48f]/20 rounded-xl">
+          <TrendingUp className="w-6 h-6 text-[#3cd48f]" />
             </div>
           </div>
         </motion.div>
@@ -946,7 +946,7 @@ const Conversions: React.FC = () => {
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         conversion.type === 'sale' ? 'bg-green-100 text-green-800' :
-                        conversion.type === 'lead' ? 'bg-blue-100 text-blue-800' :
+                        conversion.type === 'lead' ? 'bg-[#3cd48f]/20 text-[#3cd48f]' :
                         'bg-purple-100 text-purple-800'
                       }`}>
                         {conversion.type}
@@ -1020,7 +1020,7 @@ const Conversions: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          Number(conversion.type1) > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                          Number(conversion.type1) > 0 ? 'bg-[#3cd48f]/20 text-[#3cd48f]' : 'bg-gray-100 text-gray-600'
                         }`}>
                           {Number(conversion.type1) > 0 ? Number(conversion.type1) : '0'}
                         </span>

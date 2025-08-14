@@ -122,7 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <motion.div
         initial={false}
         animate={{
-          width: isSidebarCollapsed ? 64 : 280,
+          width: isSidebarCollapsed ? 80 : 300,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className="fixed left-0 top-0 h-full bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl z-30 lg:relative"
@@ -151,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-6 space-y-3">
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = isActiveSection(item.path)
@@ -160,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <motion.button
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
-                                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
+                                 className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 group ${
                    isActive
                      ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
                      : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
@@ -168,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]'}`} />
+                <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]'}`} />
                 {!isSidebarCollapsed && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -188,14 +188,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10">
+        <div className="p-6 border-t border-white/10">
                     <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg"
+            className="w-full flex items-center gap-4 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <div className="w-5 h-5 rounded-full bg-red-100 group-hover:bg-red-200 transition-colors" />
+
             {!isSidebarCollapsed && (
               <motion.span
                 initial={{ opacity: 0 }}
@@ -231,7 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Mobile Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-6 space-y-3">
             {menuItems.map((item) => {
               const Icon = item.icon
               const isActive = isActiveSection(item.path)
@@ -240,13 +240,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => handleSectionChange(item.id)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
+                  className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${
                     isActive
                       ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
                       : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                   }`}
                 >
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
+                  <Icon className={`w-7 h-7 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
                   <div className="flex-1 text-left">
                     <div className="font-medium text-lg text-[#1f1f1f]">{item.label}</div>
                                          <div className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
@@ -259,12 +259,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           </nav>
 
           {/* Mobile Footer */}
-          <div className="p-4 border-t border-white/10">
+          <div className="p-6 border-t border-white/10">
                         <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 shadow-md hover:shadow-lg"
             >
-              <div className="w-6 h-6 rounded-full bg-red-100" />
+
               <span className="font-medium text-lg text-white">Sair</span>
             </button>
           </div>
