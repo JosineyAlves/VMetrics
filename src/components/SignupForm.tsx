@@ -278,10 +278,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         </div>
       </div>
 
-      <Button
-        onClick={handleNextStep}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 text-lg font-semibold"
-      >
+             <Button
+         onClick={handleNextStep}
+         className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-3 text-lg font-semibold"
+       >
         Continuar
         <ArrowRight className="w-5 h-5 ml-2" />
       </Button>
@@ -381,11 +381,11 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
           Voltar
         </Button>
 
-        <Button
-          onClick={handleFinishSignup}
-          disabled={!apiKey.trim() || isApiKeyLoading}
-          className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-        >
+                 <Button
+           onClick={handleFinishSignup}
+           disabled={!apiKey.trim() || isApiKeyLoading}
+           className="flex-1 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white"
+         >
           {isApiKeyLoading ? (
             <>
               <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
@@ -402,12 +402,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
 
       <div className="text-center text-sm text-gray-500">
         <p>Já tem uma conta? </p>
-        <a 
-          href={APP_URLS.DASHBOARD_APP} 
-          className="text-blue-600 hover:text-blue-700 underline"
-        >
-          Fazer login
-        </a>
+                 <a 
+           href={APP_URLS.DASHBOARD_APP} 
+           className="text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
+         >
+           Fazer login
+         </a>
       </div>
     </motion.div>
   )

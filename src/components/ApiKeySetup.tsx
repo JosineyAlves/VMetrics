@@ -87,44 +87,44 @@ const ApiKeySetup: React.FC = () => {
             </p>
           </div>
 
-          {/* Setup Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-8 mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
-                  1
-                </div>
-                <span className="text-sm font-medium text-gray-700">Obter API Key</span>
-              </div>
-              <div className="w-16 h-1 bg-blue-600"></div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
-                  2
-                </div>
-                <span className="text-sm font-medium text-gray-700">Configurar</span>
-              </div>
-              <div className="w-16 h-1 bg-blue-600"></div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold">
-                  3
-                </div>
-                <span className="text-sm font-medium text-gray-700">Começar</span>
-              </div>
-            </div>
-          </div>
+                     {/* Setup Steps */}
+           <div className="mb-8">
+             <div className="flex items-center justify-center space-x-8 mb-6">
+               <div className="flex items-center space-x-3">
+                 <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
+                   1
+                 </div>
+                 <span className="text-sm font-medium text-gray-700">Obter API Key</span>
+               </div>
+               <div className="w-16 h-1 bg-[#3cd48f]"></div>
+               <div className="flex items-center space-x-3">
+                 <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
+                   2
+                 </div>
+                 <span className="text-sm font-medium text-gray-700">Configurar</span>
+               </div>
+               <div className="w-16 h-1 bg-[#3cd48f]"></div>
+               <div className="flex items-center space-x-3">
+                 <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
+                   3
+                 </div>
+                 <span className="text-sm font-medium text-gray-700">Começar</span>
+               </div>
+             </div>
+           </div>
 
-          {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <div className="flex items-start space-x-4">
-              <Info className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-blue-900 mb-3 text-lg">
-                  Como obter sua API Key do RedTrack
-                </h3>
-                <ol className="text-blue-800 space-y-2 text-sm">
+                     {/* Instructions */}
+           <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-6 mb-8">
+             <div className="flex items-start space-x-4">
+               <Info className="w-6 h-6 text-[#3cd48f] mt-1 flex-shrink-0" />
+               <div>
+                 <h3 className="font-semibold text-[#3cd48f] mb-3 text-lg">
+                   Como obter sua API Key do RedTrack
+                 </h3>
+                 <ol className="text-[#3cd48f]/80 space-y-2 text-sm">
                   <li className="flex items-start">
                     <span className="font-medium mr-2">1.</span>
-                    Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600">redtrack.io</a>
+                                         Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
                   </li>
                   <li className="flex items-start">
                     <span className="font-medium mr-2">2.</span>
@@ -187,11 +187,11 @@ const ApiKeySetup: React.FC = () => {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Button
-              onClick={handleTestApiKey}
-              disabled={!apiKey.trim() || isValidating}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
-            >
+                         <Button
+               onClick={handleTestApiKey}
+               disabled={!apiKey.trim() || isValidating}
+               className="flex-1 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white py-3 text-lg font-semibold"
+             >
               {isValidating ? (
                 <>
                   <div className="w-5 h-5 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>

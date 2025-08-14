@@ -198,7 +198,7 @@ const DashboardLayout: React.FC = () => {
               <button 
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="inline-flex items-center px-4 py-2 rounded-xl border border-blue-500 text-blue-600 font-semibold hover:bg-blue-50 transition disabled:opacity-50"
+                className="inline-flex items-center px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
               >
                                   <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}

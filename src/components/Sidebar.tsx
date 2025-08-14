@@ -160,11 +160,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               <motion.button
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
-                  isActive
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
-                    : 'text-gray-600 hover:bg-white/50 hover:text-gray-800'
-                }`}
+                                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
+                   isActive
+                     ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                     : 'text-gray-600 hover:bg-white/50 hover:text-gray-800'
+                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -177,9 +177,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                     className="flex-1 text-left"
                   >
                     <div className="font-medium">{item.label}</div>
-                    <div className={`text-xs ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
-                      {item.description}
-                    </div>
+                                     <div className={`text-xs ${isActive ? 'text-[#3cd48f]/90' : 'text-gray-400'}`}>
+                   {item.description}
+                 </div>
                   </motion.div>
                 )}
               </motion.button>
