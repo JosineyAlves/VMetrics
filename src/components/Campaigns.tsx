@@ -765,15 +765,15 @@ const Campaigns: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-vmetrics-success/20 text-vmetrics-success'
+        return 'bg-[#3cd48f]/20 text-[#3cd48f]'
       case 'paused':
         return 'bg-yellow-100 text-yellow-800'
       case 'deleted':
         return 'bg-red-100 text-red-800'
       case 'inactive':
-        return 'bg-vmetrics-danger/20 text-vmetrics-danger'
+        return 'bg-red-100 text-red-800'
       default:
-                  return 'bg-vmetrics-muted/20 text-vmetrics-muted'
+                  return 'bg-gray-100 text-gray-800'
     }
   }
 
@@ -852,13 +852,13 @@ const Campaigns: React.FC = () => {
       {/* Nav Container */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
       {/* Tabs */}
-        <div className="flex space-x-1 bg-vmetrics-background rounded-lg p-1 w-full sm:w-auto">
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
         <button
           onClick={() => setActiveTab('campaigns')}
             className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
             activeTab === 'campaigns'
-              ? 'bg-white text-vmetrics-primary shadow-sm'
-              : 'text-vmetrics-muted hover:text-vmetrics-primary'
+              ? 'bg-white text-[#3cd48f] shadow-sm'
+              : 'text-[#1f1f1f]/70 hover:text-[#3cd48f]'
           }`}
         >
             <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
@@ -869,8 +869,8 @@ const Campaigns: React.FC = () => {
           onClick={() => setActiveTab('utm')}
             className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
             activeTab === 'utm'
-              ? 'bg-white text-vmetrics-primary shadow-sm'
-              : 'text-vmetrics-muted hover:text-vmetrics-primary'
+              ? 'bg-white text-[#3cd48f] shadow-sm'
+              : 'text-[#1f1f]/70 hover:text-[#3cd48f]'
           }`}
         >
             <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
@@ -911,10 +911,10 @@ const Campaigns: React.FC = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-vmetrics-accent"
+          className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-vmetrics-primary">Filtros Avançados</h3>
+            <h3 className="text-lg font-semibold text-[#1f1f1f]">Filtros Avançados</h3>
             <Button
               variant="outline"
               size="sm"
@@ -928,13 +928,13 @@ const Campaigns: React.FC = () => {
               <>
                 {/* Remover campos de data simples */}
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     Status
                   </label>
                   <select 
                     value={tempFilters.status}
                     onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-vmetrics-text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
                   >
                     <option value="">Todos</option>
                     <option value="active">Ativo</option>
@@ -943,13 +943,13 @@ const Campaigns: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     Fonte
                   </label>
                   <select 
                     value={tempFilters.source}
                     onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-vmetrics-text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
                   >
                     <option value="">Todas</option>
                     <option value="facebook">Facebook</option>
@@ -963,13 +963,13 @@ const Campaigns: React.FC = () => {
               <>
                 {/* Filtros RT Campaign/Ad */}
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Source
                   </label>
                   <select
                     value={tempFilters.utm_source}
                     onChange={(e) => setTempFilters(prev => ({ ...prev, utm_source: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-vmetrics-text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
                   >
                     <option value="">Todos</option>
                     <option value="facebook">Facebook</option>
@@ -979,13 +979,13 @@ const Campaigns: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Medium
                   </label>
                   <select
                     value={tempFilters.utm_medium}
                     onChange={(e) => setTempFilters(prev => ({ ...prev, utm_medium: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-vmetrics-text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
                   >
                     <option value="">Todos</option>
                     <option value="cpc">CPC</option>
@@ -996,7 +996,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Campaign
                   </label>
                   <Input 
@@ -1008,7 +1008,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Adgroup
                   </label>
                   <Input 
@@ -1020,7 +1020,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Ad
                   </label>
                   <Input
@@ -1033,7 +1033,7 @@ const Campaigns: React.FC = () => {
                 
                 {/* Filtros adicionais para RT Campaign/Ad */}
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     Conversões Mínimas
                   </label>
                   <Input 
@@ -1046,7 +1046,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-vmetrics-text mb-2">
+                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     Receita Mínima
                   </label>
                   <Input 
@@ -1082,7 +1082,7 @@ const Campaigns: React.FC = () => {
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1 w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-vmetrics-muted w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1f1f1f]/70 w-4 h-4" />
           <Input
             placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar RT Campaign/Ad..."}
             value={searchTerm}
@@ -1341,16 +1341,16 @@ const Campaigns: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-vmetrics-accent overflow-hidden"
+        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
       >
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-vmetrics-primary"></div>
-                <span className="text-vmetrics-text">{loadingMessage}</span>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#3cd48f]"></div>
+                <span className="text-[#1f1f1f]">{loadingMessage}</span>
               </div>
-              <p className="text-sm text-vmetrics-muted mt-2">
+              <p className="text-sm text-[#1f1f1f]/70 mt-2">
                 Isso pode levar alguns segundos na primeira vez...
               </p>
             </div>
@@ -1398,7 +1398,7 @@ const Campaigns: React.FC = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 border-b border-gray-50 group"
+                      className="hover:bg-[#3cd48f]/5 transition-all duration-200 border-b border-gray-50 group"
                     >
                       {getVisibleColumns().map((column) => (
                         <td 
@@ -1425,7 +1425,7 @@ const Campaigns: React.FC = () => {
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="bg-vmetrics-background">
+                  <thead className="bg-gray-100">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Medium</th>
@@ -1437,14 +1437,14 @@ const Campaigns: React.FC = () => {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-vmetrics-background">
+                  <tbody className="bg-white divide-y divide-gray-100">
                     {filteredUTMCreatives.map((creative, index) => (
                       <motion.tr 
                         key={creative.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="hover:bg-vmetrics-background"
+                        className="hover:bg-gray-100"
                       >
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_medium}</td>

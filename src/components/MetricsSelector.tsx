@@ -34,7 +34,7 @@ const MetricsSelector: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'basic': 'bg-blue-100 text-blue-800',
+              'basic': 'bg-[#3cd48f]/20 text-[#3cd48f]',
       'performance': 'bg-[#3cd48f]/20 text-[#3cd48f]',
       'conversion': 'bg-green-100 text-green-800',
       'revenue': 'bg-green-100 text-green-800',

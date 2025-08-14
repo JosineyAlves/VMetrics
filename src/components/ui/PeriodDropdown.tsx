@@ -99,7 +99,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
                 <button
                   key={option.value}
                   onClick={() => handleOptionClick(option.value)}
-                  className={`w-full flex items-center px-4 py-3 text-sm hover:bg-blue-50 transition-colors duration-200 ${
+                  className={`w-full flex items-center px-4 py-3 text-sm hover:bg-[#3cd48f]/5 transition-colors duration-200 ${
                     value === option.value ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white font-semibold' : 'text-gray-700 hover:text-[#3cd48f]'
                   }`}
                 >
@@ -125,7 +125,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
                       type="date"
                       value={localCustom.from}
                       onChange={e => setLocalCustom((r) => ({ ...r, from: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] text-sm shadow-sm"
                       placeholder="Selecionar data inicial"
                     />
                   </div>
@@ -135,7 +135,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
                       type="date"
                       value={localCustom.to}
                       onChange={e => setLocalCustom((r) => ({ ...r, to: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] text-sm shadow-sm"
                       placeholder="Selecionar data final"
                     />
                   </div>

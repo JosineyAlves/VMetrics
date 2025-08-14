@@ -648,7 +648,7 @@ const Conversions: React.FC = () => {
                 placeholder="Todas as campanhas"
                 value={tempFilters.campaign}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, campaign: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
             <div>
@@ -658,7 +658,7 @@ const Conversions: React.FC = () => {
               <select
                 value={tempFilters.type}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] shadow-sm"
               >
                 <option value="">Todos os tipos</option>
                 <option value="lead">Lead</option>
@@ -675,7 +675,7 @@ const Conversions: React.FC = () => {
                 placeholder="Todos os países"
                 value={tempFilters.country}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, country: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
             <div>
@@ -685,7 +685,7 @@ const Conversions: React.FC = () => {
               <select
                 value={tempFilters.status}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] shadow-sm"
               >
                 <option value="">Todos os status</option>
                 <option value="approved">Aprovado</option>
@@ -702,7 +702,7 @@ const Conversions: React.FC = () => {
                 placeholder="Todos os dispositivos"
                 value={tempFilters.device}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, device: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
             <div>
@@ -714,7 +714,7 @@ const Conversions: React.FC = () => {
                 placeholder="Todos os SOs"
                 value={tempFilters.os}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, os: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
             <div>
@@ -726,7 +726,7 @@ const Conversions: React.FC = () => {
                 placeholder="Todos os navegadores"
                 value={tempFilters.browser}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, browser: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
             <div>
@@ -738,7 +738,7 @@ const Conversions: React.FC = () => {
                 placeholder="Todas as fontes"
                 value={tempFilters.source}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
           </div>
@@ -746,7 +746,7 @@ const Conversions: React.FC = () => {
           <div className="flex items-center justify-between mt-6">
             <Button
               onClick={handleApplyFilters}
-              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600"
+              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               Aplicar Filtros
             </Button>

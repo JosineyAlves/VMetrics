@@ -305,12 +305,12 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         </p>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-4 mb-6">
         <div className="flex items-start space-x-3">
-          <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <Shield className="w-5 h-5 text-[#3cd48f] mt-0.5 flex-shrink-0" />
           <div>
-            <h3 className="font-medium text-blue-900 mb-2">Como obter sua API Key</h3>
-            <ol className="text-sm text-blue-800 space-y-1">
+                          <h3 className="font-medium text-[#1f1f1f] mb-2">Como obter sua API Key</h3>
+                          <ol className="text-sm text-[#1f1f1f]/70 space-y-1">
               <li>1. Acesse sua conta RedTrack</li>
               <li>2. Vá em <strong>Settings → API</strong></li>
               <li>3. Clique em <strong>Generate New Key</strong></li>

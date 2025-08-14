@@ -501,7 +501,7 @@ const Settings: React.FC = () => {
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
         <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
+          <div className="p-3 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-2xl">
             <Crown className="w-7 h-7 text-white" />
           </div>
           <div>
@@ -710,7 +710,7 @@ const Settings: React.FC = () => {
         <div className="space-y-4">
           {loadingInvoices ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-600">Carregando faturas...</p>
             </div>
           ) : invoices.length > 0 ? (
@@ -785,9 +785,7 @@ const Settings: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
-            Configurações
-          </h1>
+          {/* Título removido para evitar duplicação com a navbar */}
         </div>
       </div>
 
