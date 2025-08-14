@@ -3,51 +3,31 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 import { motion } from 'framer-motion'
 import { Loader2, ArrowRight } from 'lucide-react'
-import RedTrackService from '../services/redtrackService'
 
 const SetupRedirect: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, apiKey, user } = useAuthStore()
+  const { isAuthenticated, apiKey } = useAuthStore()
 
   useEffect(() => {
-    const checkApiKeyStatus = async () => {
-      // Se não estiver autenticado, redirecionar para login
-      if (!isAuthenticated) {
-        navigate('/login', { 
-          state: { from: location.pathname },
-          replace: true 
-        })
-        return
-      }
-
-      // Se não tiver usuário, aguardar
-      if (!user?.id) {
-        return
-      }
-
-      try {
-        // Verificar se já existe API Key no Supabase
-        const result = await RedTrackService.checkExistingApiKey(user.id)
-        
-        if (result.success && result.apiKey) {
-          // Já tem API Key configurada, ir para dashboard
-          console.log('✅ API Key já configurada, redirecionando para dashboard')
-          navigate('/dashboard', { replace: true })
-        } else {
-          // Não tem API Key, ir para configuração
-          console.log('❌ API Key não configurada, redirecionando para setup')
-          navigate('/api-setup', { replace: true })
-        }
-      } catch (error) {
-        console.error('Erro ao verificar API Key:', error)
-        // Em caso de erro, ir para configuração
-        navigate('/api-setup', { replace: true })
-      }
+    // Se não estiver autenticado, redirecionar para login
+    if (!isAuthenticated) {
+      navigate('/login', { 
+        state: { from: location.pathname },
+        replace: true 
+      })
+      return
     }
 
-    checkApiKeyStatus()
-  }, [isAuthenticated, user, navigate, location])
+    // Se não tiver API Key, redirecionar para setup
+    if (!apiKey) {
+      navigate('/setup', { replace: true })
+      return
+    }
+
+    // Se tudo estiver configurado, redirecionar para dashboard
+    navigate('/dashboard', { replace: true })
+  }, [isAuthenticated, apiKey, navigate, location])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">

@@ -1,19 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useCurrencyStore } from './currency'
-import RedTrackService from '../services/redtrackService'
 
 interface AuthState {
   apiKey: string | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  hasRedTrackApiKey: boolean
+  user: any | null
+  login: (userData: any) => void
   setApiKey: (key: string) => void
   logout: () => void
   testApiKey: (key: string) => Promise<boolean>
-  checkRedTrackApiKey: (userId: string) => Promise<boolean>
-  setRedTrackApiKey: (userId: string, apiKey: string) => Promise<boolean>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -23,7 +21,15 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      hasRedTrackApiKey: false,
+      user: null,
+      login: (userData: any) => {
+        console.log('[AUTH] Login realizado:', userData)
+        set({ 
+          isAuthenticated: true, 
+          user: userData,
+          error: null 
+        })
+      },
       setApiKey: (key: string) => {
         console.log('[AUTH] Salvando API Key:', key)
         set({ apiKey: key, isAuthenticated: true })
@@ -161,33 +167,6 @@ export const useAuthStore = create<AuthState>()(
             error: 'Erro de conexão. Verifique sua API Key.',
             isAuthenticated: false 
           })
-          return false
-        }
-      },
-      
-      checkRedTrackApiKey: async (userId: string) => {
-        try {
-          const result = await RedTrackService.checkExistingApiKey(userId)
-          const hasKey = result.success && result.apiKey
-          set({ hasRedTrackApiKey: hasKey })
-          return hasKey
-        } catch (error) {
-          console.error('Erro ao verificar API Key do RedTrack:', error)
-          set({ hasRedTrackApiKey: false })
-          return false
-        }
-      },
-      
-      setRedTrackApiKey: async (userId: string, apiKey: string) => {
-        try {
-          const result = await RedTrackService.saveApiKey(userId, apiKey)
-          if (result.success) {
-            set({ hasRedTrackApiKey: true })
-            return true
-          }
-          return false
-        } catch (error) {
-          console.error('Erro ao salvar API Key do RedTrack:', error)
           return false
         }
       }

@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
-import SetupRedirect from "./components/SetupRedirect"
 import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
@@ -23,7 +22,7 @@ import usePageTitle from './hooks/usePageTitle'
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, apiKey } = useAuthStore()
   const location = useLocation()
   
   if (!isAuthenticated) {
@@ -31,12 +30,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
+  // Se estiver autenticado mas não tiver API Key, redirecionar para setup
+  if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
+    return <Navigate to="/setup" replace />
+  }
+  
   return <>{children}</>
 }
 
 // Componente para o layout do dashboard
 const DashboardLayout: React.FC = () => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, apiKey } = useAuthStore()
   const { isCollapsed, toggle } = useSidebarStore()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -47,6 +51,13 @@ const DashboardLayout: React.FC = () => {
   
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
+  
+  // Verificar se tem API Key configurada
+  useEffect(() => {
+    if (isAuthenticated && !apiKey) {
+      navigate('/setup', { replace: true })
+    }
+  }, [isAuthenticated, apiKey, navigate])
   
   // Determinar seção atual baseada na rota
   const getCurrentSection = () => {
@@ -291,15 +302,8 @@ const App: React.FC = () => {
         )
       } />
       
-      {/* Rota de setup */}
+      {/* Rota de setup da API Key */}
       <Route path="/setup" element={
-        <ProtectedRoute>
-          <SetupRedirect />
-        </ProtectedRoute>
-      } />
-      
-      {/* Rota de configuração da API Key */}
-      <Route path="/api-setup" element={
         <ProtectedRoute>
           <ApiKeySetup />
         </ProtectedRoute>
