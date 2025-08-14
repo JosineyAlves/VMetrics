@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { 
   LayoutDashboard, 
   Target, 
@@ -34,48 +35,69 @@ const Sidebar: React.FC<SidebarProps> = ({
   onToggleSidebar
 }) => {
   const { logout } = useAuthStore()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const menuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard,
-      description: 'Visão geral e KPIs'
+      description: 'Visão geral e KPIs',
+      path: '/dashboard'
     },
     {
       id: 'campaigns',
       label: 'Campanhas',
       icon: Target,
-      description: 'Análise de campanhas'
+      description: 'Análise de campanhas',
+      path: '/campaigns'
     },
     {
       id: 'conversions',
       label: 'Conversões',
       icon: TrendingUp,
-      description: 'Log de conversões'
+      description: 'Log de conversões',
+      path: '/conversions'
     },
     {
       id: 'performance',
       label: 'Performance',
       icon: BarChart3,
-      description: 'Análises avançadas'
+      description: 'Análises avançadas',
+      path: '/performance'
     },
     {
       id: 'funnel',
       label: 'Funil',
       icon: TrendingDown,
-      description: 'Funil de conversão'
+      description: 'Funil de conversão',
+      path: '/funnel'
     },
     {
       id: 'settings',
       label: 'Configurações',
       icon: Settings,
-      description: 'API e preferências'
+      description: 'API e preferências',
+      path: '/settings'
     }
   ]
 
   const handleLogout = () => {
     logout()
+    navigate('/login')
+  }
+
+  const handleSectionChange = (section: string) => {
+    onSectionChange(section)
+    // Fechar menu mobile após navegação
+    if (isMobileMenuOpen) {
+      onToggleMobileMenu()
+    }
+  }
+
+  const isActiveSection = (sectionPath: string) => {
+    return location.pathname === sectionPath
   }
 
   return (
@@ -98,115 +120,156 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar */}
       <motion.div
-        initial={{ x: -300 }}
-        animate={{ x: 0 }}
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          bg-white/90 backdrop-blur-sm border-r border-white/20 shadow-2xl
-          transform transition-all duration-300 ease-in-out
-          ${isSidebarCollapsed ? 'w-16' : 'w-72'}
-          ${isMobileMenuOpen ? 'translate-x-0' : 'lg:translate-x-0 -translate-x-full'}
-        `}
+        initial={false}
+        animate={{
+          width: isSidebarCollapsed ? 64 : 280,
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed left-0 top-0 h-full bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl z-30 lg:relative"
       >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className={`border-b border-gray-100 ${isSidebarCollapsed ? 'p-4' : 'p-8'}`}>
-            <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-4'}`}>
-              <Logo 
-                size={isSidebarCollapsed ? 'md' : 'lg'} 
-                showIconOnly={isSidebarCollapsed}
-                className="flex-shrink-0"
-              />
-              {/* Toggle Button */}
-              {!isSidebarCollapsed && (
-                <button
-                  onClick={onToggleSidebar}
-                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200 flex-shrink-0"
-                >
-                  <ChevronLeft className="w-4 h-4 text-gray-600" />
-                </button>
-              )}
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          {!isSidebarCollapsed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Logo />
+            </motion.div>
+          )}
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
+          >
+            {isSidebarCollapsed ? (
+              <ChevronRight className="w-4 h-4 text-gray-600" />
+            ) : (
+              <ChevronLeft className="w-4 h-4 text-gray-600" />
+            )}
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon
+            const isActive = isActiveSection(item.path)
+            
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => handleSectionChange(item.id)}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
+                  isActive
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-600 hover:bg-white/50 hover:text-gray-800'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-700'}`} />
+                {!isSidebarCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex-1 text-left"
+                  >
+                    <div className="font-medium">{item.label}</div>
+                    <div className={`text-xs ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
+                      {item.description}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.button>
+            )
+          })}
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-white/10">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 p-3 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="w-5 h-5 rounded-full bg-red-100 group-hover:bg-red-200 transition-colors" />
+            {!isSidebarCollapsed && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="font-medium"
+              >
+                Sair
+              </motion.span>
+            )}
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, x: -300 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -300 }}
+          transition={{ duration: 0.3 }}
+          className="lg:hidden fixed left-0 top-0 h-full w-80 bg-white/95 backdrop-blur-xl border-r border-white/20 shadow-2xl z-50"
+        >
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <Logo />
+            <button
+              onClick={onToggleMobileMenu}
+              className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
+            >
+              <X className="w-6 h-6 text-gray-600" />
+            </button>
           </div>
 
-          {/* Navigation */}
-          <nav className={`flex-1 ${isSidebarCollapsed ? 'p-2' : 'p-6'} space-y-3`}>
+          {/* Mobile Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon
-              const isActive = currentSection === item.id
+              const isActive = isActiveSection(item.path)
               
               return (
-                <motion.button
+                <button
                   key={item.id}
-                  onClick={() => {
-                    onSectionChange(item.id)
-                    if (isMobileMenuOpen) {
-                      onToggleMobileMenu()
-                    }
-                  }}
-                  className={`
-                    w-full flex items-center rounded-2xl
-                    transition-all duration-300 ease-in-out
-                    ${isSidebarCollapsed 
-                      ? 'px-2 py-3 justify-center' 
-                      : 'px-6 py-4 space-x-4'
-                    }
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-xl' 
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 hover:shadow-lg'
-                    }
-                  `}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  title={isSidebarCollapsed ? item.label : undefined}
+                  onClick={() => handleSectionChange(item.id)}
+                  className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25'
+                      : 'text-gray-600 hover:bg-white/50 hover:text-gray-800'
+                  }`}
                 >
-                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-500'} flex-shrink-0`} />
-                  {!isSidebarCollapsed && (
+                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-500'}`} />
                   <div className="flex-1 text-left">
-                    <div className="font-semibold text-sm">{item.label}</div>
-                    <div className={`text-xs mt-1 ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                    <div className="font-medium text-lg">{item.label}</div>
+                    <div className={`text-sm ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
                       {item.description}
                     </div>
                   </div>
-                  )}
-                </motion.button>
+                </button>
               )
             })}
           </nav>
 
-          {/* Footer */}
-          <div className={`border-t border-gray-100 ${isSidebarCollapsed ? 'p-2' : 'p-6'}`}>
+          {/* Mobile Footer */}
+          <div className="p-4 border-t border-white/10">
             <button
               onClick={handleLogout}
-              className={`
-                w-full flex items-center justify-center text-sm font-semibold 
-                bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 
-                rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105
-                ${isSidebarCollapsed ? 'px-2 py-3' : 'px-6 py-4 space-x-3'}
-              `}
-              title={isSidebarCollapsed ? 'Sair' : undefined}
+              className="w-full flex items-center gap-3 p-4 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
             >
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              {!isSidebarCollapsed && <span>Sair</span>}
+              <div className="w-6 h-6 rounded-full bg-red-100" />
+              <span className="font-medium text-lg">Sair</span>
             </button>
           </div>
-
-          {/* Toggle Button for Collapsed State */}
-          {isSidebarCollapsed && (
-            <div className="p-2 border-t border-gray-100">
-              <button
-                onClick={onToggleSidebar}
-                className="w-full flex items-center justify-center p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors duration-200"
-                title="Expandir sidebar"
-              >
-                <ChevronRight className="w-4 h-4 text-gray-600" />
-              </button>
-            </div>
-          )}
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </>
   )
 }

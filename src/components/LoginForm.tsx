@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -13,6 +14,11 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('')
   const [step, setStep] = useState<'login' | 'apiKey'>('login')
   const { testApiKey, setApiKey } = useAuthStore()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Verificar se há redirecionamento pendente
+  const from = location.state?.from?.pathname || '/dashboard'
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,6 +55,8 @@ const LoginForm: React.FC = () => {
         const isValid = await testApiKey(apiKeyInput.trim())
         if (isValid) {
           setApiKey(apiKeyInput.trim())
+          // Redirecionar para a página de destino ou dashboard
+          navigate(from, { replace: true })
         } else {
           setError('API Key inválida. Verifique e tente novamente.')
         }
@@ -60,6 +68,10 @@ const LoginForm: React.FC = () => {
     } else {
       setError('Por favor, insira sua API Key')
     }
+  }
+
+  const handleSignupClick = () => {
+    navigate('/signup')
   }
 
   return (
@@ -75,12 +87,12 @@ const LoginForm: React.FC = () => {
             </p>
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
-              <a 
-                href={APP_URLS.LANDING_PAGE} 
+              <button 
+                onClick={handleSignupClick}
                 className="text-blue-600 hover:text-blue-700 underline"
               >
-                Conheça nossos planos
-              </a>
+                Criar conta
+              </button>
             </div>
           </div>
 

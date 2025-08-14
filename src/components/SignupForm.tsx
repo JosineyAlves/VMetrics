@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, CheckCircle, AlertCircle, ArrowRight, Shield, Zap, Users } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -34,6 +35,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
   const [isApiKeyLoading, setIsApiKeyLoading] = useState(false)
 
   const { testApiKey, setApiKey: setAuthApiKey } = useAuthStore()
+  const navigate = useNavigate()
 
   // Validação do formulário
   const validateForm = () => {
@@ -85,6 +87,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       
       if (isValid) {
         setAuthApiKey(apiKey.trim())
+        // Redirecionar para o dashboard após sucesso
+        navigate('/dashboard', { replace: true })
         if (onSuccess) {
           onSuccess()
         }

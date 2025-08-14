@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
+import SetupRedirect from "./components/SetupRedirect"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -16,46 +18,48 @@ import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
+import usePageTitle from './hooks/usePageTitle'
 
-const App: React.FC = () => {
+// Componente para rotas protegidas
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuthStore()
+  const location = useLocation()
+  
+  if (!isAuthenticated) {
+    // Redirecionar para login mantendo a URL de destino
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+  
+  return <>{children}</>
+}
+
+// Componente para o layout do dashboard
+const DashboardLayout: React.FC = () => {
   const { isAuthenticated } = useAuthStore()
   const { isCollapsed, toggle } = useSidebarStore()
-  const [currentSection, setCurrentSection] = useState('dashboard')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isAutoEnabled, setIsAutoEnabled] = useState(false)
-  const [isDashboardAppState, setIsDashboardAppState] = useState(false)
-  const [needsSignup, setNeedsSignup] = useState(false)
-  const [signupEmail, setSignupEmail] = useState('')
-  const [signupPlanType, setSignupPlanType] = useState('')
-  const autoRefreshInterval = useRef<number | null>(null)
-  // Adicionar estado para rastrear última atualização:
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
-
+  const location = useLocation()
+  const navigate = useNavigate()
+  
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
-
-  // Detectar se está na URL do dashboard ou landing page
-  useEffect(() => {
-    const isApp = isDashboardApp()
-    setIsDashboardAppState(isApp)
-    
-    console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
-    
-    // Verificar se há parâmetros de cadastro na URL
-    if (isApp) {
-      const urlParams = new URLSearchParams(window.location.search)
-      const email = urlParams.get('email')
-      const planType = urlParams.get('plan')
-      
-      if (email && planType) {
-        setSignupEmail(email)
-        setSignupPlanType(planType)
-        setNeedsSignup(true)
-        console.log(`📝 Cadastro necessário para: ${email} - Plano: ${planType}`)
-      }
-    }
-  }, [])
+  
+  // Determinar seção atual baseada na rota
+  const getCurrentSection = () => {
+    const path = location.pathname
+    if (path === '/dashboard') return 'dashboard'
+    if (path === '/campaigns') return 'campaigns'
+    if (path === '/conversions') return 'conversions'
+    if (path === '/performance') return 'performance'
+    if (path === '/funnel') return 'funnel'
+    if (path === '/settings') return 'settings'
+    return 'dashboard'
+  }
+  
+  const currentSection = getCurrentSection()
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -117,6 +121,8 @@ const App: React.FC = () => {
     }
   }
 
+  const autoRefreshInterval = useRef<number | null>(null)
+
   // Limpar intervalo quando componente for desmontado
   React.useEffect(() => {
     return () => {
@@ -125,25 +131,6 @@ const App: React.FC = () => {
       }
     }
   }, [])
-
-  const renderSection = () => {
-    switch (currentSection) {
-      case 'dashboard':
-        return <Dashboard />
-      case 'campaigns':
-        return <Campaigns />
-      case 'conversions':
-        return <Conversions />
-      case 'performance':
-        return <Performance />
-      case 'funnel':
-        return <Funnel />
-      case 'settings':
-        return <Settings />
-      default:
-        return <Dashboard />
-    }
-  }
 
   // Definir o título da tela selecionada
   const sectionTitles: Record<string, string> = {
@@ -160,35 +147,11 @@ const App: React.FC = () => {
   const showRefresh = ['dashboard', 'campaigns', 'conversions', 'performance', 'funnel'].includes(currentSection)
   const showAuto = currentSection === 'dashboard'
 
-  // Se não for dashboard app, mostrar landing page
-  if (!isDashboardAppState) {
-    return <LandingPage />
-  }
-
-  // Se for dashboard app mas não estiver autenticado, mostrar login ou cadastro
-  if (!isAuthenticated) {
-    if (needsSignup) {
-      return (
-        <SignupForm
-          email={signupEmail}
-          planType={signupPlanType}
-          onSuccess={() => {
-            setNeedsSignup(false)
-            setSignupEmail('')
-            setSignupPlanType('')
-          }}
-        />
-      )
-    }
-    return <LoginForm />
-  }
-
-  // Dashboard app autenticado
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white">
       <Sidebar
         currentSection={currentSection}
-        onSectionChange={setCurrentSection}
+        onSectionChange={(section) => navigate(`/${section}`)}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={toggleMobileMenu}
         isSidebarCollapsed={isCollapsed}
@@ -225,7 +188,7 @@ const App: React.FC = () => {
                 disabled={isRefreshing}
                 className="inline-flex items-center px-4 py-2 rounded-xl border border-blue-500 text-blue-600 font-semibold hover:bg-blue-50 transition disabled:opacity-50"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`}`} />
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}
               </button>
             )}
@@ -253,11 +216,94 @@ const App: React.FC = () => {
             transition={{ duration: 0.3 }}
             className="h-full"
           >
-            {renderSection()}
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/conversions" element={<Conversions />} />
+              <Route path="/performance" element={<Performance />} />
+              <Route path="/funnel" element={<Funnel />} />
+              <Route path="/settings" element={<Settings />} />
+              {/* Redirecionar / para /dashboard */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </motion.div>
         </AnimatePresence>
       </main>
     </div>
+  )
+}
+
+const App: React.FC = () => {
+  const [isDashboardAppState, setIsDashboardAppState] = useState(false)
+  const [needsSignup, setNeedsSignup] = useState(false)
+  const [signupEmail, setSignupEmail] = useState('')
+  const [signupPlanType, setSignupPlanType] = useState('')
+  const location = useLocation()
+  
+  // Gerenciar título da página automaticamente
+  usePageTitle()
+
+  // Detectar se está na URL do dashboard ou landing page
+  useEffect(() => {
+    const isApp = isDashboardApp()
+    setIsDashboardAppState(isApp)
+    
+    console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
+    
+    // Verificar se há parâmetros de cadastro na URL
+    if (isApp) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const email = urlParams.get('email')
+      const planType = urlParams.get('plan')
+      
+      if (email && planType) {
+        setSignupEmail(email)
+        setSignupPlanType(planType)
+        setNeedsSignup(true)
+        console.log(`📝 Cadastro necessário para: ${email} - Plano: ${planType}`)
+      }
+    }
+  }, [])
+
+  // Se não for dashboard app, mostrar landing page
+  if (!isDashboardAppState) {
+    return <LandingPage />
+  }
+
+  return (
+    <Routes>
+      {/* Rotas públicas */}
+      <Route path="/login" element={<LoginForm />} />
+      <Route path="/signup" element={
+        needsSignup ? (
+          <SignupForm
+            email={signupEmail}
+            planType={signupPlanType}
+            onSuccess={() => {
+              setNeedsSignup(false)
+              setSignupEmail('')
+              setSignupPlanType('')
+            }}
+          />
+        ) : (
+          <Navigate to="/login" replace />
+        )
+      } />
+      
+      {/* Rota de setup */}
+      <Route path="/setup" element={
+        <ProtectedRoute>
+          <SetupRedirect />
+        </ProtectedRoute>
+      } />
+      
+      {/* Rotas protegidas do dashboard */}
+      <Route path="/*" element={
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      } />
+    </Routes>
   )
 }
 
