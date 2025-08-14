@@ -128,8 +128,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         className="fixed left-0 top-0 h-full bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl z-30 lg:relative"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          {!isSidebarCollapsed && (
+        <div className={`flex items-center justify-between p-6 border-b border-white/10 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+          {isSidebarCollapsed ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center justify-center"
+            >
+              <img 
+                src="/assets/icons/favicon.svg" 
+                alt="VMetrics" 
+                className="w-8 h-8"
+              />
+            </motion.div>
+          ) : (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -138,20 +151,19 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Logo />
             </motion.div>
           )}
-          <button
-            onClick={onToggleSidebar}
-            className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
-          >
-            {isSidebarCollapsed ? (
-                           <ChevronRight className="w-4 h-4 text-[#1f1f1f]" />
-           ) : (
-             <ChevronLeft className="w-4 h-4 text-[#1f1f1f]" />
-           )}
-          </button>
+          
+          {!isSidebarCollapsed && (
+            <button
+              onClick={onToggleSidebar}
+              className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 text-[#1f1f1f]" />
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-6 space-y-3">
+        <nav className={`flex-1 p-6 space-y-3 ${isSidebarCollapsed ? 'px-2' : ''}`}>
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = isActiveSection(item.path)
@@ -160,11 +172,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               <motion.button
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
-                                 className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 group ${
-                   isActive
-                     ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
-                     : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
-                 }`}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 group ${
+                  isActive
+                    ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                    : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
+                } ${isSidebarCollapsed ? 'justify-center' : ''}`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -176,10 +188,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                     transition={{ delay: 0.1 }}
                     className="flex-1 text-left"
                   >
-                                         <div className="font-medium text-[#1f1f1f]">{item.label}</div>
-                                     <div className={`text-xs ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
-                   {item.description}
-                 </div>
+                    <div className="font-medium text-[#1f1f1f]">{item.label}</div>
+                    <div className={`text-xs ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
+                      {item.description}
+                    </div>
                   </motion.div>
                 )}
               </motion.button>
@@ -188,14 +200,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Footer */}
-        <div className="p-6 border-t border-white/10">
-                    <button
+        <div className={`p-6 border-t border-white/10 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+          <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg"
+            className={`w-full flex items-center gap-4 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg ${
+              isSidebarCollapsed ? 'justify-center' : ''
+            }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-
             {!isSidebarCollapsed && (
               <motion.span
                 initial={{ opacity: 0 }}
@@ -208,6 +221,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             )}
           </button>
         </div>
+
+        {/* Toggle Button when collapsed */}
+        {isSidebarCollapsed && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+            <button
+              onClick={onToggleSidebar}
+              className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors shadow-md"
+            >
+              <ChevronRight className="w-4 h-4 text-[#1f1f1f]" />
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Mobile Menu */}
@@ -226,7 +251,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={onToggleMobileMenu}
               className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors"
             >
-                             <X className="w-6 h-6 text-[#1f1f1f]" />
+              <X className="w-6 h-6 text-[#1f1f1f]" />
             </button>
           </div>
 
@@ -249,9 +274,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                   <Icon className={`w-7 h-7 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
                   <div className="flex-1 text-left">
                     <div className="font-medium text-lg text-[#1f1f1f]">{item.label}</div>
-                                         <div className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
-                       {item.description}
-                     </div>
+                    <div className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
+                      {item.description}
+                    </div>
                   </div>
                 </button>
               )
@@ -260,11 +285,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Mobile Footer */}
           <div className="p-6 border-t border-white/10">
-                        <button
+            <button
               onClick={handleLogout}
               className="w-full flex items-center gap-4 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 shadow-md hover:shadow-lg"
             >
-
               <span className="font-medium text-lg text-white">Sair</span>
             </button>
           </div>
