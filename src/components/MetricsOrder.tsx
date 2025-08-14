@@ -101,7 +101,7 @@ const MetricsOrder: React.FC = () => {
               </Button>
               <Button
                 onClick={() => setIsOpen(false)}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"
+                className="px-6 py-2 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
               >
                 Salvar Ordem
               </Button>

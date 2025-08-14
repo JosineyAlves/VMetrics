@@ -76,3 +76,4 @@ export const usePageTitle = () => {
 }
 
 export default usePageTitle
+

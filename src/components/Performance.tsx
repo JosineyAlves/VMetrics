@@ -683,8 +683,8 @@ const Performance: React.FC = () => {
                  <p className="text-2xl font-bold text-gray-900">{performanceData.summary.totalConversions}</p>
                                    <p className="text-xs text-gray-500">Apenas conversões aprovadas</p>
                </div>
-               <div className="p-3 bg-blue-100 rounded-xl">
-                 <Users className="w-6 h-6 text-blue-600" />
+                       <div className="p-3 bg-[#3cd48f]/20 rounded-xl">
+          <Users className="w-6 h-6 text-[#3cd48f]" />
                </div>
              </div>
            </motion.div>
@@ -715,7 +715,7 @@ const Performance: React.FC = () => {
            onClick={() => setSelectedAnalysis('device')}
            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
              selectedAnalysis === 'device'
-               ? 'bg-blue-600 text-white shadow-lg'
+               ? 'bg-[#3cd48f] text-white shadow-lg'
                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
            }`}
          >
@@ -726,7 +726,7 @@ const Performance: React.FC = () => {
             onClick={() => setSelectedAnalysis('source')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'source'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -737,7 +737,7 @@ const Performance: React.FC = () => {
             onClick={() => setSelectedAnalysis('placement')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'placement'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -748,7 +748,7 @@ const Performance: React.FC = () => {
             onClick={() => setSelectedAnalysis('location')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'location'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -758,8 +758,8 @@ const Performance: React.FC = () => {
           <Button
             onClick={() => setSelectedAnalysis('browser')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              selectedAnalysis === 'browser'
-                ? 'bg-blue-600 text-white shadow-lg'
+              selectedAnalysis === 'location'
+                ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -770,7 +770,7 @@ const Performance: React.FC = () => {
             onClick={() => setSelectedAnalysis('os')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'os'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -781,7 +781,7 @@ const Performance: React.FC = () => {
             onClick={() => setSelectedAnalysis('hourly')}
             className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'hourly'
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
             }`}
           >
@@ -835,9 +835,9 @@ const Performance: React.FC = () => {
                      radius={[4, 4, 0, 0]}
                      fill={(entry) => {
                        if (selectedAnalysis === 'hourly') {
-                         return entry.revenue > 0 ? '#6366f1' : '#e5e7eb'
+                         return entry.revenue > 0 ? '#3cd48f' : '#e5e7eb'
                        }
-                       return '#6366f1'
+                       return '#3cd48f'
                      }}
                    />
                    <Legend />

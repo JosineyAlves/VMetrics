@@ -1,76 +1,109 @@
-// 🎨 Configuração centralizada de cores da aplicação
+// Arquivo centralizado de cores do VMetrics
+// Todas as cores devem ser referenciadas através deste arquivo
 
 export const COLORS = {
-  // Cor principal
-  PRIMARY: '#3cd48f',
+  // Cores principais
+  primary: '#3cd48f',
+  primaryLight: '#3cd48f/80',
+  primaryDark: '#3cd48f/90',
+  primaryVeryLight: '#3cd48f/10',
+  primaryVeryLightBorder: '#3cd48f/20',
   
-  // Variações da cor principal
-  PRIMARY_LIGHT: '#3cd48f/90',
-  PRIMARY_LIGHTER: '#3cd48f/80',
-  PRIMARY_LIGHTEST: '#3cd48f/70',
-  PRIMARY_DARK: '#3cd48f/90',
+  // Cores de texto
+  textPrimary: '#1f1f1f',
+  textSecondary: '#1f1f1f/70',
+  textTertiary: '#1f1f1f/60',
+  textWhite: '#ffffff',
+  textWhiteSecondary: '#ffffff/90',
   
-  // Cores de fundo com transparência
-  PRIMARY_BG: '#3cd48f/10',
-  PRIMARY_BORDER: '#3cd48f/20',
-  PRIMARY_TEXT: '#3cd48f/80',
+  // Cores de fundo
+  background: '#ffffff',
+  backgroundLight: '#f8fafc',
+  backgroundCard: '#ffffff/90',
+  backgroundCardHover: '#ffffff/95',
+  
+  // Cores de borda
+  border: '#e2e8f0',
+  borderLight: '#f1f5f9',
+  borderPrimary: '#3cd48f/20',
   
   // Cores de estado
-  SUCCESS: '#10b981',
-  WARNING: '#f59e0b',
-  ERROR: '#ef4444',
-  INFO: '#3b82f6',
+  success: '#3cd48f',
+  successLight: '#3cd48f/10',
+  warning: '#f59e0b',
+  warningLight: '#fef3c7',
+  error: '#ef4444',
+  errorLight: '#fef2f2',
   
-  // Cores neutras
-  WHITE: '#ffffff',
-  GRAY_50: '#f9fafb',
-  GRAY_100: '#f3f4f6',
-  GRAY_200: '#e5e7eb',
-  GRAY_300: '#d1d5db',
-  GRAY_400: '#9ca3af',
-  GRAY_500: '#6b7280',
-  GRAY_600: '#4b5563',
-  GRAY_700: '#374151',
-  GRAY_800: '#1f2937',
-  GRAY_900: '#111827',
+  // Cores de gráficos
+  chartPrimary: '#3cd48f',
+  chartSecondary: '#3cd48f/80',
+  chartTertiary: '#3cd48f/60',
   
-  // Gradientes
-  GRADIENT_PRIMARY: 'from-[#3cd48f] to-[#3cd48f]/80',
-  GRADIENT_PRIMARY_HOVER: 'from-[#3cd48f]/90 to-[#3cd48f]/70',
+  // Cores de hover e interação
+  hover: '#3cd48f/5',
+  hoverPrimary: '#3cd48f/10',
+  focus: '#3cd48f/40',
   
-  // Sombras
-  SHADOW_PRIMARY: 'shadow-[#3cd48f]/25',
-  SHADOW_PRIMARY_LG: 'shadow-lg shadow-[#3cd48f]/25',
+  // Cores de sombra
+  shadow: '#3cd48f/25',
+  shadowLight: '#3cd48f/10',
 } as const
 
-// Tipos para as cores
 export type ColorKey = keyof typeof COLORS
 export type ColorValue = typeof COLORS[ColorKey]
 
-// Funções utilitárias para cores
-export const getColor = (key: ColorKey): ColorValue => COLORS[key]
+// Função para obter cor com fallback
+export const getColor = (key: ColorKey, fallback?: string): string => {
+  return COLORS[key] || fallback || COLORS.primary
+}
 
-// Classes CSS comuns
+// Classes CSS utilitárias para cores
 export const COLOR_CLASSES = {
-  // Botões
-  BUTTON_PRIMARY: `bg-[${COLORS.PRIMARY}] hover:bg-[${COLORS.PRIMARY_LIGHT}] text-white`,
-  BUTTON_PRIMARY_GRADIENT: `bg-gradient-to-r ${COLORS.GRADIENT_PRIMARY} hover:${COLORS.GRADIENT_PRIMARY_HOVER} text-white`,
+  // Textos
+  textPrimary: 'text-[#1f1f1f]',
+  textSecondary: 'text-[#1f1f1f]/70',
+  textTertiary: 'text-[#1f1f1f]/60',
+  textWhite: 'text-white',
+  textWhiteSecondary: 'text-white/90',
+  
+  // Backgrounds
+  bgPrimary: 'bg-[#3cd48f]',
+  bgPrimaryLight: 'bg-[#3cd48f]/80',
+  bgPrimaryDark: 'bg-[#3cd48f]/90',
+  bgPrimaryVeryLight: 'bg-[#3cd48f]/10',
+  bgPrimaryHover: 'hover:bg-[#3cd48f]/90',
+  bgPrimaryLightHover: 'hover:bg-[#3cd48f]/5',
   
   // Bordas
-  BORDER_PRIMARY: `border-[${COLORS.PRIMARY}]`,
-  BORDER_PRIMARY_LIGHT: `border-[${COLORS.PRIMARY_BORDER}]`,
+  borderPrimary: 'border-[#3cd48f]',
+  borderPrimaryLight: 'border-[#3cd48f]/20',
+  borderPrimaryFocus: 'focus:border-[#3cd48f]',
   
-  // Textos
-  TEXT_PRIMARY: `text-[${COLORS.PRIMARY}]`,
-  TEXT_PRIMARY_HOVER: `hover:text-[${COLORS.PRIMARY_LIGHT}]`,
+  // Focus e Ring
+  focusRing: 'focus:ring-2 focus:ring-[#3cd48f] focus:ring-[#3cd48f]/40',
   
-  // Fundos
-  BG_PRIMARY: `bg-[${COLORS.PRIMARY}]`,
-  BG_PRIMARY_LIGHT: `bg-[${COLORS.PRIMARY_BG}]`,
+  // Gradientes
+  gradientPrimary: 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80',
+  gradientPrimaryHover: 'hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70',
   
   // Sombras
-  SHADOW_PRIMARY: COLORS.SHADOW_PRIMARY,
-  SHADOW_PRIMARY_LG: COLORS.SHADOW_PRIMARY_LG,
+  shadowPrimary: 'shadow-lg shadow-[#3cd48f]/25',
+  shadowPrimaryLight: 'shadow-[#3cd48f]/10',
+  
+  // Estados ativos
+  active: 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25',
+  activeText: 'text-white',
+  activeIcon: 'text-white',
+  
+  // Estados inativos
+  inactive: 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]',
+  inactiveIcon: 'text-[#1f1f1f]/60',
+  
+  // Hover states
+  hover: 'hover:bg-white/50 hover:text-[#1f1f1f]',
+  hoverPrimary: 'hover:bg-[#3cd48f]/10',
 } as const
 
 export default COLORS
+

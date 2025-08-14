@@ -52,3 +52,4 @@ const SetupRedirect: React.FC = () => {
 }
 
 export default SetupRedirect
+

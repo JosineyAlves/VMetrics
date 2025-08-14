@@ -38,9 +38,9 @@ const Logo: React.FC<LogoProps> = ({
   }
 
   const textClasses = {
-    default: 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent',
+    default: 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent',
     white: 'text-white',
-    gradient: 'bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'
+    gradient: 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent'
   }
 
   return (
@@ -56,7 +56,7 @@ const Logo: React.FC<LogoProps> = ({
           />
         ) : (
           // Fallback se a imagem falhar
-          <div className={`${iconSizes[size]} bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center`}>
+          <div className={`${iconSizes[size]} bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-lg flex items-center justify-center`}>
             <span className="text-white font-bold text-xs">VM</span>
           </div>
         )}

@@ -38,7 +38,7 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => 
         value: prelpViews,
         percentage: 100,
         icon: <Eye className="w-4 h-4" />,
-        color: 'bg-blue-500'
+        color: 'bg-[#3cd48f]'
       },
       {
         stage: 'LP',
@@ -52,7 +52,7 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => 
         value: offerViews,
         percentage: lpToOfferRate,
         icon: <ShoppingCart className="w-4 h-4" />,
-        color: 'bg-purple-500'
+        color: 'bg-[#3cd48f]/80'
       },
       {
         stage: 'Conversion',
@@ -128,7 +128,7 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => 
       </div>
 
       {/* Resumo do Funil */}
-      <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+              <div className="mt-4 p-3 bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-xl border border-[#3cd48f]/20">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="font-semibold text-gray-900 text-sm">Taxa de Conversão Total</h4>
@@ -137,7 +137,7 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => 
             </p>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-blue-600">
+            <div className="text-lg font-bold text-[#3cd48f]">
               {funnelData.length > 0 && funnelData[funnelData.length - 1].value > 0
                 ? ((funnelData[funnelData.length - 1].value / funnelData[0].value) * 100).toFixed(2)
                 : '0.00'}%
@@ -152,7 +152,7 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => 
       {/* Legenda */}
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-500">
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div className="w-2 h-2 bg-[#3cd48f] rounded-full"></div>
           <span className="text-xs">Pre-LP: Visualizações da pré-landing page</span>
         </div>
         <div className="flex items-center space-x-2">
@@ -160,7 +160,7 @@ const FunnelChart: React.FC<FunnelChartProps> = ({ data, campaignSelector }) => 
           <span className="text-xs">LP: Visualizações da landing page</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+          <div className="w-2 h-2 bg-[#3cd48f]/80 rounded-full"></div>
           <span className="text-xs">Offer: Visualizações da oferta</span>
         </div>
         <div className="flex items-center space-x-2">

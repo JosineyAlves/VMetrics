@@ -106,3 +106,4 @@ export const getRouteDescription = (path: string): string => {
 }
 
 export default ROUTES
+

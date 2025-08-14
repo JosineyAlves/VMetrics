@@ -174,8 +174,8 @@ const Funnel: React.FC = () => {
           value: campaign.clicks,
           percentage: 100,
           icon: <MousePointer className="w-4 h-4" />,
-          color: 'blue',
-          gradient: 'from-blue-500 to-blue-600',
+          color: '#3cd48f',
+          gradient: 'from-[#3cd48f] to-[#3cd48f]/80',
           description: 'Total de cliques recebidos',
           conversionRate: 100,
           dropoffRate: 0
@@ -330,8 +330,8 @@ const Funnel: React.FC = () => {
           value: campaign.clicks,
           percentage: 100,
           icon: <MousePointer className="w-4 h-4" />,
-          color: 'blue',
-          gradient: 'from-blue-500 to-blue-600',
+          color: '#3cd48f',
+          gradient: 'from-[#3cd48f] to-[#3cd48f]/80',
           description: 'Total de cliques recebidos',
           conversionRate: 100,
           dropoffRate: 0
@@ -490,7 +490,7 @@ const Funnel: React.FC = () => {
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
       <div className="relative w-full min-h-[800px] bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 overflow-visible">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#3cd48f]/15 to-[#3cd48f]/25"></div>
         
         <div className="relative z-10 flex flex-col items-center py-8">
           {/* Header do funil */}
@@ -564,7 +564,7 @@ const Funnel: React.FC = () => {
           <div className="mt-8 text-center w-full">
             <div className="inline-flex items-center space-x-6 bg-white rounded-xl p-4 shadow-lg">
               <div className="text-center">
-                <div className="text-xl font-bold text-blue-600">
+                <div className="text-xl font-bold text-[#3cd48f]">
                   {data.summary.totalClicks.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-600">Total Cliques</div>
@@ -578,7 +578,7 @@ const Funnel: React.FC = () => {
               </div>
               <div className="w-px h-6 bg-gray-300"></div>
               <div className="text-center">
-                <div className="text-xl font-bold text-purple-600">
+                <div className="text-xl font-bold text-[#3cd48f]">
                   {data.summary.totalConversionRate}
                 </div>
                 <div className="text-xs text-gray-600">Taxa Total</div>
@@ -647,14 +647,14 @@ const Funnel: React.FC = () => {
             📊 Comparação de Campanhas
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">
+                    <div className="text-center p-4 bg-[#3cd48f]/10 rounded-lg">
+          <h4 className="font-semibold text-[#1f1f1f] mb-2">
                 {funnelData?.campaign.name || 'Campanha 1'}
               </h4>
-              <div className="text-2xl font-bold text-blue-600">
+                             <div className="text-2xl font-bold text-[#3cd48f]">
                 {funnelData?.summary.totalConversionRate || '0%'}
               </div>
-              <div className="text-sm text-blue-600">
+                             <div className="text-sm text-[#3cd48f]">
                 Taxa de Conversão Total
               </div>
             </div>
@@ -677,7 +677,7 @@ const Funnel: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow-lg">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                             <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
               {funnelData?.campaign.name || 'Campanha 1'}
             </h3>
             {funnelData && <Funnel2DVisualization data={funnelData} />}
@@ -729,11 +729,11 @@ const Funnel: React.FC = () => {
               </div>
               
               <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600 mb-1">
+                <div className="text-2xl font-bold text-[#3cd48f] mb-1">
                   {funnelData.summary.roi.toFixed(2)}%
                 </div>
                 <div className="text-sm text-gray-600">ROI - Campanha 1</div>
-                <div className="text-2xl font-bold text-blue-600 mt-2">
+                <div className="text-2xl font-bold text-[#3cd48f] mt-2">
                   {funnelData2.summary.roi.toFixed(2)}%
                 </div>
                 <div className="text-sm text-gray-600">ROI - Campanha 2</div>
@@ -746,7 +746,7 @@ const Funnel: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <div className="min-h-screen bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10">
       <div className="container mx-auto px-4 py-8 pb-16">
                 {/* Header */}
         <div className="mb-6">
@@ -770,7 +770,7 @@ const Funnel: React.FC = () => {
                 <select
                   value={selectedCampaign}
                   onChange={(e) => handleCampaignSelect(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent"
                 >
                   <option value="">Selecione uma campanha</option>
                   {campaigns.map((campaign) => (
@@ -790,7 +790,7 @@ const Funnel: React.FC = () => {
                   <select
                     value={selectedCampaign2}
                     onChange={(e) => handleCampaign2Select(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent"
                   >
                     <option value="">Selecione uma campanha</option>
                     {campaigns.map((campaign) => (
@@ -810,7 +810,7 @@ const Funnel: React.FC = () => {
                 <select
                   value={viewMode}
                   onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent"
                 >
                   <option value="3d">Visualização 3D</option>
                   <option value="2d">Análise Detalhada</option>
@@ -840,7 +840,7 @@ const Funnel: React.FC = () => {
         {loading && (
           <div className="text-center py-12">
             <div className="inline-flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f]"></div>
               <span className="text-gray-600">{loadingMessage}</span>
             </div>
           </div>

@@ -100,7 +100,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
                   key={option.value}
                   onClick={() => handleOptionClick(option.value)}
                   className={`w-full flex items-center px-4 py-3 text-sm hover:bg-blue-50 transition-colors duration-200 ${
-                    value === option.value ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold' : 'text-gray-700 hover:text-blue-600'
+                    value === option.value ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white font-semibold' : 'text-gray-700 hover:text-[#3cd48f]'
                   }`}
                 >
                   {option.label}
@@ -143,7 +143,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
                     className={`w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                       (!localCustom.from || !localCustom.to)
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600'
+                        : 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70'
                     }`}
                     onClick={handleApplyCustom}
                     disabled={!localCustom.from || !localCustom.to}

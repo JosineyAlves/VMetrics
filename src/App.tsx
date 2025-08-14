@@ -209,8 +209,8 @@ const DashboardLayout: React.FC = () => {
                 onClick={handleAutoToggle}
                 className={`inline-flex items-center px-4 py-2 rounded-xl border font-semibold transition ${
                   isAutoEnabled 
-                    ? 'border-purple-500 text-purple-600 bg-purple-50' 
-                    : 'border-purple-500 text-purple-600 hover:bg-purple-50'
+                                    ? 'border-[#3cd48f] text-[#3cd48f] bg-[#3cd48f]/10'
+                : 'border-[#3cd48f] text-[#3cd48f] hover:bg-[#3cd48f]/10'
                 }`}
               >
                 {isAutoEnabled ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}

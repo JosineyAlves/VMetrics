@@ -90,16 +90,16 @@ const LandingPage: React.FC = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-lg flex items-center justify-center">
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 VMetrics
               </span>
             </div>
@@ -112,7 +112,7 @@ const LandingPage: React.FC = () => {
               </a>
               <a
                 href="#pricing"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
               >
                 Começar Agora
               </a>
@@ -131,7 +131,7 @@ const LandingPage: React.FC = () => {
           >
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
               Transforme seus{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 dados em resultados
               </span>
             </h1>
@@ -142,7 +142,7 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#pricing"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
+                className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
               >
                 Começar Gratuitamente
                 <ArrowRight className="w-5 h-5 ml-2 inline" />
@@ -180,8 +180,8 @@ const LandingPage: React.FC = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="text-center p-6 rounded-xl hover:shadow-lg transition-all duration-200"
               >
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <div className="text-blue-600">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#3cd48f]/20 to-[#3cd48f]/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="text-[#3cd48f]">
                     {feature.icon}
                   </div>
                 </div>
@@ -218,11 +218,11 @@ const LandingPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className={`bg-white rounded-2xl shadow-lg p-8 ${
-                  planType === 'pro' ? 'ring-2 ring-purple-500 scale-105' : ''
+                  planType === 'pro' ? 'ring-2 ring-[#3cd48f] scale-105' : ''
                 }`}
               >
                 {planType === 'pro' && (
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
+                  <div className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
                     Mais Popular
                   </div>
                 )}
@@ -251,7 +251,7 @@ const LandingPage: React.FC = () => {
                   disabled={isLoading}
                   className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
                     planType === 'pro'
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:scale-105'
+                      ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white hover:shadow-lg hover:scale-105'
                       : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
@@ -308,26 +308,26 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
             Pronto para transformar seus dados?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-white/90 mb-8">
             Junte-se a centenas de empresas que já estão usando VMetrics 
             para impulsionar seus resultados de marketing.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#pricing"
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
+                              className="bg-white text-[#3cd48f] px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               Começar Gratuitamente
               <ArrowRight className="w-5 h-5 ml-2 inline" />
             </a>
             <a
               href={APP_URLS.DASHBOARD_APP}
-              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+                              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-[#3cd48f] transition-colors"
             >
               Acessar Dashboard
             </a>
@@ -341,7 +341,7 @@ const LandingPage: React.FC = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-lg flex items-center justify-center">
                   <BarChart3 className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">VMetrics</span>
