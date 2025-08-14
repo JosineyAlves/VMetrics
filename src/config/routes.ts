@@ -8,6 +8,7 @@ export const ROUTES = {
   
   // Rotas de setup
   SETUP: '/setup',
+  API_SETUP: '/api-setup',
   
   // Rotas do dashboard
   DASHBOARD: '/dashboard',
@@ -34,6 +35,7 @@ export type RoutePath = typeof ROUTES[RouteKey]
 // Configuração das rotas protegidas
 export const PROTECTED_ROUTES: RoutePath[] = [
   ROUTES.SETUP,
+  ROUTES.API_SETUP,
   ROUTES.DASHBOARD,
   ROUTES.CAMPAIGNS,
   ROUTES.CONVERSIONS,
@@ -66,6 +68,7 @@ export const getRouteTitle = (path: string): string => {
     [ROUTES.LOGIN]: 'Login - TrackView',
     [ROUTES.SIGNUP]: 'Criar Conta - TrackView',
     [ROUTES.SETUP]: 'Configuração - TrackView',
+    [ROUTES.API_SETUP]: 'Configurar API Key - TrackView',
     [ROUTES.DASHBOARD]: 'Dashboard - TrackView',
     [ROUTES.CAMPAIGNS]: 'Campanhas - TrackView',
     [ROUTES.CONVERSIONS]: 'Conversões - TrackView',
@@ -89,6 +92,7 @@ export const getRouteDescription = (path: string): string => {
     [ROUTES.LOGIN]: 'Acesse sua conta TrackView',
     [ROUTES.SIGNUP]: 'Crie sua conta TrackView e comece a analisar suas campanhas',
     [ROUTES.SETUP]: 'Configure sua conta e API Key para começar',
+    [ROUTES.API_SETUP]: 'Configure sua API Key do RedTrack para conectar suas campanhas',
     [ROUTES.DASHBOARD]: 'Visão geral e KPIs das suas campanhas',
     [ROUTES.CAMPAIGNS]: 'Análise detalhada de campanhas e performance',
     [ROUTES.CONVERSIONS]: 'Log completo de conversões e eventos',

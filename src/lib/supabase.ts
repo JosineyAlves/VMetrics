@@ -38,6 +38,7 @@ export interface Database {
           updated_at: string
           stripe_customer_id: string | null
           is_active: boolean
+          redtrack_api_key: string | null
         }
         Insert: {
           id?: string
@@ -47,6 +48,7 @@ export interface Database {
           updated_at?: string
           stripe_customer_id?: string | null
           is_active?: boolean
+          redtrack_api_key?: string | null
         }
         Update: {
           id?: string
@@ -56,6 +58,7 @@ export interface Database {
           updated_at?: string
           stripe_customer_id?: string | null
           is_active?: boolean
+          redtrack_api_key?: string | null
         }
       }
       user_plans: {

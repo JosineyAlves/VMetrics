@@ -87,8 +87,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       
       if (isValid) {
         setAuthApiKey(apiKey.trim())
-        // Redirecionar para o dashboard após sucesso
-        navigate('/dashboard', { replace: true })
+        // Redirecionar para o setup da API Key após sucesso
+        navigate('/api-setup', { replace: true })
         if (onSuccess) {
           onSuccess()
         }

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
 import SetupRedirect from "./components/SetupRedirect"
+import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -294,6 +295,13 @@ const App: React.FC = () => {
       <Route path="/setup" element={
         <ProtectedRoute>
           <SetupRedirect />
+        </ProtectedRoute>
+      } />
+      
+      {/* Rota de configuração da API Key */}
+      <Route path="/api-setup" element={
+        <ProtectedRoute>
+          <ApiKeySetup />
         </ProtectedRoute>
       } />
       
