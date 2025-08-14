@@ -925,7 +925,7 @@ const Dashboard: React.FC = () => {
               <select 
                 value={tempFilters.traffic_channel}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, traffic_channel: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f] focus:border-[#3cd48f] shadow-sm"
               >
                 {trafficChannelOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -943,7 +943,7 @@ const Dashboard: React.FC = () => {
                 placeholder="Ex: BR, US"
                 value={tempFilters.country}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, country: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-sm"
+                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f] shadow-sm"
               />
             </div>
           </div>
@@ -951,7 +951,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mt-6">
             <Button
               onClick={handleApplyFilters}
-              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600"
+                              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               Aplicar Filtros
             </Button>
@@ -984,7 +984,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
-                  <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent mb-2">
                     {metric.value}
                   </p>
                   <p className="text-xs text-gray-500 line-clamp-2">{metric.description}</p>
@@ -1002,30 +1002,30 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white/90 backdrop-blur-lg rounded-3xl p-10 shadow-2xl border border-blue-100 hover:shadow-3xl transition-all duration-500"
+                         className="bg-white/90 backdrop-blur-lg rounded-3xl p-10 shadow-2xl border border-[#3cd48f]/20 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div className="flex gap-3">
               <button
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'conversions' ? 'bg-blue-600 text-white border-blue-600 scale-105' : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'} hover:shadow-xl`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'conversions' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-xl`}
                 onClick={() => setChartMode('conversions')}
               >
                 <BarChart2 className="w-5 h-5" /> Conversões por Dia
               </button>
               <button
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'cross' ? 'bg-purple-600 text-white border-purple-600 scale-105' : 'bg-white text-purple-700 border-purple-200 hover:bg-purple-50'} hover:shadow-xl`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'cross' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-xl`}
                 onClick={() => setChartMode('cross')}
               >
                 <Shuffle className="w-5 h-5" /> Cruzamento Diário
               </button>
             </div>
             {chartMode === 'cross' && (
-              <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2 shadow-sm">
-                <TrendingUp className="w-4 h-4 text-purple-600" />
+              <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
+                <TrendingUp className="w-4 h-4 text-[#3cd48f]" />
                 <select
                   value={crossMetric}
                   onChange={e => setCrossMetric(e.target.value)}
-                  className="rounded-xl border-0 bg-transparent text-base font-semibold text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  className="rounded-xl border-0 bg-transparent text-base font-semibold text-[#3cd48f] focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40"
                 >
                   {metricOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1039,10 +1039,10 @@ const Dashboard: React.FC = () => {
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                 <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#6366f1' }} />
-                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#6366f1' }} allowDecimals={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
+                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
                   <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
-                  <Bar dataKey="conversions" name="Conversões" fill="#6366f1" radius={[12, 12, 0, 0]} />
+                  <Bar dataKey="conversions" name="Conversões" fill="#3cd48f" radius={[12, 12, 0, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle"/>
                 </BarChart>
             </ResponsiveContainer>
@@ -1060,11 +1060,11 @@ const Dashboard: React.FC = () => {
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#a21caf' }} />
-                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#a21caf' }} allowDecimals={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
+                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
                   <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
-                  <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#6366f1" radius={[12, 12, 0, 0]} />
-                  <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#a21caf" radius={[12, 12, 0, 0]} />
+                  <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#3cd48f" radius={[12, 12, 0, 0]} />
+                  <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#3cd48f/80" radius={[12, 12, 0, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle"/>
                 </BarChart>
               </ResponsiveContainer>
@@ -1089,7 +1089,7 @@ const Dashboard: React.FC = () => {
               <select
                 value={selectedCampaign}
                 onChange={e => setSelectedCampaign(e.target.value)}
-                className="rounded-xl border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-xl border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3cd48f]"
               >
                 <option value="all">Todas</option>
                 {campaigns.map(c => (
@@ -1124,7 +1124,7 @@ const Dashboard: React.FC = () => {
                   <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
                   <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
                   <Tooltip formatter={(v: any) => `Custo: ${formatCurrency(v)}`} />
-                  <Bar dataKey="cost" name="Investimento" fill="#6366f1" radius={[0, 12, 12, 0]} />
+                  <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
                 </BarChart>
               </ResponsiveContainer>
@@ -1143,30 +1143,30 @@ const Dashboard: React.FC = () => {
         >
           <h3 className="text-lg font-semibold text-gray-800 mb-6">Métricas de Conversão</h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
               <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-[#3cd48f] rounded-full"></div>
                 <span className="font-medium">Taxa de Conversão</span>
               </div>
-              <span className="text-xl font-bold text-blue-600">
+              <span className="text-xl font-bold text-[#3cd48f]">
                 {dashboardData.conversion_rate ? `${dashboardData.conversion_rate.toFixed(2)}%` : '0.00%'}
               </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
               <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-[#3cd48f] rounded-full"></div>
                 <span className="font-medium">CTR</span>
               </div>
-              <span className="text-xl font-bold text-green-600">
+              <span className="text-xl font-bold text-[#3cd48f]">
                 {dashboardData.ctr ? `${dashboardData.ctr.toFixed(2)}%` : '0.00%'}
               </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
               <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-[#3cd48f] rounded-full"></div>
                 <span className="font-medium">ROI</span>
               </div>
-              <span className="text-xl font-bold text-purple-600">
+              <span className="text-xl font-bold text-[#3cd48f]">
                 {dashboardData.roi ? `${dashboardData.roi.toFixed(2)}%` : '0.00%'}
               </span>
             </div>

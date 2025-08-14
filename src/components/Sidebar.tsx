@@ -162,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => handleSectionChange(item.id)}
                                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group ${
                    isActive
-                     ? 'bg-[#6366f1] text-white shadow-lg shadow-[#6366f1]/25'
+                     ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
                      : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                  }`}
                 whileHover={{ scale: 1.02 }}
@@ -176,7 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     transition={{ delay: 0.1 }}
                     className="flex-1 text-left"
                   >
-                                         <div className="font-bold text-[#1f1f1f]">{item.label}</div>
+                                         <div className="font-medium text-[#1f1f1f]">{item.label}</div>
                                      <div className={`text-xs ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
                    {item.description}
                  </div>
@@ -242,13 +242,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => handleSectionChange(item.id)}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#6366f1] text-white shadow-lg shadow-[#6366f1]/25'
+                      ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
                       : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                   }`}
                 >
                   <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-lg text-[#1f1f1f]">{item.label}</div>
+                    <div className="font-medium text-lg text-[#1f1f1f]">{item.label}</div>
                                          <div className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
                        {item.description}
                      </div>

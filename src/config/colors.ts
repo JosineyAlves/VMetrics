@@ -1,20 +1,19 @@
 // 🎨 Configuração centralizada de cores da aplicação
 
 export const COLORS = {
-  // Cores principais da VMetrics (baseadas no site oficial)
-  PRIMARY: '#6366f1', // Indigo principal da VMetrics
-  PRIMARY_LIGHT: '#818cf8',
-  PRIMARY_LIGHTER: '#a5b4fc',
-  PRIMARY_LIGHTEST: '#c7d2fe',
-  PRIMARY_DARK: '#4f46e5',
-  PRIMARY_BG: '#f1f5f9',
-  PRIMARY_BORDER: '#e2e8f0',
-  PRIMARY_TEXT: '#1e293b',
+  // Cor principal
+  PRIMARY: '#3cd48f',
   
-  // Cores secundárias
-  SECONDARY: '#8b5cf6', // Violeta
-  SECONDARY_LIGHT: '#a78bfa',
-  SECONDARY_DARK: '#7c3aed',
+  // Variações da cor principal
+  PRIMARY_LIGHT: '#3cd48f/90',
+  PRIMARY_LIGHTER: '#3cd48f/80',
+  PRIMARY_LIGHTEST: '#3cd48f/70',
+  PRIMARY_DARK: '#3cd48f/90',
+  
+  // Cores de fundo com transparência
+  PRIMARY_BG: '#3cd48f/10',
+  PRIMARY_BORDER: '#3cd48f/20',
+  PRIMARY_TEXT: '#3cd48f/80',
   
   // Cores de estado
   SUCCESS: '#10b981',
@@ -24,32 +23,24 @@ export const COLORS = {
   
   // Cores neutras
   WHITE: '#ffffff',
-  GRAY_50: '#f8fafc',
-  GRAY_100: '#f1f5f9',
-  GRAY_200: '#e2e8f0',
-  GRAY_300: '#cbd5e1',
-  GRAY_400: '#94a3b8',
-  GRAY_500: '#64748b',
-  GRAY_600: '#475569',
-  GRAY_700: '#334155',
-  GRAY_800: '#1e293b',
-  GRAY_900: '#0f172a',
-  
-  // Cores específicas da VMetrics
-  VMETRICS_BLUE: '#1e40af',
-  VMETRICS_INDIGO: '#6366f1',
-  VMETRICS_PURPLE: '#8b5cf6',
-  VMETRICS_GRADIENT: 'from-indigo-600 via-purple-600 to-blue-600',
+  GRAY_50: '#f9fafb',
+  GRAY_100: '#f3f4f6',
+  GRAY_200: '#e5e7eb',
+  GRAY_300: '#d1d5db',
+  GRAY_400: '#9ca3af',
+  GRAY_500: '#6b7280',
+  GRAY_600: '#4b5563',
+  GRAY_700: '#374151',
+  GRAY_800: '#1f2937',
+  GRAY_900: '#111827',
   
   // Gradientes
-  GRADIENT_PRIMARY: 'from-[#6366f1] to-[#8b5cf6]',
-  GRADIENT_PRIMARY_HOVER: 'from-[#4f46e5] to-[#7c3aed]',
-  GRADIENT_SECONDARY: 'from-[#8b5cf6] to-[#6366f1]',
+  GRADIENT_PRIMARY: 'from-[#3cd48f] to-[#3cd48f]/80',
+  GRADIENT_PRIMARY_HOVER: 'from-[#3cd48f]/90 to-[#3cd48f]/70',
   
   // Sombras
-  SHADOW_PRIMARY: 'shadow-[#6366f1]/25',
-  SHADOW_PRIMARY_LG: 'shadow-lg shadow-[#6366f1]/25',
-  SHADOW_SECONDARY: 'shadow-[#8b5cf6]/25',
+  SHADOW_PRIMARY: 'shadow-[#3cd48f]/25',
+  SHADOW_PRIMARY_LG: 'shadow-lg shadow-[#3cd48f]/25',
 } as const
 
 // Tipos para as cores
@@ -61,27 +52,25 @@ export const getColor = (key: ColorKey): ColorValue => COLORS[key]
 
 // Classes CSS comuns
 export const COLOR_CLASSES = {
-  BUTTON_PRIMARY: `bg-[${COLORS.PRIMARY}] hover:bg-[${COLORS.PRIMARY_DARK}] text-white`,
+  // Botões
+  BUTTON_PRIMARY: `bg-[${COLORS.PRIMARY}] hover:bg-[${COLORS.PRIMARY_LIGHT}] text-white`,
   BUTTON_PRIMARY_GRADIENT: `bg-gradient-to-r ${COLORS.GRADIENT_PRIMARY} hover:${COLORS.GRADIENT_PRIMARY_HOVER} text-white`,
-  BUTTON_SECONDARY: `bg-[${COLORS.SECONDARY}] hover:bg-[${COLORS.SECONDARY_DARK}] text-white`,
-  BUTTON_SECONDARY_GRADIENT: `bg-gradient-to-r ${COLORS.GRADIENT_SECONDARY} hover:${COLORS.GRADIENT_SECONDARY} text-white`,
   
+  // Bordas
   BORDER_PRIMARY: `border-[${COLORS.PRIMARY}]`,
   BORDER_PRIMARY_LIGHT: `border-[${COLORS.PRIMARY_BORDER}]`,
-  BORDER_SECONDARY: `border-[${COLORS.SECONDARY}]`,
   
+  // Textos
   TEXT_PRIMARY: `text-[${COLORS.PRIMARY}]`,
-  TEXT_PRIMARY_HOVER: `hover:text-[${COLORS.PRIMARY_DARK}]`,
-  TEXT_SECONDARY: `text-[${COLORS.SECONDARY}]`,
-  TEXT_SECONDARY_HOVER: `hover:text-[${COLORS.SECONDARY_DARK}]`,
+  TEXT_PRIMARY_HOVER: `hover:text-[${COLORS.PRIMARY_LIGHT}]`,
   
+  // Fundos
   BG_PRIMARY: `bg-[${COLORS.PRIMARY}]`,
   BG_PRIMARY_LIGHT: `bg-[${COLORS.PRIMARY_BG}]`,
-  BG_SECONDARY: `bg-[${COLORS.SECONDARY}]`,
   
+  // Sombras
   SHADOW_PRIMARY: COLORS.SHADOW_PRIMARY,
   SHADOW_PRIMARY_LG: COLORS.SHADOW_PRIMARY_LG,
-  SHADOW_SECONDARY: COLORS.SHADOW_SECONDARY,
 } as const
 
 export default COLORS
