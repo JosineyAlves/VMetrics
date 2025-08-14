@@ -147,8 +147,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
+              className="w-full"
             >
-              <Logo />
+              <Logo size="lg" showText={true} className="w-full" />
             </motion.div>
           )}
           
@@ -174,13 +175,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => handleSectionChange(item.id)}
                 className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 group ${
                   isActive
-                    ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                    ? 'bg-[#3cd48f] shadow-lg shadow-[#3cd48f]/25'
                     : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                 } ${isSidebarCollapsed ? 'justify-center' : ''}`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]'}`} />
+                <Icon className="w-6 h-6 text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]" />
                 {!isSidebarCollapsed && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -189,7 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     className="flex-1 text-left"
                   >
                     <div className="font-medium text-[#1f1f1f]">{item.label}</div>
-                    <div className={`text-xs ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
+                    <div className="text-xs text-gray-400">
                       {item.description}
                     </div>
                   </motion.div>
@@ -209,16 +210,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {!isSidebarCollapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="font-medium text-white"
-              >
-                Sair
-              </motion.span>
-            )}
+            <div className="flex items-center justify-center w-full">
+              {isSidebarCollapsed ? (
+                <span className="text-white font-medium">S</span>
+              ) : (
+                <span className="text-white font-medium">Sair</span>
+              )}
+            </div>
           </button>
         </div>
 
