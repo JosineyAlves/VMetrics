@@ -1,6 +1,6 @@
 import { STRIPE_PRODUCTS } from '../config/stripe'
 import { supabase, supabaseAdmin } from '../lib/supabase'
-import type { User, UserPlan as DBUserPlan } from '../lib/supabase'
+import type { User, UserPlan as DBUserPlan } from '../types/database'
 
 export interface UserPlan {
   id: string
