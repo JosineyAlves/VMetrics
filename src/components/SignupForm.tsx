@@ -280,7 +280,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
 
              <Button
          onClick={handleNextStep}
-         className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-3 text-lg font-semibold"
+         className="w-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] hover:from-[#4f46e5] hover:to-[#7c3aed] text-white py-3 text-lg font-semibold"
        >
         Continuar
         <ArrowRight className="w-5 h-5 ml-2" />
@@ -384,7 +384,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
                  <Button
            onClick={handleFinishSignup}
            disabled={!apiKey.trim() || isApiKeyLoading}
-           className="flex-1 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white"
+           className="flex-1 bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] hover:from-[#4f46e5] hover:to-[#7c3aed] text-white"
          >
           {isApiKeyLoading ? (
             <>
@@ -404,7 +404,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         <p>Já tem uma conta? </p>
                  <a 
            href={APP_URLS.DASHBOARD_APP} 
-           className="text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
+           className="text-[#6366f1] hover:text-[#6366f1]/80 underline"
          >
            Fazer login
          </a>
@@ -413,22 +413,22 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
   )
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#6366f1]/5 via-white to-[#8b5cf6]/10 py-12 px-4">
       <div className="w-full max-w-2xl">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Progress Steps */}
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center space-x-4">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                step >= 1 ? 'bg-[#6366f1] text-white' : 'bg-gray-200 text-gray-500'
               }`}>
                 1
               </div>
               <div className={`w-16 h-1 ${
-                step >= 2 ? 'bg-blue-600' : 'bg-gray-200'
+                step >= 2 ? 'bg-[#6366f1]' : 'bg-gray-200'
               }`}></div>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                step >= 2 ? 'bg-[#6366f1] text-white' : 'bg-gray-200 text-gray-500'
               }`}>
                 2
               </div>

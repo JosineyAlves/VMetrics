@@ -63,12 +63,12 @@ const LoginForm: React.FC = () => {
              </p>
             <div className="mt-4 text-sm text-slate-500">
               <p>Novo por aqui? </p>
-              <button 
-                onClick={handleSignupClick}
-                className="text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
-              >
-                Criar conta
-              </button>
+                       <button 
+           onClick={handleSignupClick}
+           className="text-[#6366f1] hover:text-[#6366f1]/80 underline"
+         >
+           Criar conta
+         </button>
             </div>
           </div>
 
@@ -116,7 +116,7 @@ const LoginForm: React.FC = () => {
 
                           <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-3 text-lg font-semibold"
+                className="w-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] hover:from-[#4f46e5] hover:to-[#7c3aed] text-white py-3 text-lg font-semibold"
                 disabled={isLoading}
               >
               {isLoading ? (

@@ -67,7 +67,7 @@ const ApiKeySetup: React.FC = () => {
   }
 
   return (
-         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10 py-12 px-4">
+         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#6366f1]/5 via-white to-[#8b5cf6]/10 py-12 px-4">
       <div className="w-full max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -91,21 +91,21 @@ const ApiKeySetup: React.FC = () => {
            <div className="mb-8">
              <div className="flex items-center justify-center space-x-8 mb-6">
                <div className="flex items-center space-x-3">
-                 <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
-                   1
-                 </div>
+                        <div className="w-8 h-8 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-sm font-semibold">
+         1
+       </div>
                  <span className="text-sm font-medium text-[#1f1f1f]">Obter API Key</span>
                </div>
-               <div className="w-16 h-1 bg-[#3cd48f]"></div>
+               <div className="w-16 h-1 bg-[#6366f1]"></div>
                <div className="flex items-center space-x-3">
-                 <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
+                 <div className="w-8 h-8 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-sm font-semibold">
                    2
                  </div>
                  <span className="text-sm font-medium text-[#1f1f1f]">Configurar</span>
                </div>
-               <div className="w-16 h-1 bg-[#3cd48f]"></div>
+               <div className="w-16 h-1 bg-[#6366f1]"></div>
                <div className="flex items-center space-x-3">
-                 <div className="w-8 h-8 rounded-full bg-[#3cd48f] text-white flex items-center justify-center text-sm font-semibold">
+                 <div className="w-8 h-8 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-sm font-semibold">
                    3
                  </div>
                  <span className="text-sm font-medium text-[#1f1f1f]">Começar</span>
@@ -114,9 +114,9 @@ const ApiKeySetup: React.FC = () => {
            </div>
 
                      {/* Instructions */}
-           <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-6 mb-8">
+           <div className="bg-[#6366f1]/10 border border-[#6366f1]/20 rounded-lg p-6 mb-8">
              <div className="flex items-start space-x-4">
-               <Info className="w-6 h-6 text-[#3cd48f] mt-1 flex-shrink-0" />
+               <Info className="w-6 h-6 text-[#6366f1] mt-1 flex-shrink-0" />
                <div>
                  <h3 className="font-semibold text-[#1f1f1f] mb-3 text-lg">
                    Como obter sua API Key do RedTrack
@@ -124,7 +124,7 @@ const ApiKeySetup: React.FC = () => {
                  <ol className="text-[#1f1f1f]/80 space-y-2 text-sm">
                   <li className="flex items-start">
                     <span className="font-medium mr-2">1.</span>
-                                         Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
+                                         Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#6366f1]">redtrack.io</a>
                   </li>
                   <li className="flex items-start">
                     <span className="font-medium mr-2">2.</span>
@@ -190,7 +190,7 @@ const ApiKeySetup: React.FC = () => {
                          <Button
                onClick={handleTestApiKey}
                disabled={!apiKey.trim() || isValidating}
-               className="flex-1 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white py-3 text-lg font-semibold"
+               className="flex-1 bg-[#6366f1] hover:bg-[#6366f1]/90 text-white py-3 text-lg font-semibold"
              >
               {isValidating ? (
                 <>
@@ -208,7 +208,7 @@ const ApiKeySetup: React.FC = () => {
             {validationResult === 'success' && (
                              <Button
                  onClick={handleContinue}
-                 className="flex-1 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white py-3 text-lg font-semibold"
+                 className="flex-1 bg-[#6366f1] hover:bg-[#6366f1]/90 text-white py-3 text-lg font-semibold"
                >
                 Continuar para Dashboard
                 <ArrowRight className="w-5 h-5 ml-2" />
