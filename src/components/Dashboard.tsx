@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Calculator,
   BarChart2,
-  Shuffle
+  Shuffle,
+  Info
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from 'recharts'
 import { Button } from './ui/button'
@@ -978,16 +979,24 @@ const Dashboard: React.FC = () => {
             key={metric.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+            transition={{ duration: 0.3 }}
+            className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
           >
-              <div className="flex items-center justify-between mb-4">
+            <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-600 mb-2 truncate">{metric.label}</p>
-                  <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent mb-2">
-                    {metric.value}
-                  </p>
-                  <p className="text-xs text-gray-500 line-clamp-2">{metric.description}</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-sm font-semibold text-gray-600 truncate">{metric.label}</p>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-gray-400 hover:text-[#3cd48f] cursor-help transition-colors" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      {metric.description}
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
+                  {metric.value}
+                </p>
               </div>
             </div>
           </motion.div>
