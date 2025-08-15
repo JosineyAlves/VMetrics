@@ -133,7 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between p-3 border-b border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
           {isSidebarCollapsed ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -170,7 +170,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation - Scrollable */}
         <nav 
-          className={`flex-1 overflow-y-auto p-3 space-y-1.5 ${isSidebarCollapsed ? 'px-1.5' : ''}`}
+          className={`flex-1 overflow-y-auto p-4 space-y-2 ${isSidebarCollapsed ? 'px-2' : ''}`}
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: '#3cd48f #f3f4f6'
@@ -184,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <motion.button
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
-                className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all duration-200 group ${
+                className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group ${
                   isActive
                     ? 'bg-[#3cd48f] shadow-lg shadow-[#3cd48f]/25'
                     : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
@@ -209,10 +209,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Footer - Fixed at bottom */}
-        <div className={`p-3 border-t border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'px-1.5' : ''}`}>
+        <div className={`p-4 border-t border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'px-2' : ''}`}>
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-3 p-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg ${
+            className={`w-full flex items-center gap-4 p-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg ${
               isSidebarCollapsed ? 'justify-center' : ''
             }`}
             whileHover={{ scale: 1.02 }}
@@ -230,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Toggle Button when collapsed */}
         {isSidebarCollapsed && (
-          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2">
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
             <button
               onClick={onToggleSidebar}
               className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors shadow-md"

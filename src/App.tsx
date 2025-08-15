@@ -142,12 +142,12 @@ const DashboardLayout: React.FC = () => {
         isSidebarCollapsed={isCollapsed}
         onToggleSidebar={toggle}
       />
-              <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-14' : ''}`}>
+      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''}`}>
         {/* Barra global fixa */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-6 pt-4 pb-2 bg-white/80 sticky top-0 z-20">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white/80 sticky top-0 z-20">
           {/* Título da tela à esquerda */}
           <div className="flex items-center gap-3">
-                         <div className="text-xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
+                         <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
             {lastUpdateTime && (
               <div className="text-sm text-gray-500">
                 Atualizado {getTimeSinceLastUpdate()}
@@ -171,7 +171,7 @@ const DashboardLayout: React.FC = () => {
               <button 
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
+                className="inline-flex items-center px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
               >
                                   <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}
