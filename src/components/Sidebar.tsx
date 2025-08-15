@@ -126,10 +126,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           width: isSidebarCollapsed ? 80 : 300,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed left-0 top-0 h-full bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl z-30 lg:relative"
+        className="fixed left-0 top-0 h-full bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl z-30 lg:relative flex flex-col"
+        style={{
+          maxHeight: '100vh',
+          overflow: 'hidden'
+        }}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between p-6 border-b border-white/10 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'justify-center' : ''}`}>
           {isSidebarCollapsed ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -164,8 +168,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Navigation */}
-        <nav className={`flex-1 p-6 space-y-3 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+        {/* Navigation - Scrollable */}
+        <nav 
+          className={`flex-1 overflow-y-auto p-4 space-y-2 ${isSidebarCollapsed ? 'px-2' : ''}`}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#3cd48f #f3f4f6'
+          }}
+        >
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = isActiveSection(item.path)
@@ -174,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <motion.button
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 group ${
+                className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group ${
                   isActive
                     ? 'bg-[#3cd48f] shadow-lg shadow-[#3cd48f]/25'
                     : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
@@ -182,7 +192,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Icon className="w-6 h-6 text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]" />
+                <Icon className="w-5 h-5 text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]" />
                 {!isSidebarCollapsed && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -198,11 +208,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Footer */}
-        <div className={`p-6 border-t border-white/10 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+        {/* Footer - Fixed at bottom */}
+        <div className={`p-4 border-t border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'px-2' : ''}`}>
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg ${
+            className={`w-full flex items-center gap-4 p-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg ${
               isSidebarCollapsed ? 'justify-center' : ''
             }`}
             whileHover={{ scale: 1.02 }}
@@ -229,6 +239,24 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
         )}
+
+        {/* Custom scrollbar styles for webkit browsers */}
+        <style jsx>{`
+          nav::-webkit-scrollbar {
+            width: 6px;
+          }
+          nav::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 3px;
+          }
+          nav::-webkit-scrollbar-thumb {
+            background: #3cd48f;
+            border-radius: 3px;
+          }
+          nav::-webkit-scrollbar-thumb:hover {
+            background: #2bb875;
+          }
+        `}</style>
       </motion.div>
 
       {/* Mobile Menu */}
