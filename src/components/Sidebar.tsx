@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   BarChart3,
-  TrendingDown
+  TrendingDown,
+  LogOut
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
 import Logo from './ui/Logo'
@@ -209,7 +210,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center justify-center w-full">
               {isSidebarCollapsed ? (
-                <span className="text-white font-medium">S</span>
+                <LogOut className="w-5 h-5 text-white" />
               ) : (
                 <span className="text-white font-medium">Sair</span>
               )}
