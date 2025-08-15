@@ -126,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           width: isSidebarCollapsed ? 70 : 240,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed left-0 top-0 h-full bg-white/90 backdrop-blur-xl border-r border-white/20 shadow-2xl z-30 lg:relative flex flex-col"
+        className="fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-2xl z-30 lg:relative flex flex-col"
         style={{
           maxHeight: '100vh',
           overflow: 'hidden'
