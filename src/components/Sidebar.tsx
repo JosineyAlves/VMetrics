@@ -230,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Toggle Button when collapsed */}
         {isSidebarCollapsed && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2">
             <button
               onClick={onToggleSidebar}
               className="p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors shadow-md"
