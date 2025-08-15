@@ -42,7 +42,7 @@ const metricOptions = [
 
 const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
-  const { selectedMetrics, availableMetrics } = useMetricsStore()
+  const { selectedMetrics, availableMetrics, metricsOrder } = useMetricsStore()
   const { currency } = useCurrencyStore()
   
   // Função para formatar moeda
@@ -587,7 +587,13 @@ const Dashboard: React.FC = () => {
     console.log('🔍 [METRICS] Métricas selecionadas:', selectedMetrics)
     console.log('🔍 [METRICS] Campo initiate_checkout nos dados:', data.initiate_checkout)
     
-    const selectedMetricsData = selectedMetrics.map(metricId => {
+    // Usar a ordem definida no store de métricas
+    console.log('🔍 [METRICS ORDER] metricsOrder completo:', metricsOrder)
+    console.log('🔍 [METRICS ORDER] selectedMetrics:', selectedMetrics)
+    const orderedSelectedMetrics = metricsOrder.filter(metricId => selectedMetrics.includes(metricId))
+    console.log('🔍 [METRICS ORDER] Métricas ordenadas para renderização:', orderedSelectedMetrics)
+    
+    const selectedMetricsData = orderedSelectedMetrics.map(metricId => {
       const metric = availableMetrics.find(m => m.id === metricId)
       if (!metric) {
         console.warn(`⚠️ [METRICS] Métrica não encontrada: ${metricId}`)

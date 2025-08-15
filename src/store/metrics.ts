@@ -682,7 +682,7 @@ export const useMetricsStore = create<MetricsState>()(
     (set, get) => ({
       availableMetrics: allMetrics,
       selectedMetrics: defaultSelectedMetrics,
-      metricsOrder: allMetrics.map(metric => metric.id), // Inicializa a ordem com todas as métricas disponíveis
+      metricsOrder: defaultSelectedMetrics, // Inicializa a ordem com as métricas selecionadas por padrão
 
       addMetric: (metricId: string) => {
         const { selectedMetrics, metricsOrder } = get()
@@ -700,15 +700,25 @@ export const useMetricsStore = create<MetricsState>()(
       },
 
       removeMetric: (metricId: string) => {
-        const { selectedMetrics } = get()
-        set({ selectedMetrics: selectedMetrics.filter(id => id !== metricId) })
+        const { selectedMetrics, metricsOrder } = get()
+        const newSelectedMetrics = selectedMetrics.filter(id => id !== metricId)
+        const newMetricsOrder = metricsOrder.filter(id => id !== metricId)
+        set({ 
+          selectedMetrics: newSelectedMetrics,
+          metricsOrder: newMetricsOrder
+        })
       },
 
       setSelectedMetrics: (metrics: string[]) => {
         const { metricsOrder } = get()
         // Manter apenas métricas que estão na ordem
         const validMetrics = metrics.filter(id => metricsOrder.includes(id))
-        set({ selectedMetrics: validMetrics })
+        // Atualizar a ordem para incluir apenas as métricas selecionadas
+        const newMetricsOrder = metricsOrder.filter(id => validMetrics.includes(id))
+        set({ 
+          selectedMetrics: validMetrics,
+          metricsOrder: newMetricsOrder
+        })
       },
 
       setMetricsOrder: (order: string[]) => {
@@ -726,7 +736,7 @@ export const useMetricsStore = create<MetricsState>()(
       resetToDefault: () => {
         set({ 
           selectedMetrics: defaultSelectedMetrics,
-          metricsOrder: allMetrics.map(metric => metric.id)
+          metricsOrder: defaultSelectedMetrics
         })
       },
 
@@ -740,7 +750,14 @@ export const useMetricsStore = create<MetricsState>()(
       partialize: (state) => ({
         selectedMetrics: state.selectedMetrics,
         metricsOrder: state.metricsOrder
-      })
+      }),
+      onRehydrateStorage: (state) => {
+        console.log('[METRICS STORE] Estado reidratado:', state)
+        if (state) {
+          console.log('[METRICS STORE] Métricas selecionadas:', state.selectedMetrics)
+          console.log('[METRICS STORE] Ordem das métricas:', state.metricsOrder)
+        }
+      }
     }
   )
 ) 

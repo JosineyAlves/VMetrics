@@ -9,14 +9,18 @@ const MetricsOrder: React.FC = () => {
   const { selectedMetrics, metricsOrder, setMetricsOrder, availableMetrics } = useMetricsStore()
 
   const getSelectedMetricsInOrder = () => {
-    return metricsOrder
+    const orderedMetrics = metricsOrder
       .filter(metricId => selectedMetrics.includes(metricId))
       .map(metricId => availableMetrics.find(m => m.id === metricId))
       .filter(Boolean)
+    
+    console.log('[METRICS ORDER] Métricas em ordem para o modal:', orderedMetrics.map(m => m?.id))
+    return orderedMetrics
   }
 
   const handleReorder = (newOrder: any[]) => {
     const newOrderIds = newOrder.map(item => item.id)
+    console.log('[METRICS ORDER] Nova ordem definida:', newOrderIds)
     setMetricsOrder(newOrderIds)
   }
 
@@ -100,7 +104,10 @@ const MetricsOrder: React.FC = () => {
                 Cancelar
               </Button>
               <Button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  console.log('[METRICS ORDER] Ordem salva, fechando modal')
+                  setIsOpen(false)
+                }}
                 className="px-6 py-2 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
               >
                 Salvar Ordem

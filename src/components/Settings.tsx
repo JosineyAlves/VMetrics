@@ -757,15 +757,7 @@ const Settings: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Stripe Integration Info */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-      >
-        
-      </motion.div>
+
     </div>
   )
 

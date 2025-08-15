@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
+// ⚠️ VALIDAÇÃO DE SETUP TEMPORARIAMENTE DESATIVADA PARA DESENVOLVIMENTO LOCAL
+// As validações que redirecionam para /setup foram comentadas para permitir acesso direto ao dashboard
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
@@ -30,10 +32,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
-  // Se estiver autenticado mas não tiver API Key, redirecionar para setup
-  if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
-    return <Navigate to="/setup" replace />
-  }
+  // TEMPORARIAMENTE DESATIVADO: Se estiver autenticado mas não tiver API Key, redirecionar para setup
+  // if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
+  //   return <Navigate to="/setup" replace />
+  // }
   
   return <>{children}</>
 }
@@ -52,12 +54,12 @@ const DashboardLayout: React.FC = () => {
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
-  // Verificar se tem API Key configurada
-  useEffect(() => {
-    if (isAuthenticated && !apiKey) {
-      navigate('/setup', { replace: true })
-    }
-  }, [isAuthenticated, apiKey, navigate])
+  // TEMPORARIAMENTE DESATIVADO: Verificar se tem API Key configurada
+  // useEffect(() => {
+  //   if (isAuthenticated && !apiKey) {
+  //     navigate('/setup', { replace: true })
+  //   }
+  // }, [isAuthenticated, apiKey, navigate])
   
   // Determinar seção atual baseada na rota
   const getCurrentSection = () => {
