@@ -878,9 +878,9 @@ const Dashboard: React.FC = () => {
   const metrics = getMetricsFromData(dashboardData)
 
   return (
-    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
-      <div className="flex items-center justify-end">
+              <div className="flex items-center justify-end gap-3">
         <div className="flex items-center gap-3">
           <MetricsSelector />
           <MetricsOrder />
@@ -888,7 +888,7 @@ const Dashboard: React.FC = () => {
             variant="outline" 
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
+            className="px-0.5 py-0.5 rounded border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-sm hover:bg-[#3cd48f]/5 transition"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
@@ -952,7 +952,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mt-6">
             <Button
               onClick={handleApplyFilters}
-                              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
+                              className="px-0.5 py-0.5 rounded shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               Aplicar Filtros
             </Button>
@@ -972,7 +972,7 @@ const Dashboard: React.FC = () => {
       {/* Removido: PeriodDropdown duplicado do Dashboard */}
 
       {/* KPIs Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {getMetricsFromData(dashboardData).map((metric) => {
           return (
           <motion.div
@@ -980,21 +980,21 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:scale-105"
           >
-            <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between mb-2">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <p className="text-sm font-semibold text-gray-600 truncate">{metric.label}</p>
+                <div className="flex items-center gap-1 mb-1">
+                  <p className="text-xs font-semibold text-gray-600 truncate">{metric.label}</p>
                   <div className="group relative">
-                    <Info className="w-4 h-4 text-gray-400 hover:text-[#3cd48f] cursor-help transition-colors" />
+                    <Info className="w-3 h-3 text-gray-400 hover:text-[#3cd48f] cursor-help transition-colors" />
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                       {metric.description}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                     </div>
                   </div>
                 </div>
-                <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
+                <p className="text-xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                   {metric.value}
                 </p>
               </div>
@@ -1005,36 +1005,36 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance por Dia e Cruzamento de Métricas */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-                         className="bg-white/90 backdrop-blur-lg rounded-3xl p-10 shadow-2xl border border-[#3cd48f]/20 hover:shadow-3xl transition-all duration-500"
+                         className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-500"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div className="flex gap-3">
               <button
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'conversions' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-xl`}
+                className={`flex items-center gap-1 px-0.5 py-0.5 rounded text-sm font-semibold transition-all duration-200 shadow-sm border-2 ${chartMode === 'conversions' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-md`}
                 onClick={() => setChartMode('conversions')}
               >
                 <BarChart2 className="w-5 h-5" /> Conversões por Dia
               </button>
               <button
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'cross' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-xl`}
+                className={`flex items-center gap-1 px-0.5 py-0.5 rounded text-sm font-semibold transition-all duration-200 shadow-sm border-2 ${chartMode === 'cross' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-md`}
                 onClick={() => setChartMode('cross')}
               >
                 <Shuffle className="w-5 h-5" /> Cruzamento Diário
               </button>
             </div>
             {chartMode === 'cross' && (
-              <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
+              <div className="flex items-center gap-1 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded px-0.5 py-0.5 shadow-sm">
                 <TrendingUp className="w-4 h-4 text-[#3cd48f]" />
                 <select
                   value={crossMetric}
                   onChange={e => setCrossMetric(e.target.value)}
-                  className="rounded-xl border-0 bg-transparent text-base font-semibold text-[#3cd48f] focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40"
+                  className="rounded border-0 bg-transparent text-xs font-semibold text-[#3cd48f] focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40"
                 >
                   {metricOptions.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -1117,9 +1117,9 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
+                      className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 flex flex-col justify-between"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Investimento por Fonte de Tráfego</h3>
+                      <h3 className="text-base font-semibold text-gray-800 mb-4">Investimento por Fonte de Tráfego</h3>
           {sourceStats.length > 0 ? (
             <div className="w-full h-[320px] flex flex-col justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -1148,9 +1148,9 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
+                      className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500"
         >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Métricas de Conversão</h3>
+                      <h3 className="text-base font-semibold text-gray-800 mb-4">Métricas de Conversão</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
               <div className="flex items-center space-x-3">
