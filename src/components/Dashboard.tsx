@@ -880,15 +880,28 @@ const Dashboard: React.FC = () => {
   return (
     <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
-      <div className="flex items-center justify-end">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between py-2">
+        <div className="flex items-center gap-2">
+          <PeriodDropdown />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-3 py-1.5 rounded-lg border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-md hover:bg-[#3cd48f]/5 transition"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
           <MetricsSelector />
           <MetricsOrder />
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
+            className="px-3 py-1.5 rounded-lg border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-md hover:bg-[#3cd48f]/5 transition"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
@@ -926,7 +939,7 @@ const Dashboard: React.FC = () => {
               <select 
                 value={tempFilters.traffic_channel}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, traffic_channel: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f] focus:border-[#3cd48f] shadow-sm"
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f] focus:border-[#3cd48f] shadow-sm"
               >
                 {trafficChannelOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -952,7 +965,7 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mt-6">
             <Button
               onClick={handleApplyFilters}
-                              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
+                              className="px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               Aplicar Filtros
             </Button>
@@ -960,7 +973,7 @@ const Dashboard: React.FC = () => {
             <Button
               variant="outline"
               onClick={handleResetFilters}
-              className="px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+              className="px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
             >
               Limpar Filtros
             </Button>
