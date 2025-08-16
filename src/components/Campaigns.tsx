@@ -849,36 +849,34 @@ const Campaigns: React.FC = () => {
   // Mensagem amigável se não houver campanhas
   // Mostrar filtros sempre, mesmo sem campanhas
     return (
-      <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
-      {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
-        <button
-          onClick={() => setActiveTab('campaigns')}
-            className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
-            activeTab === 'campaigns'
-              ? 'bg-white text-[#3cd48f] shadow-sm'
-              : 'text-[#1f1f1f]/70 hover:text-[#3cd48f]'
-          }`}
-        >
-            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden xs:inline">Campanhas</span>
-            <span className="xs:hidden">Camp.</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('utm')}
-            className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
-            activeTab === 'utm'
-              ? 'bg-white text-[#3cd48f] shadow-sm'
-              : 'text-[#1f1f]/70 hover:text-[#3cd48f]'
-          }`}
-        >
-            <Link className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden xs:inline">RT Campaign/Ad</span>
-            <span className="xs:hidden">RT</span>
-        </button>
-      </div>
+              {/* Tabs Navigation */}
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setActiveTab('campaigns')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
+              activeTab === 'campaigns'
+                ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <BarChart3 className="w-5 h-5" />
+            <span>Campanhas</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('utm')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
+              activeTab === 'utm'
+                ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white shadow-lg'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <Link className="w-5 h-5" />
+            <span>RT Campaign/Ad</span>
+          </button>
+        </div>
 
           {/* Botões de controle alinhados à direita */}
           <div className="flex gap-2">
@@ -1106,81 +1104,90 @@ const Campaigns: React.FC = () => {
 
       {/* Performance Blocks - Layout Responsivo - Apenas na aba Campanhas */}
       {activeTab === 'campaigns' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Best performing campaigns */}
-        <div className="bg-gradient-to-br from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-[#3cd48f]/20">
-          <div className="flex items-center justify-between mb-3 lg:mb-4">
-                          <h3 className="font-bold text-[#1f1f1f] text-sm lg:text-lg">🏆 Top Campanhas</h3>
-            <div className="flex items-center space-x-1 lg:space-x-2">
-                              <div className="bg-[#3cd48f]/30 rounded-full px-2 lg:px-3 py-1 text-xs font-semibold text-[#3cd48f]">
+        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#1f1f1f] text-base">Top Campanhas</h3>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
                 {bestCampaigns.length} encontradas
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
                 disabled={performanceLoading}
-                                  className="p-1 hover:bg-[#3cd48f]/30 rounded-full transition-colors disabled:opacity-50"
+                className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
                 title="Atualizar dados"
               >
                 {performanceLoading ? (
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 ) : (
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
               </button>
             </div>
           </div>
-          <div className="space-y-2 lg:space-y-3">
+          <div className="space-y-4">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-3 lg:py-4">
-                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-b-2 border-[#3cd48f] mx-auto mb-2"></div>
-                <div className="text-xs lg:text-sm">Carregando dados...</div>
+              <div className="text-center text-gray-500 py-8">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
+                <div className="text-sm">Carregando dados...</div>
               </div>
             ) : bestCampaigns.length === 0 ? (
-              <div className="text-center text-gray-500 py-3 lg:py-4">
-                <div className="text-xl lg:text-2xl mb-2">📊</div>
-                <div className="text-xs lg:text-sm">Nenhuma campanha encontrada</div>
+              <div className="text-center text-gray-500 py-8">
+                <div className="text-4xl mb-4">📊</div>
+                <div className="text-sm">Nenhuma campanha encontrada</div>
               </div>
               ) : bestCampaigns.map((item, idx) => (
-                              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-[#3cd48f]/20">
-                <div className="flex items-center justify-between mb-2">
+                              <div key={idx} className="bg-white rounded-xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
-                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg ${
+                      idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                      idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                      'bg-gradient-to-r from-orange-400 to-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-2 lg:ml-3 min-w-0 flex-1">
-                      <div className="font-semibold text-[#1f1f1f] text-xs lg:text-sm truncate">
+                    <div className="ml-4 min-w-0 flex-1">
+                      <div className="font-semibold text-[#1f1f1f] text-base truncate">
                         {item.name || 'Campanha sem nome'}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right ml-2 flex-shrink-0">
-                    <div className="text-sm lg:text-lg font-bold text-green-600">
+                  <div className="text-right ml-3 flex-shrink-0">
+                    <div className="text-xl font-bold text-[#3cd48f]">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-1 text-xs text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Conversões:</span>
-                                            <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
+                <div className="grid grid-cols-3 gap-4 text-xs">
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">Conversões</div>
+                    <div className="font-bold text-[#3cd48f] text-base">{item.conversions || 0}</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>CPA:</span>
-                                            <span className="font-semibold text-[#3cd48f]">
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">CPA</div>
+                    <div className="font-bold text-[#3cd48f] text-base">
                       {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                    </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>ROI:</span>
-                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">ROI</div>
+                    <div className={`font-bold text-base ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
                       {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1189,79 +1196,88 @@ const Campaigns: React.FC = () => {
         </div>
 
         {/* Best performing ads */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg border border-green-200">
-          <div className="flex items-center justify-between mb-3 lg:mb-4">
-            <h3 className="font-bold text-green-800 text-sm lg:text-lg">🎯 Top Anúncios</h3>
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <div className="bg-green-200 rounded-full px-2 lg:px-3 py-1 text-xs font-semibold text-green-800">
+        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                <Target className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#1f1f1f] text-base">Top Anúncios</h3>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
                 {bestAds.length} encontrados
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
                 disabled={performanceLoading}
-                className="p-1 hover:bg-green-200 rounded-full transition-colors disabled:opacity-50"
+                className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
                 title="Atualizar dados"
               >
                 {performanceLoading ? (
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-green-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 ) : (
-                  <svg className="w-3 h-3 lg:w-4 lg:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
               </button>
             </div>
           </div>
-          <div className="space-y-2 lg:space-y-3">
+          <div className="space-y-4">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-3 lg:py-4">
-                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-b-2 border-green-600 mx-auto mb-2"></div>
-                <div className="text-xs lg:text-sm">Carregando dados...</div>
+              <div className="text-center text-gray-500 py-8">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
+                <div className="text-sm">Carregando dados...</div>
               </div>
             ) : bestAds.length === 0 ? (
-              <div className="text-center text-gray-500 py-3 lg:py-4">
-                <div className="text-xl lg:text-2xl mb-2">📊</div>
-                <div className="text-xs lg:text-sm">Nenhum anúncio encontrado</div>
+              <div className="text-center text-gray-500 py-8">
+                <div className="text-4xl mb-4">📊</div>
+                <div className="text-sm">Nenhum anúncio encontrado</div>
               </div>
               ) : bestAds.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-green-100">
-                <div className="flex items-center justify-between mb-2">
+              <div key={idx} className="bg-white rounded-xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
-                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg ${
+                      idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                      idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                      'bg-gradient-to-r from-orange-400 to-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-2 lg:ml-3 min-w-0 flex-1">
-                      <div className="font-semibold text-green-900 text-xs lg:text-sm truncate">
+                    <div className="ml-4 min-w-0 flex-1">
+                      <div className="font-semibold text-[#1f1f1f] text-base truncate">
                         {item.name || 'Anúncio sem nome'}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right ml-2 flex-shrink-0">
-                    <div className="text-sm lg:text-lg font-bold text-green-600">
+                  <div className="text-right ml-3 flex-shrink-0">
+                    <div className="text-xl font-bold text-[#3cd48f]">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-1 text-xs text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Conversões:</span>
-                    <span className="font-semibold text-green-600">{item.conversions || 0}</span>
+                <div className="grid grid-cols-3 gap-4 text-xs">
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">Conversões</div>
+                    <div className="font-bold text-[#3cd48f] text-base">{item.conversions || 0}</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>CPA:</span>
-                    <span className="font-semibold text-green-600">
-                      {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                    </span>
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">CPA</div>
+                    <div className="font-bold text-[#3cd48f] text-base">
+                      {item.cost > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>ROI:</span>
-                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">ROI</div>
+                    <div className={`font-bold text-base ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
                       {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1270,73 +1286,82 @@ const Campaigns: React.FC = () => {
         </div>
 
         {/* Best offers */}
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 shadow-lg border border-purple-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-purple-800 text-lg">💎 Top Ofertas</h3>
+        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                <Link className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#1f1f1f] text-base">Top Ofertas</h3>
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
-              <div className="bg-purple-200 rounded-full px-3 py-1 text-xs font-semibold text-purple-800">
+              <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
                 {bestOffers.length} encontradas
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
                 disabled={performanceLoading}
-                className="p-1 hover:bg-purple-200 rounded-full transition-colors disabled:opacity-50"
+                className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
                 title="Atualizar dados"
               >
                 {performanceLoading ? (
-                  <svg className="w-4 h-4 text-purple-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 )}
               </button>
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+              <div className="text-center text-gray-500 py-8">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
                 <div className="text-sm">Carregando dados...</div>
               </div>
             ) : bestOffers.length === 0 ? (
-              <div className="text-center text-gray-500 py-4">
-                <div className="text-2xl mb-2">📊</div>
+              <div className="text-center text-gray-500 py-8">
+                <div className="text-4xl mb-4">📊</div>
                 <div className="text-sm">Nenhuma oferta encontrada</div>
               </div>
               ) : bestOffers.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-3 lg:p-4 shadow-sm border border-purple-100">
-                <div className="flex items-center justify-between mb-2">
+              <div key={idx} className="bg-white rounded-xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0 ${
-                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-500'
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg ${
+                      idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                      idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                      'bg-gradient-to-r from-orange-400 to-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-2 lg:ml-3 min-w-0 flex-1">
-                      <div className="font-semibold text-purple-900 text-xs lg:text-sm truncate">
+                    <div className="ml-4 min-w-0 flex-1">
+                      <div className="font-semibold text-[#1f1f1f] text-base truncate">
                         {item.name || 'Oferta sem nome'}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right ml-2 flex-shrink-0">
-                    <div className="text-sm lg:text-lg font-bold text-purple-600">
+                  <div className="text-right ml-3 flex-shrink-0">
+                    <div className="text-xl font-bold text-[#3cd48f]">
                       #{idx + 1}
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-1 text-xs text-gray-600">
-                  <div className="flex justify-between">
-                    <span>Conversões:</span>
-                    <span className="font-semibold text-purple-600">{item.conversions || 0}</span>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">Conversões</div>
+                    <div className="font-bold text-[#3cd48f] text-base">{item.conversions || 0}</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Revenue:</span>
-                    <span className="font-semibold text-purple-600">
+                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs mb-2">Revenue</div>
+                    <div className="font-bold text-[#3cd48f] text-base">
                       {formatCurrency(item.revenue || 0)}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>

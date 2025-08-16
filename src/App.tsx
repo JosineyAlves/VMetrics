@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
-// ⚠️ VALIDAÇÃO DE SETUP TEMPORARIAMENTE DESATIVADA PARA DESENVOLVIMENTO LOCAL
-// As validações que redirecionam para /setup foram comentadas para permitir acesso direto ao dashboard
+// ✅ VALIDAÇÃO DE SETUP RESTAURADA
+// As validações que redirecionam para /setup foram restauradas para garantir segurança
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
@@ -32,10 +32,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
-  // TEMPORARIAMENTE DESATIVADO: Se estiver autenticado mas não tiver API Key, redirecionar para setup
-  // if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
-  //   return <Navigate to="/setup" replace />
-  // }
+  // ✅ VALIDAÇÃO RESTAURADA: Se estiver autenticado mas não tiver API Key, redirecionar para setup
+  if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
+    return <Navigate to="/setup" replace />
+  }
   
   return <>{children}</>
 }
@@ -54,12 +54,12 @@ const DashboardLayout: React.FC = () => {
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
-  // TEMPORARIAMENTE DESATIVADO: Verificar se tem API Key configurada
-  // useEffect(() => {
-  //   if (isAuthenticated && !apiKey) {
-  //     navigate('/setup', { replace: true })
-  //   }
-  // }, [isAuthenticated, apiKey, navigate])
+  // ✅ VALIDAÇÃO RESTAURADA: Verificar se tem API Key configurada
+  useEffect(() => {
+    if (isAuthenticated && !apiKey) {
+      navigate('/setup', { replace: true })
+    }
+  }, [isAuthenticated, apiKey, navigate])
   
   // Determinar seção atual baseada na rota
   const getCurrentSection = () => {
@@ -146,7 +146,7 @@ const DashboardLayout: React.FC = () => {
       />
       <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''}`}>
         {/* Barra global fixa */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white/80 sticky top-0 z-20">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
           <div className="flex items-center gap-3">
                          <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
@@ -173,9 +173,9 @@ const DashboardLayout: React.FC = () => {
               <button 
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="inline-flex items-center px-3 py-1.5 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
+                className="inline-flex items-center px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
               >
-                                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}
               </button>
             )}
@@ -248,6 +248,7 @@ const App: React.FC = () => {
   return (
     <Routes>
       {/* Rotas públicas */}
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/signup" element={
         needsSignup ? (

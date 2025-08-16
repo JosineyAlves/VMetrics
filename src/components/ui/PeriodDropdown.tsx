@@ -91,7 +91,7 @@ export const PeriodDropdown: React.FC<PeriodDropdownProps> = ({
         <ChevronDown className="w-5 h-5 ml-3" />
       </button>
       {showDropdown && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl z-50">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50">
           <div className="py-2">
             {!showCustomFields ? (
               // Mostrar lista de opções

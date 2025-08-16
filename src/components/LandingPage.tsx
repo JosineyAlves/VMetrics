@@ -45,23 +45,23 @@ const LandingPage: React.FC = () => {
   const features = [
     {
       icon: <BarChart3 className="w-6 h-6" />,
-      title: 'Analytics Avançados',
-      description: 'Métricas detalhadas de performance de campanhas'
+      title: 'Dashboard Integrado',
+      description: 'Conexão direta com RedTrack para dados em tempo real'
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: 'Gestão de Campanhas',
-      description: 'Controle total sobre suas campanhas de marketing'
+      title: 'Análise de Conversões',
+      description: 'Tracking completo de funil e performance de campanhas'
     },
     {
       icon: <Zap className="w-6 h-6" />,
-      title: 'Automação Inteligente',
-      description: 'Otimização automática baseada em dados reais'
+      title: 'Métricas Avançadas',
+      description: 'ROI, CPA, CTR e mais de 50 métricas essenciais'
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: 'Segurança Enterprise',
-      description: 'Proteção de dados com padrões internacionais'
+      title: 'Relatórios Inteligentes',
+      description: 'Visualizações 3D e comparações entre campanhas'
     }
   ]
 
@@ -70,21 +70,21 @@ const LandingPage: React.FC = () => {
       name: 'Carlos Silva',
       role: 'Marketing Manager',
       company: 'TechCorp',
-      content: 'VMetrics revolucionou nossa forma de analisar campanhas. ROI aumentou 40%!',
+      content: 'VMetrics revolucionou nossa análise de campanhas do RedTrack. ROI aumentou 40%!',
       rating: 5
     },
     {
       name: 'Ana Costa',
       role: 'Digital Marketing',
       company: 'StartupXYZ',
-      content: 'Interface intuitiva e relatórios que realmente fazem sentido para o negócio.',
+      content: 'Dashboard intuitivo que transforma dados do RedTrack em insights acionáveis.',
       rating: 5
     },
     {
       name: 'Roberto Santos',
       role: 'CEO',
       company: 'E-commerce Plus',
-      content: 'Finalmente uma ferramenta que une simplicidade com poder analítico.',
+      content: 'Finalmente uma ferramenta que integra perfeitamente com RedTrack e oferece análises profundas.',
       rating: 5
     }
   ]
@@ -92,16 +92,15 @@ const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
-                VMetrics
-              </span>
+              <img 
+                src="/assets/images/logo.svg" 
+                alt="VMetrics Logo" 
+                className="h-8 w-auto"
+              />
             </div>
             <div className="flex items-center space-x-4">
               <a
@@ -114,7 +113,7 @@ const LandingPage: React.FC = () => {
                 href="#pricing"
                 className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
               >
-                Começar Agora
+                Ver Planos
               </a>
             </div>
           </div>
@@ -130,31 +129,87 @@ const LandingPage: React.FC = () => {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Transforme seus{' '}
+              Dashboard integrado ao{' '}
               <span className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
-                dados em resultados
+                RedTrack
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              VMetrics é a plataforma completa de analytics que conecta dados de campanhas, 
-              conversões e performance em um dashboard inteligente e acionável.
+              VMetrics é o dashboard inteligente que transforma dados do RedTrack em insights acionáveis. 
+              Monitore campanhas, analise conversões e otimize ROI com métricas em tempo real.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#pricing"
                 className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
               >
-                Começar Gratuitamente
+                Ver Planos
                 <ArrowRight className="w-5 h-5 ml-2 inline" />
               </a>
               <a
                 href={APP_URLS.DASHBOARD_APP}
                 className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold hover:border-gray-400 transition-colors"
               >
-                Ver Demo
+                Acessar Dashboard
               </a>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* RedTrack Integration Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#3cd48f]/5 to-[#10b981]/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Integração Nativa com RedTrack
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Conecte-se diretamente ao RedTrack e tenha acesso instantâneo a todos os dados 
+              de suas campanhas, conversões e performance em tempo real.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center p-6 rounded-xl bg-white shadow-lg border border-gray-100">
+              <div className="w-16 h-16 bg-gradient-to-r from-[#3cd48f]/20 to-[#3cd48f]/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-[#3cd48f]" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Conexão Instantânea
+              </h3>
+              <p className="text-gray-600">
+                Conecte-se ao RedTrack em segundos com sua API key. 
+                Dados sincronizados automaticamente.
+              </p>
+            </div>
+            
+            <div className="text-center p-6 rounded-xl bg-white shadow-lg border border-gray-100">
+              <div className="w-16 h-16 bg-gradient-to-r from-[#3cd48f]/20 to-[#3cd48f]/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="w-8 h-8 text-[#3cd48f]" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Métricas em Tempo Real
+              </h3>
+              <p className="text-gray-600">
+                Acompanhe ROI, CPA, CTR e mais de 50 métricas 
+                atualizadas em tempo real.
+              </p>
+            </div>
+            
+            <div className="text-center p-6 rounded-xl bg-white shadow-lg border border-gray-100">
+              <div className="w-16 h-16 bg-gradient-to-r from-[#3cd48f]/20 to-[#3cd48f]/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-[#3cd48f]" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Análise de Funil
+              </h3>
+              <p className="text-gray-600">
+                Visualize o funil completo de conversões com 
+                análises 3D e comparações entre campanhas.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -163,11 +218,11 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Por que escolher VMetrics?
+              Funcionalidades Principais
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Nossa plataforma combina simplicidade com poder analítico para 
-              transformar dados complexos em insights acionáveis.
+              Explore as principais funcionalidades que fazem do VMetrics 
+              o dashboard mais completo para análise de campanhas RedTrack.
             </p>
           </div>
           
@@ -202,11 +257,11 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Planos que crescem com você
+              Planos para todos os tamanhos
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Escolha o plano ideal para seu negócio e comece a transformar 
-              seus dados em resultados hoje mesmo.
+              seus dados do RedTrack em insights acionáveis hoje mesmo.
             </p>
           </div>
 
@@ -232,9 +287,14 @@ const LandingPage: React.FC = () => {
                 </h3>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    R$ {plan.price}
+                    {planType === 'enterprise' 
+                      ? 'Sob consulta'
+                      : `R$ ${('monthly' in plan.prices ? (plan.prices.monthly.amount / 100).toFixed(2).replace('.', ',') : '0,00')}`
+                    }
                   </span>
-                  <span className="text-gray-600">/mês</span>
+                  <span className="text-gray-600">
+                    {planType === 'enterprise' ? '' : '/mês'}
+                  </span>
                 </div>
                 
                 <ul className="space-y-3 mb-8">
@@ -255,7 +315,7 @@ const LandingPage: React.FC = () => {
                       : 'bg-gray-900 text-white hover:bg-gray-800'
                   }`}
                 >
-                  {isLoading ? 'Carregando...' : 'Começar Agora'}
+                  {isLoading ? 'Carregando...' : (planType === 'enterprise' ? 'Falar com Vendas' : 'Começar Agora')}
                 </button>
               </motion.div>
             ))}
@@ -272,7 +332,7 @@ const LandingPage: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Empresas de todos os tamanhos confiam no VMetrics para 
-              impulsionar seus resultados de marketing.
+              otimizar suas campanhas através da integração nativa com RedTrack.
             </p>
           </div>
           
@@ -311,18 +371,18 @@ const LandingPage: React.FC = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
-            Pronto para transformar seus dados?
+            Pronto para otimizar suas campanhas RedTrack?
           </h2>
           <p className="text-xl text-white/90 mb-8">
             Junte-se a centenas de empresas que já estão usando VMetrics 
-            para impulsionar seus resultados de marketing.
+            para transformar dados do RedTrack em insights acionáveis e resultados reais.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#pricing"
                               className="bg-white text-[#3cd48f] px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
-              Começar Gratuitamente
+              Ver Planos
               <ArrowRight className="w-5 h-5 ml-2 inline" />
             </a>
             <a
@@ -341,13 +401,14 @@ const LandingPage: React.FC = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">VMetrics</span>
+                <img 
+                  src="/assets/images/logo.svg" 
+                  alt="VMetrics Logo" 
+                  className="h-6 w-auto"
+                />
               </div>
               <p className="text-gray-400">
-                Transformando dados em resultados para empresas de todos os tamanhos.
+                Dashboard nativo integrado ao RedTrack para otimização de campanhas de marketing digital.
               </p>
             </div>
             

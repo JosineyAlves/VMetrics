@@ -215,7 +215,7 @@ const StripeTest: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">

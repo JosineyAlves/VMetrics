@@ -885,7 +885,7 @@ const Dashboard: React.FC = () => {
   const metrics = getMetricsFromData(dashboardData)
 
   return (
-    <div className="p-8 space-y-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
@@ -909,7 +909,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200"
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Filtros Avançados</h3>
@@ -983,7 +983,7 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+            className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
@@ -1014,7 +1014,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-                         className="bg-white/90 backdrop-blur-lg rounded-3xl p-10 shadow-2xl border border-[#3cd48f]/20 hover:shadow-3xl transition-all duration-500"
+                         className="bg-white rounded-3xl p-10 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
             <div className="flex gap-3">
@@ -1085,105 +1085,46 @@ const Dashboard: React.FC = () => {
                 <div className="text-center">
                   <div className="text-4xl mb-2">📊</div>
                   <p className="text-lg font-semibold">Cruzamento Diário</p>
-              <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
-            </div>
-          </div>
+                  <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
+                </div>
+              </div>
             )
           )}
         </motion.div>
 
-        {/* Funil de Marketing com seletor de campanha embutido no header */}
-        <FunnelChart 
-          data={funnelData}
-          campaignSelector={
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-gray-700">Campanha:</label>
-              <select
-                value={selectedCampaign}
-                onChange={e => setSelectedCampaign(e.target.value)}
-                className="rounded-xl border border-gray-300 px-4 py-2 text-base font-medium text-gray-700 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3cd48f]"
-              >
-                <option value="all">Todas</option>
-                {campaigns.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          }
-        />
-      </div>
-
-      {/* Gráficos Adicionais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Distribuição por Fonte */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Investimento por Fonte de Tráfego</h3>
-          {sourceStats.length > 0 ? (
-            <div className="w-full h-[320px] flex flex-col justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={sourceStats.slice(0, 8)}
-                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-                  barCategoryGap={18}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
-                  <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
-                  <Tooltip formatter={(v: any) => `Custo: ${formatCurrency(v)}`} />
-                  <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
-                  <Legend verticalAlign="top" height={36} iconType="circle" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="text-gray-400 text-center py-12">Sem dados de investimento por fonte para o período selecionado ou seu plano RedTrack não permite esse relatório.</div>
-          )}
-        </motion.div>
-
-        {/* Métricas de Conversão */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">Métricas de Conversão</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-[#3cd48f] rounded-full"></div>
-                <span className="font-medium">Taxa de Conversão</span>
+        {/* Gráficos Adicionais */}
+        <div className="grid grid-cols-1 gap-8">
+          {/* Distribuição por Fonte */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
+          >
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">Investimento por Fonte de Tráfego</h3>
+            {sourceStats.length > 0 ? (
+              <div className="w-full h-[320px] flex flex-col justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={sourceStats.slice(0, 8)}
+                    margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                    barCategoryGap={18}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
+                    <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
+                    <Tooltip formatter={(v: any) => `Custo: ${formatCurrency(v)}`} />
+                    <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
+                    <Legend verticalAlign="top" height={36} iconType="circle" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <span className="text-xl font-bold text-[#3cd48f]">
-                {dashboardData.conversion_rate ? `${dashboardData.conversion_rate.toFixed(2)}%` : '0.00%'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-[#3cd48f] rounded-full"></div>
-                <span className="font-medium">CTR</span>
-              </div>
-              <span className="text-xl font-bold text-[#3cd48f]">
-                {dashboardData.ctr ? `${dashboardData.ctr.toFixed(2)}%` : '0.00%'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-[#3cd48f]/10 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-[#3cd48f] rounded-full"></div>
-                <span className="font-medium">ROI</span>
-              </div>
-              <span className="text-xl font-bold text-[#3cd48f]">
-                {dashboardData.roi ? `${dashboardData.roi.toFixed(2)}%` : '0.00%'}
-              </span>
-            </div>
-          </div>
-        </motion.div>
+            ) : (
+              <div className="text-gray-400 text-center py-12">Sem dados de investimento por fonte para o período selecionado ou seu plano RedTrack não permite esse relatório.</div>
+            )}
+          </motion.div>
+        </div>
       </div>
     </div>
   )

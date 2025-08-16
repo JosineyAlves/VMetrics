@@ -87,8 +87,8 @@ export const validateWebhookConfig = () => {
 export const STRIPE_PRODUCTS = {
   starter: {
     name: 'Plano Starter',
-    description: 'Funcionalidades essenciais para começar',
-    features: ['Até 10 campanhas', 'Relatórios básicos', 'Suporte por email'],
+    description: 'Ideal para começar com RedTrack',
+    features: ['Dashboard integrado ao RedTrack', 'Métricas básicas (ROI, CPA, CTR)', 'Suporte por email', 'Até 5 campanhas'],
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ',
       prices: {
@@ -111,8 +111,8 @@ export const STRIPE_PRODUCTS = {
   },
   pro: {
     name: 'Plano Pro',
-    description: 'Funcionalidades avançadas para crescer',
-    features: ['Campanhas ilimitadas', 'Relatórios avançados', 'Suporte prioritário', 'API personalizada'],
+    description: 'Para agências e empresas em crescimento',
+    features: ['Campanhas ilimitadas', 'Análise de funil 3D', 'Métricas avançadas (50+ indicadores)', 'Suporte prioritário', 'Comparação entre campanhas'],
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usando o mesmo produto por enquanto
       prices: {
@@ -136,7 +136,7 @@ export const STRIPE_PRODUCTS = {
   enterprise: {
     name: 'Plano Enterprise',
     description: 'Solução personalizada para grandes empresas',
-    features: ['Tudo do plano Pro', 'Suporte 24/7', 'Integrações customizadas', 'SLA garantido'],
+    features: ['Tudo do plano Pro', 'Suporte 24/7', 'Integrações customizadas', 'SLA garantido', 'Onboarding dedicado', 'Relatórios personalizados'],
     stripeIds: {
       product: null, // Não configurado ainda
       prices: {

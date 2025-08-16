@@ -106,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Button */}
       <button
         onClick={onToggleMobileMenu}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-300"
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white rounded-xl shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-300"
       >
         {isMobileMenuOpen ? <X className="w-6 h-6 text-[#1f1f1f]" /> : <Menu className="w-6 h-6 text-[#1f1f1f]" />}
       </button>
@@ -114,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          className="lg:hidden fixed inset-0 bg-black/60 z-40"
           onClick={onToggleMobileMenu}
         />
       )}
@@ -266,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -300 }}
           transition={{ duration: 0.3 }}
-          className="lg:hidden fixed left-0 top-0 h-full w-80 bg-white/95 backdrop-blur-xl border-r border-white/20 shadow-2xl z-50"
+          className="lg:hidden fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 shadow-2xl z-50"
         >
           {/* Mobile Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/10">
