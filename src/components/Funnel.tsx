@@ -25,6 +25,7 @@ import { useDateRangeStore } from '../store/dateRange'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import PeriodDropdown from './ui/PeriodDropdown'
+import CustomSelect from './ui/CustomSelect'
 
 interface FunnelStage {
   name: string
@@ -759,18 +760,19 @@ const Funnel: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Campanha Principal
                 </label>
-                <select
+                <CustomSelect
                   value={selectedCampaign}
-                  onChange={(e) => handleCampaignSelect(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="">Selecione uma campanha</option>
-                  {campaigns.map((campaign) => (
-                    <option key={campaign.id} value={campaign.id}>
-                      {campaign.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => handleCampaignSelect(value)}
+                  options={[
+                    { value: '', label: 'Selecione uma campanha' },
+                    ...campaigns.map((campaign) => ({
+                      value: campaign.id,
+                      label: campaign.name
+                    }))
+                  ]}
+                  placeholder="Selecione uma campanha"
+                  className="w-full"
+                />
               </div>
               
               {/* Seletor de Campanha 2 (para comparação) */}
@@ -779,18 +781,19 @@ const Funnel: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Campanha para Comparar
                   </label>
-                  <select
+                  <CustomSelect
                     value={selectedCampaign2}
-                    onChange={(e) => handleCampaign2Select(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  >
-                    <option value="">Selecione uma campanha</option>
-                    {campaigns.map((campaign) => (
-                      <option key={campaign.id} value={campaign.id}>
-                        {campaign.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => handleCampaign2Select(value)}
+                    options={[
+                      { value: '', label: 'Selecione uma campanha' },
+                      ...campaigns.map((campaign) => ({
+                        value: campaign.id,
+                        label: campaign.name
+                      }))
+                    ]}
+                    placeholder="Selecione uma campanha"
+                    className="w-full"
+                  />
                 </div>
               )}
               
@@ -799,15 +802,17 @@ const Funnel: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Modo de Visualização
                 </label>
-                <select
+                <CustomSelect
                   value={viewMode}
-                  onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="3d">Visualização 3D</option>
-                  <option value="2d">Análise Detalhada</option>
-                  <option value="comparison">Comparação</option>
-                </select>
+                  onChange={(value) => setViewMode(value as '3d' | '2d' | 'comparison')}
+                  options={[
+                    { value: '3d', label: 'Visualização 3D' },
+                    { value: '2d', label: 'Análise Detalhada' },
+                    { value: 'comparison', label: 'Comparação' }
+                  ]}
+                  placeholder="Selecione o modo"
+                  className="w-full"
+                />
               </div>
               
               {/* Botão Comparar */}

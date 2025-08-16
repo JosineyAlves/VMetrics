@@ -27,6 +27,7 @@ import { useCurrencyStore } from '../store/currency'
 import ColumnsSelector from './ColumnsSelector'
 import ColumnsOrder from './ColumnsOrder'
 import { useColumnsStore } from '../store/columns'
+import CustomSelect from './ui/CustomSelect'
 
 interface UTMCreative {
   id: string
@@ -931,32 +932,36 @@ const Campaigns: React.FC = () => {
                   <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     Status
                   </label>
-                  <select 
+                  <CustomSelect
                     value={tempFilters.status}
-                    onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
-                  >
-                    <option value="">Todos</option>
-                    <option value="active">Ativo</option>
-                    <option value="paused">Pausado</option>
-                    <option value="inactive">Inativo</option>
-                  </select>
+                    onChange={(value) => setTempFilters(prev => ({ ...prev, status: value }))}
+                    options={[
+                      { value: '', label: 'Todos' },
+                      { value: 'active', label: 'Ativo' },
+                      { value: 'paused', label: 'Pausado' },
+                      { value: 'inactive', label: 'Inativo' }
+                    ]}
+                    placeholder="Selecione o status"
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     Fonte
                   </label>
-                  <select 
+                  <CustomSelect
                     value={tempFilters.source}
-                    onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
-                  >
-                    <option value="">Todas</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="google">Google</option>
-                    <option value="tiktok">TikTok</option>
-                    <option value="instagram">Instagram</option>
-                  </select>
+                    onChange={(value) => setTempFilters(prev => ({ ...prev, source: value }))}
+                    options={[
+                      { value: '', label: 'Todas' },
+                      { value: 'facebook', label: 'Facebook' },
+                      { value: 'google', label: 'Google' },
+                      { value: 'tiktok', label: 'TikTok' },
+                      { value: 'instagram', label: 'Instagram' }
+                    ]}
+                    placeholder="Selecione a fonte"
+                    className="w-full"
+                  />
                 </div>
               </>
             ) : (
@@ -966,33 +971,37 @@ const Campaigns: React.FC = () => {
                   <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Source
                   </label>
-                  <select
+                  <CustomSelect
                     value={tempFilters.utm_source}
-                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_source: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
-                  >
-                    <option value="">Todos</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="google">Google</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="tiktok">TikTok</option>
-                  </select>
+                    onChange={(value) => setTempFilters(prev => ({ ...prev, utm_source: value }))}
+                    options={[
+                      { value: '', label: 'Todos' },
+                      { value: 'facebook', label: 'Facebook' },
+                      { value: 'google', label: 'Google' },
+                      { value: 'instagram', label: 'Instagram' },
+                      { value: 'tiktok', label: 'TikTok' }
+                    ]}
+                    placeholder="Selecione a fonte"
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                     RT Medium
                   </label>
-                  <select
+                  <CustomSelect
                     value={tempFilters.utm_medium}
-                    onChange={(e) => setTempFilters(prev => ({ ...prev, utm_medium: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-[#1f1f1f]"
-                  >
-                    <option value="">Todos</option>
-                    <option value="cpc">CPC</option>
-                    <option value="cpm">CPM</option>
-                    <option value="social">Social</option>
-                    <option value="email">Email</option>
-                  </select>
+                    onChange={(value) => setTempFilters(prev => ({ ...prev, utm_medium: value }))}
+                    options={[
+                      { value: '', label: 'Todos' },
+                      { value: 'cpc', label: 'CPC' },
+                      { value: 'cpm', label: 'CPM' },
+                      { value: 'social', label: 'Social' },
+                      { value: 'email', label: 'Email' }
+                    ]}
+                    placeholder="Selecione o medium"
+                    className="w-full"
+                  />
                 </div>
                 
                 <div>

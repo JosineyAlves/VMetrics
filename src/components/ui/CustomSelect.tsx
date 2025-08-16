@@ -24,126 +24,88 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   disabled = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const selectRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const selectedOption = options.find(option => option.value === value);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setHighlightedIndex(-1);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const handleOptionClick = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+  };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (disabled) return;
-
-    switch (event.key) {
-      case 'Enter':
-      case ' ':
-        event.preventDefault();
-        setIsOpen(!isOpen);
-        break;
-      case 'ArrowDown':
-        event.preventDefault();
-        if (!isOpen) {
-          setIsOpen(true);
-        } else {
-          setHighlightedIndex(prev => 
-            prev < options.length - 1 ? prev + 1 : 0
-          );
-        }
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        if (!isOpen) {
-          setIsOpen(true);
-        } else {
-          setHighlightedIndex(prev => 
-            prev > 0 ? prev - 1 : options.length - 1
-          );
-        }
-        break;
-      case 'Escape':
-        setIsOpen(false);
-        setHighlightedIndex(-1);
-        break;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      setIsOpen(!isOpen);
+    } else if (event.key === 'Escape') {
+      setIsOpen(false);
     }
   };
 
-  const handleOptionClick = (option: Option) => {
-    onChange(option.value);
-    setIsOpen(false);
-    setHighlightedIndex(-1);
-  };
-
-  const handleOptionMouseEnter = (index: number) => {
-    setHighlightedIndex(index);
-  };
-
   return (
-    <div 
-      ref={selectRef}
-      className={`relative ${className}`}
-    >
-      <div
-        className={`
-          w-full px-4 py-3 border border-gray-200 rounded-xl 
-          bg-white cursor-pointer transition-all duration-200
-          ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-50' : 'hover:border-[#3cd48f]/60'}
-          ${isOpen ? 'border-[#3cd48f] ring-2 ring-[#3cd48f]/40' : ''}
-        `}
+    <div className={`relative ${className}`} ref={ref}>
+      <button
+        type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        tabIndex={disabled ? -1 : 0}
-        role="combobox"
-        aria-expanded={isOpen}
+        disabled={disabled}
+        className={`w-full flex items-center justify-between px-4 py-3 text-sm border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-200 ${
+          disabled 
+            ? 'opacity-50 cursor-not-allowed' 
+            : 'hover:border-[#3cd48f]/60 focus:border-[#3cd48f] focus:ring-2 focus:ring-[#3cd48f]/40 cursor-pointer'
+        }`}
         aria-haspopup="listbox"
-        aria-label={placeholder}
+        aria-expanded={isOpen}
+        aria-labelledby="custom-select-label"
       >
-        <div className="flex items-center justify-between">
-          <span className={`${selectedOption ? 'text-gray-900' : 'text-gray-500'}`}>
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
-          <ChevronDown 
-            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-              isOpen ? 'rotate-180' : ''
-            }`} 
-          />
-        </div>
-      </div>
+        <span className={selectedOption ? 'text-gray-900' : 'text-gray-500'}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown 
+          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+            isOpen ? 'rotate-180' : ''
+          }`} 
+        />
+      </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
-          {options.map((option, index) => (
-            <div
-              key={option.value}
-              className={`
-                px-4 py-3 cursor-pointer transition-all duration-150
-                ${index === highlightedIndex ? 'bg-[#3cd48f] text-white' : 'hover:bg-[#3cd48f]/10 hover:text-[#3cd48f]'}
-                ${option.value === value ? 'bg-[#3cd48f] text-white' : ''}
-                ${index === 0 ? 'rounded-t-xl' : ''}
-                ${index === options.length - 1 ? 'rounded-b-xl' : ''}
-              `}
-              onClick={() => handleOptionClick(option)}
-              onMouseEnter={() => handleOptionMouseEnter(index)}
-              role="option"
-              aria-selected={option.value === value}
-            >
-              <div className="flex items-center justify-between">
+        <div className="absolute top-full left-0 mt-2 w-full bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto">
+          <div className="py-2">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleOptionClick(option.value)}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors duration-200 ${
+                  value === option.value 
+                    ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white font-semibold' 
+                    : 'text-gray-700 hover:bg-[#3cd48f]/5 hover:text-[#3cd48f]'
+                }`}
+                role="option"
+                aria-selected={value === option.value}
+              >
                 <span>{option.label}</span>
-                {option.value === value && (
-                  <Check className="w-4 h-4" />
+                {value === option.value && (
+                  <Check className="w-4 h-4 text-white" />
                 )}
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

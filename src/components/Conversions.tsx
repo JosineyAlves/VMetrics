@@ -29,6 +29,7 @@ import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
 import { useCurrencyStore } from '../store/currency'
+import CustomSelect from './ui/CustomSelect'
 
 // Interface expandida com todos os campos do RedTrack
 interface Conversion {
@@ -655,16 +656,18 @@ const Conversions: React.FC = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Tipo
               </label>
-              <select
+              <CustomSelect
                 value={tempFilters.type}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm"
-              >
-                <option value="">Todos os tipos</option>
-                <option value="lead">Lead</option>
-                <option value="sale">Venda</option>
-                <option value="upsell">Upsell</option>
-              </select>
+                onChange={(value) => setTempFilters(prev => ({ ...prev, type: value }))}
+                options={[
+                  { value: '', label: 'Todos os tipos' },
+                  { value: 'lead', label: 'Lead' },
+                  { value: 'sale', label: 'Venda' },
+                  { value: 'upsell', label: 'Upsell' }
+                ]}
+                placeholder="Selecione o tipo"
+                className="w-full"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -682,16 +685,18 @@ const Conversions: React.FC = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Status
               </label>
-              <select
+              <CustomSelect
                 value={tempFilters.status}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm"
-              >
-                <option value="">Todos os status</option>
-                <option value="approved">Aprovado</option>
-                <option value="pending">Pendente</option>
-                <option value="declined">Rejeitado</option>
-              </select>
+                onChange={(value) => setTempFilters(prev => ({ ...prev, status: value }))}
+                options={[
+                  { value: '', label: 'Todos os status' },
+                  { value: 'approved', label: 'Aprovado' },
+                  { value: 'pending', label: 'Pendente' },
+                  { value: 'declined', label: 'Rejeitado' }
+                ]}
+                placeholder="Selecione o status"
+                className="w-full"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">

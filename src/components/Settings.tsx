@@ -28,6 +28,7 @@ import { Input } from './ui/input'
 import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
 import { useCurrencyStore } from '../store/currency'
+import CustomSelect from './ui/CustomSelect'
 
 interface AccountSettings {
   id: string
@@ -393,35 +394,26 @@ const Settings: React.FC = () => {
             <label className="text-sm font-medium text-gray-600 mb-2 block">
               Selecione a Moeda
             </label>
-            <div className="relative">
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg appearance-none bg-white"
-              >
-                {[
-                  { code: 'BRL', name: 'Real Brasileiro', symbol: 'R$' },
-                  { code: 'USD', name: 'Dólar Americano', symbol: '$' },
-                  { code: 'EUR', name: 'Euro', symbol: '€' },
-                  { code: 'GBP', name: 'Libra Esterlina', symbol: '£' },
-                  { code: 'CAD', name: 'Dólar Canadense', symbol: 'C$' },
-                  { code: 'AUD', name: 'Dólar Australiano', symbol: 'A$' },
-                  { code: 'MXN', name: 'Peso Mexicano', symbol: 'MX$' },
-                  { code: 'ARS', name: 'Peso Argentino', symbol: 'AR$' },
-                  { code: 'CLP', name: 'Peso Chileno', symbol: 'CL$' },
-                  { code: 'COP', name: 'Peso Colombiano', symbol: 'CO$' },
-                  { code: 'PEN', name: 'Sol Peruano', symbol: 'S/' },
-                  { code: 'UYU', name: 'Peso Uruguaio', symbol: 'UY$' }
-                ].map((curr) => (
-                  <option key={curr.code} value={curr.code}>
-                    {curr.symbol} - {curr.name} ({curr.code})
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              </div>
-            </div>
+            <CustomSelect
+              value={currency}
+              onChange={(value) => setCurrency(value)}
+              options={[
+                { value: 'BRL', label: 'R$ - Real Brasileiro (BRL)' },
+                { value: 'USD', label: '$- Dólar Americano (USD)' },
+                { value: 'EUR', label: '€ - Euro (EUR)' },
+                { value: 'GBP', label: '£ - Libra Esterlina (GBP)' },
+                { value: 'CAD', label: 'C$ - Dólar Canadense (CAD)' },
+                { value: 'AUD', label: 'A$ - Dólar Australiano (AUD)' },
+                { value: 'MXN', label: 'MX$ - Peso Mexicano (MXN)' },
+                { value: 'ARS', label: 'AR$ - Peso Argentino (ARS)' },
+                { value: 'CLP', label: 'CL$ - Peso Chileno (CLP)' },
+                { value: 'COP', label: 'CO$ - Peso Colombiano (COP)' },
+                { value: 'PEN', label: 'S/ - Sol Peruano (PEN)' },
+                { value: 'UYU', label: 'UY$ - Peso Uruguaio (UYU)' }
+              ]}
+              placeholder="Selecione a moeda"
+              className="w-full"
+            />
           </div>
 
           {/* Status da Moeda */}
