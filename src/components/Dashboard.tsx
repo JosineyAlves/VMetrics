@@ -813,19 +813,16 @@ const Dashboard: React.FC = () => {
 
   // Buscar distribuição por fonte (apenas custo por traffic_channel)
   useEffect(() => {
-    const fetchSourceStats = async () => {
+    const processSourceStatsFromCampaigns = async () => {
       if (!apiKey) return
-      const api = new RedTrackAPI(apiKey)
-      const dateRange = getDateRange(selectedPeriod, customRange)
       
       try {
-        console.log('🔍 [SOURCE STATS] Buscando dados de investimento por fonte de tráfego...')
+        console.log('🔍 [SOURCE STATS] Processando dados de investimento por fonte de tráfego...')
         console.log('🔍 [SOURCE STATS] Período selecionado:', selectedPeriod)
         console.log('🔍 [SOURCE STATS] Range personalizado:', customRange)
-        console.log('🔍 [SOURCE STATS] Datas calculadas:', dateRange)
-        console.log('🔍 [SOURCE STATS] Data atual (RedTrack):', getCurrentRedTrackDate())
         
-        // Primeiro tentar buscar via report com agrupamento por source
+        // PRIMEIRA OPÇÃO: Tentar buscar via report com agrupamento por source
+        const dateRange = getDateRange(selectedPeriod, customRange)
         const reportParams = {
           date_from: dateRange.startDate,
           date_to: dateRange.endDate,
@@ -834,9 +831,9 @@ const Dashboard: React.FC = () => {
         }
         
         console.log('🔍 [SOURCE STATS] Tentando via report com parâmetros:', reportParams)
-        console.log('🔍 [SOURCE STATS] URL da API será:', `https://api.redtrack.io/report?${new URLSearchParams(reportParams).toString()}`)
         
         try {
+          const api = new RedTrackAPI(apiKey)
           const reportData = await api.getReport(reportParams)
           console.log('🔍 [SOURCE STATS] Dados do report recebidos:', reportData)
           
@@ -849,14 +846,6 @@ const Dashboard: React.FC = () => {
             reportData.forEach((item: any) => {
               const sourceTitle = item.source_title || item.source || 'Indefinido'
               const cost = item.cost || 0
-              
-              console.log(`🔍 [SOURCE STATS] Item:`, {
-                source_title: item.source_title,
-                source: item.source,
-                cost: item.cost,
-                final_source: sourceTitle,
-                final_cost: cost
-              })
               
               if (cost > 0) {
                 if (!sourceGroups[sourceTitle]) {
@@ -878,142 +867,153 @@ const Dashboard: React.FC = () => {
               
               setSourceStats(sortedData)
               return
-            } else {
-              console.log('⚠️ [SOURCE STATS] Report não retornou dados válidos, tentando via campaigns...')
             }
-          } else {
-            console.log('⚠️ [SOURCE STATS] Report retornou array vazio, tentando via campaigns...')
           }
         } catch (reportError) {
-          console.log('⚠️ [SOURCE STATS] Erro no report:', reportError)
-          console.log('⚠️ [SOURCE STATS] Tentando via campaigns...')
+          console.log('⚠️ [SOURCE STATS] Erro no report ou dados vazios, tentando via campanhas...')
         }
         
-        // Fallback: buscar via campaigns se report não funcionar
-        const campaignParams = {
-          date_from: dateRange.startDate,
-          date_to: dateRange.endDate,
-          group_by: 'campaign',
-        }
+        // SEGUNDA OPÇÃO: Buscar campanhas do período selecionado
+        console.log('🔍 [SOURCE STATS] Buscando campanhas para o período selecionado...')
         
-        console.log('🔍 [SOURCE STATS] Fallback via campaigns com parâmetros:', campaignParams)
-        console.log('🔍 [SOURCE STATS] URL da API será:', `https://api.redtrack.io/campaigns?${new URLSearchParams(campaignParams).toString()}`)
-        const data = await api.getCampaigns(campaignParams)
-        console.log('🔍 [SOURCE STATS] Dados de campanhas recebidos:', data)
-        
-        // DEBUG: Analisar estrutura completa dos dados
-        console.log('🔍 [SOURCE STATS] Estrutura dos dados recebidos:')
-        console.log('🔍 [SOURCE STATS] - Tipo:', typeof data)
-        console.log('🔍 [SOURCE STATS] - É array?', Array.isArray(data))
-        console.log('🔍 [SOURCE STATS] - Keys:', data ? Object.keys(data) : 'null/undefined')
-        console.log('🔍 [SOURCE STATS] - data.data existe?', data?.data ? 'SIM' : 'NÃO')
-        console.log('🔍 [SOURCE STATS] - data.campaigns existe?', data?.campaigns ? 'SIM' : 'NÃO')
-        
-        // Agrupar campanhas por source_title e somar os custos
-        const sourceGroups: { [key: string]: number } = {}
-        
-        // Verificar se os dados vêm em data.data, data.campaigns, ou data direto
-        let campaigns: any[] = []
-        // Usar type assertion para evitar erros de linter
-        const dataAny = data as any
-        if (dataAny?.campaigns && Array.isArray(dataAny.campaigns)) {
-          campaigns = dataAny.campaigns
-          console.log('🔍 [SOURCE STATS] Usando data.campaigns')
-        } else if (data?.data && Array.isArray(data.data)) {
-          campaigns = data.data
-          console.log('🔍 [SOURCE STATS] Usando data.data')
-        } else if (Array.isArray(data)) {
-          campaigns = data
-          console.log('🔍 [SOURCE STATS] Usando data direto')
-        } else {
-          console.log('🔍 [SOURCE STATS] ❌ Estrutura de dados inesperada!')
-          console.log('🔍 [SOURCE STATS] Dados completos:', JSON.stringify(data, null, 2))
-        }
-        
-        if (Array.isArray(campaigns) && campaigns.length > 0) {
-          console.log('🔍 [SOURCE STATS] Processando', campaigns.length, 'campanhas...')
+        try {
+          const api = new RedTrackAPI(apiKey)
+          const campaignParams = {
+            date_from: dateRange.startDate,
+            date_to: dateRange.endDate,
+            group_by: 'campaign',
+          }
           
-          // DEBUG: Mostrar primeira campanha completa
-          console.log('🔍 [SOURCE STATS] Primeira campanha (exemplo):', JSON.stringify(campaigns[0], null, 2))
+          const data = await api.getCampaigns(campaignParams)
+          console.log('🔍 [SOURCE STATS] Dados de campanhas recebidos:', data)
           
-          campaigns.forEach((campaign: any, index: number) => {
-            console.log(`\n🔍 [SOURCE STATS] === CAMPANHA ${index + 1} ===`)
-            console.log(`🔍 [SOURCE STATS] Campanha completa:`, campaign)
-            console.log(`🔍 [SOURCE STATS] - title: "${campaign.title || 'N/A'}"`)
-            console.log(`🔍 [SOURCE STATS] - source_title: "${campaign.source_title || 'N/A'}"`)
-            console.log(`🔍 [SOURCE STATS] - source: "${campaign.source || 'N/A'}"`)
-            console.log(`🔍 [SOURCE STATS] - stat:`, campaign.stat)
-            console.log(`🔍 [SOURCE STATS] - stat.cost: ${campaign.stat?.cost || 'N/A'}`)
-            console.log(`🔍 [SOURCE STATS] - cost direto: ${campaign.cost || 'N/A'}`)
+          // Processar dados das campanhas
+          let campaigns: any[] = []
+          const dataAny = data as any
+          
+          if (dataAny?.campaigns && Array.isArray(dataAny.campaigns)) {
+            campaigns = dataAny.campaigns
+          } else if (data?.data && Array.isArray(data.data)) {
+            campaigns = data.data
+          } else if (Array.isArray(data)) {
+            campaigns = data
+          }
+          
+          if (campaigns.length > 0) {
+            console.log('🔍 [SOURCE STATS] Processando', campaigns.length, 'campanhas...')
             
-            // Tentar diferentes campos para source_title
-            const sourceTitle = campaign.source_title || campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+            const sourceGroups: { [key: string]: number } = {}
             
-            // Tentar diferentes campos para cost
-            const cost = campaign.stat?.cost || campaign.cost || campaign.spend || campaign.ad_spend || 0
-            
-            console.log(`🔍 [SOURCE STATS] - sourceTitle final: "${sourceTitle}"`)
-            console.log(`🔍 [SOURCE STATS] - cost final: ${cost}`)
-            
-            if (cost > 0) {
-              if (!sourceGroups[sourceTitle]) {
-                sourceGroups[sourceTitle] = 0
+            campaigns.forEach((campaign: any) => {
+              const sourceTitle = campaign.source_title || campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+              const cost = campaign.stat?.cost || campaign.cost || campaign.spend || campaign.ad_spend || 0
+              
+              if (cost > 0) {
+                if (!sourceGroups[sourceTitle]) {
+                  sourceGroups[sourceTitle] = 0
+                }
+                sourceGroups[sourceTitle] += cost
+                console.log(`🔍 [SOURCE STATS] ✅ Campanha: ${sourceTitle} = ${sourceGroups[sourceTitle]}`)
               }
-              sourceGroups[sourceTitle] += cost
-              console.log(`🔍 [SOURCE STATS] ✅ Adicionado: ${sourceTitle} = ${sourceGroups[sourceTitle]}`)
-            } else {
-              console.log(`🔍 [SOURCE STATS] ⚠️ Campanha sem custo: ${campaign.title}`)
+            })
+            
+            if (Object.keys(sourceGroups).length > 0) {
+              const mapped = Object.entries(sourceGroups).map(([sourceName, totalCost]) => ({
+                key: sourceName,
+                cost: totalCost,
+              }))
+              
+              const sortedData = mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
+              console.log('🔍 [SOURCE STATS] Dados das campanhas processados:', sortedData)
+              
+              setSourceStats(sortedData)
+              return
             }
-          })
-        } else {
-          console.log('🔍 [SOURCE STATS] ❌ Nenhuma campanha encontrada ou array vazio')
+          }
+        } catch (campaignError) {
+          console.log('⚠️ [SOURCE STATS] Erro ao buscar campanhas:', campaignError)
         }
         
-        console.log('🔍 [SOURCE STATS] Agrupamento por fonte:', sourceGroups)
+        // TERCEIRA OPÇÃO: Tentar dados históricos
+        console.log('🔍 [SOURCE STATS] Tentando dados históricos...')
         
-        // Verificar se temos dados válidos
-        if (Object.keys(sourceGroups).length === 0) {
-          console.log('⚠️ [SOURCE STATS] Nenhuma fonte com custo encontrada!')
+        try {
+          const api = new RedTrackAPI(apiKey)
+          const historicalDateRange = {
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            endDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          }
           
-          // DEBUG: Usar dados de teste para verificar se a lógica funciona
-          console.log('🔍 [SOURCE STATS] Usando dados de teste para debug...')
-          const testData = [
-            { key: 'Taboola', cost: 399.9 },
-            { key: 'Facebook', cost: 191.25 }
-          ]
-          console.log('🔍 [SOURCE STATS] Dados de teste:', testData)
-          setSourceStats(testData)
-          return
+          const historicalParams = {
+            date_from: historicalDateRange.startDate,
+            date_to: historicalDateRange.endDate,
+            group_by: 'campaign',
+          }
+          
+          const historicalData = await api.getCampaigns(historicalParams)
+          let historicalCampaigns: any[] = []
+          const historicalDataAny = historicalData as any
+          
+          if (historicalDataAny?.campaigns && Array.isArray(historicalDataAny.campaigns)) {
+            historicalCampaigns = historicalDataAny.campaigns
+          } else if (historicalData?.data && Array.isArray(historicalData.data)) {
+            historicalCampaigns = historicalData.data
+          } else if (Array.isArray(historicalData)) {
+            historicalCampaigns = historicalData
+          }
+          
+          if (historicalCampaigns.length > 0) {
+            console.log('🔍 [SOURCE STATS] Processando', historicalCampaigns.length, 'campanhas históricas...')
+            
+            const historicalSourceGroups: { [key: string]: number } = {}
+            
+            historicalCampaigns.forEach((campaign: any) => {
+              const sourceTitle = campaign.source_title || campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+              const cost = campaign.stat?.cost || campaign.cost || campaign.spend || campaign.ad_spend || 0
+              
+              if (cost > 0) {
+                if (!historicalSourceGroups[sourceTitle]) {
+                  historicalSourceGroups[sourceTitle] = 0
+                }
+                historicalSourceGroups[sourceTitle] += cost
+              }
+            })
+            
+            if (Object.keys(historicalSourceGroups).length > 0) {
+              const historicalMapped = Object.entries(historicalSourceGroups).map(([sourceName, totalCost]) => ({
+                key: sourceName,
+                cost: totalCost,
+              }))
+              
+              const historicalSortedData = historicalMapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
+              
+              // Adicionar indicador de que são dados históricos
+              const historicalDataWithNote = historicalSortedData.map(item => ({
+                ...item,
+                key: `${item.key} (histórico)`,
+                isHistorical: true
+              }))
+              
+              setSourceStats(historicalDataWithNote)
+              console.log('🔍 [SOURCE STATS] Usando dados históricos como fallback')
+              return
+            }
+          }
+        } catch (historicalError) {
+          console.log('⚠️ [SOURCE STATS] Erro ao buscar dados históricos:', historicalError)
         }
         
-        // Converter para o formato esperado pelo gráfico
-        const mapped = Object.entries(sourceGroups).map(([sourceName, totalCost]) => ({
-          key: sourceName,
-          cost: totalCost,
-        }))
-        
-        console.log('🔍 [SOURCE STATS] Dados mapeados para o gráfico:', mapped)
-        
-        const sortedData = mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
-        console.log('🔍 [SOURCE STATS] Dados ordenados:', sortedData)
-        
-        // Log final com resumo
-        console.log('🔍 [SOURCE STATS] 📊 RESUMO FINAL:')
-        sortedData.forEach((item, index) => {
-          console.log(`🔍 [SOURCE STATS] ${index + 1}. ${item.key}: ${formatCurrency(item.cost)}`)
-        })
-        console.log(`🔍 [SOURCE STATS] Total de fontes: ${sortedData.length}`)
-        console.log(`🔍 [SOURCE STATS] Total investido: ${formatCurrency(sortedData.reduce((sum, item) => sum + item.cost, 0))}`)
-        
-        setSourceStats(sortedData)
-        console.log('🔍 [SOURCE STATS] Estado sourceStats atualizado com:', sortedData.length, 'itens')
+        // Se não houver dados, mostrar array vazio
+        console.log('🔍 [SOURCE STATS] Nenhum dado disponível')
+        setSourceStats([])
         
       } catch (err) {
-        console.error('❌ [SOURCE STATS] Erro ao buscar dados de fontes:', err)
+        console.error('❌ [SOURCE STATS] Erro ao processar dados de fontes:', err)
         setSourceStats([])
       }
     }
-    fetchSourceStats()
+    
+    processSourceStatsFromCampaigns()
   }, [apiKey, selectedPeriod, customRange])
 
 
@@ -1257,6 +1257,18 @@ const Dashboard: React.FC = () => {
             </div>
             {sourceStats.length > 0 ? (
               <div className="w-full h-[320px] flex flex-col justify-center">
+                {/* Aviso se são dados históricos */}
+                {sourceStats.some((item: any) => item.isHistorical) && (
+                  <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center text-yellow-800">
+                      <span className="text-sm">⚠️</span>
+                      <span className="text-sm ml-2">
+                        Dados históricos (últimos 30 dias) - período atual sem dados
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     layout="vertical"
