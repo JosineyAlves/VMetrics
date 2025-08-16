@@ -144,24 +144,44 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch(url.toString())
         const data = await response.json()
-        let items = Array.isArray(data) ? data : []
+        console.log('🔍 [CAMPAIGNS] Dados brutos da API:', data)
+        
+        // A API retorna { campaigns: [...], performance: {...} }
+        let items = []
+        if (data && data.campaigns && Array.isArray(data.campaigns)) {
+          items = data.campaigns
+          console.log('🔍 [CAMPAIGNS] ✅ Usando data.campaigns:', items.length, 'campanhas')
+        } else if (Array.isArray(data)) {
+          items = data
+          console.log('🔍 [CAMPAIGNS] ✅ Usando data direto:', items.length, 'campanhas')
+        } else {
+          console.log('🔍 [CAMPAIGNS] ❌ Estrutura de dados inesperada:', data)
+          items = []
+        }
         
         // Armazenar dados completos das campanhas (incluindo source_title e cost)
-        const campaignsWithFullData = items.map((item: any) => ({
-          id: item.id,
-          name: item.title || item.campaign || item.campaign_name || item.name || 'Campanha sem nome',
-          source_title: item.source_title,
-          source: item.source,
-          traffic_source: item.traffic_source,
-          media_source: item.media_source,
-          stat: item.stat,
-          cost: item.cost,
-          spend: item.spend,
-          ad_spend: item.ad_spend,
-          status: item.status
-        }))
+        const campaignsWithFullData = items.map((item: any) => {
+          console.log('🔍 [CAMPAIGNS] Processando item:', item)
+          return {
+            id: item.id,
+            name: item.title || item.campaign || item.campaign_name || item.name || 'Campanha sem nome',
+            source_title: item.source_title,
+            source: item.source,
+            traffic_source: item.traffic_source,
+            media_source: item.media_source,
+            stat: item.stat,
+            cost: item.cost,
+            spend: item.spend,
+            ad_spend: item.ad_spend,
+            status: item.status
+          }
+        })
         
         console.log('🔍 [CAMPAIGNS] Campanhas carregadas com dados completos:', campaignsWithFullData)
+        console.log('🔍 [CAMPAIGNS] Número de campanhas:', campaignsWithFullData.length)
+        if (campaignsWithFullData.length > 0) {
+          console.log('🔍 [CAMPAIGNS] Primeira campanha:', campaignsWithFullData[0])
+        }
         setCampaigns(campaignsWithFullData)
       } catch (err) {
         console.error('❌ [CAMPAIGNS] Erro ao carregar campanhas:', err)
