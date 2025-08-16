@@ -884,8 +884,12 @@ const Dashboard: React.FC = () => {
             group_by: 'campaign',
           }
           
+          console.log('🔍 [SOURCE STATS] Parâmetros da busca:', campaignParams)
           const data = await api.getCampaigns(campaignParams)
           console.log('🔍 [SOURCE STATS] Dados de campanhas recebidos:', data)
+          console.log('🔍 [SOURCE STATS] Tipo dos dados:', typeof data)
+          console.log('🔍 [SOURCE STATS] É array?', Array.isArray(data))
+          console.log('🔍 [SOURCE STATS] Keys disponíveis:', data ? Object.keys(data) : 'null/undefined')
           
           // Processar dados das campanhas
           let campaigns: any[] = []
@@ -893,29 +897,56 @@ const Dashboard: React.FC = () => {
           
           if (dataAny?.campaigns && Array.isArray(dataAny.campaigns)) {
             campaigns = dataAny.campaigns
+            console.log('🔍 [SOURCE STATS] ✅ Usando data.campaigns -', campaigns.length, 'campanhas')
           } else if (data?.data && Array.isArray(data.data)) {
             campaigns = data.data
+            console.log('🔍 [SOURCE STATS] ✅ Usando data.data -', campaigns.length, 'campanhas')
           } else if (Array.isArray(data)) {
             campaigns = data
+            console.log('🔍 [SOURCE STATS] ✅ Usando data direto -', campaigns.length, 'campanhas')
+          } else {
+            console.log('🔍 [SOURCE STATS] ❌ Estrutura de dados inesperada!')
+            console.log('🔍 [SOURCE STATS] Dados completos:', JSON.stringify(data, null, 2))
           }
           
           if (campaigns.length > 0) {
             console.log('🔍 [SOURCE STATS] Processando', campaigns.length, 'campanhas...')
             
+            // DEBUG: Mostrar primeira campanha completa
+            console.log('🔍 [SOURCE STATS] Primeira campanha (exemplo):', JSON.stringify(campaigns[0], null, 2))
+            
             const sourceGroups: { [key: string]: number } = {}
             
-            campaigns.forEach((campaign: any) => {
+            campaigns.forEach((campaign: any, index: number) => {
+              console.log(`\n🔍 [SOURCE STATS] === CAMPANHA ${index + 1} ===`)
+              console.log(`🔍 [SOURCE STATS] - title: "${campaign.title || 'N/A'}"`)
+              console.log(`🔍 [SOURCE STATS] - source_title: "${campaign.source_title || 'N/A'}"`)
+              console.log(`🔍 [SOURCE STATS] - source: "${campaign.source || 'N/A'}"`)
+              console.log(`🔍 [SOURCE STATS] - stat:`, campaign.stat)
+              console.log(`🔍 [SOURCE STATS] - stat.cost: ${campaign.stat?.cost || 'N/A'}`)
+              console.log(`🔍 [SOURCE STATS] - cost direto: ${campaign.cost || 'N/A'}`)
+              
+              // Tentar diferentes campos para source_title
               const sourceTitle = campaign.source_title || campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+              
+              // Tentar diferentes campos para cost
               const cost = campaign.stat?.cost || campaign.cost || campaign.spend || campaign.ad_spend || 0
+              
+              console.log(`🔍 [SOURCE STATS] - sourceTitle final: "${sourceTitle}"`)
+              console.log(`🔍 [SOURCE STATS] - cost final: ${cost}`)
               
               if (cost > 0) {
                 if (!sourceGroups[sourceTitle]) {
                   sourceGroups[sourceTitle] = 0
                 }
                 sourceGroups[sourceTitle] += cost
-                console.log(`🔍 [SOURCE STATS] ✅ Campanha: ${sourceTitle} = ${sourceGroups[sourceTitle]}`)
+                console.log(`🔍 [SOURCE STATS] ✅ Adicionado: ${sourceTitle} = ${sourceGroups[sourceTitle]}`)
+              } else {
+                console.log(`🔍 [SOURCE STATS] ⚠️ Campanha sem custo: ${campaign.title}`)
               }
             })
+            
+            console.log('🔍 [SOURCE STATS] Agrupamento por fonte:', sourceGroups)
             
             if (Object.keys(sourceGroups).length > 0) {
               const mapped = Object.entries(sourceGroups).map(([sourceName, totalCost]) => ({
@@ -926,9 +957,22 @@ const Dashboard: React.FC = () => {
               const sortedData = mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
               console.log('🔍 [SOURCE STATS] Dados das campanhas processados:', sortedData)
               
+              // Log final com resumo
+              console.log('🔍 [SOURCE STATS] 📊 RESUMO FINAL:')
+              sortedData.forEach((item, index) => {
+                console.log(`🔍 [SOURCE STATS] ${index + 1}. ${item.key}: ${formatCurrency(item.cost)}`)
+              })
+              console.log(`🔍 [SOURCE STATS] Total de fontes: ${sortedData.length}`)
+              console.log(`🔍 [SOURCE STATS] Total investido: ${formatCurrency(sortedData.reduce((sum, item) => sum + item.cost, 0))}`)
+              
               setSourceStats(sortedData)
+              console.log('🔍 [SOURCE STATS] Estado sourceStats atualizado com:', sortedData.length, 'itens')
               return
+            } else {
+              console.log('⚠️ [SOURCE STATS] Nenhuma campanha com custo encontrada')
             }
+          } else {
+            console.log('🔍 [SOURCE STATS] ❌ Nenhuma campanha encontrada ou array vazio')
           }
         } catch (campaignError) {
           console.log('⚠️ [SOURCE STATS] Erro ao buscar campanhas:', campaignError)
