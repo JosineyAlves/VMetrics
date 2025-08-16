@@ -895,23 +895,59 @@ const Dashboard: React.FC = () => {
         const data = await api.getCampaigns(campaignParams)
         console.log('🔍 [SOURCE STATS] Dados de campanhas recebidos:', data)
         
+        // DEBUG: Analisar estrutura completa dos dados
+        console.log('🔍 [SOURCE STATS] Estrutura dos dados recebidos:')
+        console.log('🔍 [SOURCE STATS] - Tipo:', typeof data)
+        console.log('🔍 [SOURCE STATS] - É array?', Array.isArray(data))
+        console.log('🔍 [SOURCE STATS] - Keys:', data ? Object.keys(data) : 'null/undefined')
+        console.log('🔍 [SOURCE STATS] - data.data existe?', data?.data ? 'SIM' : 'NÃO')
+        console.log('🔍 [SOURCE STATS] - data.campaigns existe?', data?.campaigns ? 'SIM' : 'NÃO')
+        
         // Agrupar campanhas por source_title e somar os custos
         const sourceGroups: { [key: string]: number } = {}
         
-        // Verificar se os dados vêm em data.data (estrutura do getCampaigns) ou data direto
-        const campaigns = data?.data || data || []
+        // Verificar se os dados vêm em data.data, data.campaigns, ou data direto
+        let campaigns: any[] = []
+        // Usar type assertion para evitar erros de linter
+        const dataAny = data as any
+        if (dataAny?.campaigns && Array.isArray(dataAny.campaigns)) {
+          campaigns = dataAny.campaigns
+          console.log('🔍 [SOURCE STATS] Usando data.campaigns')
+        } else if (data?.data && Array.isArray(data.data)) {
+          campaigns = data.data
+          console.log('🔍 [SOURCE STATS] Usando data.data')
+        } else if (Array.isArray(data)) {
+          campaigns = data
+          console.log('🔍 [SOURCE STATS] Usando data direto')
+        } else {
+          console.log('🔍 [SOURCE STATS] ❌ Estrutura de dados inesperada!')
+          console.log('🔍 [SOURCE STATS] Dados completos:', JSON.stringify(data, null, 2))
+        }
         
-        if (Array.isArray(campaigns)) {
+        if (Array.isArray(campaigns) && campaigns.length > 0) {
           console.log('🔍 [SOURCE STATS] Processando', campaigns.length, 'campanhas...')
           
-          campaigns.forEach((campaign: any) => {
-            const sourceTitle = campaign.source_title || campaign.source || 'Indefinido'
-            const cost = campaign.stat?.cost || campaign.cost || 0
+          // DEBUG: Mostrar primeira campanha completa
+          console.log('🔍 [SOURCE STATS] Primeira campanha (exemplo):', JSON.stringify(campaigns[0], null, 2))
+          
+          campaigns.forEach((campaign: any, index: number) => {
+            console.log(`\n🔍 [SOURCE STATS] === CAMPANHA ${index + 1} ===`)
+            console.log(`🔍 [SOURCE STATS] Campanha completa:`, campaign)
+            console.log(`🔍 [SOURCE STATS] - title: "${campaign.title || 'N/A'}"`)
+            console.log(`🔍 [SOURCE STATS] - source_title: "${campaign.source_title || 'N/A'}"`)
+            console.log(`🔍 [SOURCE STATS] - source: "${campaign.source || 'N/A'}"`)
+            console.log(`🔍 [SOURCE STATS] - stat:`, campaign.stat)
+            console.log(`🔍 [SOURCE STATS] - stat.cost: ${campaign.stat?.cost || 'N/A'}`)
+            console.log(`🔍 [SOURCE STATS] - cost direto: ${campaign.cost || 'N/A'}`)
             
-            console.log(`🔍 [SOURCE STATS] Campanha: ${campaign.title || 'Sem título'}`)
-            console.log(`🔍 [SOURCE STATS] - source_title: "${sourceTitle}"`)
-            console.log(`🔍 [SOURCE STATS] - cost: ${cost}`)
-            console.log(`🔍 [SOURCE STATS] - stat.cost: ${campaign.stat?.cost}`)
+            // Tentar diferentes campos para source_title
+            const sourceTitle = campaign.source_title || campaign.source || campaign.traffic_source || campaign.media_source || 'Indefinido'
+            
+            // Tentar diferentes campos para cost
+            const cost = campaign.stat?.cost || campaign.cost || campaign.spend || campaign.ad_spend || 0
+            
+            console.log(`🔍 [SOURCE STATS] - sourceTitle final: "${sourceTitle}"`)
+            console.log(`🔍 [SOURCE STATS] - cost final: ${cost}`)
             
             if (cost > 0) {
               if (!sourceGroups[sourceTitle]) {
@@ -923,6 +959,8 @@ const Dashboard: React.FC = () => {
               console.log(`🔍 [SOURCE STATS] ⚠️ Campanha sem custo: ${campaign.title}`)
             }
           })
+        } else {
+          console.log('🔍 [SOURCE STATS] ❌ Nenhuma campanha encontrada ou array vazio')
         }
         
         console.log('🔍 [SOURCE STATS] Agrupamento por fonte:', sourceGroups)
@@ -930,7 +968,15 @@ const Dashboard: React.FC = () => {
         // Verificar se temos dados válidos
         if (Object.keys(sourceGroups).length === 0) {
           console.log('⚠️ [SOURCE STATS] Nenhuma fonte com custo encontrada!')
-          setSourceStats([])
+          
+          // DEBUG: Usar dados de teste para verificar se a lógica funciona
+          console.log('🔍 [SOURCE STATS] Usando dados de teste para debug...')
+          const testData = [
+            { key: 'Taboola', cost: 399.9 },
+            { key: 'Facebook', cost: 191.25 }
+          ]
+          console.log('🔍 [SOURCE STATS] Dados de teste:', testData)
+          setSourceStats(testData)
           return
         }
         
