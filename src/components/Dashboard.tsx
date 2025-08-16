@@ -820,6 +820,10 @@ const Dashboard: React.FC = () => {
       
       try {
         console.log('🔍 [SOURCE STATS] Buscando dados de investimento por fonte de tráfego...')
+        console.log('🔍 [SOURCE STATS] Período selecionado:', selectedPeriod)
+        console.log('🔍 [SOURCE STATS] Range personalizado:', customRange)
+        console.log('🔍 [SOURCE STATS] Datas calculadas:', dateRange)
+        console.log('🔍 [SOURCE STATS] Data atual (RedTrack):', getCurrentRedTrackDate())
         
         // Primeiro tentar buscar via report com agrupamento por source
         const reportParams = {
@@ -830,6 +834,7 @@ const Dashboard: React.FC = () => {
         }
         
         console.log('🔍 [SOURCE STATS] Tentando via report com parâmetros:', reportParams)
+        console.log('🔍 [SOURCE STATS] URL da API será:', `https://api.redtrack.io/report?${new URLSearchParams(reportParams).toString()}`)
         
         try {
           const reportData = await api.getReport(reportParams)
@@ -892,6 +897,7 @@ const Dashboard: React.FC = () => {
         }
         
         console.log('🔍 [SOURCE STATS] Fallback via campaigns com parâmetros:', campaignParams)
+        console.log('🔍 [SOURCE STATS] URL da API será:', `https://api.redtrack.io/campaigns?${new URLSearchParams(campaignParams).toString()}`)
         const data = await api.getCampaigns(campaignParams)
         console.log('🔍 [SOURCE STATS] Dados de campanhas recebidos:', data)
         
