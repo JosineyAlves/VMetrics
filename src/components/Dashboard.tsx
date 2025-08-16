@@ -839,13 +839,26 @@ const Dashboard: React.FC = () => {
             // Agrupar por source_title se disponível, senão usar source
             const sourceGroups: { [key: string]: number } = {}
             
+            console.log('🔍 [SOURCE STATS] Processando', reportData.length, 'itens do report...')
+            
             reportData.forEach((item: any) => {
               const sourceTitle = item.source_title || item.source || 'Indefinido'
               const cost = item.cost || 0
               
+              console.log(`🔍 [SOURCE STATS] Item:`, {
+                source_title: item.source_title,
+                source: item.source,
+                cost: item.cost,
+                final_source: sourceTitle,
+                final_cost: cost
+              })
+              
               if (cost > 0) {
-                sourceGroups[sourceTitle] = (sourceGroups[sourceTitle] || 0) + cost
-                console.log(`🔍 [SOURCE STATS] Fonte: ${sourceTitle}, Custo: ${cost}`)
+                if (!sourceGroups[sourceTitle]) {
+                  sourceGroups[sourceTitle] = 0
+                }
+                sourceGroups[sourceTitle] += cost
+                console.log(`🔍 [SOURCE STATS] ✅ Report: ${sourceTitle} = ${sourceGroups[sourceTitle]}`)
               }
             })
             
@@ -860,10 +873,15 @@ const Dashboard: React.FC = () => {
               
               setSourceStats(sortedData)
               return
+            } else {
+              console.log('⚠️ [SOURCE STATS] Report não retornou dados válidos, tentando via campaigns...')
             }
+          } else {
+            console.log('⚠️ [SOURCE STATS] Report retornou array vazio, tentando via campaigns...')
           }
         } catch (reportError) {
-          console.log('⚠️ [SOURCE STATS] Report não retornou dados, tentando via campaigns...')
+          console.log('⚠️ [SOURCE STATS] Erro no report:', reportError)
+          console.log('⚠️ [SOURCE STATS] Tentando via campaigns...')
         }
         
         // Fallback: buscar via campaigns se report não funcionar
@@ -884,18 +902,37 @@ const Dashboard: React.FC = () => {
         const campaigns = data?.data || data || []
         
         if (Array.isArray(campaigns)) {
+          console.log('🔍 [SOURCE STATS] Processando', campaigns.length, 'campanhas...')
+          
           campaigns.forEach((campaign: any) => {
-            const sourceTitle = campaign.source_title || 'Indefinido'
-            const cost = campaign.stat?.cost || 0
+            const sourceTitle = campaign.source_title || campaign.source || 'Indefinido'
+            const cost = campaign.stat?.cost || campaign.cost || 0
+            
+            console.log(`🔍 [SOURCE STATS] Campanha: ${campaign.title || 'Sem título'}`)
+            console.log(`🔍 [SOURCE STATS] - source_title: "${sourceTitle}"`)
+            console.log(`🔍 [SOURCE STATS] - cost: ${cost}`)
+            console.log(`🔍 [SOURCE STATS] - stat.cost: ${campaign.stat?.cost}`)
             
             if (cost > 0) {
-              sourceGroups[sourceTitle] = (sourceGroups[sourceTitle] || 0) + cost
-              console.log(`🔍 [SOURCE STATS] Campanha: ${campaign.title}, Fonte: ${sourceTitle}, Custo: ${cost}`)
+              if (!sourceGroups[sourceTitle]) {
+                sourceGroups[sourceTitle] = 0
+              }
+              sourceGroups[sourceTitle] += cost
+              console.log(`🔍 [SOURCE STATS] ✅ Adicionado: ${sourceTitle} = ${sourceGroups[sourceTitle]}`)
+            } else {
+              console.log(`🔍 [SOURCE STATS] ⚠️ Campanha sem custo: ${campaign.title}`)
             }
           })
         }
         
         console.log('🔍 [SOURCE STATS] Agrupamento por fonte:', sourceGroups)
+        
+        // Verificar se temos dados válidos
+        if (Object.keys(sourceGroups).length === 0) {
+          console.log('⚠️ [SOURCE STATS] Nenhuma fonte com custo encontrada!')
+          setSourceStats([])
+          return
+        }
         
         // Converter para o formato esperado pelo gráfico
         const mapped = Object.entries(sourceGroups).map(([sourceName, totalCost]) => ({
@@ -907,6 +944,14 @@ const Dashboard: React.FC = () => {
         
         const sortedData = mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
         console.log('🔍 [SOURCE STATS] Dados ordenados:', sortedData)
+        
+        // Log final com resumo
+        console.log('🔍 [SOURCE STATS] 📊 RESUMO FINAL:')
+        sortedData.forEach((item, index) => {
+          console.log(`🔍 [SOURCE STATS] ${index + 1}. ${item.key}: ${formatCurrency(item.cost)}`)
+        })
+        console.log(`🔍 [SOURCE STATS] Total de fontes: ${sortedData.length}`)
+        console.log(`🔍 [SOURCE STATS] Total investido: ${formatCurrency(sortedData.reduce((sum, item) => sum + item.cost, 0))}`)
         
         setSourceStats(sortedData)
         console.log('🔍 [SOURCE STATS] Estado sourceStats atualizado com:', sortedData.length, 'itens')
