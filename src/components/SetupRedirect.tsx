@@ -1,4 +1,4 @@
-// ✅ VALIDAÇÃO DE SETUP RESTAURADA
+// ⚠️ VALIDAÇÃO DE SETUP TEMPORARIAMENTE DESATIVADA PARA DESENVOLVIMENTO LOCAL
 import React, { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
@@ -20,11 +20,11 @@ const SetupRedirect: React.FC = () => {
       return
     }
 
-    // ✅ VALIDAÇÃO RESTAURADA: Se não tiver API Key, redirecionar para setup
-    if (!apiKey) {
-      navigate('/setup', { replace: true })
-      return
-    }
+    // TEMPORARIAMENTE DESATIVADO: Se não tiver API Key, redirecionar para setup
+    // if (!apiKey) {
+    //   navigate('/setup', { replace: true })
+    //   return
+    // }
 
     // Se tudo estiver configurado, redirecionar para dashboard
     navigate('/dashboard', { replace: true })

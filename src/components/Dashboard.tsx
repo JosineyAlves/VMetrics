@@ -819,17 +819,63 @@ const Dashboard: React.FC = () => {
       const dateRange = getDateRange(selectedPeriod, customRange)
       
       try {
-        console.log('🔍 [SOURCE STATS] Buscando dados de campanhas para fontes de tráfego...')
+        console.log('🔍 [SOURCE STATS] Buscando dados de investimento por fonte de tráfego...')
         
-        const params = {
+        // Primeiro tentar buscar via report com agrupamento por source
+        const reportParams = {
           date_from: dateRange.startDate,
           date_to: dateRange.endDate,
-          group_by: 'rt_source',
+          group_by: 'source',
+          metrics: 'cost,clicks,conversions,revenue'
         }
         
-        console.log('🔍 [SOURCE STATS] Parâmetros:', params)
-        const data = await api.getCampaigns(params)
-        console.log('🔍 [SOURCE STATS] Dados recebidos:', data)
+        console.log('🔍 [SOURCE STATS] Tentando via report com parâmetros:', reportParams)
+        
+        try {
+          const reportData = await api.getReport(reportParams)
+          console.log('🔍 [SOURCE STATS] Dados do report recebidos:', reportData)
+          
+          if (Array.isArray(reportData) && reportData.length > 0) {
+            // Agrupar por source_title se disponível, senão usar source
+            const sourceGroups: { [key: string]: number } = {}
+            
+            reportData.forEach((item: any) => {
+              const sourceTitle = item.source_title || item.source || 'Indefinido'
+              const cost = item.cost || 0
+              
+              if (cost > 0) {
+                sourceGroups[sourceTitle] = (sourceGroups[sourceTitle] || 0) + cost
+                console.log(`🔍 [SOURCE STATS] Fonte: ${sourceTitle}, Custo: ${cost}`)
+              }
+            })
+            
+            if (Object.keys(sourceGroups).length > 0) {
+              const mapped = Object.entries(sourceGroups).map(([sourceName, totalCost]) => ({
+                key: sourceName,
+                cost: totalCost,
+              }))
+              
+              const sortedData = mapped.sort((a: { cost: number }, b: { cost: number }) => b.cost - a.cost)
+              console.log('🔍 [SOURCE STATS] Dados do report processados:', sortedData)
+              
+              setSourceStats(sortedData)
+              return
+            }
+          }
+        } catch (reportError) {
+          console.log('⚠️ [SOURCE STATS] Report não retornou dados, tentando via campaigns...')
+        }
+        
+        // Fallback: buscar via campaigns se report não funcionar
+        const campaignParams = {
+          date_from: dateRange.startDate,
+          date_to: dateRange.endDate,
+          group_by: 'campaign',
+        }
+        
+        console.log('🔍 [SOURCE STATS] Fallback via campaigns com parâmetros:', campaignParams)
+        const data = await api.getCampaigns(campaignParams)
+        console.log('🔍 [SOURCE STATS] Dados de campanhas recebidos:', data)
         
         // Agrupar campanhas por source_title e somar os custos
         const sourceGroups: { [key: string]: number } = {}
@@ -1101,7 +1147,17 @@ const Dashboard: React.FC = () => {
             transition={{ delay: 0.5 }}
             className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
           >
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">Investimento por Fonte de Tráfego</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
+              {sourceStats.length > 0 && (
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Total Investido</p>
+                  <p className="text-lg font-bold text-[#3cd48f]">
+                    {formatCurrency(sourceStats.reduce((sum, item) => sum + item.cost, 0))}
+                  </p>
+                </div>
+              )}
+            </div>
             {sourceStats.length > 0 ? (
               <div className="w-full h-[320px] flex flex-col justify-center">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1114,14 +1170,31 @@ const Dashboard: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
                     <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
-                    <Tooltip formatter={(v: any) => `Custo: ${formatCurrency(v)}`} />
+                    <Tooltip 
+                      formatter={(v: any, name: any) => [
+                        formatCurrency(v), 
+                        name === 'cost' ? 'Investimento Total' : name
+                      ]}
+                      labelFormatter={(label) => `Fonte: ${label}`}
+                      contentStyle={{ 
+                        borderRadius: 12, 
+                        background: '#fff', 
+                        boxShadow: '0 4px 24px #0001',
+                        border: '1px solid #3cd48f20'
+                      }} 
+                    />
                     <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
                     <Legend verticalAlign="top" height={36} iconType="circle" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-gray-400 text-center py-12">Sem dados de investimento por fonte para o período selecionado ou seu plano RedTrack não permite esse relatório.</div>
+              <div className="text-gray-400 text-center py-12">
+                <div className="text-4xl mb-3">📊</div>
+                <p className="text-lg font-semibold mb-2">Investimento por Fonte</p>
+                <p className="text-sm">Sem dados de custo por fonte de tráfego para o período selecionado</p>
+                <p className="text-xs mt-2 text-gray-500">Verifique se suas campanhas têm dados de custo configurados</p>
+              </div>
             )}
           </motion.div>
         </div>
