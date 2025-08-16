@@ -762,7 +762,7 @@ const Funnel: React.FC = () => {
                 <select
                   value={selectedCampaign}
                   onChange={(e) => handleCampaignSelect(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">Selecione uma campanha</option>
                   {campaigns.map((campaign) => (
@@ -782,7 +782,7 @@ const Funnel: React.FC = () => {
                   <select
                     value={selectedCampaign2}
                     onChange={(e) => handleCampaign2Select(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   >
                     <option value="">Selecione uma campanha</option>
                     {campaigns.map((campaign) => (
@@ -802,7 +802,7 @@ const Funnel: React.FC = () => {
                 <select
                   value={viewMode}
                   onChange={(e) => setViewMode(e.target.value as '3d' | '2d' | 'comparison')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="3d">Visualização 3D</option>
                   <option value="2d">Análise Detalhada</option>

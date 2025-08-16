@@ -1,0 +1,535 @@
+/* CSS para sobrescrever completamente os estilos dos selects - Solução VMetrics */
+
+/* Resetar todos os estilos dos selects */
+select {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Estilos para o select com foco */
+select:focus {
+  outline: none;
+  border-color: #3cd48f;
+  box-shadow: 0 0 0 3px rgba(60, 212, 143, 0.1);
+}
+
+/* Estilos para o select no hover */
+select:hover {
+  border-color: rgba(60, 212, 143, 0.6);
+}
+
+/* Resetar completamente os estilos dos options */
+select option {
+  all: unset;
+  display: block;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Estilos para options no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS específico para o estado de hover - Solução principal */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis no hover - Solução final */
+select option:hover,
+select option:focus,
+select option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Chrome/Edge no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Firefox no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Safari no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis no hover - Solução final */
+select option:hover,
+select option:focus,
+select option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Chrome/Edge no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Firefox no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Safari no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis no hover - Solução final */
+select option:hover,
+select option:focus,
+select option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Chrome/Edge no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Firefox no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Safari no hover */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* Estilos para options selecionados */
+select option:checked,
+select option:selected {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* Estilos para options com foco */
+select option:focus {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* Estilos para options ativos */
+select option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS específico para diferentes navegadores */
+select option::-webkit-select-option {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+select option::-moz-focus-inner {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+select option:-moz-focusring {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* CSS para o dropdown quando aberto */
+select:focus option:hover,
+select:focus option:focus,
+select:focus option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever variáveis CSS do Tailwind */
+:root {
+  --tw-bg-opacity: 1 !important;
+  --tw-text-opacity: 1 !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis do navegador - Solução final */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected,
+select option[aria-selected="true"],
+select option[data-selected="true"] {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind CSS */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis do navegador - Solução final */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected,
+select option[aria-selected="true"],
+select option[data-selected="true"] {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis do navegador - Solução final */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected,
+select option[aria-selected="true"],
+select option[data-selected="true"] {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind CSS */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis do navegador - Solução final */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected,
+select option[aria-selected="true"],
+select option[data-selected="true"] {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}

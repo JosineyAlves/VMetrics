@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importar estilos específicos para selects */
+@import './styles/selects.css';
+
+/* Importar estilos para forçar cores verdes */
+@import './styles/force-green.css';
+
 /* Adicionar classes line-clamp */
 @layer utilities {
   .line-clamp-1 {
@@ -78,14 +84,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-foreground;
+    @apply bg-gradient-to-br from-slate-50 via-[#3cd48f]/5 to-[#10b981]/5 text-foreground;
     background-attachment: fixed;
   }
 }
 
 /* Tipografia VMetrics */
 .vmetrics-title {
-  @apply font-sans font-bold text-3xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
+  @apply font-sans font-bold text-3xl bg-gradient-to-r from-[#3cd48f] to-[#10b981] bg-clip-text text-transparent;
 }
 .vmetrics-text {
   @apply font-sans text-base text-slate-700;
@@ -114,7 +120,7 @@
 }
 
 .gradient-text {
-  @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-[#3cd48f] to-[#10b981] bg-clip-text text-transparent;
 }
 
 /* Animações suaves */
@@ -128,16 +134,16 @@
 
 /* Botões modernos */
 .modern-button {
-  @apply bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+  @apply bg-gradient-to-r from-[#3cd48f] to-[#10b981] hover:from-[#10b981] hover:to-[#059669] text-white font-medium px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
 }
 
 .modern-button-outline {
-  @apply border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-medium px-6 py-3 rounded-xl transition-all duration-300;
+  @apply border-2 border-[#3cd48f] text-[#3cd48f] hover:bg-[#3cd48f]/10 font-medium px-6 py-3 rounded-xl transition-all duration-300;
 }
 
 /* Inputs modernos */
 .modern-input {
-  @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300;
+  @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#3cd48f] focus:border-transparent transition-all duration-300;
 }
 
 /* Sidebar moderno */
@@ -151,16 +157,16 @@
 }
 
 .modern-table-header {
-  @apply bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100;
+  @apply bg-gradient-to-r from-[#3cd48f]/10 to-[#10b981]/10 border-b border-[#3cd48f]/20;
 }
 
 .modern-table-row {
-  @apply hover:bg-blue-50/50 transition-all duration-200;
+  @apply hover:bg-[#3cd48f]/5 transition-all duration-200;
 }
 
 /* Cards de métricas */
 .metric-card {
-  @apply bg-gradient-to-br from-white to-blue-50/50 rounded-2xl p-6 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-300;
+  @apply bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-300;
 }
 
 .metric-card-success {
@@ -190,4 +196,290 @@
 
 .status-inactive {
   @apply bg-gradient-to-r from-red-400 to-pink-500 text-white;
+}
+
+/* Estilos globais para selects - Padrão VMetrics */
+select {
+  @apply focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] hover:border-[#3cd48f]/60 transition-colors;
+}
+
+/* Sobrescrever estilos padrão dos options globalmente - Usando !important para garantir */
+select option {
+  background-color: white !important;
+  color: #374151 !important;
+}
+
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+select option:checked {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+select option:focus {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* Estilos para selects com foco */
+select:focus {
+  @apply ring-2 ring-[#3cd48f]/40 border-[#3cd48f];
+}
+
+/* Estilos para selects no hover */
+select:hover {
+  @apply border-[#3cd48f]/60;
+}
+
+/* Estilos específicos para selects com classes específicas */
+.vmetrics-select {
+  @apply focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] hover:border-[#3cd48f]/60 transition-colors;
+}
+
+/* CSS específico para diferentes navegadores */
+select option::-moz-focus-inner {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+select option::-webkit-select-option {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* Firefox */
+select option:-moz-focusring {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS adicional para garantir que funcione */
+select option:hover,
+select option:focus,
+select option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* Seletores específicos para diferentes estados */
+select option[selected] {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para o dropdown quando aberto */
+select:focus option:hover,
+select:focus option:focus {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS específico para o estado de hover do option */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para o estado de foco do option */
+select option:focus {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para sobrescrever estilos do navegador - Solução mais agressiva */
+select option {
+  background-color: white !important;
+  color: #374151 !important;
+}
+
+/* CSS para o estado de hover - Sobrescrever qualquer cor azul */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background-image: none !important;
+}
+
+/* CSS para o dropdown quando aberto - Sobrescrever cores azuis */
+select:focus option:hover,
+select:focus option:focus,
+select:focus option:active {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background-image: none !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option::-webkit-select-option {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+select option::-moz-focus-inner {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+select option:-moz-focusring {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis do navegador */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected,
+select option[aria-selected="true"] {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Chrome/Edge */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Firefox */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para sobrescrever estilos específicos do Safari */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind CSS */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever TODAS as cores azuis do navegador - Solução final */
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked,
+select option:selected,
+select option[aria-selected="true"],
+select option[data-selected="true"] {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+  background-image: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(60 212 143) !important;
+}
+
+/* CSS para sobrescrever estilos específicos do navegador */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever estilos do Tailwind que possam estar interferindo */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para sobrescrever qualquer cor azul específica */
+select option:hover {
+  background-color: #3cd48f !important;
+  color: white !important;
+  background: #3cd48f !important;
+}
+
+/* CSS para selects customizados - Solução alternativa */
+.custom-select {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.custom-select select:focus {
+  outline: none;
+  border-color: #3cd48f;
+  box-shadow: 0 0 0 3px rgba(60, 212, 143, 0.1);
+}
+
+/* CSS para o dropdown customizado */
+.custom-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.custom-select-option {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.custom-select-option:hover {
+  background-color: #3cd48f;
+  color: white;
+}
+
+.custom-select-option.selected {
+  background-color: #3cd48f;
+  color: white;
 } 

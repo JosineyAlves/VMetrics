@@ -59,14 +59,14 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         vmetrics: {
-          primary: '#2563EB',        // Azul tech
+          primary: '#3cd48f',        // Verde VMetrics
           secondary: '#7C3AED',      // Roxo insight
           background: '#F8FAFC',     // Fundo base claro
           text: '#1E293B',           // Texto principal (grafite)
           muted: '#64748B',          // Texto secundário
           success: '#10B981',        // Verde para bons resultados
           danger: '#EF4444',         // Vermelho para falhas ou quedas
-          accent: '#3B82F6',         // Azul claro para hover e detalhes
+          accent: '#3cd48f',         // Verde para hover e detalhes
         },
       },
       fontFamily: {

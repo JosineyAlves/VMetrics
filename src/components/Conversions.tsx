@@ -658,7 +658,7 @@ const Conversions: React.FC = () => {
               <select
                 value={tempFilters.type}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] shadow-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm"
               >
                 <option value="">Todos os tipos</option>
                 <option value="lead">Lead</option>
@@ -685,7 +685,7 @@ const Conversions: React.FC = () => {
               <select
                 value={tempFilters.status}
                 onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40 focus:border-[#3cd48f] shadow-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm"
               >
                 <option value="">Todos os status</option>
                 <option value="approved">Aprovado</option>

@@ -397,7 +397,7 @@ const Settings: React.FC = () => {
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3cd48f] focus:border-[#3cd48f] appearance-none bg-white"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg appearance-none bg-white"
               >
                 {[
                   { code: 'BRL', name: 'Real Brasileiro', symbol: 'R$' },

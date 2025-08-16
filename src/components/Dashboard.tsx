@@ -33,6 +33,7 @@ import FunnelChart from './FunnelChart'
 import { useMetricsStore } from '../store/metrics'
 import { useCurrencyStore } from '../store/currency'
 import type { Metric } from '../store/metrics'
+import CustomSelect from './ui/CustomSelect'
 
 const metricOptions = [
   { value: 'cost_revenue', label: 'Custo x Receita', left: 'cost', right: 'revenue' },
@@ -929,17 +930,13 @@ const Dashboard: React.FC = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Canal de Tráfego
               </label>
-              <select 
+              <CustomSelect
                 value={tempFilters.traffic_channel}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, traffic_channel: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3cd48f] focus:border-[#3cd48f] shadow-sm"
-              >
-                {trafficChannelOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setTempFilters(prev => ({ ...prev, traffic_channel: value }))}
+                options={trafficChannelOptions}
+                placeholder="Selecione um canal"
+                className="w-full"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
