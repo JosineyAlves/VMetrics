@@ -147,7 +147,8 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   // Tipos de conversão válidos (apenas Purchase e Conversion)
   const validConversionTypes = [
     'Purchase',    // Compra
-    'Conversion'   // Conversão
+    'Conversion',  // Conversão
+    'conversion'   // Conversão (minúsculo - RedTrack)
   ];
   
   // Contadores para debugging
@@ -159,11 +160,21 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   conversions.forEach((conversion, index) => {
     totalConversions++;
     
+    console.log(`🔍 [PERFORMANCE] Processando conversão ${index + 1}:`, {
+      type: conversion.type,
+      status: conversion.status,
+      campaign: conversion.campaign,
+      offer: conversion.offer,
+      payout: conversion.payout
+    });
+    
     // Verificar se é uma conversão válida (excluir InitiateCheckout)
     const conversionType = conversion.type || conversion.event || '';
     const isValidConversion = validConversionTypes.some(type => 
       conversionType.toLowerCase().includes(type.toLowerCase())
     );
+    
+    console.log(`🔍 [PERFORMANCE] Tipo de conversão: "${conversionType}" - Válida: ${isValidConversion}`);
     
     // Se for InitiateCheckout, pular
     if (conversionType.toLowerCase().includes('initiatecheckout')) {
@@ -180,8 +191,11 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
     
     // ✅ NOVO: Verificar se o status é APPROVED
     const conversionStatus = conversion.status || conversion.approval_status || '';
-    if (conversionStatus !== 'APPROVED') {
-      console.log(`⚠️ [PERFORMANCE] Pulando conversão não aprovada: ${conversionStatus}`);
+    
+    // ✅ CORRIGIDO: Aceitar conversões com status "other" (válidas no RedTrack)
+    const validStatuses = ['APPROVED', 'other', 'approved', 'APPROVED'];
+    if (!validStatuses.includes(conversionStatus)) {
+      console.log(`⚠️ [PERFORMANCE] Pulando conversão com status inválido: ${conversionStatus}`);
       return;
     }
     
@@ -346,6 +360,144 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   };
 }
 
+// Função para processar fallback de campanhas quando não há conversões suficientes
+async function processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData) {
+  try {
+    console.log('🔍 [PERFORMANCE] Buscando dados de campanhas como fallback...');
+    const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
+    campaignsUrl.searchParams.set('api_key', apiKey);
+    campaignsUrl.searchParams.set('date_from', date_from);
+    campaignsUrl.searchParams.set('date_to', date_to);
+    campaignsUrl.searchParams.set('with_clicks', 'true');
+    campaignsUrl.searchParams.set('total', 'true');
+    
+    console.log('🔍 [PERFORMANCE] URL das campanhas (fallback):', campaignsUrl.toString());
+    
+    const campaignsData = await new Promise((resolve, reject) => {
+      requestQueue.push({ 
+        resolve, 
+        reject, 
+        url: campaignsUrl.toString(), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'VMetrics-Dashboard/1.0 (https://vmetrics.com.br)',
+          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      processRequestQueue();
+    });
+    
+    if (campaignsData && Array.isArray(campaignsData)) {
+      console.log(`🔍 [PERFORMANCE] Fallback: ${campaignsData.length} campanhas encontradas`);
+      
+      // Processar campanhas para performance
+      const campaignsMap = new Map();
+      campaignsData.forEach(campaign => {
+        if (campaign.stat && (campaign.stat.conversions > 0 || campaign.stat.revenue > 0)) {
+          campaignsMap.set(campaign.id, {
+            id: campaign.id,
+            name: campaign.title || campaign.name || 'Campanha sem nome',
+            revenue: campaign.stat.revenue || 0,
+            conversions: campaign.stat.conversions || 0,
+            cost: campaign.stat.cost || 0,
+            payout: campaign.stat.revenue || 0,
+            clicks: campaign.stat.clicks || 0
+          });
+        }
+      });
+      
+      // Ordenar e pegar top 3
+      const topCampaigns = Array.from(campaignsMap.values())
+        .sort((a, b) => {
+          if (b.conversions !== a.conversions) return b.conversions - a.conversions;
+          return b.revenue - a.revenue;
+        })
+        .slice(0, 3);
+      
+      // FALLBACK: Tentar extrair dados de ads e offers das campanhas
+      let topAds = [];
+      let topOffers = [];
+      
+      if (campaignsData.length > 0) {
+        // Para ads, usar dados de tracking se disponível
+        if (campaignsTracksData && campaignsTracksData.items) {
+          const adsMap = new Map();
+          campaignsTracksData.items.forEach(track => {
+            if (track.rt_ad && track.rt_ad_id && track.rt_ad_id !== '{{ad.id}}') {
+              const adName = track.rt_ad.trim();
+              if (!adsMap.has(adName)) {
+                adsMap.set(adName, {
+                  id: track.rt_ad_id,
+                  name: adName,
+                  revenue: 0,
+                  conversions: 0,
+                  cost: parseFloat(track.cost || 0),
+                  payout: 0,
+                  clicks: 1,
+                  all_ids: [track.rt_ad_id]
+                });
+              } else {
+                const ad = adsMap.get(adName);
+                ad.cost += parseFloat(track.cost || 0);
+                ad.clicks += 1;
+                if (!ad.all_ids.includes(track.rt_ad_id)) {
+                  ad.all_ids.push(track.rt_ad_id);
+                }
+              }
+            }
+          });
+          
+          topAds = Array.from(adsMap.values())
+            .sort((a, b) => b.cost - a.cost)
+            .slice(0, 3);
+          
+          console.log(`🔍 [PERFORMANCE] Fallback: ${topAds.length} ads processados`);
+        }
+        
+        // Para offers, usar dados de campanhas se disponível
+        const offersMap = new Map();
+        campaignsData.forEach(campaign => {
+          if (campaign.offer && campaign.offer_id) {
+            offersMap.set(campaign.offer_id, {
+              id: campaign.offer_id,
+              name: campaign.offer,
+              revenue: campaign.stat?.revenue || 0,
+              conversions: campaign.stat?.conversions || 0,
+              cost: campaign.stat?.cost || 0,
+              payout: campaign.stat?.revenue || 0
+            });
+          }
+        });
+        
+        topOffers = Array.from(offersMap.values())
+          .sort((a, b) => b.conversions - a.conversions)
+          .slice(0, 3);
+        
+        console.log(`🔍 [PERFORMANCE] Fallback: ${topOffers.length} offers processados`);
+      }
+      
+      console.log(`🔍 [PERFORMANCE] Fallback: ${topCampaigns.length} campanhas de performance processadas`);
+      
+      return {
+        campaigns: topCampaigns,
+        ads: topAds,
+        offers: topOffers
+      };
+    }
+  } catch (fallbackError) {
+    console.warn('⚠️ [PERFORMANCE] Erro no fallback de campanhas:', fallbackError);
+  }
+  
+  return {
+    campaigns: [],
+    ads: [],
+    offers: []
+  };
+}
+
 export default async function handler(req, res) {
   console.log('🔍 [PERFORMANCE] Requisição recebida:', req.method, req.url)
 
@@ -500,11 +652,19 @@ export default async function handler(req, res) {
       offers: []
     };
     
+    // VERIFICAR: Se temos conversões, processar normalmente
     if (conversionsData && conversionsData.items && conversionsData.items.length > 0) {
       console.log(`🔍 [PERFORMANCE] Processando ${conversionsData.items.length} conversões...`);
       performanceData = processPerformanceData(conversionsData.items, campaignsTracksData, adsTracksData);
+      
+      // Se não temos dados suficientes das conversões, usar fallback
+      if (performanceData.campaigns.length === 0 && performanceData.ads.length === 0 && performanceData.offers.length === 0) {
+        console.log('🔍 [PERFORMANCE] Conversões processadas mas sem dados suficientes - usando fallback de campanhas');
+        performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData);
+      }
     } else {
-      console.log('🔍 [PERFORMANCE] Nenhuma conversão encontrada para o período');
+      console.log('🔍 [PERFORMANCE] Nenhuma conversão encontrada para o período - usando fallback de campanhas');
+      performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData);
     }
     
     // Salvar no cache
