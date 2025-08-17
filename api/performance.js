@@ -84,6 +84,7 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   const offers = new Map();
   
   console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
+  console.log(`🔍 [PERFORMANCE] Filtro: Apenas conversões com status "APPROVED"`);
   
   // Criar mapas de custo das campanhas a partir dos tracks
   const campaignsCostMap = new Map();
@@ -189,13 +190,12 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       return;
     }
     
-    // ✅ NOVO: Verificar se o status é APPROVED
+    // ✅ CORRIGIDO: Aceitar apenas conversões com status "APPROVED"
     const conversionStatus = conversion.status || conversion.approval_status || '';
     
-    // ✅ CORRIGIDO: Aceitar conversões com status "other" (válidas no RedTrack)
-    const validStatuses = ['APPROVED', 'other', 'approved', 'APPROVED'];
-    if (!validStatuses.includes(conversionStatus)) {
-      console.log(`⚠️ [PERFORMANCE] Pulando conversão com status inválido: ${conversionStatus}`);
+    // ✅ CORRIGIDO: Aceitar apenas conversões aprovadas (APPROVED)
+    if (conversionStatus !== 'APPROVED') {
+      console.log(`⚠️ [PERFORMANCE] Pulando conversão não aprovada: ${conversionStatus}`);
       return;
     }
     
@@ -302,6 +302,7 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   console.log(`   - Conversões válidas: ${validConversions}`);
   console.log(`   - Conversões aprovadas: ${approvedConversions}`);
   console.log(`   - InitiateCheckout ignorados: ${initiateCheckoutCount}`);
+  console.log(`   - Conversões filtradas (não aprovadas): ${totalConversions - approvedConversions}`);
   console.log(`   - Campanhas processadas: ${campaigns.size}`);
   console.log(`   - Anúncios processados: ${ads.size}`);
   console.log(`   - Ofertas processadas: ${offers.size}`);
@@ -396,7 +397,8 @@ async function processFallbackFromCampaigns(apiKey, date_from, date_to, campaign
       // Processar campanhas para performance
       const campaignsMap = new Map();
       campaignsData.forEach(campaign => {
-        if (campaign.stat && (campaign.stat.conversions > 0 || campaign.stat.revenue > 0)) {
+        // ✅ CORRIGIDO: Aceitar campanhas com conversões OU revenue (mais flexível)
+        if (campaign.stat && (campaign.stat.conversions > 0 || campaign.stat.revenue > 0 || campaign.stat.cost > 0)) {
           campaignsMap.set(campaign.id, {
             id: campaign.id,
             name: campaign.title || campaign.name || 'Campanha sem nome',
@@ -405,6 +407,13 @@ async function processFallbackFromCampaigns(apiKey, date_from, date_to, campaign
             cost: campaign.stat.cost || 0,
             payout: campaign.stat.revenue || 0,
             clicks: campaign.stat.clicks || 0
+          });
+          
+          console.log(`🔍 [PERFORMANCE] Fallback - Campanha processada: ${campaign.title}`, {
+            conversions: campaign.stat.conversions,
+            revenue: campaign.stat.revenue,
+            cost: campaign.stat.cost,
+            clicks: campaign.stat.clicks
           });
         }
       });
@@ -657,9 +666,9 @@ export default async function handler(req, res) {
       console.log(`🔍 [PERFORMANCE] Processando ${conversionsData.items.length} conversões...`);
       performanceData = processPerformanceData(conversionsData.items, campaignsTracksData, adsTracksData);
       
-      // Se não temos dados suficientes das conversões, usar fallback
+      // Se não temos dados suficientes das conversões (apenas conversões não aprovadas), usar fallback
       if (performanceData.campaigns.length === 0 && performanceData.ads.length === 0 && performanceData.offers.length === 0) {
-        console.log('🔍 [PERFORMANCE] Conversões processadas mas sem dados suficientes - usando fallback de campanhas');
+        console.log('🔍 [PERFORMANCE] Conversões processadas mas sem dados suficientes (apenas não aprovadas) - usando fallback de campanhas');
         performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData);
       }
     } else {
