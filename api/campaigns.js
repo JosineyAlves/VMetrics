@@ -187,10 +187,12 @@ export default async function handler(req, res) {
     
     const processedData = campaignsData.map(campaign => {
       // Mapear status
-      let statusString = 'inactive';
+      let statusString = 'deleted'; // Status padrão para campanhas deletadas
       if (campaign.status === 1) statusString = 'active';
       else if (campaign.status === 2) statusString = 'paused';
-      else if (campaign.status === 3) statusString = 'deleted';
+      // status === 3 ou qualquer outro valor permanece como 'deleted'
+      
+
       
       // Usar stat da campanha
       const stat = campaign.stat || {

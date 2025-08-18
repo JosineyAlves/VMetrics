@@ -771,8 +771,6 @@ const Campaigns: React.FC = () => {
         return 'bg-yellow-100 text-yellow-800'
       case 'deleted':
         return 'bg-red-100 text-red-800'
-      case 'inactive':
-        return 'bg-red-100 text-red-800'
       default:
                   return 'bg-gray-100 text-gray-800'
     }
@@ -786,12 +784,12 @@ const Campaigns: React.FC = () => {
         return <Pause className="w-4 h-4" />
       case 'deleted':
         return <Eye className="w-4 h-4" />
-      case 'inactive':
-        return <Eye className="w-4 h-4" />
       default:
         return <Eye className="w-4 h-4" />
     }
   }
+
+
 
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = 
@@ -801,6 +799,8 @@ const Campaigns: React.FC = () => {
     
     const matchesStatus = !filters.status || campaign.status === filters.status
     const matchesSource = !filters.source || campaign.source === filters.source
+
+
 
     return matchesSearch && matchesStatus && matchesSource
   })
@@ -937,7 +937,7 @@ const Campaigns: React.FC = () => {
                       { value: '', label: 'Todos' },
                       { value: 'active', label: 'Ativo' },
                       { value: 'paused', label: 'Pausado' },
-                      { value: 'inactive', label: 'Inativo' }
+                      { value: 'deleted', label: 'Deletada' }
                     ]}
                     placeholder="Selecione o status"
                     className="w-full"
