@@ -222,17 +222,8 @@ const Conversions: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [filters, setFilters] = useState({
-    campaign: '',
-    type: '',
-    country: '',
     status: '',
-    device: '',
-    os: '',
-    browser: '',
-    source: '',
-    offer: '',
-    dateFrom: '',
-    dateTo: ''
+    type: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
   const [totalConversions, setTotalConversions] = useState(0)
@@ -535,17 +526,8 @@ const Conversions: React.FC = () => {
 
   const handleResetFilters = () => {
     const resetFilters = {
-      campaign: '',
-      type: '',
-      country: '',
       status: '',
-      device: '',
-      os: '',
-      browser: '',
-      source: '',
-      offer: '',
-      dateFrom: '',
-      dateTo: ''
+      type: ''
     }
     setFilters(resetFilters)
     setTempFilters(resetFilters)
@@ -634,10 +616,10 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Filtros Avançados</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
             <Button
               variant="outline"
               size="sm"
@@ -648,17 +630,22 @@ const Conversions: React.FC = () => {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Campanha
+                Status
               </label>
-              <Input 
-                type="text"
-                placeholder="Todas as campanhas"
-                value={tempFilters.campaign}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, campaign: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
+              <CustomSelect
+                value={tempFilters.status}
+                onChange={(value) => setTempFilters(prev => ({ ...prev, status: value }))}
+                options={[
+                  { value: '', label: 'Todos os status' },
+                  { value: 'APPROVED', label: 'Aprovado' },
+                  { value: 'PENDING', label: 'Pendente' },
+                  { value: 'REJECTED', label: 'Rejeitado' }
+                ]}
+                placeholder="Selecione o status"
+                className="w-full"
               />
             </div>
             <div>
@@ -676,83 +663,6 @@ const Conversions: React.FC = () => {
                 ]}
                 placeholder="Selecione o tipo"
                 className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                País
-              </label>
-              <Input 
-                type="text"
-                placeholder="Todos os países"
-                value={tempFilters.country}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, country: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Status
-              </label>
-              <CustomSelect
-                value={tempFilters.status}
-                onChange={(value) => setTempFilters(prev => ({ ...prev, status: value }))}
-                options={[
-                  { value: '', label: 'Todos os status' },
-                  { value: 'approved', label: 'Aprovado' },
-                  { value: 'pending', label: 'Pendente' },
-                  { value: 'declined', label: 'Rejeitado' }
-                ]}
-                placeholder="Selecione o status"
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Dispositivo
-              </label>
-              <Input 
-                type="text"
-                placeholder="Todos os dispositivos"
-                value={tempFilters.device}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, device: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Sistema Operacional
-              </label>
-              <Input 
-                type="text"
-                placeholder="Todos os SOs"
-                value={tempFilters.os}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, os: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Navegador
-              </label>
-              <Input 
-                type="text"
-                placeholder="Todos os navegadores"
-                value={tempFilters.browser}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, browser: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Fonte
-              </label>
-              <Input 
-                type="text"
-                placeholder="Todas as fontes"
-                value={tempFilters.source}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
-                className="w-full rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]/40 shadow-sm"
               />
             </div>
           </div>
@@ -777,19 +687,23 @@ const Conversions: React.FC = () => {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl shadow-lg p-4"
+          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
-              <p className="text-xl font-bold text-gray-900">{totalConversions}</p>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm font-semibold text-gray-600 truncate">Total de Conversões</p>
+              </div>
+              <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
+                {totalConversions}
+              </p>
             </div>
-            <div className="p-2 bg-[#3cd48f]/20 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-[#3cd48f]" />
+            <div className="p-3 bg-[#3cd48f]/20 rounded-xl">
+              <TrendingUp className="w-6 h-6 text-[#3cd48f]" />
             </div>
           </div>
         </motion.div>
@@ -798,15 +712,19 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-2xl shadow-lg p-4"
+          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Conversões Aprovadas</p>
-              <p className="text-xl font-bold text-gray-900">{metrics?.approvedConversions || 0}</p>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm font-semibold text-gray-600 truncate">Conversões Aprovadas</p>
+              </div>
+              <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+                {metrics?.approvedConversions || 0}
+              </p>
             </div>
-            <div className="p-2 bg-green-100 rounded-xl">
-              <Shield className="w-5 h-5 text-green-600" />
+            <div className="p-3 bg-green-100 rounded-xl">
+              <Shield className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </motion.div>
@@ -815,15 +733,19 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl shadow-lg p-4"
+          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Receita Total</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(metrics.totalPayout || 0)}</p>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm font-semibold text-gray-600 truncate">Receita Total</p>
+              </div>
+              <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+                {formatCurrency(metrics.totalPayout || 0)}
+              </p>
             </div>
-            <div className="p-2 bg-green-100 rounded-xl">
-              <DollarSign className="w-5 h-5 text-green-600" />
+            <div className="p-3 bg-green-100 rounded-xl">
+              <DollarSign className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </motion.div>
@@ -832,17 +754,19 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-2xl shadow-lg p-4"
+          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
-              <p className="text-xl font-bold text-gray-900">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm font-semibold text-gray-600 truncate">Ticket Médio</p>
+              </div>
+              <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">
                 {(metrics?.approvedConversions || 0) > 0 ? formatCurrency(metrics?.avgTicket || 0) : formatCurrency(0)}
               </p>
             </div>
-            <div className="p-2 bg-purple-100 rounded-xl">
-              <Users className="w-5 h-5 text-purple-600" />
+            <div className="p-3 bg-purple-100 rounded-xl">
+              <Users className="w-6 h-6 text-purple-600" />
             </div>
           </div>
         </motion.div>
@@ -851,15 +775,19 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl shadow-lg p-4"
+          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Lucro</p>
-              <p className="text-xl font-bold text-gray-900">{formatCurrency(metrics.totalProfit || 0)}</p>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm font-semibold text-gray-600 truncate">Lucro</p>
+              </div>
+              <p className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+                {formatCurrency(metrics.totalProfit || 0)}
+              </p>
             </div>
-            <div className="p-2 bg-orange-100 rounded-xl">
-              <Target className="w-5 h-5 text-orange-600" />
+            <div className="p-3 bg-orange-100 rounded-xl">
+              <Target className="w-6 h-6 text-orange-600" />
             </div>
           </div>
         </motion.div>
