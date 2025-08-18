@@ -489,55 +489,68 @@ const Funnel: React.FC = () => {
 
   // Componente de visualização 3D do funil
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
+    // Cores para gradientes dos estágios
+    const stageColors = [
+      { from: '#3cd48f', to: '#2bb876' }, // Cliques - Verde principal
+      { from: '#60a5fa', to: '#3b82f6' }, // Pre-LP Views - Azul
+      { from: '#a78bfa', to: '#8b5cf6' }, // Pre-LP Clicks - Roxo
+      { from: '#34d399', to: '#10b981' }, // LP Views - Verde esmeralda
+      { from: '#fbbf24', to: '#f59e0b' }, // LP Clicks - Amarelo
+      { from: '#fb923c', to: '#ea580c' }, // Initiate Checkout - Laranja
+      { from: '#ef4444', to: '#dc2626' }  // Conversões - Vermelho
+    ]
+
     return (
-      <div className="relative w-full min-h-[500px] bg-white rounded-2xl p-6 overflow-visible shadow-lg">
+      <div className="relative w-full min-h-[400px] bg-white rounded-2xl p-4 overflow-visible shadow-lg">
         
-        <div className="flex flex-col items-center py-4">
+        <div className="flex flex-col items-center py-2">
           {/* Header do funil */}
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-2">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">
               Funil de Conversão - {data.campaign.name}
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-xs">
               Análise detalhada do fluxo de conversão
             </p>
           </div>
           
-          {/* Funil 3D com design compacto */}
-          <div className="flex flex-col items-center space-y-0 w-full max-w-3xl">
+          {/* Funil 3D ultra compacto com gradientes */}
+          <div className="flex flex-col items-center space-y-0 w-full max-w-2xl">
             {data.stages.map((stage, index) => {
-              // Calcular largura progressiva para criar efeito de funil
-              const baseWidth = 100 - (index * 8) // Diminui 8% a cada estágio
-              const width = Math.max(baseWidth, 40) // Mínimo de 40%
+              // Calcular largura progressiva mais agressiva
+              const baseWidth = 85 - (index * 12) // Começa em 85% e diminui 12% a cada estágio
+              const width = Math.max(baseWidth, 35) // Mínimo de 35%
+              const colors = stageColors[index] || stageColors[0]
               
               return (
                 <motion.div
                   key={stage.name}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                  transition={{ delay: index * 0.08, duration: 0.3 }}
                   className="flex flex-col items-center relative w-full"
                 >
-                  {/* Estágio do funil com design 3D compacto */}
+                  {/* Estágio do funil com gradiente personalizado */}
                   <div 
-                    className="relative bg-gradient-to-b from-[#3cd48f] to-[#3cd48f]/80 rounded-xl shadow-lg flex items-center justify-center mb-1"
+                    className="relative rounded-lg shadow-md flex items-center justify-center mb-0.5"
                     style={{
                       width: `${width}%`,
-                      height: '50px',
-                      minWidth: '250px'
+                      height: '40px',
+                      minWidth: '200px',
+                      background: `linear-gradient(135deg, ${colors.from} 0%, ${colors.to} 100%)`
                     }}
                   >
-                    {/* Efeito 3D com bordas */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#3cd48f]/90 to-[#3cd48f]/70 rounded-xl border border-[#3cd48f]/30"></div>
+                    {/* Efeito 3D sutil */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-lg"></div>
                     
                     {/* Conteúdo do estágio */}
-                    <div className="relative z-10 flex items-center justify-between w-full px-4 text-white">
+                    <div className="relative z-10 flex items-center justify-between w-full px-3 text-white">
                       <div className="flex items-center space-x-2">
-                        <div className="text-sm bg-white/20 rounded-full p-1.5">
+                        <div className="text-xs bg-white/20 rounded-full p-1">
                           {stage.icon}
                         </div>
                         <div className="text-center">
-                          <div className="text-sm font-bold">
+                          <div className="text-xs font-bold">
                             {stage.value.toLocaleString()}
                           </div>
                           <div className="text-xs opacity-90">
@@ -546,32 +559,32 @@ const Funnel: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold">
+                        <div className="text-xs font-bold">
                           {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}%
                         </div>
                         <div className="text-xs opacity-75">
-                          conversão
+                          conv.
                         </div>
                       </div>
                     </div>
                     
-                    {/* Sombra 3D */}
-                    <div className="absolute -bottom-1 left-2 right-2 h-1 bg-[#3cd48f]/30 rounded-b-xl blur-sm"></div>
+                    {/* Sombra sutil */}
+                    <div className="absolute -bottom-0.5 left-1 right-1 h-0.5 bg-black/10 rounded-b-lg blur-sm"></div>
                   </div>
                   
-                  {/* Seta de conexão 3D compacta (apenas entre estágios) */}
+                  {/* Seta de conexão ultra compacta */}
                   {index < data.stages.length - 1 && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.1 + 0.2 }}
-                      className="flex items-center justify-center w-6 h-6 my-1"
+                      transition={{ delay: index * 0.08 + 0.15 }}
+                      className="flex items-center justify-center w-4 h-4 my-0.5"
                     >
                       <div className="relative">
                         {/* Linha principal */}
-                        <div className="w-0.5 h-4 bg-gradient-to-b from-[#3cd48f] to-[#3cd48f]/60"></div>
-                        {/* Seta 3D */}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-transparent border-t-[#3cd48f]"></div>
+                        <div className="w-0.5 h-3 bg-gradient-to-b from-gray-400 to-gray-500"></div>
+                        {/* Seta */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-500"></div>
                       </div>
                     </motion.div>
                   )}
@@ -580,28 +593,28 @@ const Funnel: React.FC = () => {
             })}
           </div>
           
-          {/* Resumo do funil com design compacto */}
-          <div className="mt-6 text-center w-full">
-            <div className="inline-flex items-center space-x-6 bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-xl p-4 shadow-lg border border-[#3cd48f]/20">
+          {/* Resumo do funil ultra compacto */}
+          <div className="mt-4 text-center w-full">
+            <div className="inline-flex items-center space-x-4 bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-lg p-3 shadow-md border border-[#3cd48f]/20">
               <div className="text-center">
-                <div className="text-lg font-bold text-[#3cd48f]">
+                <div className="text-sm font-bold text-[#3cd48f]">
                   {data.summary.totalClicks.toLocaleString()}
                 </div>
-                <div className="text-xs text-[#3cd48f] font-medium">Total Cliques</div>
+                <div className="text-xs text-[#3cd48f] font-medium">Cliques</div>
               </div>
-              <div className="w-px h-6 bg-[#3cd48f]/30"></div>
+              <div className="w-px h-4 bg-[#3cd48f]/30"></div>
               <div className="text-center">
-                <div className="text-lg font-bold text-green-600">
+                <div className="text-sm font-bold text-green-600">
                   {data.summary.totalConversions.toLocaleString()}
                 </div>
                 <div className="text-xs text-green-600 font-medium">Conversões</div>
               </div>
-              <div className="w-px h-6 bg-[#3cd48f]/30"></div>
+              <div className="w-px h-4 bg-[#3cd48f]/30"></div>
               <div className="text-center">
-                <div className="text-lg font-bold text-[#3cd48f]">
+                <div className="text-sm font-bold text-[#3cd48f]">
                   {data.summary.totalConversionRate}
                 </div>
-                <div className="text-xs text-[#3cd48f] font-medium">Taxa Total</div>
+                <div className="text-xs text-[#3cd48f] font-medium">Taxa</div>
               </div>
             </div>
           </div>
