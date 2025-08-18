@@ -1163,16 +1163,13 @@ const Dashboard: React.FC = () => {
             </div>
           )}
         </motion.div>
-      </div>
 
-      {/* Gráficos Adicionais */}
-      <div className="grid grid-cols-1 gap-8">
-        {/* Distribuição por Fonte */}
+        {/* Investimento por Fonte de Tráfego */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
