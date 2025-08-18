@@ -509,9 +509,6 @@ const Funnel: React.FC = () => {
             <h3 className="text-lg font-bold text-gray-800 mb-1">
               Funil de Conversão - {data.campaign.name}
             </h3>
-            <p className="text-gray-600 text-xs">
-              Análise detalhada do fluxo de conversão
-            </p>
           </div>
           
           {/* Funil 3D ultra compacto com gradientes */}

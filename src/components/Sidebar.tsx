@@ -13,7 +13,8 @@ import {
   ChevronRight,
   BarChart3,
   Filter,
-  LogOut
+  LogOut,
+  DollarSign
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
 import Logo from './ui/Logo'
@@ -57,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'conversions',
       label: 'Conversões',
-      icon: TrendingUp,
+      icon: DollarSign,
       description: 'Log de conversões',
       path: '/conversions'
     },
@@ -210,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Footer - Fixed at bottom */}
         <div className={`p-4 border-t border-white/10 flex-shrink-0 ${isSidebarCollapsed ? 'px-2' : ''}`}>
-          <button
+          <motion.button
             onClick={handleLogout}
             className={`w-full flex items-center gap-4 p-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium transition-all duration-200 group shadow-md hover:shadow-lg ${
               isSidebarCollapsed ? 'justify-center' : ''
@@ -225,7 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <span className="text-white font-medium">Sair</span>
               )}
             </div>
-          </button>
+          </motion.button>
         </div>
 
         {/* Toggle Button when collapsed */}
@@ -241,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Custom scrollbar styles for webkit browsers */}
-        <style jsx>{`
+        <style>{`
           nav::-webkit-scrollbar {
             width: 6px;
           }
