@@ -627,7 +627,7 @@ const Funnel: React.FC = () => {
                 </div>
                 {stage.dropoffRate > 0 && (
                   <div className="text-xs text-red-500">
-                    -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% dropoff
+                    -{isFinite(stage.dropoffRate) ? stage.dropoffRate.toFixed(1) : '0.0'}% perda
                   </div>
                 )}
               </div>
@@ -702,45 +702,121 @@ const Funnel: React.FC = () => {
         
         {/* Análise comparativa detalhada */}
         {funnelData && funnelData2 && (
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">
-              📋 Análise Comparativa Detalhada
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-gray-800 mb-1">
-                  {funnelData.summary.totalClicks.toLocaleString()}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl shadow-lg overflow-hidden"
+          >
+            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#3cd48f]/5 to-[#3cd48f]/10">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2 text-[#3cd48f]" />
+                Análise Comparativa Detalhada
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">Métricas lado a lado para análise de performance</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Métrica: Cliques */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mx-auto mb-3">
+                      <MousePointer className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-blue-800 mb-4">Total de Cliques</h4>
+                    
+                    <div className="space-y-3">
+                      <div className="bg-white rounded-lg p-3 border border-blue-200">
+                        <div className="text-2xl font-bold text-[#3cd48f] mb-1">
+                          {funnelData.summary.totalClicks.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-600">Campanha 1</div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 border border-blue-200">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
+                          {funnelData2.summary.totalClicks.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-600">Campanha 2</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">Cliques - Campanha 1</div>
-                <div className="text-2xl font-bold text-gray-800 mt-2">
-                  {funnelData2.summary.totalClicks.toLocaleString()}
+                
+                {/* Métrica: Conversões */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full mx-auto mb-3">
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-green-800 mb-4">Conversões Aprovadas</h4>
+                    
+                    <div className="space-y-3">
+                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                        <div className="text-2xl font-bold text-[#3cd48f] mb-1">
+                          {funnelData.summary.totalConversions.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-600">Campanha 1</div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
+                          {funnelData2.summary.totalConversions.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-600">Campanha 2</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">Cliques - Campanha 2</div>
+                
+                {/* Métrica: ROI */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-orange-500 rounded-full mx-auto mb-3">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="text-sm font-semibold text-orange-800 mb-4">Retorno sobre Investimento</h4>
+                    
+                    <div className="space-y-3">
+                      <div className="bg-white rounded-lg p-3 border border-orange-200">
+                        <div className="text-2xl font-bold text-[#3cd48f] mb-1">
+                          {funnelData.summary.roi.toFixed(2)}%
+                        </div>
+                        <div className="text-xs text-gray-600">Campanha 1</div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg p-3 border border-orange-200">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
+                          {funnelData2.summary.roi.toFixed(2)}%
+                        </div>
+                        <div className="text-xs text-gray-600">Campanha 2</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600 mb-1">
-                  {funnelData.summary.totalConversions.toLocaleString()}
+              {/* Resumo da comparação */}
+              <div className="mt-6 bg-gradient-to-r from-[#3cd48f]/5 to-[#3cd48f]/10 rounded-xl p-4 border border-[#3cd48f]/20">
+                <div className="text-center">
+                  <h4 className="text-sm font-semibold text-[#1f1f1f] mb-2">
+                    📊 Resumo da Comparação
+                  </h4>
+                  <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
+                      <span>Campanha 1</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span>Campanha 2</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">Conversões - Campanha 1</div>
-                <div className="text-2xl font-bold text-green-600 mt-2">
-                  {funnelData2.summary.totalConversions.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600">Conversões - Campanha 2</div>
-              </div>
-              
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-2xl font-bold text-[#3cd48f] mb-1">
-                  {funnelData.summary.roi.toFixed(2)}%
-                </div>
-                <div className="text-sm text-gray-600">ROI - Campanha 1</div>
-                <div className="text-2xl font-bold text-[#3cd48f] mt-2">
-                  {funnelData2.summary.roi.toFixed(2)}%
-                </div>
-                <div className="text-sm text-gray-600">ROI - Campanha 2</div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     )
