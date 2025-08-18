@@ -490,19 +490,18 @@ const Funnel: React.FC = () => {
   // Componente de visualização 3D do funil
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
-      <div className="relative w-full min-h-[800px] bg-gradient-to-b from-gray-50 to-white rounded-2xl p-6 overflow-visible">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#3cd48f]/15 to-[#3cd48f]/25"></div>
-        
-        <div className="relative z-10 flex flex-col items-center py-8">
-          {/* Header do funil */}
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              Funil de Conversão - {data.campaign.name}
-            </h3>
-            <p className="text-gray-600">
-              Análise detalhada do fluxo de conversão
-            </p>
-          </div>
+      <div className="relative w-full min-h-[800px] bg-white rounded-2xl p-6 overflow-visible shadow-lg">
+         
+         <div className="flex flex-col items-center py-8">
+           {/* Header do funil */}
+           <div className="text-center mb-8">
+             <h3 className="text-2xl font-bold text-gray-800 mb-2">
+               Funil de Conversão - {data.campaign.name}
+             </h3>
+             <p className="text-gray-600">
+               Análise detalhada do fluxo de conversão
+             </p>
+           </div>
           
           {/* Funil unificado e centralizado */}
           <div className="flex flex-col items-center space-y-4 w-full max-w-4xl">
@@ -643,48 +642,48 @@ const Funnel: React.FC = () => {
     return (
       <div className="space-y-6">
         {/* Header da comparação */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
           <h3 className="text-xl font-bold text-gray-800 mb-4">
             📊 Comparação de Campanhas
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="text-center p-4 bg-[#3cd48f]/10 rounded-lg">
-          <h4 className="font-semibold text-[#1f1f1f] mb-2">
-                {funnelData?.campaign.name || 'Campanha 1'}
-              </h4>
-                             <div className="text-2xl font-bold text-[#3cd48f]">
-                {funnelData?.summary.totalConversionRate || '0%'}
-              </div>
-                             <div className="text-sm text-[#3cd48f]">
-                Taxa de Conversão Total
-              </div>
-            </div>
-            
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-800 mb-2">
-                {funnelData2?.campaign.name || 'Campanha 2'}
-              </h4>
-              <div className="text-2xl font-bold text-green-600">
-                {funnelData2?.summary.totalConversionRate || '0%'}
-              </div>
-              <div className="text-sm text-green-600">
-                Taxa de Conversão Total
-              </div>
-            </div>
-          </div>
+             <div className="text-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+               <h4 className="font-semibold text-gray-800 mb-2">
+                 {funnelData?.campaign.name || 'Campanha 1'}
+               </h4>
+               <div className="text-2xl font-bold text-[#3cd48f]">
+                 {funnelData?.summary.totalConversionRate || '0%'}
+               </div>
+               <div className="text-sm text-gray-600">
+                 Taxa de Conversão Total
+               </div>
+             </div>
+             
+             <div className="text-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+               <h4 className="font-semibold text-gray-800 mb-2">
+                 {funnelData2?.campaign.name || 'Campanha 2'}
+               </h4>
+               <div className="text-2xl font-bold text-green-600">
+                 {funnelData2?.summary.totalConversionRate || '0%'}
+               </div>
+               <div className="text-sm text-gray-600">
+                 Taxa de Conversão Total
+               </div>
+             </div>
+           </div>
         </div>
         
         {/* Visualizações lado a lado */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                             <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
+              <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
               {funnelData?.campaign.name || 'Campanha 1'}
             </h3>
             {funnelData && <Funnel2DVisualization data={funnelData} />}
           </div>
           
-          <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
               {funnelData2?.campaign.name || 'Campanha 2'}
@@ -708,33 +707,32 @@ const Funnel: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-2xl shadow-lg overflow-hidden"
           >
-            <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-[#3cd48f]/5 to-[#3cd48f]/10">
+            <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-800 flex items-center">
                 <BarChart3 className="w-5 h-5 mr-2 text-[#3cd48f]" />
                 Análise Comparativa Detalhada
               </h3>
-              <p className="text-sm text-gray-600 mt-1">Métricas lado a lado para análise de performance</p>
             </div>
             
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Métrica: Cliques */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                   <div className="text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-blue-500 rounded-full mx-auto mb-3">
+                    <div className="flex items-center justify-center w-12 h-12 bg-[#3cd48f] rounded-full mx-auto mb-3">
                       <MousePointer className="w-6 h-6 text-white" />
                     </div>
-                    <h4 className="text-sm font-semibold text-blue-800 mb-4">Total de Cliques</h4>
+                    <h4 className="text-sm font-semibold text-gray-800 mb-4">Total de Cliques</h4>
                     
                     <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div className="text-2xl font-bold text-[#3cd48f] mb-1">
                           {funnelData.summary.totalClicks.toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-600">Campanha 1</div>
                       </div>
                       
-                      <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div className="text-2xl font-bold text-green-600 mb-1">
                           {funnelData2.summary.totalClicks.toLocaleString()}
                         </div>
@@ -745,22 +743,22 @@ const Funnel: React.FC = () => {
                 </div>
                 
                 {/* Métrica: Conversões */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                   <div className="text-center">
                     <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full mx-auto mb-3">
                       <CheckCircle className="w-6 h-6 text-white" />
                     </div>
-                    <h4 className="text-sm font-semibold text-green-800 mb-4">Conversões Aprovadas</h4>
+                    <h4 className="text-sm font-semibold text-gray-800 mb-4">Conversões Aprovadas</h4>
                     
                     <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div className="text-2xl font-bold text-[#3cd48f] mb-1">
                           {funnelData.summary.totalConversions.toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-600">Campanha 1</div>
                       </div>
                       
-                      <div className="bg-white rounded-lg p-3 border border-green-200">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div className="text-2xl font-bold text-green-600 mb-1">
                           {funnelData2.summary.totalConversions.toLocaleString()}
                         </div>
@@ -771,22 +769,22 @@ const Funnel: React.FC = () => {
                 </div>
                 
                 {/* Métrica: ROI */}
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200">
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                   <div className="text-center">
                     <div className="flex items-center justify-center w-12 h-12 bg-orange-500 rounded-full mx-auto mb-3">
                       <TrendingUp className="w-6 h-6 text-white" />
                     </div>
-                    <h4 className="text-sm font-semibold text-orange-800 mb-4">Retorno sobre Investimento</h4>
+                    <h4 className="text-sm font-semibold text-gray-800 mb-4">Retorno sobre Investimento</h4>
                     
                     <div className="space-y-3">
-                      <div className="bg-white rounded-lg p-3 border border-orange-200">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div className="text-2xl font-bold text-[#3cd48f] mb-1">
                           {funnelData.summary.roi.toFixed(2)}%
                         </div>
                         <div className="text-xs text-gray-600">Campanha 1</div>
                       </div>
                       
-                      <div className="bg-white rounded-lg p-3 border border-orange-200">
+                      <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <div className="text-2xl font-bold text-green-600 mb-1">
                           {funnelData2.summary.roi.toFixed(2)}%
                         </div>
@@ -797,24 +795,6 @@ const Funnel: React.FC = () => {
                 </div>
               </div>
               
-              {/* Resumo da comparação */}
-              <div className="mt-6 bg-gradient-to-r from-[#3cd48f]/5 to-[#3cd48f]/10 rounded-xl p-4 border border-[#3cd48f]/20">
-                <div className="text-center">
-                  <h4 className="text-sm font-semibold text-[#1f1f1f] mb-2">
-                    📊 Resumo da Comparação
-                  </h4>
-                  <div className="flex items-center justify-center space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
-                      <span>Campanha 1</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span>Campanha 2</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </motion.div>
         )}
@@ -823,13 +803,13 @@ const Funnel: React.FC = () => {
   }
 
   return (
-            <div className="min-h-screen bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10">
-      <div className="container mx-auto px-4 py-8 pb-16">
+     <div className="min-h-screen bg-gray-50">
+       <div className="container mx-auto px-4 py-8 pb-16">
                 {/* Header */}
         <div className="mb-6">
           
           {/* Controles */}
-          <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
+          <div className="bg-white rounded-xl p-4 shadow-lg mb-4 border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               {/* Seletor de Campanha */}
               <div>
