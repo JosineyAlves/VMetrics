@@ -169,12 +169,26 @@ const Funnel: React.FC = () => {
       const { getDateRange } = await import('../lib/utils')
       const dateRange = getDateRange(selectedPeriod, customRange)
       
+      // Verificar se as datas são válidas
+      if (!dateRange.startDate || !dateRange.endDate) {
+        console.error('🔍 [FUNNEL] Datas inválidas:', dateRange)
+        setLoading(false)
+        return
+      }
+      
+      // Verificar se a campanha tem nome
+      if (!campaign.name) {
+        console.error('🔍 [FUNNEL] Campanha sem nome:', campaign)
+        setLoading(false)
+        return
+      }
+      
       // Buscar conversões com status APPROVED para esta campanha específica
       const conversionsUrl = new URL('/api/conversions', window.location.origin)
       conversionsUrl.searchParams.set('api_key', apiKey)
       conversionsUrl.searchParams.set('date_from', dateRange.startDate)
       conversionsUrl.searchParams.set('date_to', dateRange.endDate)
-      conversionsUrl.searchParams.set('campaign', campaign.name || '')
+      conversionsUrl.searchParams.set('campaign', campaign.name)
       conversionsUrl.searchParams.set('status', 'APPROVED')
       conversionsUrl.searchParams.set('per', '1000')
       
@@ -345,15 +359,23 @@ const Funnel: React.FC = () => {
       const campaign = campaigns.find(c => c.id === campaignId)
       if (!campaign) return
       
-      // Verificar se a campanha tem nome
-      if (!campaign.name) {
-        console.error('Campanha sem nome:', campaign)
-        return
-      }
-      
       // Buscar conversões aprovadas específicas para esta campanha
       const { getDateRange } = await import('../lib/utils')
       const dateRange = getDateRange(selectedPeriod, customRange)
+      
+      // Verificar se as datas são válidas
+      if (!dateRange.startDate || !dateRange.endDate) {
+        console.error('🔍 [FUNNEL] Datas inválidas:', dateRange)
+        setLoading(false)
+        return
+      }
+      
+      // Verificar se a campanha tem nome
+      if (!campaign.name) {
+        console.error('🔍 [FUNNEL] Campanha sem nome:', campaign)
+        setLoading(false)
+        return
+      }
       
       // Buscar conversões com status APPROVED para esta campanha específica
       const conversionsUrl = new URL('/api/conversions', window.location.origin)
