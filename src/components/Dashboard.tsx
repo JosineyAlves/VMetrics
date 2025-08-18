@@ -58,18 +58,20 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
-  const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    utm_source: '',
-    traffic_channel: '',
-    country: '',
-    device: '',
-    browser: '',
-    os: ''
-  })
-  const [tempFilters, setTempFilters] = useState(filters)
+  // REMOVER: showFilters não é mais necessário
+  // const [showFilters, setShowFilters] = useState(false)
+  // REMOVER: estados de filtros
+  // const [filters, setFilters] = useState({
+  //   dateFrom: '',
+  //   dateTo: '',
+  //   utm_source: '',
+  //   traffic_channel: '',
+  //   country: '',
+  //   device: '',
+  //   browser: '',
+  //   os: ''
+  // })
+  // const [tempFilters, setTempFilters] = useState(filters)
 
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(false)
@@ -78,15 +80,6 @@ const Dashboard: React.FC = () => {
   const { selectedPeriod, customRange } = useDateRangeStore()
 
   // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
-
-  const trafficChannelOptions = [
-    { value: '', label: 'Todos os canais' },
-    { value: 'facebook', label: 'Facebook Ads' },
-    { value: 'google', label: 'Google Ads' },
-    { value: 'tiktok', label: 'TikTok Ads' },
-    { value: 'taboola', label: 'Taboola' },
-    { value: 'outbrain', label: 'Outbrain' }
-  ]
 
   // Atualizar label do período para customizado
   // Função para calcular datas reais baseadas no período (não utilizada)
@@ -276,7 +269,7 @@ const Dashboard: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         group_by: 'date', // Agrupamento por data para dashboard
-        ...filters
+        // REMOVER: filters não são mais necessários
       }
       
       console.log('🔍 [DASHBOARD] Chamando API com parâmetros:', params)
@@ -570,48 +563,17 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  // Atualização automática a cada 5 minutos
-  useEffect(() => {
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        loadDashboardData(true)
-      }, 5 * 60 * 1000) // 5 minutos
-
-      return () => clearInterval(interval)
-    }
-  }, [autoRefresh, selectedPeriod, filters, customRange])
-
+  // REMOVER: useEffect que depende de filters
   // Carregar dados quando componente montar ou parâmetros mudarem
   useEffect(() => {
     if (apiKey) {
       loadDashboardData()
     }
-  }, [apiKey, selectedPeriod, filters, customRange])
+  }, [apiKey, selectedPeriod, customRange])
 
   // Remover handlePeriodChange e qualquer uso de setSelectedPeriod
 
-  const handleRefresh = () => {
-    loadDashboardData(true)
-  }
-
-  const handleApplyFilters = () => {
-    setFilters(tempFilters)
-  }
-
-  const handleResetFilters = () => {
-    const resetFilters = {
-      dateFrom: '',
-      dateTo: '',
-      utm_source: '',
-      traffic_channel: '',
-      country: '',
-      device: '',
-      browser: '',
-      os: ''
-    }
-    setFilters(resetFilters)
-    setTempFilters(resetFilters)
-  }
+  // REMOVER: funções de filtros
 
   // Corrigir a função formatValue:
   const formatValue = (value: any, format: string) => {
@@ -965,7 +927,7 @@ const Dashboard: React.FC = () => {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
             className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
@@ -974,9 +936,8 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtros Avançados */}
-      {showFilters && (
-        <motion.div 
+      {/* REMOVER: Seção de filtros avançados */}
+      {/* <motion.div 
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -997,7 +958,7 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Removido: Data Inicial */}
             {/* Removido: Data Final */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Canal de Tráfego
               </label>
@@ -1039,8 +1000,7 @@ const Dashboard: React.FC = () => {
               Limpar Filtros
             </Button>
           </div>
-        </motion.div>
-      )}
+        </motion.div> */}
 
       {/* Período Dropdown */}
       {/* Removido: PeriodDropdown duplicado do Dashboard */}
