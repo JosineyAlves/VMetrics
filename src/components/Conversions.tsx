@@ -222,8 +222,7 @@ const Conversions: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [filters, setFilters] = useState({
-    status: '',
-    type: ''
+    status: ''
   })
   const [tempFilters, setTempFilters] = useState(filters)
   const [totalConversions, setTotalConversions] = useState(0)
@@ -526,8 +525,7 @@ const Conversions: React.FC = () => {
 
   const handleResetFilters = () => {
     const resetFilters = {
-      status: '',
-      type: ''
+      status: ''
     }
     setFilters(resetFilters)
     setTempFilters(resetFilters)
@@ -572,6 +570,11 @@ const Conversions: React.FC = () => {
   }
 
   const metrics = calculateMetrics()
+
+  // Filtrar conversões de acordo com o status selecionado
+  const filteredConversions = filters.status 
+    ? conversions.filter(conv => conv.status?.toUpperCase() === filters.status.toUpperCase())
+    : conversions
 
   if (loading) {
     return (
@@ -630,7 +633,7 @@ const Conversions: React.FC = () => {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Status
@@ -645,23 +648,6 @@ const Conversions: React.FC = () => {
                   { value: 'REJECTED', label: 'Rejeitado' }
                 ]}
                 placeholder="Selecione o status"
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Tipo
-              </label>
-              <CustomSelect
-                value={tempFilters.type}
-                onChange={(value) => setTempFilters(prev => ({ ...prev, type: value }))}
-                options={[
-                  { value: '', label: 'Todos os tipos' },
-                  { value: 'lead', label: 'Lead' },
-                  { value: 'sale', label: 'Venda' },
-                  { value: 'upsell', label: 'Upsell' }
-                ]}
-                placeholder="Selecione o tipo"
                 className="w-full"
               />
             </div>
@@ -687,7 +673,7 @@ const Conversions: React.FC = () => {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -701,9 +687,6 @@ const Conversions: React.FC = () => {
               <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {totalConversions}
               </p>
-            </div>
-            <div className="p-3 bg-[#3cd48f]/20 rounded-xl">
-              <TrendingUp className="w-6 h-6 text-[#3cd48f]" />
             </div>
           </div>
         </motion.div>
@@ -719,12 +702,9 @@ const Conversions: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Conversões Aprovadas</p>
               </div>
-              <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+              <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {metrics?.approvedConversions || 0}
               </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-xl">
-              <Shield className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </motion.div>
@@ -740,12 +720,9 @@ const Conversions: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Receita Total</p>
               </div>
-              <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+              <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {formatCurrency(metrics.totalPayout || 0)}
               </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-xl">
-              <DollarSign className="w-6 h-6 text-green-600" />
             </div>
           </div>
         </motion.div>
@@ -761,12 +738,9 @@ const Conversions: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Ticket Médio</p>
               </div>
-              <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">
+              <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {(metrics?.approvedConversions || 0) > 0 ? formatCurrency(metrics?.avgTicket || 0) : formatCurrency(0)}
               </p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-xl">
-              <Users className="w-6 h-6 text-purple-600" />
             </div>
           </div>
         </motion.div>
@@ -782,12 +756,9 @@ const Conversions: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Lucro</p>
               </div>
-              <p className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-700 bg-clip-text text-transparent">
+              <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {formatCurrency(metrics.totalProfit || 0)}
               </p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-xl">
-              <Target className="w-6 h-6 text-orange-600" />
             </div>
           </div>
         </motion.div>
@@ -808,7 +779,7 @@ const Conversions: React.FC = () => {
           </div>
         </div>
 
-        {conversions.length === 0 ? (
+        {filteredConversions.length === 0 ? (
           <div className="p-8 text-center">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">✅ API conectada com sucesso!</p>
@@ -896,7 +867,7 @@ const Conversions: React.FC = () => {
               </tr>
             </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {conversions.map((conversion) => (
+                {filteredConversions.map((conversion) => (
                   <tr key={conversion.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(conversion.date)}
@@ -921,9 +892,10 @@ const Conversions: React.FC = () => {
                   </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        conversion.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        conversion.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
+                        conversion.status?.toUpperCase() === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                        conversion.status?.toUpperCase() === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        conversion.status?.toUpperCase() === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-600'
                       }`}>
                         {conversion.status || 'N/A'}
                     </span>
