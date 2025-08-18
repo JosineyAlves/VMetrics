@@ -791,6 +791,8 @@ const Campaigns: React.FC = () => {
 
 
 
+
+
   const filteredCampaigns = campaigns.filter(campaign => {
     const matchesSearch = 
       campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -798,7 +800,9 @@ const Campaigns: React.FC = () => {
       campaign.status.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesStatus = !filters.status || campaign.status === filters.status
-    const matchesSource = !filters.source || campaign.source === filters.source
+    const matchesSource = !filters.source || campaign.source?.toLowerCase() === filters.source?.toLowerCase()
+    
+
 
 
 
@@ -952,10 +956,10 @@ const Campaigns: React.FC = () => {
                     onChange={(value) => setTempFilters(prev => ({ ...prev, source: value }))}
                     options={[
                       { value: '', label: 'Todas' },
-                      { value: 'facebook', label: 'Facebook' },
-                      { value: 'google', label: 'Google' },
-                      { value: 'tiktok', label: 'TikTok' },
-                      { value: 'instagram', label: 'Instagram' }
+                      ...Array.from(new Set(campaigns.map(c => c.source).filter(Boolean))).map(source => ({
+                        value: source,
+                        label: source
+                      }))
                     ]}
                     placeholder="Selecione a fonte"
                     className="w-full"

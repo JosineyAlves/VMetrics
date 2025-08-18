@@ -231,6 +231,9 @@ export default async function handler(req, res) {
         total_conversions: stat.total_conversions
       });
       
+      // Debug: verificar dados da campanha
+      console.log(`🔍 [CAMPAIGNS API] Campanha: ${campaign.title}, Source Title: "${campaign.source_title}", Status: ${statusString}`)
+      
       return {
         id: campaign.id,
         title: campaign.title,
