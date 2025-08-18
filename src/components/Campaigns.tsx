@@ -1110,7 +1110,7 @@ const Campaigns: React.FC = () => {
       {activeTab === 'campaigns' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Best performing campaigns */}
-        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-300">
+        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
@@ -1142,56 +1142,56 @@ const Campaigns: React.FC = () => {
               </button>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
+              <div className="text-center text-gray-500 py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
                 <div className="text-sm">Carregando dados...</div>
               </div>
             ) : bestCampaigns.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <div className="text-4xl mb-4">📊</div>
+              <div className="text-center text-gray-500 py-6">
+                <div className="text-3xl mb-3">📊</div>
                 <div className="text-sm">Nenhuma campanha encontrada</div>
               </div>
               ) : bestCampaigns.map((item, idx) => (
-                              <div key={idx} className="bg-white rounded-xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
-                <div className="flex items-center justify-between mb-4">
+                              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
                       idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
                       idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
                       'bg-gradient-to-r from-orange-400 to-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-4 min-w-0 flex-1">
-                      <div className="font-semibold text-[#1f1f1f] text-base truncate">
+                    <div className="ml-3 min-w-0 flex-1">
+                      <div className="font-medium text-[#1f1f1f] text-sm truncate">
                         {item.name || 'Campanha sem nome'}
                       </div>
                     </div>
                   </div>
                   <div className="text-right ml-3 flex-shrink-0">
-                    <div className="text-xl font-bold text-[#3cd48f]">
+                    <div className="text-lg font-bold text-[#3cd48f]">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-xs">
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">Conversões</div>
-                    <div className="font-bold text-[#3cd48f] text-base">{item.conversions || 0}</div>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">Conv:</span>
+                    <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
                   </div>
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">CPA</div>
-                    <div className="font-bold text-[#3cd48f] text-base">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">CPA:</span>
+                    <span className="font-semibold text-[#3cd48f]">
                       {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                    </div>
+                    </span>
                   </div>
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">ROI</div>
-                    <div className={`font-bold text-base ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">ROI:</span>
+                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
                       {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                    </div>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1200,7 +1200,7 @@ const Campaigns: React.FC = () => {
         </div>
 
         {/* Best performing ads */}
-        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-300">
+        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
@@ -1232,56 +1232,56 @@ const Campaigns: React.FC = () => {
               </button>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
+              <div className="text-center text-gray-500 py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
                 <div className="text-sm">Carregando dados...</div>
               </div>
             ) : bestAds.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <div className="text-4xl mb-4">📊</div>
+              <div className="text-center text-gray-500 py-6">
+                <div className="text-3xl mb-3">📊</div>
                 <div className="text-sm">Nenhum anúncio encontrado</div>
               </div>
               ) : bestAds.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
-                <div className="flex items-center justify-between mb-4">
+              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
                       idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
                       idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
                       'bg-gradient-to-r from-orange-400 to-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-4 min-w-0 flex-1">
-                      <div className="font-semibold text-[#1f1f1f] text-base truncate">
+                    <div className="ml-3 min-w-0 flex-1">
+                      <div className="font-medium text-[#1f1f1f] text-sm truncate">
                         {item.name || 'Anúncio sem nome'}
                       </div>
                     </div>
                   </div>
                   <div className="text-right ml-3 flex-shrink-0">
-                    <div className="text-xl font-bold text-[#3cd48f]">
+                    <div className="text-lg font-bold text-[#3cd48f]">
                       {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 text-xs">
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">Conversões</div>
-                    <div className="font-bold text-[#3cd48f] text-base">{item.conversions || 0}</div>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">Conv:</span>
+                    <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
                   </div>
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">CPA</div>
-                    <div className="font-bold text-[#3cd48f] text-base">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">CPA:</span>
+                    <span className="font-semibold text-[#3cd48f]">
                       {item.cost > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                    </div>
+                    </span>
                   </div>
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">ROI</div>
-                    <div className={`font-bold text-base ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">ROI:</span>
+                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
                       {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                    </div>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1290,7 +1290,7 @@ const Campaigns: React.FC = () => {
         </div>
 
         {/* Best offers */}
-        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-6 shadow-xl border border-[#3cd48f]/20 hover:shadow-2xl transition-all duration-300">
+        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
@@ -1322,50 +1322,50 @@ const Campaigns: React.FC = () => {
               </button>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {performanceLoading ? (
-              <div className="text-center text-gray-500 py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
+              <div className="text-center text-gray-500 py-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
                 <div className="text-sm">Carregando dados...</div>
               </div>
             ) : bestOffers.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <div className="text-4xl mb-4">📊</div>
+              <div className="text-center text-gray-500 py-6">
+                <div className="text-3xl mb-3">📊</div>
                 <div className="text-sm">Nenhuma oferta encontrada</div>
               </div>
               ) : bestOffers.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.02]">
-                <div className="flex items-center justify-between mb-4">
+              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-lg ${
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
                       idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
                       idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
                       'bg-gradient-to-r from-orange-400 to-orange-500'
                     }`}>
                       {idx + 1}
                     </div>
-                    <div className="ml-4 min-w-0 flex-1">
-                      <div className="font-semibold text-[#1f1f1f] text-base truncate">
+                    <div className="ml-3 min-w-0 flex-1">
+                      <div className="font-medium text-[#1f1f1f] text-sm truncate">
                         {item.name || 'Oferta sem nome'}
                       </div>
                     </div>
                   </div>
                   <div className="text-right ml-3 flex-shrink-0">
-                    <div className="text-xl font-bold text-[#3cd48f]">
-                      #{idx + 1}
+                    <div className="text-lg font-bold text-[#3cd48f]">
+                      {formatCurrency(item.revenue || 0)}
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">Conversões</div>
-                    <div className="font-bold text-[#3cd48f] text-base">{item.conversions || 0}</div>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">Conv:</span>
+                    <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
                   </div>
-                  <div className="text-center bg-[#3cd48f]/10 rounded-lg p-3">
-                    <div className="text-gray-600 text-xs mb-2">Revenue</div>
-                    <div className="font-bold text-[#3cd48f] text-base">
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">Revenue:</span>
+                    <span className="font-semibold text-[#3cd48f]">
                       {formatCurrency(item.revenue || 0)}
-                    </div>
+                    </span>
                   </div>
                 </div>
               </div>
