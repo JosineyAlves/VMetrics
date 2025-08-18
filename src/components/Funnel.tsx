@@ -165,44 +165,6 @@ const Funnel: React.FC = () => {
       const campaign = campaigns.find(c => c.id === campaignId)
       if (!campaign) return
       
-      // Buscar conversões aprovadas específicas para esta campanha
-      const { getDateRange } = await import('../lib/utils')
-      const dateRange = getDateRange(selectedPeriod, customRange)
-      
-      // Verificar se as datas são válidas
-      if (!dateRange.startDate || !dateRange.endDate) {
-        console.error('🔍 [FUNNEL] Datas inválidas:', dateRange)
-        setLoading(false)
-        return
-      }
-      
-      // Verificar se a campanha tem nome
-      if (!campaign.name) {
-        console.error('🔍 [FUNNEL] Campanha sem nome:', campaign)
-        setLoading(false)
-        return
-      }
-      
-      // Buscar conversões com status APPROVED para esta campanha específica
-      const conversionsUrl = new URL('/api/conversions', window.location.origin)
-      conversionsUrl.searchParams.set('api_key', apiKey)
-      conversionsUrl.searchParams.set('date_from', dateRange.startDate)
-      conversionsUrl.searchParams.set('date_to', dateRange.endDate)
-      conversionsUrl.searchParams.set('campaign', campaign.name)
-      conversionsUrl.searchParams.set('status', 'APPROVED')
-      conversionsUrl.searchParams.set('per', '1000')
-      
-      const conversionsResponse = await fetch(conversionsUrl.toString())
-      const conversionsData = await conversionsResponse.json()
-      
-      // Contar conversões aprovadas
-      let approvedConversions = 0
-      if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
-        approvedConversions = conversionsData.items.length
-      }
-      
-      console.log('🔍 [FUNNEL] Conversões aprovadas encontradas:', approvedConversions)
-      
       // Criar estágios do funil baseados nos dados da campanha
       const stages: FunnelStage[] = []
       
@@ -301,24 +263,24 @@ const Funnel: React.FC = () => {
         })
       }
       
-      // Estágio 7: Conversões APROVADAS (dados reais da API)
-      if (approvedConversions > 0) {
-        const conversionRate = calculateConversionRate(approvedConversions, campaign.clicks)
+      // Estágio 7: Conversões
+      if (campaign.conversions > 0) {
+        const conversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
         stages.push({
-          name: 'Conversões Aprovadas',
-          value: approvedConversions,
+          name: 'Conversões',
+          value: campaign.conversions,
           percentage: conversionRate,
           icon: <CheckCircle className="w-4 h-4" />,
           color: 'red',
           gradient: 'from-red-500 to-red-600',
-          description: 'Conversões finais (apenas aprovadas)',
+          description: 'Conversões finais',
           conversionRate: conversionRate,
           dropoffRate: 100 - conversionRate
         })
       }
       
-      // Calcular métricas totais baseadas em conversões APROVADAS reais
-      const totalConversionRate = calculateConversionRate(approvedConversions, campaign.clicks)
+      // Calcular métricas totais
+      const totalConversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
       const roi = campaign.spend > 0 ? ((campaign.revenue - campaign.spend) / campaign.spend) * 100 : 0
       
       const funnelData: FunnelData = {
@@ -328,7 +290,7 @@ const Funnel: React.FC = () => {
         totalStages: stages.length,
         summary: {
           totalClicks: campaign.clicks,
-          totalConversions: approvedConversions, // Dados reais da API
+          totalConversions: campaign.conversions,
           totalConversionRate: `${totalConversionRate.toFixed(2)}%`,
           totalRevenue: campaign.revenue,
           totalSpend: campaign.spend,
@@ -358,44 +320,6 @@ const Funnel: React.FC = () => {
     if (campaignId) {
       const campaign = campaigns.find(c => c.id === campaignId)
       if (!campaign) return
-      
-      // Buscar conversões aprovadas específicas para esta campanha
-      const { getDateRange } = await import('../lib/utils')
-      const dateRange = getDateRange(selectedPeriod, customRange)
-      
-      // Verificar se as datas são válidas
-      if (!dateRange.startDate || !dateRange.endDate) {
-        console.error('🔍 [FUNNEL] Datas inválidas:', dateRange)
-        setLoading(false)
-        return
-      }
-      
-      // Verificar se a campanha tem nome
-      if (!campaign.name) {
-        console.error('🔍 [FUNNEL] Campanha sem nome:', campaign)
-        setLoading(false)
-        return
-      }
-      
-      // Buscar conversões com status APPROVED para esta campanha específica
-      const conversionsUrl = new URL('/api/conversions', window.location.origin)
-      conversionsUrl.searchParams.set('api_key', apiKey)
-      conversionsUrl.searchParams.set('date_from', dateRange.startDate)
-      conversionsUrl.searchParams.set('date_to', dateRange.endDate)
-      conversionsUrl.searchParams.set('campaign', campaign.name)
-      conversionsUrl.searchParams.set('status', 'APPROVED')
-      conversionsUrl.searchParams.set('per', '1000')
-      
-      const conversionsResponse = await fetch(conversionsUrl.toString())
-      const conversionsData = await conversionsResponse.json()
-      
-      // Contar conversões aprovadas
-      let approvedConversions = 0
-      if (conversionsData && conversionsData.items && Array.isArray(conversionsData.items)) {
-        approvedConversions = conversionsData.items.length
-      }
-      
-      console.log('🔍 [FUNNEL] Conversões aprovadas encontradas:', approvedConversions)
       
       // Criar estágios do funil para a segunda campanha
       const stages: FunnelStage[] = []
@@ -495,24 +419,24 @@ const Funnel: React.FC = () => {
         })
       }
       
-      // Estágio 7: Conversões APROVADAS (corrigido)
-      if (approvedConversions > 0) {
-        const conversionRate = calculateConversionRate(approvedConversions, campaign.clicks)
+      // Estágio 7: Conversões
+      if (campaign.conversions > 0) {
+        const conversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
         stages.push({
-          name: 'Conversões Aprovadas',
-          value: approvedConversions,
+          name: 'Conversões',
+          value: campaign.conversions,
           percentage: conversionRate,
           icon: <CheckCircle className="w-4 h-4" />,
           color: 'red',
           gradient: 'from-red-500 to-red-600',
-          description: 'Conversões finais (apenas aprovadas)',
+          description: 'Conversões finais',
           conversionRate: conversionRate,
           dropoffRate: 100 - conversionRate
         })
       }
       
-      // Calcular métricas totais baseadas em conversões APROVADAS
-      const totalConversionRate = calculateConversionRate(approvedConversions, campaign.clicks)
+      // Calcular métricas totais
+      const totalConversionRate = calculateConversionRate(campaign.conversions, campaign.clicks)
       const roi = campaign.spend > 0 ? ((campaign.revenue - campaign.spend) / campaign.spend) * 100 : 0
       
       const funnelData2: FunnelData = {
@@ -522,7 +446,7 @@ const Funnel: React.FC = () => {
         totalStages: stages.length,
         summary: {
           totalClicks: campaign.clicks,
-          totalConversions: approvedConversions, // Usar apenas conversões aprovadas
+          totalConversions: campaign.conversions,
           totalConversionRate: `${totalConversionRate.toFixed(2)}%`,
           totalRevenue: campaign.revenue,
           totalSpend: campaign.spend,
