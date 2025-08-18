@@ -924,15 +924,6 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center gap-3">
           <MetricsSelector />
           <MetricsOrder />
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
-            className="px-4 px-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
-          >
-            <Calendar className="w-4 h-4 mr-2 inline" />
-            Período
-          </Button>
         </div>
       </div>
 
