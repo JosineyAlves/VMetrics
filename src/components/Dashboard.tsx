@@ -922,17 +922,26 @@ const Dashboard: React.FC = () => {
       {/* Header com ações */}
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
-          <MetricsSelector />
-          <MetricsOrder />
-          <Button 
+          <Button
             variant="outline" 
             size="sm"
             onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
             className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
           >
+            <Calendar className="w-4 h-4 mr-2 inline" />
+            Período
+          </Button>
+          
+          {/* REMOVER: Botão de filtros */}
+          {/* <Button
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowFilters(!showFilters)}
+            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
+          >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
-          </Button>
+          </Button> */}
         </div>
       </div>
 
