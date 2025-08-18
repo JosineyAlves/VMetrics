@@ -98,6 +98,10 @@ const Dashboard: React.FC = () => {
   // Novo estado para armazenar dados diários para o gráfico
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [sourceStats, setSourceStats] = useState<any[]>([])
+
+  // Estado para métricas cruzadas
+  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
+  const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
   
   // Debug: monitorar mudanças no sourceStats
   useEffect(() => {
@@ -843,9 +847,6 @@ const Dashboard: React.FC = () => {
     return metrics
   }
 
-  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
-  const [chartMode, setChartMode] = useState<'conversions' | 'cross'>('conversions')
-
   // Calcular lucro (profit) para cada dia
   const dailyDataWithProfit = dailyData.map((d: any) => ({
     ...d,
@@ -853,10 +854,6 @@ const Dashboard: React.FC = () => {
     revenue: d.revenue ?? 0,
     profit: (d.revenue ?? 0) - (d.spend ?? d.cost ?? 0)
   }))
-
-  const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
-
-  // (Removido: processamento antigo de sourceStats, agora é buscado via useEffect)
 
   // Buscar distribuição por fonte (apenas custo por traffic_channel)
   useEffect(() => {
@@ -1083,161 +1080,162 @@ const Dashboard: React.FC = () => {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Performance por Dia e Cruzamento de Métricas */}
+        {/* Conversões por Dia */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-                         className="bg-white rounded-3xl p-10 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-            <div className="flex gap-3">
-              <button
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'conversions' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-xl`}
-                onClick={() => setChartMode('conversions')}
-              >
-                <BarChart2 className="w-5 h-5" /> Conversões por Dia
-              </button>
-              <button
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-base font-semibold transition-all duration-200 shadow-md border-2 ${chartMode === 'cross' ? 'bg-[#3cd48f] text-white border-[#3cd48f] scale-105' : 'bg-white text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/5'} hover:shadow-xl`}
-                onClick={() => setChartMode('cross')}
-              >
-                <Shuffle className="w-5 h-5" /> Cruzamento Diário
-              </button>
-            </div>
-            {chartMode === 'cross' && (
-              <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
-                <TrendingUp className="w-4 h-4 text-[#3cd48f]" />
-                <select
-                  value={crossMetric}
-                  onChange={e => setCrossMetric(e.target.value)}
-                  className="rounded-xl border-0 bg-transparent text-base font-semibold text-[#3cd48f] focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40"
-                >
-                  {metricOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+          <div className="flex items-center gap-3 mb-6">
+            <BarChart2 className="w-6 h-6 text-[#3cd48f]" />
+            <h3 className="text-xl font-semibold text-gray-800">Conversões por Dia</h3>
           </div>
-          {chartMode === 'conversions' ? (
-            dailyData && dailyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
+          
+          {dailyData && dailyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                 <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
-                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
-                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
-                  <Bar dataKey="conversions" name="Conversões" fill="#3cd48f" radius={[12, 12, 0, 0]} />
-                  <Legend verticalAlign="top" height={36} iconType="circle"/>
-                </BarChart>
+                <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
+                <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
+                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
+                <Bar dataKey="conversions" name="Conversões" fill="#3cd48f" radius={[12, 12, 0, 0]} />
+                <Legend verticalAlign="top" height={36} iconType="circle"/>
+              </BarChart>
             </ResponsiveContainer>
           ) : (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-                  <p className="text-lg font-semibold">Conversões por Dia</p>
-                  <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
-                </div>
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📊</div>
+                <p className="text-lg font-semibold">Conversões por Dia</p>
+                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
               </div>
-            )
-          ) : (
-            dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
-                  <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
-                  <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
-                  <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#3cd48f" radius={[12, 12, 0, 0]} />
-                  <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#3cd48f/80" radius={[12, 12, 0, 0]} />
-                  <Legend verticalAlign="top" height={36} iconType="circle"/>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">📊</div>
-                  <p className="text-lg font-semibold">Cruzamento Diário</p>
-                  <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
-                </div>
-              </div>
-            )
+            </div>
           )}
         </motion.div>
 
-        {/* Gráficos Adicionais */}
-        <div className="grid grid-cols-1 gap-8">
-          {/* Distribuição por Fonte */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
-              {sourceStats.length > 0 && (
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Total Investido</p>
-                  <p className="text-lg font-bold text-[#3cd48f]">
-                    {formatCurrency(sourceStats.reduce((sum, item) => sum + item.cost, 0))}
-                  </p>
-                </div>
-              )}
+        {/* Cruzamento Diário */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div className="flex items-center gap-3">
+              <Shuffle className="w-6 h-6 text-[#3cd48f]" />
+              <h3 className="text-xl font-semibold text-gray-800">Cruzamento Diário</h3>
             </div>
-            {sourceStats.length > 0 ? (
-              <div className="w-full h-[320px] flex flex-col justify-center">
-                {/* Aviso se são dados históricos */}
-                {sourceStats.some((item: any) => item.isHistorical) && (
-                  <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center text-yellow-800">
-                      <span className="text-sm">⚠️</span>
-                      <span className="text-sm ml-2">
-                        Dados históricos (últimos 30 dias) - período atual sem dados
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={sourceStats.slice(0, 8)}
-                    margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-                    barCategoryGap={18}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
-                    <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
-                    <Tooltip 
-                      formatter={(v: any, name: any) => [
-                        formatCurrency(v), 
-                        name === 'cost' ? 'Investimento Total' : name
-                      ]}
-                      labelFormatter={(label) => `Fonte: ${label}`}
-                      contentStyle={{ 
-                        borderRadius: 12, 
-                        background: '#fff', 
-                        boxShadow: '0 4px 24px #0001',
-                        border: '1px solid #3cd48f20'
-                      }} 
-                    />
-                    <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
-                    <Legend verticalAlign="top" height={36} iconType="circle" />
-                  </BarChart>
-                </ResponsiveContainer>
+            
+            <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
+              <TrendingUp className="w-4 h-4 text-[#3cd48f]" />
+              <select
+                value={crossMetric}
+                onChange={e => setCrossMetric(e.target.value)}
+                className="rounded-xl border-0 bg-transparent text-base font-semibold text-[#3cd48f] focus:outline-none focus:ring-2 focus:ring-[#3cd48f]/40"
+              >
+                {metricOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
+                <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
+                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
+                <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#3cd48f" radius={[12, 12, 0, 0]} />
+                <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#3cd48f/80" radius={[12, 12, 0, 0]} />
+                <Legend verticalAlign="top" height={36} iconType="circle"/>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="text-center">
+                <div className="text-4xl mb-2">📊</div>
+                <p className="text-lg font-semibold">Cruzamento Diário</p>
+                <p className="text-sm">Dados reais serão exibidos quando disponíveis</p>
               </div>
-            ) : (
-              <div className="text-gray-400 text-center py-12">
-                <div className="text-4xl mb-3">📊</div>
-                <p className="text-lg font-semibold mb-2">Investimento por Fonte</p>
-                <p className="text-sm">Sem dados de custo por fonte de tráfego para o período selecionado</p>
-                <p className="text-xs mt-2 text-gray-500">Verifique se suas campanhas têm dados de custo configurados</p>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Gráficos Adicionais */}
+      <div className="grid grid-cols-1 gap-8">
+        {/* Distribuição por Fonte */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 flex flex-col justify-between"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
+            {sourceStats.length > 0 && (
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Total Investido</p>
+                <p className="text-lg font-bold text-[#3cd48f]">
+                  {formatCurrency(sourceStats.reduce((sum, item) => sum + item.cost, 0))}
+                </p>
               </div>
             )}
-          </motion.div>
-        </div>
+          </div>
+          {sourceStats.length > 0 ? (
+            <div className="w-full h-[320px] flex flex-col justify-center">
+              {/* Aviso se são dados históricos */}
+              {sourceStats.some((item: any) => item.isHistorical) && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center text-yellow-800">
+                    <span className="text-sm">⚠️</span>
+                    <span className="text-sm ml-2">
+                      Dados históricos (últimos 30 dias) - período atual sem dados
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  layout="vertical"
+                  data={sourceStats.slice(0, 8)}
+                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                  barCategoryGap={18}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
+                  <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
+                  <Tooltip 
+                    formatter={(v: any, name: any) => [
+                      formatCurrency(v), 
+                      name === 'cost' ? 'Investimento Total' : name
+                    ]}
+                    labelFormatter={(label) => `Fonte: ${label}`}
+                    contentStyle={{ 
+                      borderRadius: 12, 
+                      background: '#fff', 
+                      boxShadow: '0 4px 24px #0001',
+                      border: '1px solid #3cd48f20'
+                    }} 
+                  />
+                  <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-gray-400 text-center py-12">
+              <div className="text-4xl mb-3">📊</div>
+              <p className="text-lg font-semibold mb-2">Investimento por Fonte</p>
+              <p className="text-sm">Sem dados de custo por fonte de tráfego para o período selecionado</p>
+              <p className="text-xs mt-2 text-gray-500">Verifique se suas campanhas têm dados de custo configurados</p>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   )
