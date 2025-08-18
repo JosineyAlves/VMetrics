@@ -491,97 +491,117 @@ const Funnel: React.FC = () => {
   const Funnel3DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
       <div className="relative w-full min-h-[800px] bg-white rounded-2xl p-6 overflow-visible shadow-lg">
-         
-         <div className="flex flex-col items-center py-8">
-           {/* Header do funil */}
-           <div className="text-center mb-8">
-             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-               Funil de Conversão - {data.campaign.name}
-             </h3>
-             <p className="text-gray-600">
-               Análise detalhada do fluxo de conversão
-             </p>
-           </div>
-          
-          {/* Funil unificado e centralizado */}
-          <div className="flex flex-col items-center space-y-4 w-full max-w-4xl">
-            {data.stages.map((stage, index) => (
-              <motion.div
-                key={stage.name}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: index * 0.1, duration: 0.4 }}
-                className="flex flex-col items-center relative w-full"
-              >
-                {/* Estágio do funil - formato unificado */}
-                <div 
-                  className={`bg-gradient-to-b ${stage.gradient} rounded-xl shadow-lg flex items-center justify-center mb-2 relative w-full max-w-md`}
-                  style={{
-                    height: '70px'
-                  }}
-                >
-                  <div className="flex items-center justify-between w-full px-6 text-white">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-xl">
-                        {stage.icon}
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold">
-                          {stage.value.toLocaleString()}
-                        </div>
-                        <div className="text-xs opacity-90">
-                          {stage.name}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold">
-                        {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}%
-                      </div>
-                      <div className="text-xs opacity-75">
-                        conversão
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Seta de conexão (apenas entre estágios) */}
-                {index < data.stages.length - 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 + 0.2 }}
-                    className="flex items-center justify-center w-6 h-6 my-2"
-                  >
-                    <div className="w-0.5 h-6 bg-gradient-to-b from-gray-400 to-gray-300"></div>
-                  </motion.div>
-                )}
-              </motion.div>
-            ))}
+        
+        <div className="flex flex-col items-center py-8">
+          {/* Header do funil */}
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              Funil de Conversão - {data.campaign.name}
+            </h3>
+            <p className="text-gray-600">
+              Análise detalhada do fluxo de conversão
+            </p>
           </div>
           
-          {/* Resumo do funil */}
+          {/* Funil 3D com design melhorado */}
+          <div className="flex flex-col items-center space-y-0 w-full max-w-4xl">
+            {data.stages.map((stage, index) => {
+              // Calcular largura progressiva para criar efeito de funil
+              const baseWidth = 100 - (index * 8) // Diminui 8% a cada estágio
+              const width = Math.max(baseWidth, 40) // Mínimo de 40%
+              
+              return (
+                <motion.div
+                  key={stage.name}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                  className="flex flex-col items-center relative w-full"
+                >
+                  {/* Estágio do funil com design 3D */}
+                  <div 
+                    className="relative bg-gradient-to-b from-blue-500 to-blue-600 rounded-t-2xl shadow-xl flex items-center justify-center mb-2"
+                    style={{
+                      width: `${width}%`,
+                      height: '80px',
+                      minWidth: '300px'
+                    }}
+                  >
+                    {/* Efeito 3D com bordas */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-blue-400 to-blue-700 rounded-t-2xl border-2 border-blue-300"></div>
+                    
+                    {/* Conteúdo do estágio */}
+                    <div className="relative z-10 flex items-center justify-between w-full px-6 text-white">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-xl bg-white/20 rounded-full p-2">
+                          {stage.icon}
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold">
+                            {stage.value.toLocaleString()}
+                          </div>
+                          <div className="text-xs opacity-90">
+                            {stage.name}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold">
+                          {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}%
+                        </div>
+                        <div className="text-xs opacity-75">
+                          conversão
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Sombra 3D */}
+                    <div className="absolute -bottom-1 left-2 right-2 h-2 bg-blue-800/30 rounded-b-2xl blur-sm"></div>
+                  </div>
+                  
+                  {/* Seta de conexão 3D (apenas entre estágios) */}
+                  {index < data.stages.length - 1 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 + 0.2 }}
+                      className="flex items-center justify-center w-6 h-6 my-3"
+                    >
+                      <div className="relative">
+                        {/* Linha principal */}
+                        <div className="w-0.5 h-8 bg-gradient-to-b from-blue-400 to-blue-600"></div>
+                        {/* Seta 3D */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-600"></div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )
+            })}
+          </div>
+          
+          {/* Resumo do funil com design melhorado */}
           <div className="mt-8 text-center w-full">
-            <div className="inline-flex items-center space-x-6 bg-white rounded-xl p-4 shadow-lg">
+            <div className="inline-flex items-center space-x-8 bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg border border-blue-200">
               <div className="text-center">
-                <div className="text-xl font-bold text-[#3cd48f]">
+                <div className="text-2xl font-bold text-blue-600">
                   {data.summary.totalClicks.toLocaleString()}
                 </div>
-                <div className="text-xs text-gray-600">Total Cliques</div>
+                <div className="text-sm text-blue-700 font-medium">Total Cliques</div>
               </div>
-              <div className="w-px h-6 bg-gray-300"></div>
+              <div className="w-px h-8 bg-blue-300"></div>
               <div className="text-center">
-                <div className="text-xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-green-600">
                   {data.summary.totalConversions.toLocaleString()}
                 </div>
-                <div className="text-xs text-gray-600">Conversões</div>
+                <div className="text-sm text-green-700 font-medium">Conversões</div>
               </div>
-              <div className="w-px h-6 bg-gray-300"></div>
+              <div className="w-px h-8 bg-blue-300"></div>
               <div className="text-center">
-                <div className="text-xl font-bold text-[#3cd48f]">
+                <div className="text-2xl font-bold text-blue-600">
                   {data.summary.totalConversionRate}
                 </div>
-                <div className="text-xs text-gray-600">Taxa Total</div>
+                <div className="text-sm text-blue-700 font-medium">Taxa Total</div>
               </div>
             </div>
           </div>
@@ -647,30 +667,30 @@ const Funnel: React.FC = () => {
             📊 Comparação de Campanhas
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="text-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-               <h4 className="font-semibold text-gray-800 mb-2">
-                 {funnelData?.campaign.name || 'Campanha 1'}
-               </h4>
-               <div className="text-2xl font-bold text-[#3cd48f]">
-                 {funnelData?.summary.totalConversionRate || '0%'}
-               </div>
-               <div className="text-sm text-gray-600">
-                 Taxa de Conversão Total
-               </div>
-             </div>
-             
-             <div className="text-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-               <h4 className="font-semibold text-gray-800 mb-2">
-                 {funnelData2?.campaign.name || 'Campanha 2'}
-               </h4>
-               <div className="text-2xl font-bold text-green-600">
-                 {funnelData2?.summary.totalConversionRate || '0%'}
-               </div>
-               <div className="text-sm text-gray-600">
-                 Taxa de Conversão Total
-               </div>
-             </div>
-           </div>
+            <div className="text-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="font-semibold text-gray-800 mb-2">
+                {funnelData?.campaign.name || 'Campanha 1'}
+              </h4>
+              <div className="text-2xl font-bold text-[#3cd48f]">
+                {funnelData?.summary.totalConversionRate || '0%'}
+              </div>
+              <div className="text-sm text-gray-600">
+                Taxa de Conversão Total
+              </div>
+            </div>
+            
+            <div className="text-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="font-semibold text-gray-800 mb-2">
+                {funnelData2?.campaign.name || 'Campanha 2'}
+              </h4>
+              <div className="text-2xl font-bold text-green-600">
+                {funnelData2?.summary.totalConversionRate || '0%'}
+              </div>
+              <div className="text-sm text-gray-600">
+                Taxa de Conversão Total
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Visualizações lado a lado */}
@@ -794,7 +814,6 @@ const Funnel: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
             </div>
           </motion.div>
         )}
@@ -803,22 +822,42 @@ const Funnel: React.FC = () => {
   }
 
   return (
-     <div className="min-h-screen bg-gray-50">
-       <div className="container mx-auto px-4 py-8 pb-16">
-                {/* Header */}
-        <div className="mb-6">
-          
-          {/* Controles */}
-          <div className="bg-white rounded-xl p-4 shadow-lg mb-4 border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              {/* Seletor de Campanha */}
+    <div className="p-8 space-y-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-6">
+        
+        {/* Controles */}
+        <div className="bg-white rounded-xl p-4 shadow-lg mb-4 border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {/* Seletor de Campanha */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Campanha Principal
+              </label>
+              <CustomSelect
+                value={selectedCampaign}
+                onChange={(value) => handleCampaignSelect(value)}
+                options={[
+                  { value: '', label: 'Selecione uma campanha' },
+                  ...campaigns.map((campaign) => ({
+                    value: campaign.id,
+                    label: campaign.name
+                  }))
+                ]}
+                placeholder="Selecione uma campanha"
+                className="w-full"
+              />
+            </div>
+            
+            {/* Seletor de Campanha 2 (para comparação) */}
+            {comparisonMode && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Campanha Principal
+                  Campanha para Comparar
                 </label>
                 <CustomSelect
-                  value={selectedCampaign}
-                  onChange={(value) => handleCampaignSelect(value)}
+                  value={selectedCampaign2}
+                  onChange={(value) => handleCampaign2Select(value)}
                   options={[
                     { value: '', label: 'Selecione uma campanha' },
                     ...campaigns.map((campaign) => ({
@@ -830,131 +869,109 @@ const Funnel: React.FC = () => {
                   className="w-full"
                 />
               </div>
-              
-              {/* Seletor de Campanha 2 (para comparação) */}
-              {comparisonMode && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Campanha para Comparar
-                  </label>
-                  <CustomSelect
-                    value={selectedCampaign2}
-                    onChange={(value) => handleCampaign2Select(value)}
-                    options={[
-                      { value: '', label: 'Selecione uma campanha' },
-                      ...campaigns.map((campaign) => ({
-                        value: campaign.id,
-                        label: campaign.name
-                      }))
-                    ]}
-                    placeholder="Selecione uma campanha"
-                    className="w-full"
-                  />
-                </div>
-              )}
-              
-              {/* Modo de Visualização */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Modo de Visualização
-                </label>
-                <CustomSelect
-                  value={viewMode}
-                  onChange={(value) => setViewMode(value as '3d' | '2d' | 'comparison')}
-                  options={[
-                    { value: '3d', label: 'Visualização 3D' },
-                    { value: '2d', label: 'Análise Detalhada' },
-                    { value: 'comparison', label: 'Comparação' }
-                  ]}
-                  placeholder="Selecione o modo"
-                  className="w-full"
-                />
-              </div>
-              
-              {/* Botão Comparar */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ações
-                </label>
-                <Button
-                  onClick={toggleComparisonMode}
-                  variant={comparisonMode ? "primary" : "outline"}
-                  className="w-full flex items-center justify-center space-x-2"
-                >
-                  <SplitSquareVertical className="w-4 h-4" />
-                  <span>Comparar</span>
-                </Button>
-              </div>
+            )}
+            
+            {/* Modo de Visualização */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Modo de Visualização
+              </label>
+              <CustomSelect
+                value={viewMode}
+                onChange={(value) => setViewMode(value as '3d' | '2d' | 'comparison')}
+                options={[
+                  { value: '3d', label: 'Visualização 3D' },
+                  { value: '2d', label: 'Análise Detalhada' },
+                  { value: 'comparison', label: 'Comparação' }
+                ]}
+                placeholder="Selecione o modo"
+                className="w-full"
+              />
+            </div>
+            
+            {/* Botão Comparar */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ações
+              </label>
+              <Button
+                onClick={toggleComparisonMode}
+                variant={comparisonMode ? "primary" : "outline"}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                <SplitSquareVertical className="w-4 h-4" />
+                <span>Comparar</span>
+              </Button>
             </div>
           </div>
         </div>
-        
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f]"></div>
-              <span className="text-gray-600">{loadingMessage}</span>
-            </div>
-          </div>
-        )}
-        
-        {/* Content */}
-        {!loading && (
-          <AnimatePresence mode="wait">
-            {viewMode === '3d' && funnelData && (
-              <motion.div
-                key="3d"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Funnel3DVisualization data={funnelData} />
-              </motion.div>
-            )}
-            
-            {viewMode === '2d' && funnelData && (
-              <motion.div
-                key="2d"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Funnel2DVisualization data={funnelData} />
-              </motion.div>
-            )}
-            
-            {viewMode === 'comparison' && (
-              <motion.div
-                key="comparison"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ComparisonView />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
-        
-        {/* Empty State */}
-        {!loading && !funnelData && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Selecione uma campanha
-            </h3>
-            <p className="text-gray-600">
-              Escolha uma campanha para visualizar seu funil de conversão
-            </p>
-          </div>
-        )}
       </div>
+      
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f]"></div>
+            <span className="text-gray-600">{loadingMessage}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Content */}
+      {!loading && (
+        <AnimatePresence mode="wait">
+          {viewMode === '3d' && funnelData && (
+            <motion.div
+              key="3d"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Funnel3DVisualization data={funnelData} />
+            </motion.div>
+          )}
+          
+          {viewMode === '2d' && funnelData && (
+            <motion.div
+              key="2d"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Funnel2DVisualization data={funnelData} />
+            </motion.div>
+          )}
+          
+          {viewMode === 'comparison' && (
+            <motion.div
+              key="comparison"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ComparisonView />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+      
+      {/* Empty State */}
+      {!loading && !funnelData && (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🎯</div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            Selecione uma campanha
+          </h3>
+          <p className="text-gray-600">
+            Escolha uma campanha para visualizar seu funil de conversão
+          </p>
+        </div>
+      )}
     </div>
   )
 }
 
-export default Funnel 
+export default Funnel

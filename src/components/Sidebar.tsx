@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   BarChart3,
-  TrendingDown,
+  Filter,
   LogOut
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
@@ -71,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'funnel',
       label: 'Funil',
-      icon: TrendingDown,
+      icon: Filter,
       description: 'Funil de conversão',
       path: '/funnel'
     },
