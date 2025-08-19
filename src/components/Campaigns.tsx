@@ -934,24 +934,25 @@ const Campaigns: React.FC = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-[#1f1f1f]">Filtros Avançados</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(false)}
+              className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
             >
               Ocultar Filtros
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-6">
             {activeTab === 'campaigns' ? (
               <>
                 {/* Remover campos de data simples */}
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Status
                   </label>
                   <CustomSelect
@@ -968,7 +969,7 @@ const Campaigns: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Fonte
                   </label>
                   <CustomSelect
@@ -990,7 +991,7 @@ const Campaigns: React.FC = () => {
               <>
                 {/* Filtros RT Campaign/Ad */}
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     RT Source
                   </label>
                   <CustomSelect
@@ -1010,7 +1011,7 @@ const Campaigns: React.FC = () => {
 
                 
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     RT Campaign
                   </label>
                   <Input 
@@ -1022,7 +1023,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     RT Adgroup
                   </label>
                   <Input 
@@ -1034,7 +1035,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     RT Ad
                   </label>
                   <Input
@@ -1047,7 +1048,7 @@ const Campaigns: React.FC = () => {
                 
                 {/* Filtros adicionais para RT Campaign/Ad */}
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Conversões Mínimas
                   </label>
                   <Input 
@@ -1060,7 +1061,7 @@ const Campaigns: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
                     Receita Mínima
                   </label>
                   <Input 
@@ -1077,13 +1078,21 @@ const Campaigns: React.FC = () => {
 
           </div>
           
-          <div className="flex justify-end mt-6">
-            <Button 
-              variant="primary"
+          <div className="flex items-center justify-between mt-6">
+            <Button
+              variant="outline"
+              onClick={clearAllFilters}
+              className="px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              Limpar Filtros
+            </Button>
+            
+            <Button
               onClick={() => {
                 setFilters(tempFilters)
                 setShowFilters(false)
               }}
+              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               Aplicar Filtros
             </Button>
