@@ -722,27 +722,14 @@ const Dashboard: React.FC = () => {
         
         console.log('🔍 [METRICS DEBUG] CPC from RedTrack:', value);
       } else if (metricId === 'epc') {
-        // ✅ CORRIGIDO: Calcular EPC como Revenue / Total Clicks
-        let revenue = 0;
-        let clicks = 0;
-        
-        // Verificar se há estrutura stat (como na tela de Campanhas)
+        // ✅ REVERTIDO: Usar dados diretos do RedTrack (como CPC e CPA)
         if (data.stat) {
-          revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0;
-          clicks = data.stat.clicks ?? 0;
+          value = data.stat.epc ?? 0
         } else {
-          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0;
-          clicks = data.clicks ?? 0;
+          value = data.epc ?? 0
         }
         
-        // Calcular EPC: Revenue / Total Clicks
-        value = clicks > 0 ? revenue / clicks : 0;
-        
-        console.log('🔍 [METRICS DEBUG] EPC calculation:', {
-          revenue,
-          clicks,
-          epc: value
-        });
+        console.log('🔍 [METRICS DEBUG] EPC from RedTrack:', value);
       } else if (metricId === 'cpa') {
         // ✅ REVERTIDO: Usar dados diretos do RedTrack
         if (data.stat) {
