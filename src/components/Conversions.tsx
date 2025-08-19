@@ -644,8 +644,7 @@ const Conversions: React.FC = () => {
                 options={[
                   { value: '', label: 'Todos os status' },
                   { value: 'APPROVED', label: 'Aprovado' },
-                  { value: 'PENDING', label: 'Pendente' },
-                  { value: 'REJECTED', label: 'Rejeitado' }
+                  { value: 'other', label: 'Outros' }
                 ]}
                 placeholder="Selecione o status"
                 className="w-full"
@@ -893,8 +892,7 @@ const Conversions: React.FC = () => {
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         conversion.status?.toUpperCase() === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                        conversion.status?.toUpperCase() === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        conversion.status?.toUpperCase() === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        conversion.status?.toLowerCase() === 'other' ? 'bg-blue-100 text-blue-800' :
                         'bg-gray-100 text-gray-600'
                       }`}>
                         {conversion.status || 'N/A'}
