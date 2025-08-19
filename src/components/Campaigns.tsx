@@ -677,6 +677,11 @@ const Campaigns: React.FC = () => {
   const [bestAds, setBestAds] = useState<any[]>([])
   const [bestOffers, setBestOffers] = useState<any[]>([])
   const [performanceLoading, setPerformanceLoading] = useState(false)
+  
+  // Novos estados para os blocos de performance UTM (RT Campaign/Ad)
+  const [bestRTCampaigns, setBestRTCampaigns] = useState<any[]>([])
+  const [bestRTAdgroups, setBestRTAdgroups] = useState<any[]>([])
+  const [bestRTAds, setBestRTAds] = useState<any[]>([])
 
   // Função para buscar dados de performance baseados em conversões
   const fetchPerformanceData = async (forceRefresh = false) => {
@@ -721,12 +726,26 @@ const Campaigns: React.FC = () => {
         setBestOffers(data.offers.slice(0, 3))
       }
       
+      // ✅ NOVOS CAMPOS: Dados UTM para aba RT Campaign/Ad
+      if (data && data.rtCampaigns) {
+        setBestRTCampaigns(data.rtCampaigns.slice(0, 3))
+      }
+      if (data && data.rtAdgroups) {
+        setBestRTAdgroups(data.rtAdgroups.slice(0, 3))
+      }
+      if (data && data.rtAds) {
+        setBestRTAds(data.rtAds.slice(0, 3))
+      }
+      
       console.log('✅ [CAMPAIGNS] Dados de performance carregados:', data);
     } catch (error) {
       console.error('❌ [CAMPAIGNS] Erro ao buscar dados de performance:', error);
       setBestCampaigns([])
       setBestAds([])
       setBestOffers([])
+      setBestRTCampaigns([])
+      setBestRTAdgroups([])
+      setBestRTAds([])
     } finally {
       setPerformanceLoading(false)
     }
@@ -1124,7 +1143,7 @@ const Campaigns: React.FC = () => {
 
       {/* Performance Blocks - Layout Responsivo - Apenas na aba Campanhas */}
       {activeTab === 'campaigns' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         {/* Best performing campaigns */}
         <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
@@ -1169,7 +1188,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-3xl mb-3">📊</div>
                 <div className="text-sm">Nenhuma campanha encontrada</div>
               </div>
-              ) : bestCampaigns.map((item, idx) => (
+            ) : bestCampaigns.map((item, idx) => (
                               <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
@@ -1201,96 +1220,6 @@ const Campaigns: React.FC = () => {
                     <span className="text-gray-500">CPA:</span>
                     <span className="font-semibold text-[#3cd48f]">
                       {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <span className="text-gray-500">ROI:</span>
-                    <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
-                      {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
-        </div>
-
-        {/* Best performing ads */}
-        <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-[#1f1f1f] text-base">Top Anúncios</h3>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
-                {bestAds.length} encontrados
-              </div>
-              <button
-                onClick={() => fetchPerformanceData(true)}
-                disabled={performanceLoading}
-                className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
-                title="Atualizar dados"
-              >
-                {performanceLoading ? (
-                  <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {performanceLoading ? (
-              <div className="text-center text-gray-500 py-6">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
-                <div className="text-sm">Carregando dados...</div>
-              </div>
-            ) : bestAds.length === 0 ? (
-              <div className="text-center text-gray-500 py-6">
-                <div className="text-3xl mb-3">📊</div>
-                <div className="text-sm">Nenhum anúncio encontrado</div>
-              </div>
-              ) : bestAds.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center min-w-0 flex-1">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
-                      idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
-                      idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
-                      'bg-gradient-to-r from-orange-400 to-orange-500'
-                    }`}>
-                      {idx + 1}
-                    </div>
-                    <div className="ml-3 min-w-0 flex-1">
-                      <div className="font-medium text-[#1f1f1f] text-sm truncate">
-                        {item.name || 'Anúncio sem nome'}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right ml-3 flex-shrink-0">
-                    <div className="text-lg font-bold text-[#3cd48f]">
-                      {formatCurrency(item.revenue || 0)}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-gray-500">Conv:</span>
-                    <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <span className="text-gray-500">CPA:</span>
-                    <span className="font-semibold text-[#3cd48f]">
-                      {item.cost > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1">
@@ -1378,17 +1307,23 @@ const Campaigns: React.FC = () => {
                     <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <span className="text-gray-500">Revenue:</span>
+                    <span className="text-gray-500">Payout:</span>
                     <span className="font-semibold text-[#3cd48f]">
-                      {formatCurrency(item.revenue || 0)}
+                      {formatCurrency(item.payout || 0)}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-500">EPC:</span>
+                    <span className="font-semibold text-[#3cd48f]">
+                      {item.conversions > 0 ? formatCurrency((item.revenue || 0) / item.conversions) : formatCurrency(0)}
                     </span>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
         </div>
-      </div>
+        </div>
+        </div>
       )}
 
       {/* Data Table */}
@@ -1471,6 +1406,281 @@ const Campaigns: React.FC = () => {
             </table>
           ) : (
             <div>
+              {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba RT Campaign/Ad */}
+              {activeTab === 'utm' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {/* Top RT Campaigns */}
+                  <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                          <BarChart3 className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-[#1f1f1f] text-base">Top RT Campaigns</h3>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                          {bestRTCampaigns.length} encontradas
+                        </div>
+                        <button
+                          onClick={() => fetchPerformanceData(true)}
+                          disabled={performanceLoading}
+                          className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
+                          title="Atualizar dados"
+                        >
+                          {performanceLoading ? (
+                            <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {performanceLoading ? (
+                        <div className="text-center text-gray-500 py-6">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
+                          <div className="text-sm">Carregando dados...</div>
+                        </div>
+                      ) : bestRTCampaigns.length === 0 ? (
+                        <div className="text-center text-gray-500 py-6">
+                          <div className="text-3xl mb-3">📊</div>
+                          <div className="text-sm">Nenhuma RT Campaign encontrada</div>
+                        </div>
+                      ) : bestRTCampaigns.map((item, idx) => (
+                        <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center min-w-0 flex-1">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
+                                idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                                idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                                'bg-gradient-to-r from-orange-400 to-orange-500'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              <div className="ml-3 min-w-0 flex-1">
+                                <div className="font-medium text-[#1f1f1f] text-sm truncate">
+                                  {item.name || 'RT Campaign sem nome'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right ml-3 flex-shrink-0">
+                              <div className="text-lg font-bold text-[#3cd48f]">
+                                {formatCurrency(item.revenue || 0)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">Conv:</span>
+                              <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">CPA:</span>
+                              <span className="font-semibold text-[#3cd48f]">
+                                {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">ROI:</span>
+                              <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                                {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Top RT Adgroups */}
+                  <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                          <Target className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-[#1f1f1f] text-base">Top RT Adgroups</h3>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                          {bestRTAdgroups.length} encontrados
+                        </div>
+                        <button
+                          onClick={() => fetchPerformanceData(true)}
+                          disabled={performanceLoading}
+                          className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
+                          title="Atualizar dados"
+                        >
+                          {performanceLoading ? (
+                            <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {performanceLoading ? (
+                        <div className="text-center text-gray-500 py-6">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
+                          <div className="text-sm">Carregando dados...</div>
+                        </div>
+                      ) : bestRTAdgroups.length === 0 ? (
+                        <div className="text-center text-gray-500 py-6">
+                          <div className="text-3xl mb-3">📊</div>
+                          <div className="text-sm">Nenhum RT Adgroup encontrado</div>
+                        </div>
+                      ) : bestRTAdgroups.map((item, idx) => (
+                        <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center min-w-0 flex-1">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
+                                idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                                idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                                'bg-gradient-to-r from-orange-400 to-orange-500'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              <div className="ml-3 min-w-0 flex-1">
+                                <div className="font-medium text-[#1f1f1f] text-sm truncate">
+                                  {item.name || 'RT Adgroup sem nome'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right ml-3 flex-shrink-0">
+                              <div className="text-lg font-bold text-[#3cd48f]">
+                                {formatCurrency(item.revenue || 0)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">Conv:</span>
+                              <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">CPA:</span>
+                              <span className="font-semibold text-[#3cd48f]">
+                                {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">ROI:</span>
+                              <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                                {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Top RT Ads */}
+                  <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                          <Link className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-[#1f1f1f] text-base">Top RT Ads</h3>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                          {bestRTAds.length} encontrados
+                        </div>
+                        <button
+                          onClick={() => fetchPerformanceData(true)}
+                          disabled={performanceLoading}
+                          className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
+                          title="Atualizar dados"
+                        >
+                          {performanceLoading ? (
+                            <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {performanceLoading ? (
+                        <div className="text-center text-gray-500 py-6">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
+                          <div className="text-sm">Carregando dados...</div>
+                        </div>
+                      ) : bestRTAds.length === 0 ? (
+                        <div className="text-center text-gray-500 py-6">
+                          <div className="text-3xl mb-3">📊</div>
+                          <div className="text-sm">Nenhum RT Ad encontrado</div>
+                        </div>
+                      ) : bestRTAds.map((item, idx) => (
+                        <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center min-w-0 flex-1">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
+                                idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                                idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                                'bg-gradient-to-r from-orange-400 to-orange-500'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              <div className="ml-3 min-w-0 flex-1">
+                                <div className="font-medium text-[#1f1f1f] text-sm truncate">
+                                  {item.name || 'RT Ad sem nome'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right ml-3 flex-shrink-0">
+                              <div className="text-lg font-bold text-[#3cd48f]">
+                                {formatCurrency(item.revenue || 0)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">Conv:</span>
+                              <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">CPA:</span>
+                              <span className="font-semibold text-[#3cd48f]">
+                                {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-gray-500">ROI:</span>
+                              <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
+                                {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* UTM/Criativos Table */}
               {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
                 <div className="p-8 text-center text-gray-500">

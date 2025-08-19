@@ -83,6 +83,11 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   const ads = new Map();
   const offers = new Map();
   
+  // ✅ NOVOS MAPAS: Para dados UTM (RT Campaign/Ad)
+  const rtCampaigns = new Map();
+  const rtAdgroups = new Map();
+  const rtAds = new Map();
+  
   console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
   console.log(`🔍 [PERFORMANCE] Filtro: Apenas conversões com status "APPROVED"`);
   
@@ -272,6 +277,80 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       offer.conversions += 1;
       offer.payout += parseFloat(conversion.payout || 0);
     }
+    
+    // ✅ NOVOS CAMPOS: Processar dados UTM para RT Campaign/Ad
+    // Processar RT Campaigns (rt_campaign)
+    if (conversion.rt_campaign && conversion.rt_campaign_id) {
+      const rtCampaignKey = conversion.rt_campaign_id;
+      if (!rtCampaigns.has(rtCampaignKey)) {
+        const rtCampaignCostData = campaignsCostMap.get(rtCampaignKey);
+        rtCampaigns.set(rtCampaignKey, {
+          id: rtCampaignKey,
+          name: conversion.rt_campaign,
+          revenue: 0,
+          conversions: 0,
+          cost: rtCampaignCostData ? rtCampaignCostData.cost : 0,
+          payout: 0,
+          clicks: rtCampaignCostData ? rtCampaignCostData.clicks : 0
+        });
+      }
+      
+      const rtCampaign = rtCampaigns.get(rtCampaignKey);
+      rtCampaign.revenue += parseFloat(conversion.payout || 0);
+      rtCampaign.conversions += 1;
+      rtCampaign.payout += parseFloat(conversion.payout || 0);
+    }
+    
+    // Processar RT Adgroups (rt_adgroup)
+    if (conversion.rt_adgroup && conversion.rt_adgroup_id) {
+      const rtAdgroupKey = conversion.rt_adgroup_id;
+      if (!rtAdgroups.has(rtAdgroupKey)) {
+        const rtAdgroupCostData = campaignsCostMap.get(rtAdgroupKey);
+        rtAdgroups.set(rtAdgroupKey, {
+          id: rtAdgroupKey,
+          name: conversion.rt_adgroup,
+          revenue: 0,
+          conversions: 0,
+          cost: rtAdgroupCostData ? rtAdgroupCostData.cost : 0,
+          payout: 0,
+          clicks: rtAdgroupCostData ? rtAdgroupCostData.clicks : 0
+        });
+      }
+      
+      const rtAdgroup = rtAdgroups.get(rtAdgroupKey);
+      rtAdgroup.revenue += parseFloat(conversion.payout || 0);
+      rtAdgroup.conversions += 1;
+      rtAdgroup.payout += parseFloat(conversion.payout || 0);
+    }
+    
+    // Processar RT Ads (rt_ad) - já existe, mas vou renomear para consistência
+    if (conversion.rt_ad && conversion.rt_ad_id && conversion.rt_ad_id !== '{{ad.id}}') {
+      const rtAdName = conversion.rt_ad.trim();
+      const rtAdKey = rtAdName; // Usar nome como chave para agrupar
+      
+      if (!rtAds.has(rtAdKey)) {
+        rtAds.set(rtAdKey, {
+          id: conversion.rt_ad_id, // Manter o primeiro ID encontrado
+          name: rtAdName,
+          revenue: 0,
+          conversions: 0,
+          cost: 0, // Inicializar como 0 - será calculado depois
+          payout: 0,
+          clicks: 0, // Inicializar como 0 - será calculado depois
+          all_ids: [conversion.rt_ad_id] // Array para rastrear todos os IDs
+        });
+      }
+      
+      const rtAd = rtAds.get(rtAdKey);
+      rtAd.revenue += parseFloat(conversion.payout || 0);
+      rtAd.conversions += 1;
+      rtAd.payout += parseFloat(conversion.payout || 0);
+      
+      // Adicionar ID se não existir no array
+      if (!rtAd.all_ids.includes(conversion.rt_ad_id)) {
+        rtAd.all_ids.push(conversion.rt_ad_id);
+      }
+    }
   });
   
   // Calcular custo e cliques para anúncios agrupados (APENAS UMA VEZ)
@@ -297,6 +376,29 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
     console.log(`   - Clicks total: ${ad.clicks}`);
   });
   
+  // ✅ NOVO: Calcular custo e cliques para RT Ads agrupados
+  console.log(`🔧 [PERFORMANCE] Calculando custo e cliques para RT Ads agrupados...`);
+  rtAds.forEach((rtAd, rtAdKey) => {
+    // Resetar custo e cliques para recalcular corretamente
+    rtAd.cost = 0;
+    rtAd.clicks = 0;
+    
+    // Somar custos de todos os IDs únicos do RT Ad
+    const uniqueIds = [...new Set(rtAd.all_ids)]; // Remover duplicatas
+    uniqueIds.forEach(rtAdId => {
+      const rtAdCostData = adsCostMap.get(rtAdId);
+      if (rtAdCostData) {
+        rtAd.cost += rtAdCostData.cost;
+        rtAd.clicks += rtAdCostData.clicks;
+      }
+    });
+    
+    console.log(`📊 [PERFORMANCE] RT Ad "${rtAd.name}":`);
+    console.log(`   - IDs únicos: ${uniqueIds.join(', ')}`);
+    console.log(`   - Cost total: ${rtAd.cost}`);
+    console.log(`   - Clicks total: ${rtAd.clicks}`);
+  });
+  
   console.log(`📊 [PERFORMANCE] Resumo do processamento:`);
   console.log(`   - Total de conversões: ${totalConversions}`);
   console.log(`   - Conversões válidas: ${validConversions}`);
@@ -306,6 +408,9 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   console.log(`   - Campanhas processadas: ${campaigns.size}`);
   console.log(`   - Anúncios processados: ${ads.size}`);
   console.log(`   - Ofertas processadas: ${offers.size}`);
+  console.log(`   - RT Campaigns processadas: ${rtCampaigns.size}`);
+  console.log(`   - RT Adgroups processados: ${rtAdgroups.size}`);
+  console.log(`   - RT Ads processados: ${rtAds.size}`);
   
   // Converter para arrays e ordenar por conversões (prioridade) e depois por revenue
   const campaignsArray = Array.from(campaigns.values())
@@ -340,11 +445,48 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       return b.revenue - a.revenue;
     })
     .slice(0, 3); // Apenas top 3
+    
+  // ✅ NOVOS CAMPOS: Ordenar e selecionar dados UTM
+  const rtCampaignsArray = Array.from(rtCampaigns.values())
+    .sort((a, b) => {
+      // Primeiro por conversões (decrescente)
+      if (b.conversions !== a.conversions) {
+        return b.conversions - a.conversions;
+      }
+      // Se conversões iguais, ordenar por revenue
+      return b.revenue - a.revenue;
+    })
+    .slice(0, 3); // Apenas top 3
+    
+  const rtAdgroupsArray = Array.from(rtAdgroups.values())
+    .sort((a, b) => {
+      // Primeiro por conversões (decrescente)
+      if (b.conversions !== a.conversions) {
+        return b.conversions - a.conversions;
+      }
+      // Se conversões iguais, ordenar por revenue
+      return b.revenue - a.revenue;
+    })
+    .slice(0, 3); // Apenas top 3
+    
+  const rtAdsArray = Array.from(rtAds.values())
+    .sort((a, b) => {
+      // Primeiro por conversões (decrescente)
+      if (b.conversions !== a.conversions) {
+        return b.conversions - a.conversions;
+      }
+      // Se conversões iguais, ordenar por revenue
+      return b.revenue - a.revenue;
+    })
+    .slice(0, 3); // Apenas top 3
   
   console.log(`✅ [PERFORMANCE] Processamento concluído:`);
   console.log(`   - Campanhas: ${campaignsArray.length} (de ${campaigns.size} total)`);
   console.log(`   - Anúncios: ${adsArray.length} (de ${ads.size} total)`);
   console.log(`   - Ofertas: ${offersArray.length} (de ${offers.size} total)`);
+  console.log(`   - RT Campaigns: ${rtCampaignsArray.length} (de ${rtCampaigns.size} total)`);
+  console.log(`   - RT Adgroups: ${rtAdgroupsArray.length} (de ${rtAdgroups.size} total)`);
+  console.log(`   - RT Ads: ${rtAdsArray.length} (de ${rtAds.size} total)`);
   
   // Log detalhado dos anúncios agrupados
   if (adsArray.length > 0) {
@@ -357,7 +499,11 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   return {
     campaigns: campaignsArray,
     ads: adsArray,
-    offers: offersArray
+    offers: offersArray,
+    // ✅ NOVOS CAMPOS: Dados UTM para RT Campaign/Ad
+    rtCampaigns: rtCampaignsArray,
+    rtAdgroups: rtAdgroupsArray,
+    rtAds: rtAdsArray
   };
 }
 
