@@ -593,7 +593,7 @@ const Conversions: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowAdvancedData(!showAdvancedData)}
-            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
+            className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
           >
             {showAdvancedData ? <Eye className="w-4 h-4 mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
             {showAdvancedData ? 'Dados Básicos' : 'Dados Avançados'}
@@ -605,7 +605,7 @@ const Conversions: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#1f1f1f] font-semibold bg-white shadow-lg hover:bg-[#3cd48f]/5 transition"
+            className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
@@ -619,23 +619,22 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200"
+          className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
+            <h3 className="text-lg font-semibold text-[#1f1f1f]">Filtros Avançados</h3>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(false)}
-              className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
             >
               Ocultar Filtros
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
                 Status
               </label>
               <CustomSelect
@@ -652,20 +651,12 @@ const Conversions: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center justify-between mt-6">
-            <Button
+          <div className="flex justify-end mt-6">
+            <Button 
+              variant="primary"
               onClick={handleApplyFilters}
-              className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               Aplicar Filtros
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={handleResetFilters}
-              className="px-6 py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-            >
-              Limpar Filtros
             </Button>
           </div>
         </motion.div>
@@ -676,7 +667,7 @@ const Conversions: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+          className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
@@ -694,7 +685,7 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+          className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
@@ -712,7 +703,7 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+          className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
@@ -730,7 +721,7 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+          className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
@@ -748,7 +739,7 @@ const Conversions: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+          className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
