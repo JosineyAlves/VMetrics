@@ -13,7 +13,8 @@ import {
   BarChart3,
   Target,
   Link,
-  Palette
+  Palette,
+  X
 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -443,6 +444,29 @@ const Campaigns: React.FC = () => {
   })
   const [tempFilters, setTempFilters] = useState(filters)
   const { selectedPeriod, customRange } = useDateRangeStore()
+  
+  // Função para limpar todos os filtros
+  const clearAllFilters = () => {
+    const clearedFilters = {
+      status: '',
+      dateFrom: '',
+      dateTo: '',
+      source: '',
+      minSpend: '',
+      maxSpend: '',
+      minRoi: '',
+      maxRoi: '',
+      utm_source: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
+      minConversions: '',
+      minRevenue: ''
+    }
+    setFilters(clearedFilters)
+    setTempFilters(clearedFilters)
+    setSearchTerm('')
+  }
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
   const [totalCampaigns, setTotalCampaigns] = useState(0)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
@@ -1053,7 +1077,15 @@ const Campaigns: React.FC = () => {
 
           </div>
           
-          <div className="flex justify-end mt-6">
+          <div className="flex justify-end gap-3 mt-6">
+            <Button 
+              variant="outline"
+              onClick={clearAllFilters}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Limpar Filtros
+            </Button>
             <Button 
               variant="primary"
               onClick={() => {
@@ -1080,6 +1112,19 @@ const Campaigns: React.FC = () => {
             className="pl-10"
           />
         </div>
+        
+        {/* Botão Limpar Filtros Rápido */}
+        {(searchTerm || Object.values(filters).some(v => v)) && (
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={clearAllFilters}
+            className="border-gray-300 text-gray-600 hover:bg-gray-50 whitespace-nowrap"
+          >
+            <X className="w-3 h-3 mr-1" />
+            Limpar Filtros
+          </Button>
+        )}
         
         {/* Período Dropdown */}
         {/* This div is now handled by PeriodDropdown component */}
