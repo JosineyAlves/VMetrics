@@ -713,14 +713,25 @@ const Dashboard: React.FC = () => {
           initiate_checkout: data.initiate_checkout
         });
       } else if (metricId === 'cpc') {
-        // ✅ REVERTIDO: Usar dados diretos do RedTrack
+        // ✅ CORRIGIDO: Calcular CPC como Cost / Clicks usando dados agregados
+        let cost = 0;
+        let clicks = 0;
+        
         if (data.stat) {
-          value = data.stat.cpc ?? 0
+          cost = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0;
+          clicks = data.stat.clicks ?? 0;
         } else {
-          value = data.cpc ?? 0
+          cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0;
+          clicks = data.clicks ?? 0;
         }
         
-        console.log('🔍 [METRICS DEBUG] CPC from RedTrack:', value);
+        value = clicks > 0 ? cost / clicks : 0;
+        
+        console.log('🔍 [METRICS DEBUG] CPC calculation:', {
+          cost,
+          clicks,
+          cpc: value
+        });
       } else if (metricId === 'epc') {
         // ✅ CORRIGIDO: Calcular EPC como Revenue / Clicks usando dados agregados
         let revenue = 0;
@@ -742,14 +753,25 @@ const Dashboard: React.FC = () => {
           epc: value
         });
       } else if (metricId === 'cpa') {
-        // ✅ REVERTIDO: Usar dados diretos do RedTrack
+        // ✅ CORRIGIDO: Calcular CPA como Cost / Conversions usando dados agregados
+        let cost = 0;
+        let conversions = 0;
+        
         if (data.stat) {
-          value = data.stat.cpa ?? 0
+          cost = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0;
+          conversions = data.stat.conversions ?? data.stat.approved ?? 0;
         } else {
-          value = data.cpa ?? 0
+          cost = data.cost ?? data.spend ?? data.campaign_cost ?? data.total_spend ?? 0;
+          conversions = data.conversions ?? data.approved ?? 0;
         }
         
-        console.log('🔍 [METRICS DEBUG] CPA from RedTrack:', value);
+        value = conversions > 0 ? cost / conversions : 0;
+        
+        console.log('🔍 [METRICS DEBUG] CPA calculation:', {
+          cost,
+          conversions,
+          cpa: value
+        });
       } else if (metricId === 'roi') {
         // ✅ CORRIGIDO: Calcular ROI como (revenue - spend) / spend * 100
         let revenue = 0;
