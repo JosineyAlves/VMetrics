@@ -724,6 +724,15 @@ const Campaigns: React.FC = () => {
       }
       if (data && data.offers) {
         setBestOffers(data.offers.slice(0, 3))
+        
+        // ✅ DEBUG: Log dos dados das ofertas para verificar cliques
+        console.log('🔍 [CAMPAIGNS DEBUG] Dados das ofertas:', data.offers.slice(0, 3).map((offer: any) => ({
+          name: offer.name,
+          revenue: offer.revenue,
+          conversions: offer.conversions,
+          clicks: offer.clicks,
+          epc_calculated: offer.clicks > 0 ? offer.revenue / offer.clicks : 0
+        })));
       }
       
       // ✅ NOVOS CAMPOS: Dados UTM para aba RT Campaign/Ad
@@ -1315,7 +1324,7 @@ const Campaigns: React.FC = () => {
                   <div className="flex items-center space-x-1">
                     <span className="text-gray-500">EPC:</span>
                     <span className="font-semibold text-[#3cd48f]">
-                      {item.conversions > 0 ? formatCurrency((item.revenue || 0) / item.conversions) : formatCurrency(0)}
+                      {item.clicks > 0 ? formatCurrency((item.revenue || 0) / item.clicks) : formatCurrency(0)}
                     </span>
                   </div>
                 </div>
