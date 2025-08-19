@@ -32,7 +32,6 @@ import CustomSelect from './ui/CustomSelect'
 interface UTMCreative {
   id: string
   utm_source: string
-  utm_medium: string
   utm_campaign: string
   utm_term: string
   utm_content: string
@@ -436,7 +435,6 @@ const Campaigns: React.FC = () => {
     minRoi: '',
     maxRoi: '',
     utm_source: '',
-    utm_medium: '',
     utm_campaign: '',
     utm_term: '',
     utm_content: '',
@@ -614,7 +612,6 @@ const Campaigns: React.FC = () => {
             rtMap.set(key, {
               id: key,
               utm_source: conversion.rt_source || '',
-              utm_medium: conversion.rt_medium || '',
               utm_campaign: rtCampaign,
               utm_term: rtAdgroup,
               utm_content: rtAd,
@@ -812,20 +809,19 @@ const Campaigns: React.FC = () => {
   const filteredUTMCreatives = utmCreatives.filter(creative => {
     const matchesSearch = 
       creative.utm_source.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      creative.utm_medium.toLowerCase().includes(searchTerm.toLowerCase()) ||
       creative.utm_campaign.toLowerCase().includes(searchTerm.toLowerCase()) ||
       creative.utm_term.toLowerCase().includes(searchTerm.toLowerCase()) ||
       creative.utm_content.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesUTMSource = !filters.utm_source || creative.utm_source === filters.utm_source
-    const matchesUTMMedium = !filters.utm_medium || creative.utm_medium === filters.utm_medium
-    const matchesUTMCampaign = !filters.utm_campaign || creative.utm_campaign === filters.utm_campaign
-    const matchesUTMTerm = !filters.utm_term || creative.utm_term === filters.utm_term
-    const matchesUTMContent = !filters.utm_content || creative.utm_content === filters.utm_content
+    const matchesUTMSource = !filters.utm_source || creative.utm_source.toLowerCase().includes(filters.utm_source.toLowerCase())
+
+    const matchesUTMCampaign = !filters.utm_campaign || creative.utm_campaign.toLowerCase().includes(filters.utm_campaign.toLowerCase())
+    const matchesUTMTerm = !filters.utm_term || creative.utm_term.toLowerCase().includes(filters.utm_term.toLowerCase())
+    const matchesUTMContent = !filters.utm_content || creative.utm_content.toLowerCase().includes(filters.utm_content.toLowerCase())
     const matchesMinConversions = !filters.minConversions || creative.conversions >= parseFloat(filters.minConversions)
     const matchesMinRevenue = !filters.minRevenue || creative.revenue >= parseFloat(filters.minRevenue)
 
-    return matchesSearch && matchesUTMSource && matchesUTMMedium && matchesUTMCampaign && 
+    return matchesSearch && matchesUTMSource && matchesUTMCampaign && 
            matchesUTMTerm && matchesUTMContent && matchesMinConversions && matchesMinRevenue
   })
 
@@ -987,24 +983,7 @@ const Campaigns: React.FC = () => {
                     className="w-full"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
-                    RT Medium
-                  </label>
-                  <CustomSelect
-                    value={tempFilters.utm_medium}
-                    onChange={(value) => setTempFilters(prev => ({ ...prev, utm_medium: value }))}
-                    options={[
-                      { value: '', label: 'Todos' },
-                      { value: 'cpc', label: 'CPC' },
-                      { value: 'cpm', label: 'CPM' },
-                      { value: 'social', label: 'Social' },
-                      { value: 'email', label: 'Email' }
-                    ]}
-                    placeholder="Selecione o medium"
-                    className="w-full"
-                  />
-                </div>
+
                 
                 <div>
                   <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
@@ -1456,7 +1435,7 @@ const Campaigns: React.FC = () => {
           ) : (
             <div>
               {/* UTM/Criativos Table */}
-              {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_medium && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
+              {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
                 <div className="p-8 text-center text-gray-500">
                   Nenhum dado de RT Campaign/Ad encontrado para o período ou filtros selecionados.<br/>
                   Tente ampliar o período ou revisar os filtros.
@@ -1466,7 +1445,6 @@ const Campaigns: React.FC = () => {
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Medium</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
@@ -1485,7 +1463,6 @@ const Campaigns: React.FC = () => {
                         className="hover:bg-gray-100"
                       >
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_medium}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
