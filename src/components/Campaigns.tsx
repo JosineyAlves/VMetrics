@@ -1077,15 +1077,7 @@ const Campaigns: React.FC = () => {
 
           </div>
           
-          <div className="flex justify-end gap-3 mt-6">
-            <Button 
-              variant="outline"
-              onClick={clearAllFilters}
-              className="border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Limpar Filtros
-            </Button>
+          <div className="flex justify-end mt-6">
             <Button 
               variant="primary"
               onClick={() => {
