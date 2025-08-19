@@ -402,7 +402,7 @@ const LandingPage: React.FC = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <img 
-                  src="/assets/images/logo.svg" 
+                  src="/assets/images/logo-white.svg" 
                   alt="VMetrics Logo" 
                   className="h-6 w-auto"
                 />

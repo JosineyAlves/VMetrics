@@ -521,6 +521,7 @@ const Conversions: React.FC = () => {
 
   const handleApplyFilters = () => {
     setFilters(tempFilters)
+    setShowFilters(false)
   }
 
   const handleResetFilters = () => {
