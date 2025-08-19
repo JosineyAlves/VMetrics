@@ -8,64 +8,6 @@ const MIN_REQUEST_INTERVAL = 2000; // 2 segundos entre requisições
 let requestQueue = [];
 let isProcessingQueue = false;
 
-// ✅ NOVA FUNÇÃO: Buscar dados de cliques por oferta via /report
-async function fetchOfferClicksData(apiKey, date_from, date_to) {
-  try {
-    console.log('🔍 [PERFORMANCE] Buscando dados de cliques por oferta via /report...');
-    
-    const reportUrl = new URL('https://api.redtrack.io/report');
-    reportUrl.searchParams.set('api_key', apiKey);
-    reportUrl.searchParams.set('date_from', date_from);
-    reportUrl.searchParams.set('date_to', date_to);
-    reportUrl.searchParams.set('group_by', 'offer'); // Agrupar por oferta
-    reportUrl.searchParams.set('per', '10000'); // Máximo para pegar todos os dados
-    
-    console.log('🔍 [PERFORMANCE] URL do report por oferta:', reportUrl.toString());
-    
-    const reportData = await new Promise((resolve, reject) => {
-      requestQueue.push({ 
-        resolve, 
-        reject, 
-        url: reportUrl.toString(), 
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent': 'VMetrics-Dashboard/1.0 (https://vmetrics.com.br)',
-          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      processRequestQueue();
-    });
-    
-    if (reportData && reportData.items) {
-      console.log(`🔍 [PERFORMANCE] Report por oferta: ${reportData.items.length} itens encontrados`);
-      
-      // Criar mapa de cliques por oferta
-      const offerClicksMap = new Map();
-      reportData.items.forEach(item => {
-        if (item.offer_id && item.offer) {
-          offerClicksMap.set(item.offer_id, {
-            clicks: item.clicks || 0,
-            cost: item.cost || 0,
-            revenue: item.revenue || 0
-          });
-          
-          console.log(`📊 [PERFORMANCE] Oferta ${item.offer}: Clicks=${item.clicks}, Cost=${item.cost}, Revenue=${item.revenue}`);
-        }
-      });
-      
-      return offerClicksMap;
-    }
-    
-    return new Map();
-  } catch (error) {
-    console.warn('⚠️ [PERFORMANCE] Erro ao buscar dados de cliques por oferta:', error);
-    return new Map();
-  }
-}
-
 // Função para processar fila de requisições
 async function processRequestQueue() {
   if (isProcessingQueue || requestQueue.length === 0) return;
@@ -136,7 +78,7 @@ async function processRequestQueue() {
 }
 
 // Função para processar dados de conversão e extrair performance
-function processPerformanceData(conversions, campaignsTracksData, adsTracksData, offerClicksData) {
+function processPerformanceData(conversions, campaignsTracksData, adsTracksData) {
   const campaigns = new Map();
   const ads = new Map();
   const offers = new Map();
@@ -320,16 +262,13 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData,
     if (conversion.offer && conversion.offer_id) {
       const offerKey = conversion.offer_id;
       if (!offers.has(offerKey)) {
-        // ✅ CORRIGIDO: Buscar dados de cliques da oferta via /report
-        const offerClicksInfo = offerClicksData.get(offerKey);
         offers.set(offerKey, {
           id: offerKey,
           name: conversion.offer,
           revenue: 0,
           conversions: 0,
-          cost: offerClicksInfo ? offerClicksInfo.cost : 0,
-          payout: 0,
-          clicks: offerClicksInfo ? offerClicksInfo.clicks : 0 // ✅ NOVO: Cliques da oferta
+          cost: 0,
+          payout: 0
         });
       }
       
@@ -557,14 +496,6 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData,
     });
   }
   
-  // ✅ NOVO: Log detalhado das ofertas para verificar cliques
-  if (offersArray.length > 0) {
-    console.log(`📊 [PERFORMANCE] Ofertas processadas:`);
-    offersArray.forEach((offer, idx) => {
-      console.log(`   ${idx + 1}. ${offer.name} - Revenue: ${offer.revenue}, Conversions: ${offer.conversions}, Clicks: ${offer.clicks}, EPC: ${offer.clicks > 0 ? offer.revenue / offer.clicks : 0}`);
-    });
-  }
-  
   return {
     campaigns: campaignsArray,
     ads: adsArray,
@@ -577,7 +508,7 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData,
 }
 
 // Função para processar fallback de campanhas quando não há conversões suficientes
-async function processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData, offerClicksData) {
+async function processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData) {
   try {
     console.log('🔍 [PERFORMANCE] Buscando dados de campanhas como fallback...');
     const campaignsUrl = new URL('https://api.redtrack.io/campaigns');
@@ -685,16 +616,13 @@ async function processFallbackFromCampaigns(apiKey, date_from, date_to, campaign
         const offersMap = new Map();
         campaignsData.forEach(campaign => {
           if (campaign.offer && campaign.offer_id) {
-            // ✅ CORRIGIDO: Buscar dados de cliques da oferta via /report
-            const offerClicksInfo = offerClicksData.get(campaign.offer_id);
             offersMap.set(campaign.offer_id, {
               id: campaign.offer_id,
               name: campaign.offer,
               revenue: campaign.stat?.revenue || 0,
               conversions: campaign.stat?.conversions || 0,
               cost: campaign.stat?.cost || 0,
-              payout: campaign.stat?.revenue || 0,
-              clicks: offerClicksInfo ? offerClicksInfo.clicks : 0 // ✅ NOVO: Cliques da oferta
+              payout: campaign.stat?.revenue || 0
             });
           }
         });
@@ -879,23 +807,19 @@ export default async function handler(req, res) {
       offers: []
     };
     
-    // ✅ NOVO: Buscar dados de cliques por oferta via /report
-    console.log('🔍 [PERFORMANCE] Buscando dados de cliques por oferta...');
-    const offerClicksData = await fetchOfferClicksData(apiKey, date_from, date_to);
-    
     // VERIFICAR: Se temos conversões, processar normalmente
     if (conversionsData && conversionsData.items && conversionsData.items.length > 0) {
       console.log(`🔍 [PERFORMANCE] Processando ${conversionsData.items.length} conversões...`);
-      performanceData = processPerformanceData(conversionsData.items, campaignsTracksData, adsTracksData, offerClicksData);
+      performanceData = processPerformanceData(conversionsData.items, campaignsTracksData, adsTracksData);
       
       // Se não temos dados suficientes das conversões (apenas conversões não aprovadas), usar fallback
       if (performanceData.campaigns.length === 0 && performanceData.ads.length === 0 && performanceData.offers.length === 0) {
         console.log('🔍 [PERFORMANCE] Conversões processadas mas sem dados suficientes (apenas não aprovadas) - usando fallback de campanhas');
-        performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData, offerClicksData);
+        performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData);
       }
     } else {
       console.log('🔍 [PERFORMANCE] Nenhuma conversão encontrada para o período - usando fallback de campanhas');
-      performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData, offerClicksData);
+      performanceData = await processFallbackFromCampaigns(apiKey, date_from, date_to, campaignsTracksData);
     }
     
     // Salvar no cache

@@ -269,6 +269,8 @@ const Dashboard: React.FC = () => {
         date_from: dateRange.startDate,
         date_to: dateRange.endDate,
         group_by: 'date', // Agrupamento por data para dashboard
+        // ✅ ADICIONADO: Campos necessários para calcular EPC
+        fields: 'clicks,conversions,revenue,income,total_revenue,cost,spend,campaign_cost,total_spend,epc,cpc,cpa,roi',
         // REMOVER: filters não são mais necessários
       }
       
@@ -361,8 +363,20 @@ const Dashboard: React.FC = () => {
           epc_in_items: filteredData.map((item: any) => ({
             epc: item.epc,
             stat_epc: item.stat?.epc,
+            revenue: item.revenue || item.income || item.total_revenue,
+            clicks: item.clicks,
             campaign: item.campaign || item.campaign_name || item.title
           }))
+        });
+        
+        // ✅ DEBUG ESPECÍFICO: Verificar campos EPC disponíveis
+        console.log('🔍 [DASHBOARD DEBUG] Campos EPC disponíveis:', {
+          summary_has_epc: 'epc' in summary,
+          summary_epc_value: summary.epc,
+          items_with_epc: filteredData.filter(item => item.epc !== undefined && item.epc !== null).length,
+          items_with_revenue_clicks: filteredData.filter(item => 
+            (item.revenue || item.income || item.total_revenue) && item.clicks
+          ).length
         });
         
         // Garantir que o campo cost seja mapeado para spend se não existir
@@ -412,7 +426,17 @@ const Dashboard: React.FC = () => {
         // Debug: verificar se EPC está sendo processado em dados diretos
         console.log('🔍 [DASHBOARD DEBUG] EPC em dados diretos:', {
           epc_in_summary: summary.epc,
-          epc_in_realData: realData.epc
+          epc_in_realData: realData.epc,
+          revenue_in_realData: realData.revenue || realData.income || realData.total_revenue,
+          clicks_in_realData: realData.clicks
+        });
+        
+        // ✅ DEBUG ESPECÍFICO: Verificar campos EPC em dados diretos
+        console.log('🔍 [DASHBOARD DEBUG] Campos EPC em dados diretos:', {
+          realData_has_epc: 'epc' in realData,
+          realData_epc_value: realData.epc,
+          realData_has_revenue: 'revenue' in realData || 'income' in realData || 'total_revenue' in realData,
+          realData_has_clicks: 'clicks' in realData
         });
         
         // Garantir que o campo cost seja mapeado para spend se não existir (dados diretos)
@@ -689,65 +713,124 @@ const Dashboard: React.FC = () => {
           initiate_checkout: data.initiate_checkout
         });
       } else if (metricId === 'cpc') {
-        // Calcular CPC: spend / clicks
-        let spend = 0
-        let clicks = 0
-        
-        // Verificar se há estrutura stat (como na tela de Campanhas)
+        // ✅ REVERTIDO: Usar dados diretos do RedTrack
         if (data.stat) {
-          spend = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
-          clicks = data.stat.clicks ?? 0
+          value = data.stat.cpc ?? 0
         } else {
-          spend = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
-          clicks = data.clicks ?? 0
+          value = data.cpc ?? 0
         }
         
-        // Calcular CPC
-        value = clicks > 0 ? spend / clicks : 0
-        
-        console.log('🔍 [METRICS DEBUG] CPC calculation:', {
-          spend,
-          clicks,
-          cpc: value
-        });
+        console.log('🔍 [METRICS DEBUG] CPC from RedTrack:', value);
       } else if (metricId === 'epc') {
-        // Debug: verificar dados de EPC
-        console.log('🔍 [METRICS DEBUG] EPC data fields:', {
-          epc: data.epc,
-          stat_epc: data.stat?.epc,
-          revenue: data.revenue,
-          clicks: data.clicks
+        // ✅ CORRIGIDO: Calcular EPC como Revenue / Total Clicks
+        let revenue = 0;
+        let clicks = 0;
+        
+        // Verificar se há estrutura stat (como na tela de Campanhas)
+        if (data.stat) {
+          revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0;
+          clicks = data.stat.clicks ?? 0;
+        } else {
+          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0;
+          clicks = data.clicks ?? 0;
+        }
+        
+        // Calcular EPC: Revenue / Total Clicks
+        value = clicks > 0 ? revenue / clicks : 0;
+        
+        console.log('🔍 [METRICS DEBUG] EPC calculation:', {
+          revenue,
+          clicks,
+          epc: value
         });
-        
-        // Verificar se há estrutura stat (como na tela de Campanhas)
-        if (data.stat) {
-          value = data.stat.epc ?? 0
-        } else {
-          value = data.epc ?? 0
-        }
-        
-        console.log('🔍 [METRICS DEBUG] EPC final value:', value);
       } else if (metricId === 'cpa') {
-        // Calcular CPA: spend / conversions
-        let spend = 0
-        let conversions = 0
-        
-        // Verificar se há estrutura stat (como na tela de Campanhas)
+        // ✅ REVERTIDO: Usar dados diretos do RedTrack
         if (data.stat) {
-          spend = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0
-          conversions = data.stat.conversions ?? data.stat.approved ?? 0
+          value = data.stat.cpa ?? 0
         } else {
-          spend = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0
-          conversions = data.conversions ?? data.approved ?? 0
+          value = data.cpa ?? 0
         }
         
-        // Calcular CPA
-        value = conversions > 0 ? spend / conversions : 0
+        console.log('🔍 [METRICS DEBUG] CPA from RedTrack:', value);
+      } else if (metricId === 'roi') {
+        // ✅ CORRIGIDO: Calcular ROI como (revenue - spend) / spend * 100
+        let revenue = 0;
+        let spend = 0;
         
-        console.log('🔍 [METRICS DEBUG] CPA calculation:', {
+        if (data.stat) {
+          revenue = data.stat.revenue ?? data.stat.income ?? data.stat.total_revenue ?? 0;
+          spend = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0;
+        } else {
+          revenue = data.revenue ?? data.income ?? data.total_revenue ?? 0;
+          spend = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0;
+        }
+        
+        value = spend > 0 ? ((revenue - spend) / spend) * 100 : 0;
+        
+        console.log('🔍 [METRICS DEBUG] ROI calculation:', {
+          revenue,
           spend,
+          roi: value
+        });
+      } else if (metricId === 'cpl') {
+        // ✅ CORRIGIDO: Calcular CPL como spend / leads (conversões)
+        let spend = 0;
+        let leads = 0;
+        
+        if (data.stat) {
+          spend = data.stat.cost ?? data.stat.spend ?? data.stat.campaign_cost ?? 0;
+          leads = data.stat.conversions ?? data.stat.approved ?? 0;
+        } else {
+          spend = data.spend ?? data.cost ?? data.campaign_cost ?? data.total_spend ?? 0;
+          leads = data.conversions ?? data.approved ?? 0;
+        }
+        
+        value = leads > 0 ? spend / leads : 0;
+        
+        console.log('🔍 [METRICS DEBUG] CPL calculation:', {
+          spend,
+          leads,
+          cpl: value
+        });
+      } else if (metricId === 'ctr') {
+        // ✅ CORRIGIDO: Calcular CTR como (clicks / impressions) * 100
+        let clicks = 0;
+        let impressions = 0;
+        
+        if (data.stat) {
+          clicks = data.stat.clicks ?? 0;
+          impressions = data.stat.impressions ?? 0;
+        } else {
+          clicks = data.clicks ?? 0;
+          impressions = data.impressions ?? 0;
+        }
+        
+        value = impressions > 0 ? (clicks / impressions) * 100 : 0;
+        
+        console.log('🔍 [METRICS DEBUG] CTR calculation:', {
+          clicks,
+          impressions,
+          ctr: value
+        });
+      } else if (metricId === 'conversion_rate') {
+        // ✅ CORRIGIDO: Calcular Conversion Rate como (conversions / clicks) * 100
+        let conversions = 0;
+        let clicks = 0;
+        
+        if (data.stat) {
+          conversions = data.stat.conversions ?? data.stat.approved ?? 0;
+          clicks = data.stat.clicks ?? 0;
+        } else {
+          conversions = data.conversions ?? data.approved ?? 0;
+          clicks = data.clicks ?? 0;
+        }
+        
+        value = clicks > 0 ? (conversions / clicks) * 100 : 0;
+        
+        console.log('🔍 [METRICS DEBUG] Conversion Rate calculation:', {
           conversions,
-          cpa: value
+          clicks,
+          conversion_rate: value
         });
       }
       

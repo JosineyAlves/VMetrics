@@ -653,7 +653,7 @@ const Conversions: React.FC = () => {
           </div>
           
           <div className="flex justify-end mt-6">
-            <Button 
+            <Button
               variant="primary"
               onClick={handleApplyFilters}
             >
@@ -674,7 +674,7 @@ const Conversions: React.FC = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Total de Conversões</p>
-              </div>
+            </div>
               <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {totalConversions}
               </p>
@@ -692,7 +692,7 @@ const Conversions: React.FC = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Conversões Aprovadas</p>
-              </div>
+            </div>
               <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {metrics?.approvedConversions || 0}
               </p>
@@ -728,7 +728,7 @@ const Conversions: React.FC = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Ticket Médio</p>
-              </div>
+            </div>
               <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {(metrics?.approvedConversions || 0) > 0 ? formatCurrency(metrics?.avgTicket || 0) : formatCurrency(0)}
               </p>
@@ -764,9 +764,9 @@ const Conversions: React.FC = () => {
       >
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Lista de Conversões {showAdvancedData && '(Modo Avançado)'}
-            </h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Lista de Conversões {showAdvancedData && '(Modo Avançado)'}
+          </h2>
           </div>
         </div>
 
