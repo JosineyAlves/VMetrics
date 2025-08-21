@@ -91,10 +91,14 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   console.log(`🔍 [PERFORMANCE] Processando ${conversions.length} conversões...`);
   console.log(`🔍 [PERFORMANCE] Filtro: Apenas conversões com status "APPROVED"`);
   
-  // Criar mapas de custo das campanhas a partir dos tracks
-  const campaignsCostMap = new Map();
+  // ✅ CORRIGIDO: Criar mapas de custo para diferentes tipos de entidades
+  const campaignsCostMap = new Map(); // Para campanhas regulares
+  const rtCampaignsCostMap = new Map(); // Para RT Campaigns
+  const rtAdgroupsCostMap = new Map(); // Para RT Adgroups
+  
   if (campaignsTracksData && campaignsTracksData.items) {
     campaignsTracksData.items.forEach(track => {
+      // Mapear custo para campanhas regulares
       if (track.campaign_id) {
         const existing = campaignsCostMap.get(track.campaign_id) || {
           cost: 0,
@@ -107,6 +111,36 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
         existing.revenue += parseFloat(track.revenue || 0);
         
         campaignsCostMap.set(track.campaign_id, existing);
+      }
+      
+      // Mapear custo para RT Campaigns
+      if (track.rt_campaign_id) {
+        const existing = rtCampaignsCostMap.get(track.rt_campaign_id) || {
+          cost: 0,
+          clicks: 0,
+          revenue: 0
+        };
+        
+        existing.cost += parseFloat(track.cost || 0);
+        existing.clicks += 1; // Cada track é um clique
+        existing.revenue += parseFloat(track.revenue || 0);
+        
+        rtCampaignsCostMap.set(track.rt_campaign_id, existing);
+      }
+      
+      // Mapear custo para RT Adgroups
+      if (track.rt_adgroup_id) {
+        const existing = rtAdgroupsCostMap.get(track.rt_adgroup_id) || {
+          cost: 0,
+          clicks: 0,
+          revenue: 0
+        };
+        
+        existing.cost += parseFloat(track.cost || 0);
+        existing.clicks += 1; // Cada track é um clique
+        existing.revenue += parseFloat(track.revenue || 0);
+        
+        rtAdgroupsCostMap.set(track.rt_adgroup_id, existing);
       }
     });
   }
@@ -132,14 +166,30 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   }
   
   console.log(`📊 [PERFORMANCE] Dados de custo carregados via /tracks:`);
-  console.log(`   - Campanhas com custo: ${campaignsCostMap.size}`);
-  console.log(`   - Anúncios com custo: ${adsCostMap.size}`);
+  console.log(`   - Campanhas regulares com custo: ${campaignsCostMap.size}`);
+  console.log(`   - RT Campaigns com custo: ${rtCampaignsCostMap.size}`);
+  console.log(`   - RT Adgroups com custo: ${rtAdgroupsCostMap.size}`);
+  console.log(`   - RT Ads com custo: ${adsCostMap.size}`);
   
   // Log detalhado dos dados de custo
   if (campaignsCostMap.size > 0) {
-    console.log(`📊 [PERFORMANCE] Dados de custo das campanhas:`);
+    console.log(`📊 [PERFORMANCE] Dados de custo das campanhas regulares:`);
     campaignsCostMap.forEach((data, campaignId) => {
       console.log(`   - ${campaignId}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
+    });
+  }
+  
+  if (rtCampaignsCostMap.size > 0) {
+    console.log(`📊 [PERFORMANCE] Dados de custo das RT Campaigns:`);
+    rtCampaignsCostMap.forEach((data, campaignId) => {
+      console.log(`   - ${campaignId}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
+    });
+  }
+  
+  if (rtAdgroupsCostMap.size > 0) {
+    console.log(`📊 [PERFORMANCE] Dados de custo das RT Adgroups:`);
+    rtAdgroupsCostMap.forEach((data, adgroupId) => {
+      console.log(`   - ${adgroupId}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
     });
   }
   
@@ -283,7 +333,8 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
     if (conversion.rt_campaign && conversion.rt_campaign_id) {
       const rtCampaignKey = conversion.rt_campaign_id;
       if (!rtCampaigns.has(rtCampaignKey)) {
-        const rtCampaignCostData = campaignsCostMap.get(rtCampaignKey);
+        // ✅ CORRIGIDO: Buscar custo usando rt_campaign_id em vez de campaign_id
+        const rtCampaignCostData = rtCampaignsCostMap.get(rtCampaignKey);
         rtCampaigns.set(rtCampaignKey, {
           id: rtCampaignKey,
           name: conversion.rt_campaign,
@@ -305,7 +356,8 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
     if (conversion.rt_adgroup && conversion.rt_adgroup_id) {
       const rtAdgroupKey = conversion.rt_adgroup_id;
       if (!rtAdgroups.has(rtAdgroupKey)) {
-        const rtAdgroupCostData = campaignsCostMap.get(rtAdgroupKey);
+        // ✅ CORRIGIDO: Buscar custo usando rt_adgroup_id em vez de campaign_id
+        const rtAdgroupCostData = rtAdgroupsCostMap.get(rtAdgroupKey);
         rtAdgroups.set(rtAdgroupKey, {
           id: rtAdgroupKey,
           name: conversion.rt_adgroup,
