@@ -726,15 +726,19 @@ const Campaigns: React.FC = () => {
         setBestOffers(data.offers.slice(0, 3))
       }
       
-      // ✅ NOVOS CAMPOS: Dados UTM para aba RT Campaign/Ad
+          // ✅ NOVOS CAMPOS: Dados UTM para aba RT Campaign/Ad
       if (data && data.rtCampaigns) {
-        setBestRTCampaigns(data.rtCampaigns.slice(0, 3))
+        // ✅ FILTRAR: Aplicar filtros ativos aos dados de performance
+        const filteredRTCampaigns = applyFiltersToPerformanceData(data.rtCampaigns, 'rtCampaigns')
+        setBestRTCampaigns(filteredRTCampaigns.slice(0, 3))
       }
       if (data && data.rtAdgroups) {
-        setBestRTAdgroups(data.rtAdgroups.slice(0, 3))
+        const filteredRTAdgroups = applyFiltersToPerformanceData(data.rtAdgroups, 'rtAdgroups')
+        setBestRTAdgroups(filteredRTAdgroups.slice(0, 3))
       }
       if (data && data.rtAds) {
-        setBestRTAds(data.rtAds.slice(0, 3))
+        const filteredRTAds = applyFiltersToPerformanceData(data.rtAds, 'rtAds')
+        setBestRTAds(filteredRTAds.slice(0, 3))
       }
       
       console.log('✅ [CAMPAIGNS] Dados de performance carregados:', data);
@@ -782,6 +786,50 @@ const Campaigns: React.FC = () => {
     }
     // eslint-disable-next-line
   }, [apiKey, selectedPeriod, filters, activeTab, customRange])
+
+  // ✅ NOVA FUNÇÃO: Aplicar filtros aos dados de performance
+  const applyFiltersToPerformanceData = (performanceData: any[], dataType: string) => {
+    if (!filters || Object.keys(filters).every(key => !filters[key])) {
+      console.log(`🔍 [PERFORMANCE FILTERS] Nenhum filtro ativo para ${dataType}, retornando dados completos`)
+      return performanceData
+    }
+
+    console.log(`🔍 [PERFORMANCE FILTERS] Aplicando filtros ativos para ${dataType}:`, filters)
+    
+    return performanceData.filter(item => {
+      // Filtro por RT Source
+      if (filters.utm_source && item.rt_source && item.rt_source !== filters.utm_source) {
+        return false
+      }
+      
+      // Filtro por RT Campaign
+      if (filters.utm_campaign && item.name && !item.name.toLowerCase().includes(filters.utm_campaign.toLowerCase())) {
+        return false
+      }
+      
+      // Filtro por RT Adgroup
+      if (filters.utm_term && item.rt_adgroup && !item.rt_adgroup.toLowerCase().includes(filters.utm_term.toLowerCase())) {
+        return false
+      }
+      
+      // Filtro por RT Ad
+      if (filters.utm_content && item.rt_ad && !item.rt_ad.toLowerCase().includes(filters.utm_content.toLowerCase())) {
+        return false
+      }
+      
+      // Filtro por conversões mínimas
+      if (filters.minConversions && item.conversions < parseInt(filters.minConversions)) {
+        return false
+      }
+      
+      // Filtro por receita mínima
+      if (filters.minRevenue && item.revenue < parseFloat(filters.minRevenue)) {
+        return false
+      }
+      
+      return true
+    })
+  }
 
   // Fechar dropdown quando clicar fora
   useEffect(() => {
@@ -921,6 +969,52 @@ const Campaigns: React.FC = () => {
           </button>
         </div>
 
+        {/* ✅ NOVO: Indicador de filtros ativos para aba RT Campaign/Ad */}
+        {activeTab === 'utm' && Object.keys(filters).some(key => filters[key]) && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl"
+          >
+            <div className="flex items-center gap-2 text-orange-700">
+              <Filter className="w-4 h-4" />
+              <span className="text-sm font-medium">Filtros ativos:</span>
+              <div className="flex flex-wrap gap-2">
+                {filters.utm_source && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                    RT Source: {filters.utm_source}
+                  </span>
+                )}
+                {filters.utm_campaign && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                    RT Campaign: {filters.utm_campaign}
+                  </span>
+                )}
+                {filters.utm_term && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                    RT Adgroup: {filters.utm_term}
+                  </span>
+                )}
+                {filters.utm_content && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                    RT Ad: {filters.utm_content}
+                  </span>
+                )}
+                {filters.minConversions && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                    Min Conv: {filters.minConversions}
+                  </span>
+                )}
+                {filters.minRevenue && (
+                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
+                    Min Receita: {filters.minRevenue}
+                  </span>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
           {/* Botões de controle alinhados à direita */}
           <div className="flex gap-2">
             {activeTab === 'campaigns' && (
@@ -1017,10 +1111,10 @@ const Campaigns: React.FC = () => {
                     onChange={(value) => setTempFilters(prev => ({ ...prev, utm_source: value }))}
                     options={[
                       { value: '', label: 'Todos' },
-                      { value: 'facebook', label: 'Facebook' },
-                      { value: 'google', label: 'Google' },
-                      { value: 'instagram', label: 'Instagram' },
-                      { value: 'tiktok', label: 'TikTok' }
+                      ...Array.from(new Set(utmCreatives.map(c => c.utm_source).filter(Boolean))).map(source => ({
+                        value: source,
+                        label: source
+                      }))
                     ]}
                     placeholder="Selecione a fonte"
                     className="w-full"
@@ -1421,8 +1515,13 @@ const Campaigns: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                        <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                          Object.keys(filters).some(key => filters[key]) 
+                            ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                            : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                        }`}>
                           {bestRTCampaigns.length} encontradas
+                          {Object.keys(filters).some(key => filters[key]) && ' (filtrado)'}
                         </div>
                         <button
                           onClick={() => fetchPerformanceData(true)}
@@ -1511,8 +1610,13 @@ const Campaigns: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                        <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                          Object.keys(filters).some(key => filters[key]) 
+                            ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                            : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                        }`}>
                           {bestRTAdgroups.length} encontrados
+                          {Object.keys(filters).some(key => filters[key]) && ' (filtrado)'}
                         </div>
                         <button
                           onClick={() => fetchPerformanceData(true)}
@@ -1601,8 +1705,13 @@ const Campaigns: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                        <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                          Object.keys(filters).some(key => filters[key]) 
+                            ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                            : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                        }`}>
                           {bestRTAds.length} encontrados
+                          {Object.keys(filters).some(key => filters[key]) && ' (filtrado)'}
                         </div>
                         <button
                           onClick={() => fetchPerformanceData(true)}
