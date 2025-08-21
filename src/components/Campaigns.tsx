@@ -969,48 +969,57 @@ const Campaigns: React.FC = () => {
           </button>
         </div>
 
-        {/* ✅ NOVO: Indicador de filtros ativos para aba RT Campaign/Ad */}
+        {/* ✅ OTIMIZADO: Indicador de filtros ativos mais sutil */}
         {activeTab === 'utm' && Object.keys(filters).some(key => filters[key]) && (
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-xl"
+            className="mt-3 px-4 py-2 bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-400 rounded-r-xl"
           >
-            <div className="flex items-center gap-2 text-orange-700">
-              <Filter className="w-4 h-4" />
-              <span className="text-sm font-medium">Filtros ativos:</span>
-              <div className="flex flex-wrap gap-2">
-                {filters.utm_source && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
-                    RT Source: {filters.utm_source}
-                  </span>
-                )}
-                {filters.utm_campaign && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
-                    RT Campaign: {filters.utm_campaign}
-                  </span>
-                )}
-                {filters.utm_term && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
-                    RT Adgroup: {filters.utm_term}
-                  </span>
-                )}
-                {filters.utm_content && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
-                    RT Ad: {filters.utm_content}
-                  </span>
-                )}
-                {filters.minConversions && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
-                    Min Conv: {filters.minConversions}
-                  </span>
-                )}
-                {filters.minRevenue && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-md">
-                    Min Receita: {filters.minRevenue}
-                  </span>
-                )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 text-orange-700">
+                <Filter className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-medium">Filtros aplicados</span>
+                <div className="flex items-center gap-2">
+                  {filters.utm_source && (
+                    <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full font-medium">
+                      {filters.utm_source}
+                    </span>
+                  )}
+                  {filters.utm_campaign && (
+                    <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full font-medium">
+                      {filters.utm_campaign}
+                    </span>
+                  )}
+                  {filters.utm_term && (
+                    <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full font-medium">
+                      {filters.utm_term}
+                    </span>
+                  )}
+                  {filters.utm_content && (
+                    <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full font-medium">
+                      {filters.utm_content}
+                    </span>
+                  )}
+                  {filters.minConversions && (
+                    <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full font-medium">
+                      Conv ≥ {filters.minConversions}
+                    </span>
+                  )}
+                  {filters.minRevenue && (
+                    <span className="inline-flex items-center px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full font-medium">
+                      Receita ≥ {filters.minRevenue}
+                    </span>
+                  )}
+                </div>
               </div>
+              <button
+                onClick={() => clearAllFilters()}
+                className="text-orange-600 hover:text-orange-800 text-xs font-medium hover:bg-orange-200 px-2 py-1 rounded-md transition-colors"
+                title="Limpar todos os filtros"
+              >
+                Limpar filtros
+              </button>
             </div>
           </motion.div>
         )}
@@ -1515,13 +1524,17 @@ const Campaigns: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
-                          Object.keys(filters).some(key => filters[key]) 
-                            ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
-                            : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
-                        }`}>
-                          {bestRTCampaigns.length} encontradas
-                          {Object.keys(filters).some(key => filters[key]) && ' (filtrado)'}
+                        <div className="flex items-center gap-2">
+                          <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                            Object.keys(filters).some(key => filters[key]) 
+                              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                              : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                          }`}>
+                            {bestRTCampaigns.length} encontradas
+                          </div>
+                          {Object.keys(filters).some(key => filters[key]) && (
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" title="Filtros ativos"></div>
+                          )}
                         </div>
                         <button
                           onClick={() => fetchPerformanceData(true)}
@@ -1610,13 +1623,17 @@ const Campaigns: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
-                          Object.keys(filters).some(key => filters[key]) 
-                            ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
-                            : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
-                        }`}>
-                          {bestRTAdgroups.length} encontrados
-                          {Object.keys(filters).some(key => filters[key]) && ' (filtrado)'}
+                        <div className="flex items-center gap-2">
+                          <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                            Object.keys(filters).some(key => filters[key]) 
+                              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                              : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                          }`}>
+                            {bestRTAdgroups.length} encontrados
+                          </div>
+                          {Object.keys(filters).some(key => filters[key]) && (
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" title="Filtros ativos"></div>
+                          )}
                         </div>
                         <button
                           onClick={() => fetchPerformanceData(true)}
@@ -1705,13 +1722,17 @@ const Campaigns: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
-                          Object.keys(filters).some(key => filters[key]) 
-                            ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
-                            : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
-                        }`}>
-                          {bestRTAds.length} encontrados
-                          {Object.keys(filters).some(key => filters[key]) && ' (filtrado)'}
+                        <div className="flex items-center gap-2">
+                          <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                            Object.keys(filters).some(key => filters[key]) 
+                              ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                              : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                          }`}>
+                            {bestRTAds.length} encontrados
+                          </div>
+                          {Object.keys(filters).some(key => filters[key]) && (
+                            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" title="Filtros ativos"></div>
+                          )}
                         </div>
                         <button
                           onClick={() => fetchPerformanceData(true)}
