@@ -887,7 +887,8 @@ const Dashboard: React.FC = () => {
         unit: metric.unit,
         format: metric.format || 'number',
         change: 0, // Zerar mudança quando não há dados históricos
-        visible: true
+        visible: true,
+        isNegative: value < 0 // ✅ NOVO: Identificar valores negativos
       }
     }).filter(Boolean) as any[]
 
@@ -1122,7 +1123,11 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
+                <p className={`text-2xl font-bold ${
+                  metric.isNegative 
+                    ? 'text-red-500' // ✅ Valor negativo em vermelho
+                    : 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent' // ✅ Valor positivo no gradiente verde
+                }`}>
                   {metric.value}
                 </p>
               </div>
