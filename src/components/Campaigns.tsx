@@ -1790,28 +1790,20 @@ const Campaigns: React.FC = () => {
               {/* UTM/Criativos Table */}
               {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
                 <div className="p-8 text-center text-gray-500">
-                  <div className="flex flex-col items-center space-y-2">
-                    <div className="text-4xl mb-2">📊</div>
-                    <p className="text-lg font-medium text-gray-700">
-                      {searchTerm || Object.values(filters).some(v => v) ? 
-                        'Nenhum dado de UTM Analytics encontrado com os filtros aplicados.' :
-                        'Nenhum dado de UTM Analytics encontrado para o período selecionado.'
-                      }
-                    </p>
-                    <p className="text-sm text-gray-500">Tente ajustar os filtros ou período</p>
-                  </div>
+                  Nenhum dado de UTM Analytics encontrado para o período ou filtros selecionados.<br/>
+                  Tente ampliar o período ou revisar os filtros.
                 </div>
               ) : (
-                <table className="w-full min-w-[1200px]">
-                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <table className="w-full">
+                  <thead className="bg-gray-100">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">RT Source</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">RT Campaign</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">RT Adgroup</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">RT Ad</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">Conversions</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">Revenue</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">Avg Ticket</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
@@ -1821,15 +1813,15 @@ const Campaigns: React.FC = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="hover:bg-[#3cd48f]/5 transition-all duration-200 border-b border-gray-50 group"
+                        className="hover:bg-gray-100"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                           {creative.conversions > 0 ? formatCurrency(creative.revenue / creative.conversions) : formatCurrency(0)}
                         </td>
                       </motion.tr>
