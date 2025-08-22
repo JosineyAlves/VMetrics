@@ -1429,24 +1429,95 @@ const Campaigns: React.FC = () => {
         </div>
       )}
 
-      {/* Data Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-      >
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="inline-flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#3cd48f]"></div>
-                <span className="text-[#1f1f1f]">{loadingMessage}</span>
+      {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
+      {activeTab === 'utm' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Top RT Campaigns */}
+          <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
+                  <BarChart3 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-[#1f1f1f] text-base">Top RT Campaigns</h3>
+                </div>
               </div>
-              <p className="text-sm text-[#1f1f1f]/70 mt-2">
-                Isso pode levar alguns segundos na primeira vez...
-              </p>
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
+                    Object.keys(filters).some(key => filters[key]) 
+                      ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
+                      : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
+                  }`}>
+                    {bestRTCampaigns.length} encontradas
+                  </div>
+                  {Object.keys(filters).some(key => filters[key]) && (
+                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" title="Filtros ativos"></div>
+                  )}
+                </div>
+                <button
+                  onClick={() => fetchPerformanceData(true)}
+                  disabled={performanceLoading}
+                  className="p-2 hover:bg-[#3cd48f]/10 rounded-xl transition-all duration-200 disabled:opacity-50"
+                  title="Atualizar dados"
+                >
+                  {performanceLoading ? (
+                    <svg className="w-5 h-5 text-[#3cd48f] animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-[#3cd48f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
-          ) : activeTab === 'campaigns' ? (
+            <div className="space-y-3">
+              {performanceLoading ? (
+                <div className="text-center text-gray-500 py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto mb-3"></div>
+                  <div className="text-sm">Carregando dados...</div>
+                </div>
+              ) : bestRTCampaigns.length === 0 ? (
+                <div className="text-center text-gray-500 py-6">
+                  <div className="text-3xl mb-3">📊</div>
+                  <div className="text-sm">Nenhuma RT Campaign encontrada</div>
+                </div>
+              ) : bestRTCampaigns.map((item, idx) => (
+                <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center min-w-0 flex-1">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
+                        idx === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-500' : 
+                        idx === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 
+                        'bg-gradient-to-r from-orange-400 to-orange-500'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="ml-3 min-w-0 flex-1">
+                        <div className="font-medium text-[#1f1f1f] text-sm truncate">
+                          {item.name || 'RT Campaign sem nome'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right ml-3 flex-shrink-0">
+                      <div className="text-lg font-bold text-[#3cd48f]">
+                        {formatCurrency(item.revenue || 0)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-gray-500">Conv:</span>
+                      <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
             <table className="w-full min-w-[1400px]">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <tr>
@@ -1840,8 +1911,90 @@ const Campaigns: React.FC = () => {
             </div>
           )}
         </div>
-      </motion.div>
+      )}
+
+      {/* Data Table - Separado dos blocos de performance */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+      >
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#3cd48f]"></div>
+                <span className="text-[#1f1f1f]">{loadingMessage}</span>
+              </div>
+              <p className="text-sm text-[#1f1f1f]/70 mt-2">
+                Isso pode levar alguns segundos na primeira vez...
+              </p>
             </div>
+          ) : activeTab === 'campaigns' ? (
+            <table className="w-full min-w-[1400px]">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+                <tr>
+                  {getVisibleColumns().map((column) => (
+                    <th 
+                      key={column?.id} 
+                      className={`px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap ${
+                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span>{column?.label}</span>
+                        {column?.category === 'funnel' && (
+                          <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredCampaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={getVisibleColumns().length} className="px-6 py-12 text-center text-gray-500">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="text-4xl mb-2">📊</div>
+                        <p className="text-lg font-medium text-gray-700">
+                          {searchTerm || Object.values(filters).some(v => v) ? 
+                            'Nenhuma campanha encontrada com os filtros aplicados.' :
+                            'Nenhuma campanha encontrada para o período selecionado.'
+                          }
+                        </p>
+                        <p className="text-sm text-gray-500">Tente ajustar os filtros ou período</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCampaigns.map((campaign, index) => (
+                    <motion.tr 
+                      key={campaign.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="hover:bg-[#3cd48f]/5 transition-all duration-200 border-b border-gray-50 group"
+                    >
+                      {getVisibleColumns().map((column) => (
+                        <td 
+                          key={column?.id} 
+                          className={`px-6 py-4 whitespace-nowrap ${
+                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-[#3cd48f]/5 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
+                          }`}
+                        >
+                          {renderCell(campaign, column)}
+                        </td>
+                      ))}
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          ) : null}
+        </div>
+      </motion.div>
+    </div>
   )
 }
 
