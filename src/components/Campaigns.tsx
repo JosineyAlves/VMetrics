@@ -678,7 +678,7 @@ const Campaigns: React.FC = () => {
   const [bestOffers, setBestOffers] = useState<any[]>([])
   const [performanceLoading, setPerformanceLoading] = useState(false)
   
-  // Novos estados para os blocos de performance UTM (RT Campaign/Ad)
+  // Novos estados para os blocos de performance UTM (UTM Analytics)
   const [bestRTCampaigns, setBestRTCampaigns] = useState<any[]>([])
   const [bestRTAdgroups, setBestRTAdgroups] = useState<any[]>([])
   const [bestRTAds, setBestRTAds] = useState<any[]>([])
@@ -726,7 +726,7 @@ const Campaigns: React.FC = () => {
         setBestOffers(data.offers.slice(0, 3))
       }
       
-          // ✅ NOVOS CAMPOS: Dados UTM para aba RT Campaign/Ad
+          // ✅ NOVOS CAMPOS: Dados UTM para aba UTM Analytics
       if (data && data.rtCampaigns) {
         // ✅ FILTRAR: Aplicar filtros ativos aos dados de performance
         const filteredRTCampaigns = applyFiltersToPerformanceData(data.rtCampaigns, 'rtCampaigns')
@@ -965,7 +965,7 @@ const Campaigns: React.FC = () => {
             }`}
           >
             <Link className="w-5 h-5" />
-            <span>RT Campaign/Ad</span>
+            <span>UTM Analytics</span>
           </button>
         </div>
 
@@ -1220,7 +1220,7 @@ const Campaigns: React.FC = () => {
         <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1f1f1f]/70 w-4 h-4" />
           <Input
-            placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar RT Campaign/Ad..."}
+            placeholder={activeTab === 'campaigns' ? "Buscar campanhas..." : "Buscar UTM Analytics..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -1509,7 +1509,7 @@ const Campaigns: React.FC = () => {
             </table>
           ) : (
             <div>
-              {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba RT Campaign/Ad */}
+              {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
               {activeTab === 'utm' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {/* Top RT Campaigns */}
@@ -1790,7 +1790,7 @@ const Campaigns: React.FC = () => {
               {/* UTM/Criativos Table */}
               {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
                 <div className="p-8 text-center text-gray-500">
-                  Nenhum dado de RT Campaign/Ad encontrado para o período ou filtros selecionados.<br/>
+                  Nenhum dado de UTM Analytics encontrado para o período ou filtros selecionados.<br/>
                   Tente ampliar o período ou revisar os filtros.
                 </div>
               ) : (
