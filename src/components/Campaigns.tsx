@@ -1244,9 +1244,9 @@ const Campaigns: React.FC = () => {
         {/* This div is now handled by PeriodDropdown component */}
       </div>
 
-      {/* Performance Blocks - Layout Responsivo - Apenas na aba Campanhas */}
+      {/* Performance Blocks - Layout Responsivo - Apenas na aba Campanhas (Padronizado com UTM Analytics) */}
       {activeTab === 'campaigns' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {/* Best performing campaigns */}
         <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
@@ -1513,9 +1513,9 @@ const Campaigns: React.FC = () => {
             </table>
           ) : (
             <div>
-              {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
+              {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics (Padronizado com Campanhas) */}
               {activeTab === 'utm' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                   {/* Top RT Campaigns */}
                   <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
                     <div className="flex items-center justify-between mb-6">
