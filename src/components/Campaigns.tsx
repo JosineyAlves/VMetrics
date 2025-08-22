@@ -945,29 +945,29 @@ const Campaigns: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
               {/* Tabs Navigation */}
         <div className="flex space-x-2">
-        <button
-          onClick={() => setActiveTab('campaigns')}
+          <button
+            onClick={() => setActiveTab('campaigns')}
             className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
-            activeTab === 'campaigns'
+              activeTab === 'campaigns'
                 ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white shadow-lg'
                 : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
+            }`}
+          >
             <BarChart3 className="w-5 h-5" />
             <span>Campanhas</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('utm')}
+          </button>
+          <button
+            onClick={() => setActiveTab('utm')}
             className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
-            activeTab === 'utm'
+              activeTab === 'utm'
                 ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white shadow-lg'
                 : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
+            }`}
+          >
             <Link className="w-5 h-5" />
             <span>UTM Analytics</span>
-        </button>
-      </div>
+          </button>
+        </div>
 
         {/* ✅ OTIMIZADO: Indicador de filtros ativos mais sutil */}
         {activeTab === 'utm' && Object.keys(filters).some(key => filters[key]) && (
@@ -1291,7 +1291,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-3xl mb-3">📊</div>
                 <div className="text-sm">Nenhuma campanha encontrada</div>
               </div>
-              ) : bestCampaigns.map((item, idx) => (
+            ) : bestCampaigns.map((item, idx) => (
                               <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
@@ -1346,8 +1346,8 @@ const Campaigns: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-bold text-[#1f1f1f] text-base">Top Ofertas</h3>
+              </div>
             </div>
-          </div>
             <div className="flex items-center space-x-2">
               <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
                 {bestOffers.length} encontradas
@@ -1424,9 +1424,9 @@ const Campaigns: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
         </div>
-      </div>
+        </div>
+        </div>
       )}
 
       {/* Data Table */}
@@ -1507,14 +1507,11 @@ const Campaigns: React.FC = () => {
                 )}
               </tbody>
             </table>
-          ) : null}
-        </div>
-      </motion.div>
-
-      {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
-      {activeTab === 'utm' && (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          ) : (
+            <div>
+              {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
+              {activeTab === 'utm' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {/* Top RT Campaigns */}
                   <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
                     <div className="flex items-center justify-between mb-6">
@@ -1609,7 +1606,7 @@ const Campaigns: React.FC = () => {
                         <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
                           <Target className="w-6 h-6 text-white" />
                         </div>
-            <div>
+                        <div>
                           <h3 className="font-bold text-[#1f1f1f] text-base">Top RT Adgroups</h3>
                         </div>
                       </div>
@@ -1788,63 +1785,55 @@ const Campaigns: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              )}
 
-              {/* UTM/Criativos Table - Separado dos blocos de performance */}
-              {(() => {
-                const validUTMCreatives = filteredUTMCreatives.filter(c => 
-                  c.utm_source && c.utm_campaign && c.utm_term && c.utm_content && 
-                  c.utm_source.trim() !== '' && c.utm_campaign.trim() !== '' && 
-                  c.utm_term.trim() !== '' && c.utm_content.trim() !== ''
-                );
-                
-                return validUTMCreatives.length > 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-                  >
-                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                      <table className="w-full">
-                        <thead className="bg-gray-100">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-100">
-                          {validUTMCreatives.map((creative, index) => (
-                            <motion.tr 
-                              key={creative.id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.05 }}
-                              className="hover:bg-gray-100"
-                            >
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                {creative.conversions > 0 ? formatCurrency(creative.revenue / creative.conversions) : formatCurrency(0)}
-                              </td>
-                            </motion.tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </motion.div>
-                ) : null;
-              })()}
-        </>
-      )}
-    </div>
+              {/* UTM/Criativos Table */}
+              {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
+                <div className="p-8 text-center text-gray-500">
+                  Nenhum dado de UTM Analytics encontrado para o período ou filtros selecionados.<br/>
+                  Tente ampliar o período ou revisar os filtros.
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {filteredUTMCreatives.map((creative, index) => (
+                      <motion.tr 
+                        key={creative.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-gray-100"
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {creative.conversions > 0 ? formatCurrency(creative.revenue / creative.conversions) : formatCurrency(0)}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+            </div>
   )
 }
 
