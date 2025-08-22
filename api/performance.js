@@ -97,6 +97,14 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
   const rtAdgroupsCostMap = new Map(); // Para RT Adgroups
   
   if (campaignsTracksData && campaignsTracksData.items) {
+    console.log(`🔍 [PERFORMANCE] Processando ${campaignsTracksData.items.length} tracks de campanhas...`);
+    
+    // ✅ NOVO: Debug dos primeiros tracks para entender a estrutura
+    if (campaignsTracksData.items.length > 0) {
+      console.log(`🔍 [PERFORMANCE] Exemplo de track:`, campaignsTracksData.items[0]);
+      console.log(`🔍 [PERFORMANCE] Campos disponíveis:`, Object.keys(campaignsTracksData.items[0]));
+    }
+    
     campaignsTracksData.items.forEach(track => {
       // Mapear custo para campanhas regulares
       if (track.campaign_id) {
@@ -142,6 +150,25 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
         
         rtAdgroupsCostMap.set(track.rt_adgroup_id, existing);
       }
+    });
+  }
+  
+  // ✅ NOVO: Debug detalhado dos mapas de custo
+  console.log(`🔍 [PERFORMANCE] Debug dos mapas de custo:`);
+  console.log(`   - RT Campaigns Cost Map size: ${rtCampaignsCostMap.size}`);
+  console.log(`   - RT Adgroups Cost Map size: ${rtAdgroupsCostMap.size}`);
+  
+  if (rtCampaignsCostMap.size > 0) {
+    console.log(`   - RT Campaigns Cost Map contents:`);
+    rtCampaignsCostMap.forEach((data, id) => {
+      console.log(`      ${id}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
+    });
+  }
+  
+  if (rtAdgroupsCostMap.size > 0) {
+    console.log(`   - RT Adgroups Cost Map contents:`);
+    rtAdgroupsCostMap.forEach((data, id) => {
+      console.log(`      ${id}: Cost=${data.cost}, Clicks=${data.clicks}, Revenue=${data.revenue}`);
     });
   }
   
@@ -223,6 +250,20 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       offer: conversion.offer,
       payout: conversion.payout
     });
+    
+    // ✅ NOVO: Debug dos campos UTM disponíveis
+    if (index === 0) {
+      console.log(`🔍 [PERFORMANCE] Campos disponíveis na conversão:`, Object.keys(conversion));
+      console.log(`🔍 [PERFORMANCE] Campos UTM encontrados:`, {
+        rt_campaign: conversion.rt_campaign,
+        rt_campaign_id: conversion.rt_campaign_id,
+        rt_adgroup: conversion.rt_adgroup,
+        rt_adgroup_id: conversion.rt_adgroup_id,
+        rt_ad: conversion.rt_ad,
+        rt_ad_id: conversion.rt_ad_id,
+        rt_source: conversion.rt_source
+      });
+    }
     
     // Verificar se é uma conversão válida (excluir InitiateCheckout)
     const conversionType = conversion.type || conversion.event || '';
@@ -332,9 +373,13 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
     // Processar RT Campaigns (rt_campaign)
     if (conversion.rt_campaign && conversion.rt_campaign_id) {
       const rtCampaignKey = conversion.rt_campaign_id;
+      console.log(`🔍 [PERFORMANCE] Processando RT Campaign: ${conversion.rt_campaign} (ID: ${rtCampaignKey})`);
+      
       if (!rtCampaigns.has(rtCampaignKey)) {
         // ✅ CORRIGIDO: Buscar custo usando rt_campaign_id em vez de campaign_id
         const rtCampaignCostData = rtCampaignsCostMap.get(rtCampaignKey);
+        console.log(`🔍 [PERFORMANCE] RT Campaign ${rtCampaignKey} - Dados de custo encontrados:`, rtCampaignCostData);
+        
         rtCampaigns.set(rtCampaignKey, {
           id: rtCampaignKey,
           name: conversion.rt_campaign,
@@ -355,9 +400,13 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
     // Processar RT Adgroups (rt_adgroup)
     if (conversion.rt_adgroup && conversion.rt_adgroup_id) {
       const rtAdgroupKey = conversion.rt_adgroup_id;
+      console.log(`🔍 [PERFORMANCE] Processando RT Adgroup: ${conversion.rt_adgroup} (ID: ${rtAdgroupKey})`);
+      
       if (!rtAdgroups.has(rtAdgroupKey)) {
         // ✅ CORRIGIDO: Buscar custo usando rt_adgroup_id em vez de campaign_id
         const rtAdgroupCostData = rtAdgroupsCostMap.get(rtAdgroupKey);
+        console.log(`🔍 [PERFORMANCE] RT Adgroup ${rtAdgroupKey} - Dados de custo encontrados:`, rtAdgroupCostData);
+        
         rtAdgroups.set(rtAdgroupKey, {
           id: rtAdgroupKey,
           name: conversion.rt_adgroup,
@@ -531,6 +580,43 @@ function processPerformanceData(conversions, campaignsTracksData, adsTracksData)
       return b.revenue - a.revenue;
     })
     .slice(0, 3); // Apenas top 3
+  
+  // ✅ NOVO: Debug detalhado para RT Campaigns e RT Adgroups
+  console.log(`🔍 [PERFORMANCE] Debug detalhado - RT Campaigns:`);
+  rtCampaignsArray.forEach((campaign, idx) => {
+    console.log(`   ${idx + 1}. ${campaign.name}:`);
+    console.log(`      - ID: ${campaign.id}`);
+    console.log(`      - Revenue: ${campaign.revenue}`);
+    console.log(`      - Conversions: ${campaign.conversions}`);
+    console.log(`      - Cost: ${campaign.cost}`);
+    console.log(`      - Clicks: ${campaign.clicks}`);
+    console.log(`      - CPA: ${campaign.conversions > 0 ? campaign.cost / campaign.conversions : 'N/A'}`);
+    console.log(`      - ROI: ${campaign.cost > 0 ? ((campaign.revenue - campaign.cost) / campaign.cost * 100).toFixed(2) + '%' : 'N/A'}`);
+  });
+  
+  console.log(`🔍 [PERFORMANCE] Debug detalhado - RT Adgroups:`);
+  rtAdgroupsArray.forEach((adgroup, idx) => {
+    console.log(`   ${idx + 1}. ${adgroup.name}:`);
+    console.log(`      - ID: ${adgroup.id}`);
+    console.log(`      - Revenue: ${adgroup.revenue}`);
+    console.log(`      - Conversions: ${adgroup.conversions}`);
+    console.log(`      - Cost: ${adgroup.cost}`);
+    console.log(`      - Clicks: ${adgroup.clicks}`);
+    console.log(`      - CPA: ${adgroup.conversions > 0 ? adgroup.cost / adgroup.conversions : 'N/A'}`);
+    console.log(`      - ROI: ${adgroup.cost > 0 ? ((adgroup.revenue - adgroup.cost) / adgroup.cost * 100).toFixed(2) + '%' : 'N/A'}`);
+  });
+  
+  console.log(`🔍 [PERFORMANCE] Debug detalhado - RT Ads:`);
+  rtAdsArray.forEach((ad, idx) => {
+    console.log(`   ${idx + 1}. ${ad.name}:`);
+    console.log(`      - ID: ${ad.id}`);
+    console.log(`      - Revenue: ${ad.revenue}`);
+    console.log(`      - Conversions: ${ad.conversions}`);
+    console.log(`      - Cost: ${ad.cost}`);
+    console.log(`      - Clicks: ${ad.clicks}`);
+    console.log(`      - CPA: ${ad.conversions > 0 ? ad.cost / ad.conversions : 'N/A'}`);
+    console.log(`      - ROI: ${ad.cost > 0 ? ((ad.revenue - ad.cost) / ad.cost * 100).toFixed(2) + '%' : 'N/A'}`);
+  });
   
   console.log(`✅ [PERFORMANCE] Processamento concluído:`);
   console.log(`   - Campanhas: ${campaignsArray.length} (de ${campaigns.size} total)`);

@@ -1593,18 +1593,6 @@ const Campaigns: React.FC = () => {
                               <span className="text-gray-500">Conv:</span>
                               <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-gray-500">CPA:</span>
-                              <span className="font-semibold text-[#3cd48f]">
-                                {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-gray-500">ROI:</span>
-                              <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
-                                {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                              </span>
-                            </div>
                           </div>
                         </div>
                       ))}
@@ -1691,18 +1679,6 @@ const Campaigns: React.FC = () => {
                             <div className="flex items-center space-x-1">
                               <span className="text-gray-500">Conv:</span>
                               <span className="font-semibold text-[#3cd48f]">{item.conversions || 0}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-gray-500">CPA:</span>
-                              <span className="font-semibold text-[#3cd48f]">
-                                {item.conversions > 0 ? formatCurrency((item.cost || 0) / item.conversions) : formatCurrency(0)}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="text-gray-500">ROI:</span>
-                              <span className={`font-semibold ${item.cost > 0 ? ((item.revenue - item.cost) / item.cost) * 100 >= 0 ? 'text-green-600' : 'text-red-600' : 'text-gray-600'}`}>
-                                {item.cost > 0 ? `${((item.revenue - item.cost) / item.cost * 100).toFixed(1)}%` : '0%'}
-                              </span>
                             </div>
                           </div>
                         </div>
