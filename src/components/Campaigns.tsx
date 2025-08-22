@@ -1790,7 +1790,7 @@ const Campaigns: React.FC = () => {
                 </div>
 
               {/* UTM/Criativos Table - Separado dos blocos de performance */}
-              {filteredUTMCreatives.length > 0 && !filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) && (
+              {filteredUTMCreatives.length > 0 && filteredUTMCreatives.some(c => c.utm_source || c.utm_campaign || c.utm_term || c.utm_content) && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1810,7 +1810,9 @@ const Campaigns: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
-                        {filteredUTMCreatives.map((creative, index) => (
+                        {filteredUTMCreatives
+                          .filter(c => c.utm_source || c.utm_campaign || c.utm_term || c.utm_content)
+                          .map((creative, index) => (
                           <motion.tr 
                             key={creative.id}
                             initial={{ opacity: 0, y: 10 }}
