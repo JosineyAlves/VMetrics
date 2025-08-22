@@ -1259,8 +1259,10 @@ const Campaigns: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
-                {bestCampaigns.length} encontradas
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                  {bestCampaigns.length} encontradas
+                </div>
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
@@ -1292,7 +1294,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-sm">Nenhuma campanha encontrada</div>
               </div>
             ) : bestCampaigns.map((item, idx) => (
-                              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
@@ -1334,7 +1336,7 @@ const Campaigns: React.FC = () => {
                 </div>
               </div>
             ))}
-        </div>
+          </div>
         </div>
 
         {/* Best offers */}
@@ -1349,8 +1351,10 @@ const Campaigns: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
-                {bestOffers.length} encontradas
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg">
+                  {bestOffers.length} encontradas
+                </div>
               </div>
               <button
                 onClick={() => fetchPerformanceData(true)}
@@ -1381,7 +1385,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-3xl mb-3">📊</div>
                 <div className="text-sm">Nenhuma oferta encontrada</div>
               </div>
-              ) : bestOffers.map((item, idx) => (
+            ) : bestOffers.map((item, idx) => (
               <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
@@ -1424,7 +1428,7 @@ const Campaigns: React.FC = () => {
                 </div>
               </div>
             ))}
-        </div>
+          </div>
         </div>
         </div>
       )}
