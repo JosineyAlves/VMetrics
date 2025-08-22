@@ -1513,7 +1513,8 @@ const Campaigns: React.FC = () => {
 
       {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
       {activeTab === 'utm' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {/* Top RT Campaigns */}
                   <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
                     <div className="flex items-center justify-between mb-6">
@@ -1608,7 +1609,7 @@ const Campaigns: React.FC = () => {
                         <div className="w-12 h-12 bg-gradient-to-r from-[#3cd48f] to-[#10b981] rounded-xl flex items-center justify-center shadow-lg">
                           <Target className="w-6 h-6 text-white" />
                         </div>
-                        <div>
+            <div>
                           <h3 className="font-bold text-[#1f1f1f] text-base">Top RT Adgroups</h3>
                         </div>
                       </div>
@@ -1787,7 +1788,6 @@ const Campaigns: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              )}
 
               {/* UTM/Criativos Table - Separado dos blocos de performance */}
               <motion.div
@@ -1797,54 +1797,50 @@ const Campaigns: React.FC = () => {
               >
                 <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                   {filteredUTMCreatives.length === 0 || filteredUTMCreatives.every(c => !c.utm_source && !c.utm_campaign && !c.utm_term && !c.utm_content) ? (
-                    <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-gray-500">
                       Nenhum dado de UTM Analytics encontrado para o período ou filtros selecionados.<br/>
-                      Tente ampliar o período ou revisar os filtros.
-                    </div>
-                  ) : (
-                    <table className="w-full">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-100">
-                        {filteredUTMCreatives.map((creative, index) => (
-                          <motion.tr 
-                            key={creative.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="hover:bg-gray-100"
-                          >
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                              {creative.conversions > 0 ? formatCurrency(creative.revenue / creative.conversions) : formatCurrency(0)}
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                  Tente ampliar o período ou revisar os filtros.
                 </div>
-              </motion.div>
-
-
+              ) : (
+                <table className="w-full">
+                      <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Source</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Campaign</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Adgroup</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT Ad</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Ticket</th>
+                    </tr>
+                  </thead>
+                      <tbody className="bg-white divide-y divide-gray-100">
+                    {filteredUTMCreatives.map((creative, index) => (
+                      <motion.tr 
+                        key={creative.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                            className="hover:bg-gray-100"
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_source}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_campaign}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_term}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.utm_content}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{creative.conversions.toLocaleString()}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{formatCurrency(creative.revenue)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {creative.conversions > 0 ? formatCurrency(creative.revenue / creative.conversions) : formatCurrency(0)}
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          )}
-        </div>
-      </motion.div>
+              </motion.div>
+        </>
+      )}
     </div>
   )
 }
