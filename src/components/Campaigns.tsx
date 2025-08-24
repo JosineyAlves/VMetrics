@@ -1508,7 +1508,7 @@ const Campaigns: React.FC = () => {
               </tbody>
             </table>
           ) : (
-            <div>
+            <>
               {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
               {activeTab === 'utm' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -1829,11 +1829,11 @@ const Campaigns: React.FC = () => {
                   </tbody>
                 </table>
               )}
-            </div>
+            </>
           )}
         </div>
       </motion.div>
-            </div>
+    </div>
   )
 }
 
