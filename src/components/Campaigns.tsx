@@ -1433,7 +1433,9 @@ const Campaigns: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+        className={`bg-white rounded-xl shadow-sm overflow-hidden ${
+          activeTab === 'utm' ? '' : 'border border-gray-200'
+        }`}
       >
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {loading ? (
