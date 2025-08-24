@@ -1292,7 +1292,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-sm">Nenhuma campanha encontrada</div>
               </div>
             ) : bestCampaigns.map((item, idx) => (
-                              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
@@ -1333,11 +1333,11 @@ const Campaigns: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
-        </div>
-        </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Best offers */}
+          {/* Best offers */}
         <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
@@ -1382,7 +1382,7 @@ const Campaigns: React.FC = () => {
                 <div className="text-sm">Nenhuma oferta encontrada</div>
               </div>
               ) : bestOffers.map((item, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
+                <div key={idx} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center min-w-0 flex-1">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 ${
@@ -1423,9 +1423,9 @@ const Campaigns: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
-        </div>
-        </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
