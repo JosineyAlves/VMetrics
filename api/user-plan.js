@@ -1,11 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+// Usar variáveis de ambiente do Vercel (VITE_ prefix)
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://fkqkwhzjvpzycfkbnqaq.supabase.co'
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcWt3aHpqdnB6eWNma2JucWFxIiwicm9sZSI6MTc1NDc1MTQ5NiwiZXhwIjoyMDcwMzI3NDk2fQ.ERA8osin0hmdw0sEoF9qhBU-tKRE4zt2lMGLScL4ap0'
+
+console.log('🔧 [USER-PLAN] Configuração Supabase:')
+console.log('🔧 [USER-PLAN] URL:', supabaseUrl)
+console.log('🔧 [USER-PLAN] Service Key presente:', !!supabaseServiceKey)
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export default async function handler(req, res) {
+  console.log('🚀 [USER-PLAN] API chamada com método:', req.method)
+  console.log('🚀 [USER-PLAN] Query params:', req.query)
+  console.log('🔧 [USER-PLAN] Environment:', process.env.NODE_ENV)
+  console.log('🔧 [USER-PLAN] Supabase URL:', process.env.VITE_SUPABASE_URL)
+  console.log('🔧 [USER-PLAN] Service Key presente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+  
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
@@ -14,23 +25,31 @@ export default async function handler(req, res) {
     const { email } = req.query
 
     if (!email) {
+      console.log('❌ [USER-PLAN] Email não fornecido')
       return res.status(400).json({ error: 'Email é obrigatório' })
     }
 
     console.log('🔍 [USER-PLAN] Buscando plano para usuário:', email)
+    console.log('🔧 [USER-PLAN] Supabase configurado:', !!supabase)
 
     // 1. Buscar usuário por email
+    console.log('🔍 [USER-PLAN] Executando query para buscar usuário...')
+    
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, stripe_customer_id')
       .eq('email', email)
       .single()
 
+    console.log('🔍 [USER-PLAN] Resultado da busca:', { user, userError })
+
     if (userError || !user) {
       console.log('❌ [USER-PLAN] Usuário não encontrado:', email)
+      console.log('❌ [USER-PLAN] Erro detalhado:', userError)
       return res.status(404).json({ 
         error: 'Usuário não encontrado',
-        plan: null 
+        plan: null,
+        details: userError
       })
     }
 
