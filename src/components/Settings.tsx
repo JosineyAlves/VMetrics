@@ -30,6 +30,7 @@ import RedTrackAPI from '../services/api'
 import { useCurrencyStore } from '../store/currency'
 import CustomSelect from './ui/CustomSelect'
 import { useUserPlan } from '../hooks/useUserPlan'
+import { useUserInvoices } from '../hooks/useUserInvoices'
 
 interface AccountSettings {
   id: string
@@ -58,10 +59,6 @@ const Settings: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  // Estados para dados de faturamento (integração real com Stripe)
-  const [invoices, setInvoices] = useState<any[]>([])
-  const [loadingInvoices, setLoadingInvoices] = useState(false)
-  
   // Hook para gerenciar plano do usuário
   const userEmail = 'alvesjosiney@yahoo.com.br' // TODO: Pegar do contexto de autenticação
   const { 
@@ -76,6 +73,15 @@ const Settings: React.FC = () => {
     planFeatures,
     planStatus
   } = useUserPlan(userEmail)
+
+  // Hook para gerenciar faturas do usuário
+  const { 
+    invoices,
+    loading: invoicesLoading, 
+    error: invoicesError, 
+    refreshInvoices,
+    hasInvoices
+  } = useUserInvoices(userEmail)
 
   const tabs = [
     { id: 'general', label: 'Geral', icon: SettingsIcon },
@@ -724,29 +730,70 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {loadingInvoices ? (
+          {invoicesLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-600">Carregando faturas...</p>
             </div>
-          ) : invoices.length > 0 ? (
+          ) : invoicesError ? (
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 mb-2">Erro ao carregar faturas</p>
+              <p className="text-sm text-gray-500">{invoicesError}</p>
+              <Button 
+                onClick={refreshInvoices}
+                variant="outline" 
+                className="mt-4"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Tentar Novamente
+              </Button>
+            </div>
+          ) : hasInvoices ? (
             invoices.map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Receipt className="w-5 h-5 text-green-600" />
+                  <div className={`p-2 rounded-lg ${
+                    invoice.status_color === 'green' ? 'bg-green-100' :
+                    invoice.status_color === 'yellow' ? 'bg-yellow-100' :
+                    invoice.status_color === 'red' ? 'bg-red-100' :
+                    'bg-gray-100'
+                  }`}>
+                    <Receipt className={`w-5 h-5 ${
+                      invoice.status_color === 'green' ? 'text-green-600' :
+                      invoice.status_color === 'yellow' ? 'text-yellow-600' :
+                      invoice.status_color === 'red' ? 'text-red-600' :
+                      'text-gray-600'
+                    }`} />
                   </div>
                   <div>
                     <p className="font-medium text-gray-800">{invoice.description}</p>
-                    <p className="text-sm text-gray-600">{invoice.id}</p>
+                    <p className="text-sm text-gray-600">Fatura #{invoice.number}</p>
+                    <p className="text-xs text-gray-500">Criada em: {new Date(invoice.created).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-gray-800">{invoice.amount}</p>
-                  <p className="text-sm text-gray-600">{new Date(invoice.date).toLocaleDateString('pt-BR')}</p>
-                  <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                    {invoice.status === 'paid' ? 'Pago' : 'Pendente'}
+                  <p className="font-bold text-gray-800">{invoice.formatted_amount}</p>
+                  <p className="text-sm text-gray-600">Vence: {new Date(invoice.due_date).toLocaleDateString('pt-BR')}</p>
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                    invoice.status_color === 'green' ? 'bg-green-100 text-green-800' :
+                    invoice.status_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                    invoice.status_color === 'red' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {invoice.status_text}
                   </div>
+                  {invoice.hosted_invoice_url && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2"
+                      onClick={() => window.open(invoice.hosted_invoice_url, '_blank')}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Ver Fatura
+                    </Button>
+                  )}
                 </div>
               </div>
             ))
@@ -754,7 +801,12 @@ const Settings: React.FC = () => {
             <div className="text-center py-8">
               <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
-              <p className="text-sm text-gray-500">As faturas aparecerão aqui após a integração completa com o Stripe</p>
+              <p className="text-sm text-gray-500">
+                {hasActivePlan 
+                  ? 'Suas faturas aparecerão aqui após a próxima cobrança'
+                  : 'As faturas aparecerão aqui após você assinar um plano'
+                }
+              </p>
             </div>
           )}
         </div>
