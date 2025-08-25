@@ -114,7 +114,7 @@ export const STRIPE_PRODUCTS = {
     description: 'Para agências e empresas em crescimento',
     features: ['Campanhas ilimitadas', 'Análise de funil 3D', 'Métricas avançadas (50+ indicadores)', 'Suporte prioritário', 'Comparação entre campanhas'],
     stripeIds: {
-      product: 'prod_PvrF2GjvBWFrqQ', // Usando o mesmo produto por enquanto
+      product: 'prod_PvrF2GjvBWFrqQ', // Produto correto do Stripe
       prices: {
         monthly: 'price_1Rv5diL6dVrVagX4RVadte0b', // R$ 79,90
         yearly: null // Não configurado ainda
