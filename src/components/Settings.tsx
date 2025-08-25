@@ -29,6 +29,7 @@ import { useAuthStore } from '../store/auth'
 import RedTrackAPI from '../services/api'
 import { useCurrencyStore } from '../store/currency'
 import CustomSelect from './ui/CustomSelect'
+import { useUserPlan } from '../hooks/useUserPlan'
 
 interface AccountSettings {
   id: string
@@ -58,18 +59,23 @@ const Settings: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
   // Estados para dados de faturamento (integração real com Stripe)
-  const [currentPlan, setCurrentPlan] = useState({
-    name: 'Carregando...',
-    price: 'Carregando...',
-    period: 'mês',
-    features: [],
-    status: 'loading',
-    nextBilling: 'Carregando...'
-  })
-
-  // Removendo dados fictícios - agora será carregado do Stripe
   const [invoices, setInvoices] = useState<any[]>([])
   const [loadingInvoices, setLoadingInvoices] = useState(false)
+  
+  // Hook para gerenciar plano do usuário
+  const userEmail = 'alvesjosiney@yahoo.com.br' // TODO: Pegar do contexto de autenticação
+  const { 
+    planData, 
+    loading: planLoading, 
+    error: planError, 
+    refreshPlan,
+    hasActivePlan,
+    planType,
+    planName,
+    planPrice,
+    planFeatures,
+    planStatus
+  } = useUserPlan(userEmail)
 
   const tabs = [
     { id: 'general', label: 'Geral', icon: SettingsIcon },
@@ -189,30 +195,10 @@ const Settings: React.FC = () => {
     }
   }
 
-  // Função para carregar plano atual do usuário
-  const loadCurrentPlan = async () => {
-    try {
-      // TODO: Implementar busca real do plano atual no banco de dados
-      // Por enquanto, simula carregamento
-      setCurrentPlan({
-        name: 'Nenhum plano ativo',
-        price: 'Gratuito',
-        period: 'mês',
-        features: ['Acesso básico'],
-        status: 'inactive',
-        nextBilling: 'N/A'
-      })
-    } catch (error) {
-      console.error('Erro ao carregar plano atual:', error)
-      setCurrentPlan({
-        name: 'Erro ao carregar',
-        price: 'Erro',
-        period: 'mês',
-        features: ['Erro ao carregar recursos'],
-        status: 'error',
-        nextBilling: 'Erro'
-      })
-    }
+    // Função para carregar plano atual do usuário (agora usa o hook)
+  const loadCurrentPlan = () => {
+    console.log('🔄 [SETTINGS] Atualizando plano do usuário...')
+    refreshPlan()
   }
 
   useEffect(() => {
@@ -505,68 +491,106 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 border border-[#3cd48f]/20 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h4 className="text-2xl font-bold text-gray-800 mb-2">{currentPlan.name}</h4>
-              <div className="flex items-baseline space-x-2">
-                <span className="text-3xl font-bold text-[#3cd48f]">{currentPlan.price}</span>
-                <span className="text-gray-600">/{currentPlan.period}</span>
-              </div>
+          {planLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando plano...</p>
             </div>
-                         <div className="text-right">
-               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                 currentPlan.status === 'active' ? 'bg-green-100 text-green-800' :
-                                   currentPlan.status === 'loading' ? 'bg-[#3cd48f]/20 text-[#3cd48f]' :
-                 currentPlan.status === 'error' ? 'bg-red-100 text-red-800' :
-                 'bg-gray-100 text-gray-800'
-               }`}>
-                 <div className={`w-2 h-2 rounded-full mr-2 ${
-                   currentPlan.status === 'active' ? 'bg-green-500' :
-                   currentPlan.status === 'loading' ? 'bg-[#3cd48f]' :
-                   currentPlan.status === 'error' ? 'bg-red-500' :
-                   'bg-gray-500'
-                 }`}></div>
-                 {currentPlan.status === 'active' ? 'Ativo' :
-                  currentPlan.status === 'loading' ? 'Carregando...' :
-                  currentPlan.status === 'error' ? 'Erro' :
-                  'Inativo'}
-               </div>
-               <p className="text-sm text-gray-600 mt-1">
-                 {currentPlan.nextBilling === 'N/A' ? 'Sem cobrança' :
-                  currentPlan.nextBilling === 'Carregando...' ? 'Carregando...' :
-                  currentPlan.nextBilling === 'Erro' ? 'Erro ao carregar' :
-                  `Próxima cobrança: ${new Date(currentPlan.nextBilling).toLocaleDateString('pt-BR')}`}
-               </p>
-             </div>
-          </div>
-
-          <div className="space-y-3">
-            <h5 className="font-semibold text-gray-700 mb-3">Recursos incluídos:</h5>
-            {currentPlan.features.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-gray-700">{feature}</span>
+          ) : planError ? (
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 mb-2">Erro ao carregar plano</p>
+              <p className="text-sm text-gray-500">{planError}</p>
+              <Button 
+                onClick={refreshPlan}
+                variant="outline" 
+                className="mt-4"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Tentar Novamente
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h4 className="text-2xl font-bold text-gray-800 mb-2">{planName}</h4>
+                  <div className="flex items-baseline space-x-2">
+                    <span className="text-3xl font-bold text-[#3cd48f]">{planPrice}</span>
+                    <span className="text-gray-600">/mês</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    planStatus === 'active' ? 'bg-green-100 text-green-800' :
+                    planStatus === 'canceled' ? 'bg-red-100 text-red-800' :
+                    planStatus === 'past_due' ? 'bg-yellow-100 text-yellow-800' :
+                    planStatus === 'unpaid' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full mr-2 ${
+                      planStatus === 'active' ? 'bg-green-500' :
+                      planStatus === 'canceled' ? 'bg-red-500' :
+                      planStatus === 'past_due' ? 'bg-yellow-500' :
+                      planStatus === 'unpaid' ? 'bg-red-500' :
+                      'bg-gray-500'
+                    }`}></div>
+                    {planStatus === 'active' ? 'Ativo' :
+                     planStatus === 'canceled' ? 'Cancelado' :
+                     planStatus === 'past_due' ? 'Vencido' :
+                     planStatus === 'unpaid' ? 'Não Pago' :
+                     'Inativo'}
+                  </div>
+                  {planData?.plan?.current_period_end && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Expira em: {new Date(planData.plan.current_period_end).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
 
-                     <div className="mt-6 pt-6 border-t border-[#3cd48f]/20">
-             {currentPlan.status === 'active' && currentPlan.name.includes('Pro') ? (
-               <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                 <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                 <p className="text-green-800 font-medium">Plano Pro já ativo!</p>
-                 <p className="text-sm text-green-600">Seus recursos premium estão disponíveis</p>
-               </div>
-             ) : (
-               <Button 
-                 onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
-                 className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-               >
-                 <Zap className="w-5 h-5 mr-2" />
-                 {currentPlan.status === 'loading' ? 'Carregando...' : 'Fazer Upgrade do Plano'}
-               </Button>
-             )}
-           </div>
+              <div className="space-y-3">
+                <h5 className="font-semibold text-gray-700 mb-3">Recursos incluídos:</h5>
+                {planFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-[#3cd48f]/20">
+                {hasActivePlan && planType === 'pro' ? (
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                    <p className="text-green-800 font-medium">Plano Pro já ativo!</p>
+                    <p className="text-sm text-green-600">Seus recursos premium estão disponíveis</p>
+                  </div>
+                ) : hasActivePlan && planType === 'starter' ? (
+                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <CheckCircle className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                    <p className="text-blue-800 font-medium">Plano Starter ativo!</p>
+                    <p className="text-sm text-blue-600">Faça upgrade para o Pro para mais recursos</p>
+                    <Button 
+                      onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
+                      className="mt-3 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Upgrade para Pro
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
+                    className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Zap className="w-5 h-5 mr-2" />
+                    {hasActivePlan ? 'Fazer Upgrade do Plano' : 'Assinar Plano'}
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </motion.div>
 
@@ -611,9 +635,9 @@ const Settings: React.FC = () => {
                onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
                variant="outline" 
                className="w-full rounded-xl hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30"
-               disabled={currentPlan.status === 'loading'}
+               disabled={planLoading}
              >
-               {currentPlan.status === 'loading' ? 'Carregando...' : 'Fazer Upgrade'}
+               {planLoading ? 'Carregando...' : 'Fazer Upgrade'}
              </Button>
           </div>
 
@@ -642,9 +666,9 @@ const Settings: React.FC = () => {
                          <Button 
                onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
                className="w-full bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white font-semibold rounded-xl"
-               disabled={currentPlan.status === 'loading'}
+               disabled={planLoading}
              >
-               {currentPlan.status === 'loading' ? 'Carregando...' : 'Fazer Upgrade'}
+               {planLoading ? 'Carregando...' : 'Fazer Upgrade'}
              </Button>
           </div>
 
