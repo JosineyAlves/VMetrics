@@ -100,12 +100,14 @@ export const STRIPE_PRODUCTS = {
       monthly: {
         amount: 2990, // R$ 29,90
         currency: 'brl',
-        interval: 'month'
+        interval: 'month',
+        priceId: 'price_1Rv5d9L6dVrVagX4T9MjZETw' // ID para upgrades
       },
       yearly: {
         amount: 29900, // R$ 299,00 (2 meses grátis)
         currency: 'brl',
-        interval: 'year'
+        interval: 'year',
+        priceId: null // Não configurado ainda
       }
     }
   },
@@ -124,12 +126,14 @@ export const STRIPE_PRODUCTS = {
       monthly: {
         amount: 7990, // R$ 79,90
         currency: 'brl',
-        interval: 'month'
+        interval: 'month',
+        priceId: 'price_1Rv5diL6dVrVagX4RVadte0b' // ID para upgrades
       },
       yearly: {
         amount: 79900, // R$ 799,00 (2 meses grátis)
         currency: 'brl',
-        interval: 'year'
+        interval: 'year',
+        priceId: null // Não configurado ainda
       }
     }
   },

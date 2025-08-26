@@ -30,6 +30,8 @@ import RedTrackAPI from '../services/api'
 import { useCurrencyStore } from '../store/currency'
 import CustomSelect from './ui/CustomSelect'
 import { useUserPlan } from '../hooks/useUserPlan'
+import { useStripePortal } from '../hooks/useStripePortal'
+import { useStripeUpgrade } from '../hooks/useStripeUpgrade'
 
 interface AccountSettings {
   id: string
@@ -72,6 +74,12 @@ const Settings: React.FC = () => {
     planFeatures,
     planStatus
   } = useUserPlan(userEmail)
+
+  // Hook para Customer Portal do Stripe
+  const { openCustomerPortal, isLoading: portalLoading, error: portalError } = useStripePortal()
+
+  // Hook para upgrades diretos via Stripe API
+  const { upgradeSubscription, isLoading: upgradeLoading, error: upgradeError, success: upgradeSuccess, resetState: resetUpgradeState } = useStripeUpgrade()
 
   // Gerar array de faturas baseado no plano
   const generateInvoices = () => {
@@ -570,18 +578,38 @@ const Settings: React.FC = () => {
                 </li>
               ))}
             </ul>
-                         <Button 
-               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
-               variant={planType === 'starter' ? 'outline' : 'outline'}
-               className={`w-full rounded-xl ${
-                 planType === 'starter' 
-                   ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
-                   : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
-               }`}
-               disabled={planLoading || planType === 'starter'}
-             >
-               {planLoading ? 'Carregando...' : planType === 'starter' ? 'Plano Atual' : 'Fazer Upgrade'}
-             </Button>
+            <div className="space-y-2">
+              {/* Botão para Customer Portal */}
+              <Button 
+                onClick={() => openCustomerPortal(planData?.user?.stripe_customer_id || '')}
+                variant={planType === 'starter' ? 'outline' : 'outline'}
+                className={`w-full rounded-xl ${
+                  planType === 'starter' 
+                    ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
+                    : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
+                }`}
+                disabled={planLoading || planType === 'starter' || portalLoading || !planData?.user?.stripe_customer_id}
+              >
+                {portalLoading ? 'Abrindo Portal...' : 
+                 planType === 'starter' ? 'Gerenciar Plano' : 'Fazer Upgrade'}
+              </Button>
+              
+              {/* Botão para Upgrade Direto (só mostrar se não for o plano atual) */}
+              {planType !== 'starter' && planData?.plan?.stripe_subscription_id && (
+                <Button 
+                  onClick={() => upgradeSubscription(
+                    planData.plan.stripe_subscription_id,
+                    STRIPE_PRODUCTS.starter.prices.monthly.priceId,
+                    planData.user.stripe_customer_id
+                  )}
+                  variant="outline"
+                  className="w-full rounded-xl border-[#3cd48f] text-[#3cd48f] hover:bg-[#3cd48f] hover:text-white"
+                  disabled={upgradeLoading || !planData?.plan?.stripe_subscription_id}
+                >
+                  {upgradeLoading ? 'Fazendo Upgrade...' : 'Downgrade Direto'}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Plano Pro */}
@@ -606,17 +634,37 @@ const Settings: React.FC = () => {
                 </li>
               ))}
             </ul>
-                         <Button 
-               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
-               className={`w-full font-semibold rounded-xl ${
-                 planType === 'pro' 
-                   ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
-                   : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
-               }`}
-               disabled={planLoading || planType === 'pro'}
-             >
-               {planLoading ? 'Carregando...' : planType === 'pro' ? 'Plano Atual' : 'Fazer Upgrade'}
-             </Button>
+            <div className="space-y-2">
+              {/* Botão para Customer Portal */}
+              <Button 
+                onClick={() => openCustomerPortal(planData?.user?.stripe_customer_id || '')}
+                className={`w-full font-semibold rounded-xl ${
+                  planType === 'pro' 
+                    ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
+                    : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
+                }`}
+                disabled={planLoading || planType === 'pro' || portalLoading || !planData?.user?.stripe_customer_id}
+              >
+                {portalLoading ? 'Abrindo Portal...' : 
+                 planType === 'pro' ? 'Gerenciar Plano' : 'Fazer Upgrade'}
+              </Button>
+              
+              {/* Botão para Upgrade Direto (só mostrar se não for o plano atual) */}
+              {planType !== 'pro' && planData?.plan?.stripe_subscription_id && (
+                <Button 
+                  onClick={() => upgradeSubscription(
+                    planData.plan.stripe_subscription_id,
+                    STRIPE_PRODUCTS.pro.prices.monthly.priceId,
+                    planData.user.stripe_customer_id
+                  )}
+                  variant="outline"
+                  className="w-full font-semibold rounded-xl border-[#3cd48f] text-[#3cd48f] hover:bg-[#3cd48f] hover:text-white"
+                  disabled={upgradeLoading || !planData?.plan?.stripe_subscription_id}
+                >
+                  {upgradeLoading ? 'Fazendo Upgrade...' : 'Upgrade Direto'}
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Plano Enterprise */}
@@ -658,6 +706,61 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Notificações de Status */}
+      {(portalError || upgradeError || upgradeSuccess) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          {portalError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <span className="text-red-700">Erro ao abrir portal: {portalError}</span>
+              </div>
+            </div>
+          )}
+          
+          {upgradeError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <span className="text-red-700">Erro no upgrade: {upgradeError}</span>
+                <Button 
+                  onClick={resetUpgradeState}
+                  variant="ghost" 
+                  size="sm"
+                  className="ml-auto text-red-600 hover:text-red-700"
+                >
+                  Limpar
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {upgradeSuccess && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-green-700">Upgrade realizado com sucesso! Atualizando dados...</span>
+                <Button 
+                  onClick={() => {
+                    resetUpgradeState()
+                    refreshPlan()
+                  }}
+                  variant="ghost" 
+                  size="sm"
+                  className="ml-auto text-green-600 hover:text-green-700"
+                >
+                  Atualizar
+                </Button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Invoices */}
       <motion.div

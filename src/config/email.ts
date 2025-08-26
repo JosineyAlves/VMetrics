@@ -73,3 +73,4 @@ export interface EmailPlanData {
   nextBilling?: string
   status: 'active' | 'canceled' | 'past_due'
 }
+

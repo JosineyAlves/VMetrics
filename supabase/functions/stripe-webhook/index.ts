@@ -21,12 +21,8 @@ serve(async (req) => {
       throw new Error('No Stripe signature found')
     }
 
-    // Verify the webhook signature (optional but recommended)
-    // const event = stripe.webhooks.constructEvent(body, signature, Deno.env.get('STRIPE_WEBHOOK_SECRET'))
-
-    // For now, let's parse the body directly
+    // Parse the event
     const event = JSON.parse(body)
-    
     console.log('Received Stripe webhook:', event.type)
 
     // Initialize Supabase client
@@ -129,7 +125,7 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         console.log('New user created:', userId)
       }
       
-      // For now, set plan type as 'starter' (will be updated by subscription events)
+      // Use UPSERT to handle both new plans and upgrades
       const { error: planError } = await supabase
         .from('user_plans')
         .upsert({
@@ -140,6 +136,8 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
           status: 'active',
           current_period_start: new Date(),
           current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+        }, {
+          onConflict: 'stripe_subscription_id'
         })
         
       if (planError) {
@@ -167,7 +165,7 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       
       console.log('Product ID from subscription:', productId)
       
-      // Map product IDs to plan types (you can customize this)
+      // Map product IDs to plan types
       if (productId.includes('pro') || productId.includes('price_pro') || productId === 'prod_PvrF2GjvBWFrqQ') {
         planType = 'pro'
       } else if (productId.includes('enterprise') || productId.includes('price_enterprise')) {
@@ -209,30 +207,30 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       console.log('New user created:', userId)
     }
     
-         // Use UPSERT to handle both new plans and upgrades
-     console.log('Upserting plan for user:', userId, 'with subscription:', subscription.id)
-     
-     const { error: upsertError } = await supabase
-       .from('user_plans')
-       .upsert({
-         user_id: userId,
-         plan_type: planType,
-         stripe_subscription_id: subscription.id,
-         stripe_customer_id: subscription.customer,
-         status: subscription.status,
-         current_period_start: new Date(subscription.current_period_start * 1000),
-         current_period_end: new Date(subscription.current_period_end * 1000),
-         updated_at: new Date()
-       }, {
-         onConflict: 'stripe_subscription_id' // Use subscription ID as conflict resolution
-       })
-     
-     if (upsertError) {
-       console.error('Error upserting user plan:', upsertError)
-       return
-     }
-     
-     console.log('User plan upserted successfully with plan type:', planType)
+    // Use UPSERT to handle both new plans and upgrades
+    console.log('Upserting plan for user:', userId, 'with subscription:', subscription.id)
+    
+    const { error: upsertError } = await supabase
+      .from('user_plans')
+      .upsert({
+        user_id: userId,
+        plan_type: planType,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer,
+        status: subscription.status,
+        current_period_start: new Date(subscription.current_period_start * 1000),
+        current_period_end: new Date(subscription.current_period_end * 1000),
+        updated_at: new Date()
+      }, {
+        onConflict: 'stripe_subscription_id' // Use subscription ID as conflict resolution
+      })
+    
+    if (upsertError) {
+      console.error('Error upserting user plan:', upsertError)
+      return
+    }
+    
+    console.log('User plan upserted successfully with plan type:', planType)
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)
@@ -251,7 +249,7 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
       
       console.log('Product ID from subscription update:', productId)
       
-      // Map product IDs to plan types (you can customize this)
+      // Map product IDs to plan types
       if (productId.includes('pro') || productId.includes('price_pro') || productId === 'prod_PvrF2GjvBWFrqQ') {
         planType = 'pro'
       } else if (productId.includes('enterprise') || productId.includes('price_enterprise')) {
@@ -261,20 +259,20 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-         // Use UPSERT to handle subscription updates
-     const { error } = await supabase
-       .from('user_plans')
-       .upsert({
-         plan_type: planType,
-         stripe_subscription_id: subscription.id,
-         stripe_customer_id: subscription.customer,
-         status: subscription.status,
-         current_period_start: new Date(subscription.current_period_start * 1000),
-         current_period_end: new Date(subscription.current_period_end * 1000),
-         updated_at: new Date()
-       }, {
-         onConflict: 'stripe_subscription_id'
-       })
+    // Use UPSERT to handle subscription updates
+    const { error } = await supabase
+      .from('user_plans')
+      .upsert({
+        plan_type: planType,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer,
+        status: subscription.status,
+        current_period_start: new Date(subscription.current_period_start * 1000),
+        current_period_end: new Date(subscription.current_period_end * 1000),
+        updated_at: new Date()
+      }, {
+        onConflict: 'stripe_subscription_id'
+      })
       
     if (error) {
       console.error('Error updating subscription:', error)
