@@ -99,62 +99,107 @@ const Settings: React.FC = () => {
     try {
       // Simular salvamento
       await new Promise(resolve => setTimeout(resolve, 1000))
+      
       setApiKey(tempApiKey)
       setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (error) {
-      setError('Erro ao salvar API Key')
+      
+      // Recarregar dados da conta com nova API key
+      loadAccountData()
+      
+      // A moeda agora é configurada manualmente
+      console.log('✅ [SETTINGS] API Key configurada com sucesso')
+      
+      setTimeout(() => {
+        setSaved(false)
+      }, 3000)
+    } catch (err) {
+      setError('Erro ao salvar configurações')
     } finally {
       setSaving(false)
     }
   }
 
-  // Função para abrir o Customer Portal do Stripe
-  const handleManageSubscription = async () => {
-    try {
-      // Verificar se temos o customer ID
-      if (!planData?.user?.stripe_customer_id) {
-        setError('ID do cliente não encontrado')
-        return
-      }
-
-      // Criar sessão do portal
-      const response = await fetch('/api/user-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          customerId: planData.user.stripe_customer_id 
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Erro ao criar sessão do portal')
-      }
-
-      const { url } = await response.json()
-      
-      // Redirecionar para o portal
-      window.open(url, '_blank')
-    } catch (error) {
-      console.error('Erro ao abrir portal:', error)
-      setError('Erro ao abrir portal de gerenciamento')
+  const loadAccountData = async (isRefresh = false) => {
+    if (!apiKey) return
+    
+    if (isRefresh) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
     }
+
+    try {
+      const api = new RedTrackAPI(apiKey)
+      const response = await api.getSettings()
+      setSettings(response)
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('Error loading account data:', error)
+      setSettings(null)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    if (apiKey) {
+      loadAccountData()
+    }
+  }, [apiKey])
+
+  const handleRefresh = () => {
+    loadAccountData(true)
+  }
+
+  // Links diretos do Stripe para checkout
+  const STRIPE_CHECKOUT_LINKS = {
+    monthly: 'https://buy.stripe.com/test_8x214oa7m2gP5t7e1K33W03', // R$ 79,00
+    quarterly: 'https://buy.stripe.com/test_8x2aEY0wM5t11cRaPy33W04' // R$ 197,00
+  }
+
+
+
+
+
+    // Função para carregar plano atual do usuário (agora usa o hook)
+  const loadCurrentPlan = () => {
+    console.log('🔄 [SETTINGS] Atualizando plano do usuário...')
+    refreshPlan()
+  }
+
+  useEffect(() => {
+    if (activeTab === 'billing') {
+      loadCurrentPlan()
+    }
+  }, [activeTab])
+
+
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   const renderGeneralTab = () => (
     <div className="space-y-8">
-      {/* API Key Settings */}
+      {/* API Key Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
         <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-blue-100 rounded-2xl">
-            <Key className="w-7 h-7 text-blue-600" />
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <Key className="w-7 h-7 text-[#3cd48f]" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-800">Configuração da API</h3>
+            <h3 className="text-xl font-bold text-gray-800">API Key</h3>
             <p className="text-sm text-gray-600">
               Configure sua chave de API do RedTrack
             </p>
@@ -163,61 +208,194 @@ const Settings: React.FC = () => {
 
         <div className="space-y-6">
           <div>
-            <label className="text-sm font-medium text-gray-600">API Key do RedTrack</label>
-            <div className="mt-1 relative">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Chave da API
+            </label>
+            <div className="relative">
               <Input
                 type={showApiKey ? 'text' : 'password'}
+                placeholder="Digite sua API Key"
                 value={tempApiKey}
                 onChange={(e) => setTempApiKey(e.target.value)}
-                placeholder="Digite sua API Key"
-                className="pr-12"
+                className="pr-12 rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f] shadow-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#3cd48f] transition-colors duration-200"
               >
                 {showApiKey ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
+                  <EyeOff className="w-5 h-5" />
                 ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
+                  <Eye className="w-5 h-5" />
                 )}
               </button>
             </div>
+            {error && (
+              <p className="text-sm text-red-600 mt-3 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                {error}
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between">
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
+              className="flex items-center space-x-3 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               {saving ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Salvando...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Salvar
-                </>
-              )}
-            </Button>
-
-            {saved && (
-              <div className="flex items-center space-x-2 text-green-600">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              ) : saved ? (
                 <CheckCircle className="w-5 h-5" />
-                <span>Salvo com sucesso!</span>
-              </div>
-            )}
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              <span className="font-semibold">
+                {saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar Configurações'}
+              </span>
+            </Button>
+          </div>
+        </div>
+      </motion.div>
 
-            {error && (
-              <div className="flex items-center space-x-2 text-red-600">
-                <AlertCircle className="w-5 h-5" />
-                <span>{error}</span>
+      {/* Account Information */}
+      {settings && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-2xl">
+                <User className="w-7 h-7 text-green-600" />
               </div>
-            )}
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Informações da Conta</h3>
+                <p className="text-sm text-gray-600">
+                  Dados da sua conta RedTrack
+                </p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Atualizando...' : 'Atualizar'}
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">ID da Conta</label>
+                <p className="text-lg font-mono bg-gray-100 p-2 rounded">{settings.id}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">ID do Usuário</label>
+                <p className="text-lg font-mono bg-gray-100 p-2 rounded">{settings.user_id}</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">Criado em</label>
+                <p className="text-lg">{formatDate(settings.created_at)}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Atualizado em</label>
+                <p className="text-lg">{formatDate(settings.updated_at)}</p>
+              </div>
+            </div>
+          </div>
+
+          {lastUpdate && (
+            <div className="mt-6 text-sm text-gray-500">
+              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Currency Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-6">
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <DollarSign className="w-7 h-7 text-[#3cd48f]" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Configuração de Moeda</h3>
+            <p className="text-sm text-gray-600">
+              Selecione a moeda configurada no seu RedTrack
+            </p>
+          </div>
+        </div>
+
+        {/* Dropdown de Seleção de Moeda */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600 mb-2 block">
+              Selecione a Moeda
+            </label>
+            <CustomSelect
+              value={currency}
+              onChange={(value) => setCurrency(value)}
+              options={[
+                { value: 'BRL', label: 'R$ - Real Brasileiro (BRL)' },
+                { value: 'USD', label: '$- Dólar Americano (USD)' },
+                { value: 'EUR', label: '€ - Euro (EUR)' },
+                { value: 'GBP', label: '£ - Libra Esterlina (GBP)' },
+                { value: 'CAD', label: 'C$ - Dólar Canadense (CAD)' },
+                { value: 'AUD', label: 'A$ - Dólar Australiano (AUD)' },
+                { value: 'MXN', label: 'MX$ - Peso Mexicano (MXN)' },
+                { value: 'ARS', label: 'AR$ - Peso Argentino (ARS)' },
+                { value: 'CLP', label: 'CL$ - Peso Chileno (CLP)' },
+                { value: 'COP', label: 'CO$ - Peso Colombiano (COP)' },
+                { value: 'PEN', label: 'S/ - Sol Peruano (PEN)' },
+                { value: 'UYU', label: 'UY$ - Peso Uruguaio (UYU)' }
+              ]}
+              placeholder="Selecione a moeda"
+              className="w-full"
+            />
+          </div>
+
+          {/* Status da Moeda */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Moeda Atual</p>
+              <div className="flex items-center mt-1">
+                <span className="text-2xl font-bold text-[#3cd48f] mr-2">{currencySymbol}</span>
+                <span className="text-lg font-mono bg-[#3cd48f]/20 px-3 py-1 rounded">{currency}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <p className="text-xs text-gray-500 mt-1">Configurada</p>
+            </div>
+          </div>
+
+                  <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <Info className="w-5 h-5 text-[#3cd48f] mt-0.5" />
+            <div className="text-sm text-[#1f1f1f]">
+                <p className="font-medium mb-1">Configuração de Moeda</p>
+                <p>
+                  A moeda selecionada será usada para exibir todos os valores monetários no dashboard. 
+                  Certifique-se de escolher a mesma moeda configurada no seu RedTrack.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -349,21 +527,6 @@ const Settings: React.FC = () => {
             ))}
           </div>
 
-          {/* Botão para Gerenciar Assinatura */}
-          {hasActivePlan && (
-            <div className="mt-6 pt-6 border-t border-[#3cd48f]/20">
-              <Button 
-                onClick={handleManageSubscription}
-                className="w-full bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white font-semibold rounded-xl py-3"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Gerenciar Assinatura
-              </Button>
-              <p className="text-xs text-gray-500 text-center mt-2">
-                Atualizar plano, cancelar ou gerenciar pagamentos
-              </p>
-            </div>
-          )}
 
             </>
           )}
@@ -393,32 +556,40 @@ const Settings: React.FC = () => {
           {/* Plano Mensal */}
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-2">Plano Mensal</h4>
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.monthly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                R$ 79,00
+                {currencySymbol}{(STRIPE_PRODUCTS.monthly.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
+              <div className="text-sm text-gray-500 mt-1">
+                <span className="line-through text-gray-400">
+                  {currencySymbol}{(STRIPE_PRODUCTS.monthly.prices.monthly.originalPrice / 100).toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-green-600 font-medium ml-2">
+                  {STRIPE_PRODUCTS.monthly.prices.monthly.discount}% de desconto
+                </span>
+              </div>
             </div>
             <ul className="space-y-3 mb-6">
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Campanhas ilimitadas</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Análise de funil 3D</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Métricas avançadas</span>
-              </li>
+              {STRIPE_PRODUCTS.monthly.features.map((feature, index) => (
+                <li key={index} className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
+                </li>
+              ))}
             </ul>
-            <Button 
-              variant="outline"
-              className="w-full rounded-xl hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30"
+                         <Button 
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.monthly, '_blank')}
+              variant={planType === 'monthly' ? 'outline' : 'outline'}
+              className={`w-full rounded-xl ${
+                planType === 'monthly' 
+                  ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
+                  : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
+              }`}
+              disabled={planLoading || planType === 'monthly'}
             >
-              Fazer Upgrade
-            </Button>
+              {planLoading ? 'Carregando...' : planType === 'monthly' ? 'Plano Atual' : 'Mudar para Mensal'}
+             </Button>
           </div>
 
           {/* Plano Trimestral */}
@@ -429,33 +600,41 @@ const Settings: React.FC = () => {
               </span>
             </div>
             <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-2">Plano Trimestral</h4>
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.quarterly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                R$ 197,00
+                {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
+              <div className="text-sm text-gray-500 mt-1">
+                <span className="line-through text-gray-400">
+                  {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.originalPrice / 100).toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-green-600 font-medium ml-2">
+                  {STRIPE_PRODUCTS.quarterly.prices.quarterly.discount}% de desconto
+                </span>
+              </div>
               <div className="text-xs text-gray-500 mt-1">
-                Cobrança a cada 3 meses: R$ 591,00
+                Cobrança a cada 3 meses: {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.totalAmount / 100).toFixed(2).replace('.', ',')}
               </div>
             </div>
             <ul className="space-y-3 mb-6">
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Campanhas ilimitadas</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Análise de funil 3D</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Métricas avançadas</span>
-              </li>
+              {STRIPE_PRODUCTS.quarterly.features.map((feature, index) => (
+                <li key={index} className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
+                </li>
+              ))}
             </ul>
-            <Button 
-              className="w-full font-semibold rounded-xl bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
+                         <Button 
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.quarterly, '_blank')}
+              className={`w-full font-semibold rounded-xl ${
+                planType === 'quarterly' 
+                  ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
+                  : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
+              }`}
+              disabled={planLoading || planType === 'quarterly'}
             >
-              Fazer Upgrade
+              {planLoading ? 'Carregando...' : planType === 'quarterly' ? 'Plano Atual' : 'Mudar para Trimestral'}
             </Button>
           </div>
         </div>
@@ -538,13 +717,17 @@ const Settings: React.FC = () => {
             <div className="text-center py-8">
               <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
-              <p className="text-sm text-gray-500">
-                As faturas aparecerão aqui quando disponíveis
-              </p>
+            <p className="text-sm text-gray-500">
+              As faturas aparecerão aqui quando disponíveis
+            </p>
             </div>
           )}
         </div>
+
+
       </motion.div>
+
+
     </div>
   )
 
@@ -588,4 +771,4 @@ const Settings: React.FC = () => {
   )
 }
 
-export default Settings
+export default Settings 

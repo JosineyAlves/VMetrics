@@ -21,18 +21,10 @@ export default async function handler(req, res) {
   console.log('🔧 [USER-PLAN] Supabase URL:', process.env.VITE_SUPABASE_URL)
   console.log('🔧 [USER-PLAN] Service Key presente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
   
-  // Roteamento baseado no método HTTP
-  if (req.method === 'GET') {
-    return handleGetUserPlan(req, res)
-  } else if (req.method === 'POST') {
-    return handleCreatePortalSession(req, res)
-  } else {
+  if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
-}
 
-// Função para buscar plano do usuário (GET)
-async function handleGetUserPlan(req, res) {
   try {
     const { email } = req.query
 
@@ -102,58 +94,59 @@ async function handleGetUserPlan(req, res) {
       updated_at: userPlan.updated_at
     }
 
-    // 4. Mapear tipo de plano para informações detalhadas
-    const planInfo = getPlanInfo(userPlan.plan_type)
-    
-    // 5. Buscar fatura do Stripe se tiver subscription_id
-    let invoice = null
-    if (userPlan.stripe_subscription_id) {
-      try {
-        console.log('🔍 [USER-PLAN] Buscando fatura no Stripe para subscription:', userPlan.stripe_subscription_id)
-        
-        // Buscar faturas do Stripe
-        const stripeInvoices = await stripe.invoices.list({
-          subscription: userPlan.stripe_subscription_id,
-          limit: 1
-        })
-        
-        if (stripeInvoices.data.length > 0) {
-          const stripeInvoice = stripeInvoices.data[0]
-          invoice = {
-            id: stripeInvoice.id,
-            number: stripeInvoice.number,
-            amount: stripeInvoice.amount_paid,
-            currency: stripeInvoice.currency,
-            status: stripeInvoice.status,
-            created: stripeInvoice.created * 1000, // Converter timestamp para milissegundos
-            due_date: stripeInvoice.due_date ? stripeInvoice.due_date * 1000 : new Date().getTime(),
-            description: stripeInvoice.description || `Assinatura ${userPlan.plan_type}`,
-            invoice_pdf: stripeInvoice.invoice_pdf,
-            hosted_invoice_url: stripeInvoice.hosted_invoice_url,
-            formatted_amount: `R$ ${(stripeInvoice.amount_paid / 100).toFixed(2).replace('.', ',')}`,
-            status_text: stripeInvoice.status === 'paid' ? 'Pago' : 'Pendente',
-            status_color: stripeInvoice.status === 'paid' ? 'green' : 'yellow'
-          }
-          console.log('✅ [USER-PLAN] Fatura encontrada:', invoice.id)
-        }
-      } catch (error) {
-        console.error('❌ [USER-PLAN] Erro ao buscar fatura no Stripe:', error)
-        // Não falhar se Stripe der erro, apenas continuar sem fatura
-      }
-    }
-  
-    const response = {
-      plan: {
-        ...planData,
-        ...planInfo
-      },
-      user: {
-        id: user.id,
-        email: email,
-        stripe_customer_id: user.stripe_customer_id
-      },
-      invoice: invoice
-    }
+               // 4. Mapear tipo de plano para informações detalhadas
+           const planInfo = getPlanInfo(userPlan.plan_type)
+           
+           // 5. Buscar fatura do Stripe se tiver subscription_id
+           let invoice = null
+           if (userPlan.stripe_subscription_id) {
+             try {
+               console.log('🔍 [USER-PLAN] Buscando fatura no Stripe para:', userPlan.stripe_subscription_id)
+               
+               // Buscar a fatura mais recente da assinatura
+               const invoices = await stripe.invoices.list({
+                 subscription: userPlan.stripe_subscription_id,
+                 limit: 1,
+                 status: 'paid'
+               })
+               
+               if (invoices.data.length > 0) {
+                 const stripeInvoice = invoices.data[0]
+                 invoice = {
+                   id: stripeInvoice.id,
+                   number: stripeInvoice.number,
+                   amount: stripeInvoice.amount_paid,
+                   currency: stripeInvoice.currency,
+                   status: stripeInvoice.status,
+                   created: new Date(stripeInvoice.created * 1000).toISOString(),
+                   due_date: new Date(stripeInvoice.due_date * 1000).toISOString(),
+                   description: stripeInvoice.description || `Assinatura ${userPlan.plan_type}`,
+                   invoice_pdf: stripeInvoice.invoice_pdf,
+                   hosted_invoice_url: stripeInvoice.hosted_invoice_url,
+                   formatted_amount: `R$ ${(stripeInvoice.amount_paid / 100).toFixed(2).replace('.', ',')}`,
+                   status_text: stripeInvoice.status === 'paid' ? 'Pago' : 'Pendente',
+                   status_color: stripeInvoice.status === 'paid' ? 'green' : 'yellow'
+                 }
+                 console.log('✅ [USER-PLAN] Fatura encontrada:', invoice.id)
+               }
+             } catch (error) {
+               console.error('❌ [USER-PLAN] Erro ao buscar fatura no Stripe:', error)
+               // Não falhar se Stripe der erro, apenas continuar sem fatura
+             }
+           }
+       
+           const response = {
+             plan: {
+               ...planData,
+               ...planInfo
+             },
+             user: {
+               id: user.id,
+               email: email,
+               stripe_customer_id: user.stripe_customer_id
+             },
+             invoice: invoice
+           }
 
     console.log('✅ [USER-PLAN] Resposta formatada:', response)
 
@@ -164,35 +157,6 @@ async function handleGetUserPlan(req, res) {
     return res.status(500).json({ 
       error: 'Erro interno do servidor',
       details: error.message 
-    })
-  }
-}
-
-// Função para criar sessão do Customer Portal (POST)
-async function handleCreatePortalSession(req, res) {
-  try {
-    const { customerId } = req.body
-    
-    if (!customerId) {
-      return res.status(400).json({ message: 'Customer ID é obrigatório' })
-    }
-
-    console.log('🚀 [PORTAL] Criando sessão para cliente:', customerId)
-    
-    // Criar sessão do portal
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: 'https://app.vmetrics.com.br/dashboard'
-    })
-    
-    console.log('✅ [PORTAL] Sessão criada com sucesso:', session.url)
-    
-    res.json({ url: session.url })
-  } catch (error) {
-    console.error('❌ [PORTAL] Erro ao criar sessão:', error)
-    res.status(500).json({ 
-      message: 'Erro interno do servidor',
-      error: error.message 
     })
   }
 }
