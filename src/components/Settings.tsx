@@ -155,7 +155,9 @@ const Settings: React.FC = () => {
   // Links diretos do Stripe para checkout
   const STRIPE_CHECKOUT_LINKS = {
     starter: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01',
-    pro: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02'
+    pro: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02',
+    monthly: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01', // Placeholder for monthly plan
+    quarterly: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02' // Placeholder for quarterly plan
   }
 
 
@@ -553,70 +555,89 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Plano Starter */}
+          {/* Plano Mensal */}
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.starter.name}</h4>
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.monthly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                {currencySymbol}{(STRIPE_PRODUCTS.starter.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
+                {currencySymbol}{(STRIPE_PRODUCTS.monthly.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
+              <div className="text-sm text-gray-500 mt-1">
+                <span className="line-through text-gray-400">
+                  {currencySymbol}{(STRIPE_PRODUCTS.monthly.prices.monthly.originalPrice / 100).toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-green-600 font-medium ml-2">
+                  {STRIPE_PRODUCTS.monthly.prices.monthly.discount}% de desconto
+                </span>
+              </div>
             </div>
             <ul className="space-y-3 mb-6">
-              {STRIPE_PRODUCTS.starter.features.map((feature, index) => (
+              {STRIPE_PRODUCTS.monthly.features.map((feature, index) => (
                 <li key={index} className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <span className="text-sm text-gray-700">{feature}</span>
                 </li>
               ))}
             </ul>
-                         <Button 
-               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
-               variant={planType === 'starter' ? 'outline' : 'outline'}
-               className={`w-full rounded-xl ${
-                 planType === 'starter' 
-                   ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
-                   : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
-               }`}
-               disabled={planLoading || planType === 'starter'}
-             >
-               {planLoading ? 'Carregando...' : planType === 'starter' ? 'Plano Atual' : 'Fazer Upgrade'}
-             </Button>
+            <Button 
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.monthly, '_blank')}
+              variant={planType === 'monthly' ? 'outline' : 'outline'}
+              className={`w-full rounded-xl ${
+                planType === 'monthly' 
+                  ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
+                  : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
+              }`}
+              disabled={planLoading || planType === 'monthly'}
+            >
+              {planLoading ? 'Carregando...' : planType === 'monthly' ? 'Plano Atual' : 'Fazer Upgrade'}
+            </Button>
           </div>
 
-          {/* Plano Pro */}
+          {/* Plano Trimestral */}
           <div className="border-2 border-[#3cd48f] rounded-2xl p-6 bg-[#3cd48f]/10 relative">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <span className="bg-[#3cd48f] text-white px-3 py-1 rounded-full text-xs font-medium">
-                Popular
+                Melhor Valor
               </span>
             </div>
             <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.pro.name}</h4>
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.quarterly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                {currencySymbol}{(STRIPE_PRODUCTS.pro.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
+                {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
+              <div className="text-sm text-gray-500 mt-1">
+                <span className="line-through text-gray-400">
+                  {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.originalPrice / 100).toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-green-600 font-medium ml-2">
+                  {STRIPE_PRODUCTS.quarterly.prices.quarterly.discount}% de desconto
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Cobrança a cada 3 meses: {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.totalAmount / 100).toFixed(2).replace('.', ',')}
+              </div>
             </div>
             <ul className="space-y-3 mb-6">
-              {STRIPE_PRODUCTS.pro.features.map((feature, index) => (
+              {STRIPE_PRODUCTS.quarterly.features.map((feature, index) => (
                 <li key={index} className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <span className="text-sm text-gray-700">{feature}</span>
                 </li>
               ))}
             </ul>
-                         <Button 
-               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
-               className={`w-full font-semibold rounded-xl ${
-                 planType === 'pro' 
-                   ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
-                   : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
-               }`}
-               disabled={planLoading || planType === 'pro'}
-             >
-               {planLoading ? 'Carregando...' : planType === 'pro' ? 'Plano Atual' : 'Fazer Upgrade'}
-             </Button>
+            <Button 
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.quarterly, '_blank')}
+              className={`w-full font-semibold rounded-xl ${
+                planType === 'quarterly' 
+                  ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
+                  : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
+              }`}
+              disabled={planLoading || planType === 'quarterly'}
+            >
+              {planLoading ? 'Carregando...' : planType === 'quarterly' ? 'Plano Atual' : 'Fazer Upgrade'}
+            </Button>
           </div>
 
           {/* Plano Enterprise */}

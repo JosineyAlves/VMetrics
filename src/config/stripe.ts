@@ -1,16 +1,16 @@
 // Configuração do Stripe
 export const STRIPE_CONFIG = {
   // Chaves de API (configuradas via variáveis de ambiente)
-  publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
-  secretKey: import.meta.env.STRIPE_SECRET_KEY || '',
-  webhookSecret: import.meta.env.STRIPE_WEBHOOK_SECRET || '',
+  publishableKey: (import.meta as any).env?.VITE_STRIPE_PUBLISHABLE_KEY || '',
+  secretKey: (import.meta as any).env?.STRIPE_SECRET_KEY || '',
+  webhookSecret: (import.meta as any).env?.STRIPE_WEBHOOK_SECRET || '',
   
   // Configurações de ambiente
-  isProduction: import.meta.env.MODE === 'production',
+  isProduction: (import.meta as any).env?.MODE === 'production',
   
   // URLs de retorno
-  successUrl: import.meta.env.VITE_STRIPE_SUCCESS_URL || 'http://localhost:5173/success',
-  cancelUrl: import.meta.env.VITE_STRIPE_CANCEL_URL || 'http://localhost:5173/pricing',
+  successUrl: (import.meta as any).env?.VITE_STRIPE_SUCCESS_URL || 'http://localhost:5173/success',
+  cancelUrl: (import.meta as any).env?.VITE_STRIPE_CANCEL_URL || 'http://localhost:5173/pricing',
   
   // Configurações de moeda padrão
   defaultCurrency: 'brl',
@@ -40,10 +40,10 @@ export const STRIPE_CONFIG = {
   prorationBehavior: 'create_prorations' as const,
   
   // Configurações de portal do cliente
-  portalReturnUrl: import.meta.env.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard',
+  portalReturnUrl: (import.meta as any).env?.VITE_STRIPE_PORTAL_RETURN_URL || 'http://localhost:5173/dashboard',
   
   // Configurações do servidor
-  serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:3001',
+  serverUrl: (import.meta as any).env?.VITE_SERVER_URL || 'http://localhost:3001',
   apiEndpoints: {
     checkout: '/api/stripe/create-checkout-session',
     portal: '/api/stripe/create-portal-session',
@@ -61,7 +61,7 @@ export const validateStripeConfig = () => {
     'STRIPE_SECRET_KEY'
   ]
   
-  const missingKeys = requiredKeys.filter(key => !import.meta.env[key])
+  const missingKeys = requiredKeys.filter(key => !(import.meta as any).env?.[key])
   
   if (missingKeys.length > 0) {
     console.warn('⚠️ Chaves do Stripe não configuradas:', missingKeys)
@@ -74,7 +74,7 @@ export const validateStripeConfig = () => {
 
 // Validação específica para webhooks
 export const validateWebhookConfig = () => {
-  if (!import.meta.env.STRIPE_WEBHOOK_SECRET) {
+  if (!(import.meta as any).env?.STRIPE_WEBHOOK_SECRET) {
     console.warn('⚠️ STRIPE_WEBHOOK_SECRET não configurado')
     console.warn('Configure o webhook secret para receber eventos do Stripe')
     return false
@@ -85,49 +85,108 @@ export const validateWebhookConfig = () => {
 
 // Configuração de produtos e preços (SINCRONIZADA com Stripe)
 export const STRIPE_PRODUCTS = {
-  starter: {
-    name: 'Plano Starter',
-    description: 'Ideal para começar com RedTrack',
-    features: ['Dashboard integrado ao RedTrack', 'Métricas básicas (ROI, CPA, CTR)', 'Suporte por email', 'Até 5 campanhas'],
+  // Plano com desconto durante o beta
+  monthly: {
+    name: 'Plano Mensal',
+    description: 'Acesso completo ao vMetrics com desconto promocional',
+    features: [
+      'Dashboard integrado ao RedTrack',
+      'Métricas avançadas (ROI, CPA, CTR)',
+      'Análise de funil 3D',
+      'Campanhas ilimitadas',
+      'Suporte por email',
+      'Comparação entre campanhas'
+    ],
     stripeIds: {
-      product: 'prod_PvrF2GjvBWFrqQ',
+      product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 29,90
-        yearly: null // Não configurado ainda
+        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 47 (será atualizado)
+        yearly: null
       }
     },
     prices: {
       monthly: {
-        amount: 2990, // R$ 29,90
+        amount: 4700, // R$ 47,00 (40% desconto vs R$ 79)
         currency: 'brl',
-        interval: 'month'
+        interval: 'month',
+        originalPrice: 7990, // R$ 79,90 (preço final)
+        discount: 40 // 40% de desconto
       },
       yearly: {
-        amount: 29900, // R$ 299,00 (2 meses grátis)
+        amount: 47000, // R$ 470,00 (40% desconto vs R$ 799)
         currency: 'brl',
-        interval: 'year'
+        interval: 'year',
+        originalPrice: 79900, // R$ 799,00 (preço final)
+        discount: 40 // 40% de desconto
       }
     }
   },
+  // Plano trimestral com desconto adicional
+  quarterly: {
+    name: 'Plano Trimestral',
+    description: 'Acesso completo ao vMetrics com máximo desconto',
+    features: [
+      'Dashboard integrado ao RedTrack',
+      'Métricas avançadas (ROI, CPA, CTR)',
+      'Análise de funil 3D',
+      'Campanhas ilimitadas',
+      'Suporte por email',
+      'Comparação entre campanhas'
+    ],
+    stripeIds: {
+      product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
+      prices: {
+        quarterly: 'price_quarterly_new', // R$ 38 (será criado)
+        yearly: null
+      }
+    },
+    prices: {
+      quarterly: {
+        amount: 3800, // R$ 38,00 (52% desconto vs R$ 79 + 20% vs mensal)
+        currency: 'brl',
+        interval: 'month',
+        billingInterval: 3, // Cobrança a cada 3 meses
+        totalAmount: 11400, // R$ 114,00 (3 × R$ 38)
+        originalPrice: 7990, // R$ 79,90 (preço final)
+        discount: 52, // 52% de desconto total
+        additionalDiscount: 20 // 20% adicional vs plano mensal
+      },
+      yearly: {
+        amount: 38000, // R$ 380,00 (52% desconto vs R$ 799)
+        currency: 'brl',
+        interval: 'year',
+        originalPrice: 79900, // R$ 799,00 (preço final)
+        discount: 52 // 52% de desconto total
+      }
+    }
+  },
+  // Planos finais (pós-beta)
   pro: {
     name: 'Plano Pro',
-    description: 'Para agências e empresas em crescimento',
-    features: ['Campanhas ilimitadas', 'Análise de funil 3D', 'Métricas avançadas (50+ indicadores)', 'Suporte prioritário', 'Comparação entre campanhas'],
+    description: 'Acesso completo ao vMetrics',
+    features: [
+      'Dashboard integrado ao RedTrack',
+      'Métricas avançadas (ROI, CPA, CTR)',
+      'Análise de funil 3D',
+      'Campanhas ilimitadas',
+      'Suporte prioritário',
+      'Comparação entre campanhas'
+    ],
     stripeIds: {
-      product: 'prod_PvrF2GjvBWFrqQ', // Produto correto do Stripe
+      product: 'prod_PvrF2GjvBWFrqQ',
       prices: {
         monthly: 'price_1Rv5diL6dVrVagX4RVadte0b', // R$ 79,90
-        yearly: null // Não configurado ainda
+        yearly: null
       }
     },
     prices: {
       monthly: {
-        amount: 7990, // R$ 79,90
+        amount: 7990, // R$ 79,90 (preço final)
         currency: 'brl',
         interval: 'month'
       },
       yearly: {
-        amount: 79900, // R$ 799,00 (2 meses grátis)
+        amount: 79900, // R$ 799,00 (preço final)
         currency: 'brl',
         interval: 'year'
       }
@@ -136,7 +195,14 @@ export const STRIPE_PRODUCTS = {
   enterprise: {
     name: 'Plano Enterprise',
     description: 'Solução personalizada para grandes empresas',
-    features: ['Tudo do plano Pro', 'Suporte 24/7', 'Integrações customizadas', 'SLA garantido', 'Onboarding dedicado', 'Relatórios personalizados'],
+    features: [
+      'Tudo do plano Pro',
+      'Suporte 24/7',
+      'Integrações customizadas',
+      'SLA garantido',
+      'Onboarding dedicado',
+      'Relatórios personalizados'
+    ],
     stripeIds: {
       product: null, // Não configurado ainda
       prices: {

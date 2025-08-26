@@ -176,6 +176,34 @@ function getPlanInfo(planType) {
       ],
       nextBilling: null // Será calculado dinamicamente
     },
+    monthly: {
+      name: 'Plano Mensal',
+      price: 'R$ 47,00',
+      period: 'mês',
+      features: [
+        'Dashboard integrado ao RedTrack',
+        'Métricas avançadas (ROI, CPA, CTR)',
+        'Análise de funil 3D',
+        'Campanhas ilimitadas',
+        'Suporte por email',
+        'Comparação entre campanhas'
+      ],
+      nextBilling: null // Será calculado dinamicamente
+    },
+    quarterly: {
+      name: 'Plano Trimestral',
+      price: 'R$ 38,00',
+      period: 'mês',
+      features: [
+        'Dashboard integrado ao RedTrack',
+        'Métricas avançadas (ROI, CPA, CTR)',
+        'Análise de funil 3D',
+        'Campanhas ilimitadas',
+        'Suporte por email',
+        'Comparação entre campanhas'
+      ],
+      nextBilling: null // Será calculado dinamicamente
+    },
     pro: {
       name: 'Plano Pro',
       price: 'R$ 79,90',

@@ -158,42 +158,44 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
   console.log('Processing subscription created:', subscription.id)
   
   try {
-    // Determine plan type based on product ID
+    // Determine plan type based on price amount
     let planType = 'starter'
-    if (subscription.items?.data?.[0]?.price?.product) {
-      const productId = subscription.items.data[0].price.product
-      
-      console.log('Product ID from subscription:', productId)
-      
-      // Map product IDs to plan types
-      if (productId.includes('pro') || productId.includes('price_pro') || productId === 'prod_PvrF2GjvBWFrqQ') {
-        planType = 'pro'
-      } else if (productId.includes('enterprise') || productId.includes('price_enterprise')) {
-        planType = 'enterprise'
-      }
+    const priceAmount = subscription.items?.data?.[0]?.price?.unit_amount || 0
+    
+    console.log('Price amount from subscription:', priceAmount)
+    
+    // Map price amounts to plan types
+    if (priceAmount === 4700) { // R$ 47,00
+      planType = 'monthly'
+    } else if (priceAmount === 3800) { // R$ 38,00
+      planType = 'quarterly'
+    } else if (priceAmount === 7990) { // R$ 79,90
+      planType = 'pro'
+    } else if (priceAmount === 2990) { // R$ 29,90
+      planType = 'starter'
     }
     
-    console.log('Detected plan type for new subscription:', planType)
+    console.log('Detected plan type:', planType)
     
-    // Check if user already exists
+    // Find or create user
+    let userId = null
     const { data: existingUser, error: userError } = await supabase
       .from('users')
       .select('id')
       .eq('stripe_customer_id', subscription.customer)
       .single()
-      
-    let userId = existingUser?.id
     
-    if (!userId) {
-      console.log('User not found, creating new user for customer:', subscription.customer)
-      // Create new user if not exists
+    if (userError || !existingUser) {
+      console.log('User not found, creating new user...')
+      
+      // Create new user
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
-          email: 'user@example.com', // Will be updated when we have customer details
-          full_name: 'Usuário VMetrics',
           stripe_customer_id: subscription.customer,
-          is_active: true
+          email: subscription.customer_email || 'unknown@example.com',
+          created_at: new Date(),
+          updated_at: new Date()
         })
         .select('id')
         .single()
@@ -205,6 +207,9 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       
       userId = newUser.id
       console.log('New user created:', userId)
+    } else {
+      userId = existingUser.id
+      console.log('Existing user found:', userId)
     }
     
     // Use UPSERT to handle both new plans and upgrades
@@ -242,19 +247,21 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
   console.log('Processing subscription updated:', subscription.id)
   
   try {
-    // Determine plan type based on product ID
+    // Determine plan type based on price amount
     let planType = 'starter'
-    if (subscription.items?.data?.[0]?.price?.product) {
-      const productId = subscription.items.data[0].price.product
-      
-      console.log('Product ID from subscription update:', productId)
-      
-      // Map product IDs to plan types
-      if (productId.includes('pro') || productId.includes('price_pro') || productId === 'prod_PvrF2GjvBWFrqQ') {
-        planType = 'pro'
-      } else if (productId.includes('enterprise') || productId.includes('price_enterprise')) {
-        planType = 'enterprise'
-      }
+    const priceAmount = subscription.items?.data?.[0]?.price?.unit_amount || 0
+    
+    console.log('Price amount from subscription update:', priceAmount)
+    
+    // Map price amounts to plan types
+    if (priceAmount === 4700) { // R$ 47,00
+      planType = 'monthly'
+    } else if (priceAmount === 3800) { // R$ 38,00
+      planType = 'quarterly'
+    } else if (priceAmount === 7990) { // R$ 79,90
+      planType = 'pro'
+    } else if (priceAmount === 2990) { // R$ 29,90
+      planType = 'starter'
     }
     
     console.log('Detected plan type:', planType)

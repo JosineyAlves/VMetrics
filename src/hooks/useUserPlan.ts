@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 interface UserPlan {
   id: string
-  plan_type: 'starter' | 'pro' | 'enterprise'
+  plan_type: 'starter' | 'pro' | 'enterprise' | 'monthly' | 'quarterly'
   status: 'active' | 'canceled' | 'past_due' | 'unpaid'
   stripe_subscription_id: string
   stripe_customer_id: string
@@ -22,6 +22,7 @@ interface UserPlanData {
     email: string
     stripe_customer_id: string
   } | null
+  invoice?: any // Adicionar propriedade invoice opcional
 }
 
 export const useUserPlan = (email: string) => {
