@@ -451,10 +451,28 @@ async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
       return
     }
     
+    // Find user by stripe_customer_id to get user_id
+    let userId = null
+    if (invoice.customer) {
+      const { data: existingUser, error: userError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('stripe_customer_id', invoice.customer)
+        .single()
+      
+      if (existingUser) {
+        userId = existingUser.id
+        console.log('Found user for invoice:', userId)
+      } else {
+        console.log('User not found for customer:', invoice.customer)
+      }
+    }
+    
     // Log the successful payment
     const { error } = await supabase
       .from('invoices')
       .insert({
+        user_id: userId, // ✅ AGORA TEM user_id!
         stripe_invoice_id: invoice.id,
         stripe_customer_id: invoice.customer,
         stripe_subscription_id: invoice.subscription,
@@ -470,7 +488,7 @@ async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
       return
     }
     
-    console.log('Invoice logged successfully')
+    console.log('Invoice logged successfully with user_id:', userId)
     
   } catch (error) {
     console.error('Error in handleInvoicePaymentSucceeded:', error)
