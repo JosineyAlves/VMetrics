@@ -229,3 +229,4 @@ export class CheckoutService {
 
 // Exportar instância singleton
 export const checkoutService = CheckoutService.getInstance()
+

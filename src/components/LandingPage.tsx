@@ -1,38 +1,32 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Star, ArrowRight, Shield, Zap, Users, BarChart3 } from 'lucide-react'
-import { STRIPE_PRODUCTS } from '../config/stripe'
+import { Check, Star, ArrowRight, Shield, Zap, Users, BarChart3, X } from 'lucide-react'
+import { LANDING_PLANS, formatPrice, getMainPrice, hasDiscount, getMaxDiscount, getPlanStripeUrl } from '../config/plans'
 import { APP_URLS } from '../config/urls'
 
 const LandingPage: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Links diretos do Stripe - ATUALIZAR COM SUAS URLs REAIS
-  const STRIPE_CHECKOUT_LINKS = {
-    starter: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV', // URL de teste
-    pro: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV',     // URL de teste
-    enterprise: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV' // URL de teste
-  }
-
   const handlePlanSelection = async (planType: string) => {
     setSelectedPlan(planType)
     setIsLoading(true)
     
     try {
+      const plan = LANDING_PLANS[planType]
+      if (!plan) {
+        throw new Error(`Plano ${planType} não encontrado`)
+      }
+
+      // Obter link do Stripe baseado no ambiente
+      const stripeUrl = getPlanStripeUrl(planType)
+      
       // Redirecionar para checkout do Stripe
-      const checkoutUrl = STRIPE_CHECKOUT_LINKS[planType as keyof typeof STRIPE_CHECKOUT_LINKS]
-      if (checkoutUrl) {
-        // Verificar se a URL é válida
-        if (checkoutUrl.includes('stripe.com')) {
-          window.open(checkoutUrl, '_blank')
-        } else {
-          console.error('❌ URL do Stripe inválida:', checkoutUrl)
-          alert('Erro: URL de checkout inválida. Entre em contato com o suporte.')
-        }
+      if (stripeUrl && stripeUrl.includes('stripe.com')) {
+        window.open(stripeUrl, '_blank')
       } else {
-        console.error('❌ URL não encontrada para o plano:', planType)
-        alert('Erro: Plano não configurado. Entre em contato com o suporte.')
+        console.error('❌ URL do Stripe inválida:', stripeUrl)
+        alert('Erro: URL de checkout inválida. Entre em contato com o suporte.')
       }
     } catch (error) {
       console.error('❌ Erro ao abrir checkout:', error)
@@ -266,59 +260,93 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {Object.entries(STRIPE_PRODUCTS).map(([planType, plan], index) => (
-              <motion.div
-                key={planType}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`bg-white rounded-2xl shadow-lg p-8 ${
-                  planType === 'pro' ? 'ring-2 ring-[#3cd48f] scale-105' : ''
-                }`}
-              >
-                {planType === 'pro' && (
-                  <div className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                    Mais Popular
-                  </div>
-                )}
-                
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  {plan.name}
-                </h3>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">
-                    {planType === 'enterprise' 
-                      ? 'Sob consulta'
-                      : `R$ ${('monthly' in plan.prices ? (plan.prices.monthly.amount / 100).toFixed(2).replace('.', ',') : '0,00')}`
-                    }
-                  </span>
-                  <span className="text-gray-600">
-                    {planType === 'enterprise' ? '' : '/mês'}
-                  </span>
-                </div>
-                
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center">
-                      <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                      <span className="text-gray-700">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <button
-                  onClick={() => handlePlanSelection(planType)}
-                  disabled={isLoading}
-                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
-                    planType === 'pro'
-                      ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white hover:shadow-lg hover:scale-105'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
+            {Object.entries(LANDING_PLANS).map(([planType, plan], index) => {
+              const mainPrice = getMainPrice(plan)
+              const showDiscount = hasDiscount(plan)
+              const maxDiscount = getMaxDiscount(plan)
+              
+              return (
+                <motion.div
+                  key={planType}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className={`bg-white rounded-2xl shadow-lg p-8 ${
+                    plan.popular ? 'ring-2 ring-[#3cd48f] scale-105' : ''
                   }`}
                 >
-                  {isLoading ? 'Carregando...' : (planType === 'enterprise' ? 'Falar com Vendas' : 'Começar Agora')}
-                </button>
-              </motion.div>
-            ))}
+                  {plan.popular && (
+                    <div className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
+                      Mais Popular
+                    </div>
+                  )}
+                  
+                  {showDiscount && (
+                    <div className="bg-red-100 text-red-600 text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
+                      {maxDiscount}% OFF
+                    </div>
+                  )}
+                  
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {plan.name}
+                  </h3>
+                  
+                  <p className="text-gray-600 mb-4">
+                    {plan.description}
+                  </p>
+                  
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold text-gray-900">
+                      {mainPrice ? formatPrice(mainPrice.amount, mainPrice.currency) : 'Sob consulta'}
+                    </span>
+                    {mainPrice && mainPrice.interval === 'month' && (
+                      <span className="text-gray-600">/mês</span>
+                    )}
+                    {mainPrice && mainPrice.interval === 'quarter' && (
+                      <span className="text-gray-600">/trimestre</span>
+                    )}
+                  </div>
+                  
+                  {showDiscount && mainPrice && mainPrice.originalAmount && (
+                    <div className="mb-4">
+                      <span className="text-gray-500 line-through">
+                        {formatPrice(mainPrice.originalAmount, mainPrice.currency)}
+                      </span>
+                      <span className="text-green-600 font-semibold ml-2">
+                        Economia de {formatPrice(mainPrice.originalAmount - mainPrice.amount, mainPrice.currency)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center">
+                        {feature.included ? (
+                          <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                        ) : (
+                          <X className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                        )}
+                        <span className={`${feature.included ? 'text-gray-700' : 'text-gray-400'}`}>
+                          {feature.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <button
+                    onClick={() => handlePlanSelection(planType)}
+                    disabled={isLoading}
+                    className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
+                      plan.popular
+                        ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white hover:shadow-lg hover:scale-105'
+                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                    }`}
+                  >
+                    {isLoading ? 'Carregando...' : (planType === 'enterprise' ? 'Falar com Vendas' : 'Começar Agora')}
+                  </button>
+                </motion.div>
+              )
+            })}
           </div>
         </div>
       </section>
@@ -380,14 +408,14 @@ const LandingPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="#pricing"
-                              className="bg-white text-[#3cd48f] px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
+              className="bg-white text-[#3cd48f] px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition-all duration-200 hover:scale-105"
             >
               Ver Planos
               <ArrowRight className="w-5 h-5 ml-2 inline" />
             </a>
             <a
               href={APP_URLS.DASHBOARD_APP}
-                              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-[#3cd48f] transition-colors"
+              className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-[#3cd48f] transition-colors"
             >
               Acessar Dashboard
             </a>
