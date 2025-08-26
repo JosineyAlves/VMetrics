@@ -73,32 +73,13 @@ const Settings: React.FC = () => {
     planStatus
   } = useUserPlan(userEmail)
 
-  // Estado para faturas do Stripe
-  const [invoices, setInvoices] = useState([])
-  const [loadingInvoices, setLoadingInvoices] = useState(false)
-
-  // Buscar faturas do Stripe
-  const fetchInvoices = async () => {
-    if (!planData?.plan?.stripe_subscription_id) return
-    
-    setLoadingInvoices(true)
-    try {
-      const response = await fetch(`/api/stripe-invoice?subscriptionId=${planData.plan.stripe_subscription_id}`)
-      
-      if (response.ok) {
-        const invoiceData = await response.json()
-        setInvoices([invoiceData])
-      } else {
-        setInvoices([])
-      }
-    } catch (error) {
-      console.error('❌ [SETTINGS] Erro ao buscar fatura:', error)
-      setInvoices([])
-    } finally {
-      setLoadingInvoices(false)
-    }
+  // Gerar array de faturas baseado no plano
+  const generateInvoices = () => {
+    if (!planData?.invoice) return []
+    return [planData.invoice]
   }
 
+  const invoices = generateInvoices()
   const hasInvoices = invoices.length > 0
 
   const tabs = [
@@ -193,12 +174,7 @@ const Settings: React.FC = () => {
     }
   }, [activeTab])
 
-  // Buscar faturas quando o plano for carregado
-  useEffect(() => {
-    if (planData?.plan?.stripe_subscription_id) {
-      fetchInvoices()
-    }
-  }, [planData])
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -687,7 +663,7 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {planLoading || loadingInvoices ? (
+          {planLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-600">Carregando faturas...</p>

@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import Stripe from 'stripe'
 
 // Usar variáveis de ambiente do Vercel (VITE_ prefix)
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://fkqkwhzjvpzycfkbnqaq.supabase.co'
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcWt3aHpqdnB6eWNma2JucWFxIiwicm9sZSI6MTc1NDc1MTQ5NiwiZXhwIjoyMDcwMzI3NDk2fQ.ERA8osin0hmdw0sEoF9qhBU-tKRE4zt2lMGLScL4ap0'
+
+// Configurar Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_...')
 
 console.log('🔧 [USER-PLAN] Configuração Supabase:')
 console.log('🔧 [USER-PLAN] URL:', supabaseUrl)
@@ -90,20 +94,59 @@ export default async function handler(req, res) {
       updated_at: userPlan.updated_at
     }
 
-    // 4. Mapear tipo de plano para informações detalhadas
-    const planInfo = getPlanInfo(userPlan.plan_type)
-
-    const response = {
-      plan: {
-        ...planData,
-        ...planInfo
-      },
-      user: {
-        id: user.id,
-        email: email,
-        stripe_customer_id: user.stripe_customer_id
-      }
-    }
+               // 4. Mapear tipo de plano para informações detalhadas
+           const planInfo = getPlanInfo(userPlan.plan_type)
+           
+           // 5. Buscar fatura do Stripe se tiver subscription_id
+           let invoice = null
+           if (userPlan.stripe_subscription_id) {
+             try {
+               console.log('🔍 [USER-PLAN] Buscando fatura no Stripe para:', userPlan.stripe_subscription_id)
+               
+               // Buscar a fatura mais recente da assinatura
+               const invoices = await stripe.invoices.list({
+                 subscription: userPlan.stripe_subscription_id,
+                 limit: 1,
+                 status: 'paid'
+               })
+               
+               if (invoices.data.length > 0) {
+                 const stripeInvoice = invoices.data[0]
+                 invoice = {
+                   id: stripeInvoice.id,
+                   number: stripeInvoice.number,
+                   amount: stripeInvoice.amount_paid,
+                   currency: stripeInvoice.currency,
+                   status: stripeInvoice.status,
+                   created: new Date(stripeInvoice.created * 1000).toISOString(),
+                   due_date: new Date(stripeInvoice.due_date * 1000).toISOString(),
+                   description: stripeInvoice.description || `Assinatura ${userPlan.plan_type}`,
+                   invoice_pdf: stripeInvoice.invoice_pdf,
+                   hosted_invoice_url: stripeInvoice.hosted_invoice_url,
+                   formatted_amount: `R$ ${(stripeInvoice.amount_paid / 100).toFixed(2).replace('.', ',')}`,
+                   status_text: stripeInvoice.status === 'paid' ? 'Pago' : 'Pendente',
+                   status_color: stripeInvoice.status === 'paid' ? 'green' : 'yellow'
+                 }
+                 console.log('✅ [USER-PLAN] Fatura encontrada:', invoice.id)
+               }
+             } catch (error) {
+               console.error('❌ [USER-PLAN] Erro ao buscar fatura no Stripe:', error)
+               // Não falhar se Stripe der erro, apenas continuar sem fatura
+             }
+           }
+       
+           const response = {
+             plan: {
+               ...planData,
+               ...planInfo
+             },
+             user: {
+               id: user.id,
+               email: email,
+               stripe_customer_id: user.stripe_customer_id
+             },
+             invoice: invoice
+           }
 
     console.log('✅ [USER-PLAN] Resposta formatada:', response)
 
