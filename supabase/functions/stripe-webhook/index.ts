@@ -205,41 +205,84 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-    // Find or create user by stripe_customer_id (most reliable for subscriptions)
+    // Find or create user by email (most reliable for subscriptions)
     let userId = null
-    const { data: existingUserByStripe, error: stripeError } = await supabase
-      .from('users')
-      .select('id, email, stripe_customer_id')
-      .eq('stripe_customer_id', subscription.customer)
-      .single()
     
-    if (existingUserByStripe) {
-      userId = existingUserByStripe.id
-      console.log('Existing user found by stripe_customer_id:', userId, 'with email:', existingUserByStripe.email)
+    // First, try to get customer email from Stripe subscription
+    let customerEmail = subscription.customer_email
+    
+    if (!customerEmail) {
+      console.log('No customer_email in subscription, trying to find user by stripe_customer_id...')
       
-      // Update stripe_customer_id if different (shouldn't happen, but just in case)
-      if (existingUserByStripe.stripe_customer_id !== subscription.customer) {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ stripe_customer_id: subscription.customer })
-          .eq('id', userId)
+      // Try to find user by stripe_customer_id first
+      const { data: existingUserByStripe, error: stripeError } = await supabase
+        .from('users')
+        .select('id, email, stripe_customer_id')
+        .eq('stripe_customer_id', subscription.customer)
+        .single()
+      
+      if (existingUserByStripe) {
+        userId = existingUserByStripe.id
+        customerEmail = existingUserByStripe.email
+        console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
         
-        if (updateError) {
-          console.error('Error updating stripe_customer_id:', updateError)
-        } else {
-          console.log('Updated stripe_customer_id for existing user')
+        // Update stripe_customer_id if different
+        if (existingUserByStripe.stripe_customer_id !== subscription.customer) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ stripe_customer_id: subscription.customer })
+            .eq('id', userId)
+          
+          if (updateError) {
+            console.error('Error updating stripe_customer_id:', updateError)
+          } else {
+            console.log('Updated stripe_customer_id for existing user')
+          }
         }
       }
-    } else {
-      // If not found by stripe_customer_id, try to find by email from customer details
-      console.log('User not found by stripe_customer_id, trying to get customer details from Stripe...')
+    }
+    
+    // If we have an email, try to find user by email
+    if (customerEmail && !userId) {
+      console.log('Searching for user by email:', customerEmail)
       
-      // For now, we'll create a new user but this should be avoided
-      // In production, we should get customer email from Stripe API
+      const { data: existingUserByEmail, error: emailError } = await supabase
+        .from('users')
+        .select('id, email, stripe_customer_id')
+        .eq('email', customerEmail)
+        .single()
+      
+      if (existingUserByEmail) {
+        userId = existingUserByEmail.id
+        console.log('Existing user found by email:', userId, 'with stripe_customer_id:', existingUserByEmail.stripe_customer_id)
+        
+        // Update stripe_customer_id if different
+        if (existingUserByEmail.stripe_customer_id !== subscription.customer) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ stripe_customer_id: subscription.customer })
+            .eq('id', userId)
+          
+          if (updateError) {
+            console.error('Error updating stripe_customer_id:', updateError)
+          } else {
+            console.log('Updated stripe_customer_id for existing user')
+          }
+        }
+      }
+    }
+    
+    // If still no user found, create a new one
+    if (!userId) {
+      console.log('No existing user found, creating new user...')
+      
+      // Try to get a meaningful email
+      const finalEmail = customerEmail || `stripe_${subscription.customer}@vmetrics.com.br`
+      
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
-          email: `stripe_${subscription.customer}@vmetrics.com.br`, // Temporary email
+          email: finalEmail,
           full_name: 'Usuário VMetrics',
           stripe_customer_id: subscription.customer,
           is_active: true
@@ -253,7 +296,7 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       }
       
       userId = newUser.id
-      console.log('New user created with temporary email:', userId)
+      console.log('New user created with email:', finalEmail, 'ID:', userId)
     }
     
     // First, check if user already has an active plan
