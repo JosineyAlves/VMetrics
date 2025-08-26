@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14.21.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -276,6 +277,7 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     if (existingPlans && existingPlans.length > 0) {
       console.log('Deactivating existing plans...')
       
+      // Cancelar planos no banco
       const { error: deactivateError } = await supabase
         .from('user_plans')
         .update({ status: 'cancelled' })
@@ -285,6 +287,34 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       if (deactivateError) {
         console.error('Error deactivating existing plans:', deactivateError)
         return
+      }
+      
+      // Cancelar assinaturas no Stripe
+      for (const plan of existingPlans) {
+        if (plan.stripe_subscription_id) {
+          try {
+            console.log('Cancelling Stripe subscription:', plan.stripe_subscription_id)
+            
+            // Inicializar Stripe
+            const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
+              apiVersion: '2024-06-20'
+            })
+            
+            // Cancelar no final do período (mais amigável)
+            await stripe.subscriptions.update(plan.stripe_subscription_id, {
+              cancel_at_period_end: true,
+              metadata: {
+                cancellation_reason: 'plan_upgrade',
+                cancelled_at: new Date().toISOString()
+              }
+            })
+            
+            console.log('Stripe subscription cancelled successfully:', plan.stripe_subscription_id)
+          } catch (stripeError) {
+            console.error('Error cancelling Stripe subscription:', stripeError)
+            // Não falhar o processo se o cancelamento do Stripe falhar
+          }
+        }
       }
       
       console.log('Existing plans deactivated successfully')
