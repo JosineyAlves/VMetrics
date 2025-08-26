@@ -137,14 +137,14 @@ export default async function handler(req, res) {
              try {
                console.log('🔍 [USER-PLAN] Buscando fatura atual no Stripe para subscription:', userPlan.stripe_subscription_id)
                
-               const stripeInvoice = await stripe.invoices.list({
-                 subscription: userPlan.stscription_id,
+               const stripeInvoices = await stripe.invoices.list({
+                 subscription: userPlan.stripe_subscription_id,
                  limit: 1,
                  status: 'paid'
                })
                
-               if (stripeInvoice.data && stripeInvoice.data.length > 0) {
-                 const stripeInvoice = stripeInvoice.data[0]
+               if (stripeInvoices.data && stripeInvoices.data.length > 0) {
+                 const stripeInvoice = stripeInvoices.data[0]
                  currentInvoice = {
                    id: stripeInvoice.id,
                    number: stripeInvoice.number,
