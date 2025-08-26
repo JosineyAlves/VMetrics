@@ -206,126 +206,88 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-    // Find or create user by stripe_customer_id (most reliable for subscriptions)
+    // Find or create user by email (most reliable for subscriptions)
     let userId = null
-    const { data: existingUserByStripe, error: stripeError } = await supabase
-      .from('users')
-      .select('id, email, stripe_customer_id')
-      .eq('stripe_customer_id', subscription.customer)
-      .single()
     
-    if (existingUserByStripe) {
-      userId = existingUserByStripe.id
-      console.log('Existing user found by stripe_customer_id:', userId, 'with email:', existingUserByStripe.email)
+    // Get customer email from Stripe first
+    try {
+      const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
+        apiVersion: '2024-06-20'
+      })
       
-      // Update stripe_customer_id if different (shouldn't happen, but just in case)
-      if (existingUserByStripe.stripe_customer_id !== subscription.customer) {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ stripe_customer_id: subscription.customer })
-          .eq('id', userId)
-        
-        if (updateError) {
-          console.error('Error updating stripe_customer_id:', updateError)
-        } else {
-          console.log('Updated stripe_customer_id for existing user')
-        }
-      }
-    } else {
-      // If not found by stripe_customer_id, try to find by email from customer details
-      console.log('User not found by stripe_customer_id, trying to get customer details from Stripe...')
+      const customer = await stripe.customers.retrieve(subscription.customer)
+      const customerEmail = customer.email
       
-      // For now, we'll create a new user but this should be avoided
-      // In production, we should get customer email from Stripe API
-      const { data: newUser, error: createError } = await supabase
+      console.log('Customer email from Stripe:', customerEmail)
+      
+      // Try to find user by email first
+      const { data: existingUserByEmail, error: emailError } = await supabase
         .from('users')
-        .insert({
-          email: `stripe_${subscription.customer}@vmetrics.com.br`, // Temporary email
-          full_name: 'Usuário VMetrics',
-          stripe_customer_id: subscription.customer,
-          is_active: true
-        })
-        .select('id')
+        .select('id, email, stripe_customer_id')
+        .eq('email', customerEmail)
         .single()
       
-      if (createError) {
-        console.error('Error creating user:', createError)
-        return
+      if (existingUserByEmail) {
+        userId = existingUserByEmail.id
+        console.log('Existing user found by email:', userId, 'with email:', existingUserByEmail.email)
+        
+        // Update stripe_customer_id if different
+        if (existingUserByEmail.stripe_customer_id !== subscription.customer) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ stripe_customer_id: subscription.customer })
+            .eq('id', userId)
+          
+          if (updateError) {
+            console.error('Error updating stripe_customer_id:', updateError)
+          } else {
+            console.log('Updated stripe_customer_id for existing user')
+          }
+        }
+      } else {
+        // If not found by email, try to find by stripe_customer_id
+        const { data: existingUserByStripe, error: stripeError } = await supabase
+          .from('users')
+          .select('id, email, stripe_customer_id')
+          .eq('stripe_customer_id', subscription.customer)
+          .single()
+        
+        if (existingUserByStripe) {
+          userId = existingUserByStripe.id
+          console.log('Existing user found by stripe_customer_id:', userId, 'with email:', existingUserByStripe.email)
+        } else {
+          // Create new user only if neither exists
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              email: customerEmail,
+              full_name: 'Usuário VMetrics',
+              stripe_customer_id: subscription.customer,
+              is_active: true
+            })
+            .select('id')
+            .single()
+          
+          if (createError) {
+            console.error('Error creating user:', createError)
+            return
+          }
+          
+          userId = newUser.id
+          console.log('New user created:', userId)
+        }
       }
-      
-      userId = newUser.id
-      console.log('New user created with temporary email:', userId)
-    }
-    
-    // First, check if user already has an active plan
-    console.log('Checking existing plans for user:', userId)
-    
-    const { data: existingPlans, error: plansError } = await supabase
-      .from('user_plans')
-      .select('id, plan_type, status')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-    
-    if (plansError) {
-      console.error('Error checking existing plans:', plansError)
+    } catch (stripeError) {
+      console.error('Error retrieving customer from Stripe:', stripeError)
       return
     }
     
-    console.log('Existing active plans found:', existingPlans?.length || 0)
+    // Use UPSERT to handle both new plans and upgrades
+    console.log('Upserting plan for user:', userId, 'with subscription:', subscription.id)
     
-    // If user has active plans, deactivate them first
-    if (existingPlans && existingPlans.length > 0) {
-      console.log('Deactivating existing plans...')
-      
-      // Cancelar planos no banco
-      const { error: deactivateError } = await supabase
-        .from('user_plans')
-        .update({ status: 'cancelled' })
-        .eq('user_id', userId)
-        .eq('status', 'active')
-      
-      if (deactivateError) {
-        console.error('Error deactivating existing plans:', deactivateError)
-        return
-      }
-      
-      // Cancelar assinaturas no Stripe
-      for (const plan of existingPlans) {
-        if (plan.stripe_subscription_id) {
-          try {
-            console.log('Cancelling Stripe subscription:', plan.stripe_subscription_id)
-            
-            // Inicializar Stripe
-            const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
-              apiVersion: '2024-06-20'
-            })
-            
-            // Cancelar no final do período (mais amigável)
-            await stripe.subscriptions.update(plan.stripe_subscription_id, {
-              cancel_at_period_end: true,
-              metadata: {
-                cancellation_reason: 'plan_upgrade',
-                cancelled_at: new Date().toISOString()
-              }
-            })
-            
-            console.log('Stripe subscription cancelled successfully:', plan.stripe_subscription_id)
-          } catch (stripeError) {
-            console.error('Error cancelling Stripe subscription:', stripeError)
-            // Não falhar o processo se o cancelamento do Stripe falhar
-          }
-        }
-      }
-      
-      console.log('Existing plans deactivated successfully')
-    }
-    
-    // Now create the new plan
-    console.log('Creating new plan for user:', userId, 'with subscription:', subscription.id)
-    
-    const { error: insertError } = await supabase
+    const { error: upsertError } = await supabase
       .from('user_plans')
-      .insert({
+      .upsert({
         user_id: userId,
         plan_type: planType,
         stripe_subscription_id: subscription.id,
@@ -333,14 +295,16 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000)
+      }, {
+        onConflict: 'stripe_subscription_id'
       })
     
-    if (insertError) {
-      console.error('Error creating user plan:', insertError)
+    if (upsertError) {
+      console.error('Error upserting user plan:', upsertError)
       return
     }
     
-    console.log('User plan created successfully with plan type:', planType)
+    console.log('User plan upserted successfully with plan type:', planType)
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)
