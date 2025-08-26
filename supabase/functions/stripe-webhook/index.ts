@@ -190,10 +190,10 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
-          stripe_customer_id: subscription.customer,
           email: subscription.customer_email || 'unknown@example.com',
-          created_at: new Date(),
-          updated_at: new Date()
+          full_name: 'Usuário VMetrics',
+          stripe_customer_id: subscription.customer,
+          is_active: true
         })
         .select('id')
         .single()
@@ -222,8 +222,7 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
         stripe_customer_id: subscription.customer,
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000),
-        current_period_end: new Date(subscription.current_period_end * 1000),
-        updated_at: new Date()
+        current_period_end: new Date(subscription.current_period_end * 1000)
       }, {
         onConflict: 'stripe_subscription_id' // Use subscription ID as conflict resolution
       })
@@ -271,8 +270,7 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
         stripe_customer_id: subscription.customer,
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000),
-        current_period_end: new Date(subscription.current_period_end * 1000),
-        updated_at: new Date()
+        current_period_end: new Date(subscription.current_period_end * 1000)
       }, {
         onConflict: 'stripe_subscription_id'
       })
