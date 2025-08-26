@@ -100,31 +100,31 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 47 (será atualizado)
+        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 63,20 (será atualizado)
         yearly: null
       }
     },
     prices: {
       monthly: {
-        amount: 4700, // R$ 47,00 (40% desconto vs R$ 79)
+        amount: 6320, // R$ 63,20 (20% desconto vs R$ 79)
         currency: 'brl',
         interval: 'month',
-        originalPrice: 7990, // R$ 79,90 (preço final)
-        discount: 40 // 40% de desconto
+        originalPrice: 7900, // R$ 79,00 (preço final)
+        discount: 20 // 20% de desconto durante beta
       },
       yearly: {
-        amount: 47000, // R$ 470,00 (40% desconto vs R$ 799)
+        amount: 63200, // R$ 632,00 (20% desconto vs R$ 790)
         currency: 'brl',
         interval: 'year',
-        originalPrice: 79900, // R$ 799,00 (preço final)
-        discount: 40 // 40% de desconto
+        originalPrice: 79000, // R$ 790,00 (preço final)
+        discount: 20 // 20% de desconto durante beta
       }
     }
   },
-  // Plano trimestral com desconto adicional
+  // Plano trimestral com desconto durante o beta
   quarterly: {
     name: 'Plano Trimestral',
-    description: 'Acesso completo ao vMetrics com máximo desconto',
+    description: 'Acesso completo ao vMetrics com desconto promocional',
     features: [
       'Dashboard integrado ao RedTrack',
       'Métricas avançadas (ROI, CPA, CTR)',
@@ -136,31 +136,30 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        quarterly: 'price_quarterly_new', // R$ 38 (será criado)
+        quarterly: 'price_quarterly_new', // R$ 157,60 (será criado)
         yearly: null
       }
     },
     prices: {
       quarterly: {
-        amount: 3800, // R$ 38,00 (52% desconto vs R$ 79 + 20% vs mensal)
+        amount: 15760, // R$ 157,60 (20% desconto vs R$ 197)
         currency: 'brl',
         interval: 'month',
         billingInterval: 3, // Cobrança a cada 3 meses
-        totalAmount: 11400, // R$ 114,00 (3 × R$ 38)
-        originalPrice: 7990, // R$ 79,90 (preço final)
-        discount: 52, // 52% de desconto total
-        additionalDiscount: 20 // 20% adicional vs plano mensal
+        totalAmount: 47280, // R$ 472,80 (3 × R$ 157,60)
+        originalPrice: 19700, // R$ 197,00 (preço final)
+        discount: 20 // 20% de desconto durante beta
       },
       yearly: {
-        amount: 38000, // R$ 380,00 (52% desconto vs R$ 799)
+        amount: 157600, // R$ 1.576,00 (20% desconto vs R$ 1.970)
         currency: 'brl',
         interval: 'year',
-        originalPrice: 79900, // R$ 799,00 (preço final)
-        discount: 52 // 52% de desconto total
+        originalPrice: 197000, // R$ 1.970,00 (preço final)
+        discount: 20 // 20% de desconto durante beta
       }
     }
   },
-  // Planos finais (pós-beta)
+  // Plano Pro (pós-beta)
   pro: {
     name: 'Plano Pro',
     description: 'Acesso completo ao vMetrics',
@@ -175,45 +174,20 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ',
       prices: {
-        monthly: 'price_1Rv5diL6dVrVagX4RVadte0b', // R$ 79,90
+        monthly: 'price_1Rv5diL6dVrVagX4RVadte0b', // R$ 79,00
         yearly: null
       }
     },
     prices: {
       monthly: {
-        amount: 7990, // R$ 79,90 (preço final)
+        amount: 7900, // R$ 79,00 (preço final)
         currency: 'brl',
         interval: 'month'
       },
       yearly: {
-        amount: 79900, // R$ 799,00 (preço final)
+        amount: 79000, // R$ 790,00 (preço final)
         currency: 'brl',
         interval: 'year'
-      }
-    }
-  },
-  enterprise: {
-    name: 'Plano Enterprise',
-    description: 'Solução personalizada para grandes empresas',
-    features: [
-      'Tudo do plano Pro',
-      'Suporte 24/7',
-      'Integrações customizadas',
-      'SLA garantido',
-      'Onboarding dedicado',
-      'Relatórios personalizados'
-    ],
-    stripeIds: {
-      product: null, // Não configurado ainda
-      prices: {
-        custom: null // Sob consulta
-      }
-    },
-    prices: {
-      custom: {
-        amount: 0, // Sob consulta
-        currency: 'brl',
-        interval: 'custom'
       }
     }
   }

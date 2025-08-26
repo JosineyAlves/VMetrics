@@ -640,41 +640,34 @@ const Settings: React.FC = () => {
             </Button>
           </div>
 
-          {/* Plano Enterprise */}
+          {/* Plano Pro (Referência) */}
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-2">Enterprise</h4>
-              <div className="text-3xl font-bold text-[#3cd48f] mb-1">Sob consulta</div>
-              <div className="text-gray-600">personalizado</div>
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.pro.name}</h4>
+              <div className="text-3xl font-bold text-gray-600 mb-1">
+                {currencySymbol}{(STRIPE_PRODUCTS.pro.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
+              </div>
+              <div className="text-gray-600">por mês</div>
+              <div className="text-sm text-gray-500 mt-1">
+                <span className="text-gray-600 font-medium">
+                  Preço final (pós-beta)
+                </span>
+              </div>
             </div>
             <ul className="space-y-3 mb-6">
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Tudo do plano Pro</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Suporte 24/7</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Integrações customizadas</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">SLA garantido</span>
-              </li>
+              {STRIPE_PRODUCTS.pro.features.map((feature, index) => (
+                <li key={index} className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
+                </li>
+              ))}
             </ul>
             <Button 
-              variant={planType === 'enterprise' ? 'outline' : 'outline'}
-              className={`w-full rounded-xl ${
-                planType === 'enterprise' 
-                  ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
-                  : ''
-              }`}
-              disabled={planType === 'enterprise'}
+              variant="outline"
+              className="w-full rounded-xl border-gray-300 text-gray-600"
+              disabled
             >
-              {planType === 'enterprise' ? 'Plano Atual' : 'Contatar Vendas'}
+              Disponível Pós-Beta
             </Button>
           </div>
         </div>

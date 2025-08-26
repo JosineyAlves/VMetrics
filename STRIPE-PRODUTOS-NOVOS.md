@@ -9,29 +9,31 @@
 
 ### **2. Preços a Serem Criados/Atualizados**
 
-#### **🟢 Plano Mensal (R$ 47,00)**
+#### **🟢 Plano Mensal (R$ 63,20/mês)**
 - **Tipo:** Recurring
 - **Intervalo:** Monthly
-- **Valor:** R$ 47,00 (R$ 0,47 × 100)
+- **Valor:** R$ 63,20 (R$ 0,632 × 100)
 - **Moeda:** BRL
-- **Desconto:** 40% vs preço final (R$ 79,90)
+- **Desconto:** 20% vs preço final (R$ 79,00)
 - **Status:** Active
-- **ID Sugerido:** `price_monthly_47`
+- **ID Sugerido:** `price_monthly_63`
+- **Nota:** Desconto promocional durante o beta
 
-#### **🟡 Plano Trimestral (R$ 38,00)**
+#### **🟡 Plano Trimestral (R$ 157,60/mês)**
 - **Tipo:** Recurring
 - **Intervalo:** Monthly (billing every 3 months)
-- **Valor:** R$ 38,00 (R$ 0,38 × 100)
+- **Valor:** R$ 157,60 (R$ 1,576 × 100)
 - **Moeda:** BRL
-- **Desconto:** 52% vs preço final (R$ 79,90) + 20% vs plano mensal
+- **Desconto:** 20% vs preço final (R$ 197,00)
 - **Status:** Active
-- **ID Sugerido:** `price_quarterly_38`
-- **Nota:** Configurar para cobrar a cada 3 meses
+- **ID Sugerido:** `price_quarterly_157`
+- **Nota:** Desconto promocional durante o beta + cobrança a cada 3 meses
 
-#### **🔴 Plano Pro (R$ 79,90) - Existente**
+#### **🔴 Plano Pro (R$ 79,00/mês) - Pós-beta**
 - **ID:** `price_1Rv5diL6dVrVagX4RVadte0b`
-- **Valor:** R$ 79,90
+- **Valor:** R$ 79,00
 - **Status:** Active (manter para referência)
+- **Nota:** Preço final após o período beta
 
 ## 🔧 **Passos para Configuração no Stripe Dashboard**
 
@@ -47,23 +49,23 @@
 
 ### **Passo 3: Criar/Atualizar Preços**
 
-#### **Para o Plano Mensal (R$ 47,00):**
+#### **Para o Plano Mensal (R$ 63,20):**
 1. Clique em **Add price**
 2. Configure:
    - **Price type:** Recurring
    - **Billing period:** Monthly
-   - **Amount:** 47.00
+   - **Amount:** 63.20
    - **Currency:** BRL
    - **Billing cycle:** Every month
 3. Clique em **Save**
 4. Copie o **Price ID** gerado
 
-#### **Para o Plano Trimestral (R$ 38,00):**
+#### **Para o Plano Trimestral (R$ 157,60):**
 1. Clique em **Add price**
 2. Configure:
    - **Price type:** Recurring
    - **Billing period:** Monthly
-   - **Amount:** 38.00
+   - **Amount:** 157.60
    - **Currency:** BRL
    - **Billing cycle:** Every 3 months
 3. Clique em **Save**
@@ -80,7 +82,7 @@ monthly: {
   stripeIds: {
     product: 'prod_PvrF2GjvBWFrqQ',
     prices: {
-      monthly: 'price_monthly_47', // ID real gerado
+      monthly: 'price_monthly_63', // ID real gerado
       yearly: null
     }
   }
@@ -90,7 +92,7 @@ quarterly: {
   stripeIds: {
     product: 'prod_PvrF2GjvBWFrqQ',
     prices: {
-      quarterly: 'price_quarterly_38', // ID real gerado
+      quarterly: 'price_quarterly_157', // ID real gerado
       yearly: null
     }
   }
@@ -109,20 +111,21 @@ const STRIPE_CHECKOUT_LINKS = {
 ## 📊 **Estrutura Final dos Planos**
 
 ```
-🟢 **Plano Mensal (R$ 47/mês)**
-- 40% de desconto vs preço final
+🟢 **Plano Mensal (R$ 63,20/mês)**
+- 20% de desconto vs preço final
 - Pagamento mensal
 - Todas as funcionalidades
+- **Desconto promocional durante o beta**
 
-🟡 **Plano Trimestral (R$ 38/mês)**
-- 52% de desconto vs preço final
-- 20% adicional vs plano mensal
+🟡 **Plano Trimestral (R$ 157,60/mês)**
+- 20% de desconto vs preço final
 - Pagamento a cada 3 meses
 - Todas as funcionalidades
+- **Desconto promocional durante o beta**
 
-🔴 **Plano Pro (R$ 79,90/mês)**
+🔴 **Plano Pro (R$ 79,00/mês)**
 - Preço final (sem desconto)
-- Pagamento mensal
+- Disponível pós-beta
 - Todas as funcionalidades
 ```
 
@@ -132,7 +135,7 @@ const STRIPE_CHECKOUT_LINKS = {
 2. **Atualizar IDs dos preços** no código
 3. **Criar links de checkout** para cada plano
 4. **Testar funcionalidade** completa
-5. **Lançar planos promocionais**
+5. **Lançar planos promocionais** com desconto de 20%
 
 ## ⚠️ **Importante**
 
@@ -140,8 +143,10 @@ const STRIPE_CHECKOUT_LINKS = {
 - **Teste cada plano** antes do lançamento
 - **Verifique webhooks** para novos tipos de plano
 - **Monitore logs** durante testes
+- **Desconto de 20%** é promocional durante o beta
 
 ---
 
-**Status:** ✅ Configuração preparada
+**Status:** ✅ Configuração atualizada
 **Próximo:** Configurar produtos no Stripe Dashboard
+**Desconto:** 20% durante o beta
