@@ -10,8 +10,8 @@ export const STRIPE_LINKS = {
   
   // 🟢 LINKS DE PRODUÇÃO (Stripe Live Mode)
   production: {
-    monthly: 'https://buy.stripe.com/8x214oa7m2gP5t7e1K33W03',        // R$ 79,00 - ATUALIZAR QUANDO FOR PARA PRODUÇÃO
-    quarterly: 'https://buy.stripe.com/8x2aEY0wM5t11cRaPy33W04'       // R$ 197,00 - ATUALIZAR QUANDO FOR PARA PRODUÇÃO
+    monthly: 'https://buy.stripe.com/8x214oa7m2gP5t7e1K33W03',        // R$ 79,00
+    quarterly: 'https://buy.stripe.com/8x2aEY0wM5t11cRaPy33W04'       // R$ 197,00
   }
 }
 

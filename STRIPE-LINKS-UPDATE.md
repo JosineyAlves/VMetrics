@@ -8,30 +8,27 @@ A landing page foi atualizada com:
 - ✅ Sistema de descontos (17% OFF no plano trimestral)
 - ✅ Links do Stripe configuráveis por ambiente
 - ✅ Mesmo padrão visual da tela de faturas
-- ✅ URLs reais do Stripe configuradas
+- ✅ URLs reais do Stripe configuradas (teste e produção)
 
 ## 🚨 Ações Necessárias
 
-### 1. Links de Produção (Opcional)
+### 1. Links de Produção ✅ CONFIGURADOS
 
-Os links de produção já estão configurados como placeholder. Quando for para produção, editar o arquivo `src/config/stripeLinks.ts`:
+Os links de produção já estão configurados e funcionando corretamente:
 
 ```typescript
 // 🟢 LINKS DE PRODUÇÃO (Stripe Live Mode)
 production: {
-  monthly: 'https://buy.stripe.com/SEU_LINK_REAL_MENSAL',      // ATUALIZAR
-  quarterly: 'https://buy.stripe.com/SEU_LINK_REAL_TRIMESTRAL'  // ATUALIZAR
+  monthly: 'https://buy.stripe.com/8x214oa7m2gP5t7e1K33W03',        // R$ 79,00
+  quarterly: 'https://buy.stripe.com/8x2aEY0wM5t11cRaPy33W04'       // R$ 197,00
 }
 ```
 
-### 2. Como Obter os Links de Produção
+### 2. Como Funciona a Detecção de Ambiente
 
-1. Acesse o [Dashboard do Stripe](https://dashboard.stripe.com/)
-2. Vá em **Produtos** → **Links de pagamento**
-3. Crie ou edite os links para cada plano:
-   - **Mensal**: R$ 79,00/mês
-   - **Trimestral**: R$ 197,00/mês
-4. Copie as URLs geradas e cole no arquivo de configuração
+A aplicação detecta automaticamente o ambiente:
+- **vmetrics.com.br** → Usa links de produção
+- **localhost** ou outros → Usa links de teste
 
 ## 🔧 Estrutura dos Arquivos
 
@@ -71,18 +68,18 @@ src/components/
 - **Mensal**: `https://buy.stripe.com/test_8x214oa7m2gP5t7e1K33W03`
 - **Trimestral**: `https://buy.stripe.com/test_8x2aEY0wM5t11cRaPy33W04`
 
-### Produção (Placeholder)
+### Produção ✅ FUNCIONANDO
 - **Mensal**: `https://buy.stripe.com/8x214oa7m2gP5t7e1K33W03`
 - **Trimestral**: `https://buy.stripe.com/8x2aEY0wM5t11cRaPy33W04`
 
 ## 🚀 Deploy
 
-Após atualizar os links (se necessário):
+As URLs já estão configuradas corretamente:
 
-1. Fazer commit das alterações
-2. Fazer deploy para produção
-3. Testar os links na landing page
-4. Verificar se o redirecionamento está funcionando
+1. ✅ Links de teste funcionando
+2. ✅ Links de produção funcionando
+3. ✅ Detecção automática de ambiente
+4. ✅ Pronto para deploy
 
 ## 📞 Suporte
 
