@@ -73,31 +73,32 @@ const Settings: React.FC = () => {
     planStatus
   } = useUserPlan(userEmail)
 
-  // Gerar faturas baseadas no plano ativo (sem API adicional)
-  const generateInvoices = () => {
-    if (!planData?.plan) return []
+  // Estado para faturas do Stripe
+  const [invoices, setInvoices] = useState([])
+  const [loadingInvoices, setLoadingInvoices] = useState(false)
+
+  // Buscar faturas do Stripe
+  const fetchInvoices = async () => {
+    if (!planData?.plan?.stripe_subscription_id) return
     
-    const plan = planData.plan
-    return [
-      {
-        id: plan.stripe_subscription_id || 'mock-invoice',
-        number: 'VM-001',
-        amount: planType === 'starter' ? 2990 : planType === 'pro' ? 7990 : 0,
-        currency: 'brl',
-        status: 'paid',
-        created: plan.created_at,
-        due_date: plan.current_period_end,
-        description: `1 × ${planName} (${planPrice} / mês)`,
-        invoice_pdf: `https://invoice.stripe.com/i/acct_1P2yvFL6dVrVagX4/test_${plan.stripe_subscription_id}`,
-        hosted_invoice_url: `https://invoice.stripe.com/i/acct_1P2yvFL6dVrVagX4/test_${plan.stripe_subscription_id}`,
-        formatted_amount: planPrice,
-        status_text: 'Pago',
-        status_color: 'green' as const
+    setLoadingInvoices(true)
+    try {
+      const response = await fetch(`/api/stripe-invoice?subscriptionId=${planData.plan.stripe_subscription_id}`)
+      
+      if (response.ok) {
+        const invoiceData = await response.json()
+        setInvoices([invoiceData])
+      } else {
+        setInvoices([])
       }
-    ]
+    } catch (error) {
+      console.error('❌ [SETTINGS] Erro ao buscar fatura:', error)
+      setInvoices([])
+    } finally {
+      setLoadingInvoices(false)
+    }
   }
 
-  const invoices = generateInvoices()
   const hasInvoices = invoices.length > 0
 
   const tabs = [
@@ -176,47 +177,9 @@ const Settings: React.FC = () => {
     pro: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02'
   }
 
-  // Função para abrir portal do cliente Stripe
-  const handleManageBilling = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/api/stripe/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customerId: 'cus_test_' + Date.now(),
-          returnUrl: 'http://localhost:5173/settings?tab=billing'
-        })
-      })
 
-      if (!response.ok) {
-        throw new Error('Erro ao criar sessão do portal')
-      }
 
-      const { url } = await response.json()
-      if (url) {
-        window.open(url, '_blank')
-      }
-    } catch (error) {
-      console.error('Erro ao abrir portal:', error)
-      setError('Erro ao abrir portal de faturamento')
-    }
-  }
 
-  // Função para carregar faturas do Stripe (mock por enquanto)
-  const loadInvoices = async () => {
-    setLoadingInvoices(true)
-    try {
-      // TODO: Implementar carregamento real de faturas do Stripe
-      // Por enquanto, mostra mensagem informativa
-      setInvoices([])
-    } catch (error) {
-      console.error('Erro ao carregar faturas:', error)
-    } finally {
-      setLoadingInvoices(false)
-    }
-  }
 
     // Função para carregar plano atual do usuário (agora usa o hook)
   const loadCurrentPlan = () => {
@@ -226,10 +189,16 @@ const Settings: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === 'billing') {
-      loadInvoices()
       loadCurrentPlan()
     }
   }, [activeTab])
+
+  // Buscar faturas quando o plano for carregado
+  useEffect(() => {
+    if (planData?.plan?.stripe_subscription_id) {
+      fetchInvoices()
+    }
+  }, [planData])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -582,36 +551,7 @@ const Settings: React.FC = () => {
                 ))}
               </div>
 
-              <div className="mt-6 pt-6 border-t border-[#3cd48f]/20">
-                {hasActivePlan && planType === 'pro' ? (
-                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                    <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                    <p className="text-green-800 font-medium">Plano Pro já ativo!</p>
-                    <p className="text-sm text-green-600">Seus recursos premium estão disponíveis</p>
-                  </div>
-                ) : hasActivePlan && planType === 'starter' ? (
-                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <CheckCircle className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <p className="text-blue-800 font-medium">Plano Starter ativo!</p>
-                    <p className="text-sm text-blue-600">Faça upgrade para o Pro para mais recursos</p>
-                    <Button 
-                      onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
-                      className="mt-3 bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      Upgrade para Pro
-                    </Button>
-                  </div>
-                ) : (
-                  <Button 
-                    onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
-                    className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Zap className="w-5 h-5 mr-2" />
-                    {hasActivePlan ? 'Fazer Upgrade do Plano' : 'Assinar Plano'}
-                  </Button>
-                )}
-              </div>
+
             </>
           )}
         </div>
@@ -747,7 +687,7 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {planLoading ? (
+          {planLoading || loadingInvoices ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
               <p className="text-gray-600">Carregando faturas...</p>
@@ -801,31 +741,17 @@ const Settings: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-8">
-              <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
-              <p className="text-sm text-gray-500">
-                {hasActivePlan 
-                  ? 'Suas faturas aparecerão aqui após a próxima cobrança'
-                  : 'As faturas aparecerão aqui após você assinar um plano'
-                }
-              </p>
-            </div>
+                      <div className="text-center py-8">
+            <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
+            <p className="text-sm text-gray-500">
+              As faturas aparecerão aqui quando disponíveis
+            </p>
+          </div>
           )}
         </div>
 
-        <div className="mt-6 text-center space-y-3">
-          <Button 
-            onClick={handleManageBilling}
-                            className="rounded-xl bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
-          >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Gerenciar Faturamento
-          </Button>
-          <div className="text-sm text-gray-500">
-            Abra o portal do cliente Stripe para gerenciar assinaturas e faturas
-          </div>
-        </div>
+
       </motion.div>
 
 
