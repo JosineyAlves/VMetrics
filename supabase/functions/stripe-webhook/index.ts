@@ -42,6 +42,9 @@ serve(async (req) => {
         break
         
       case 'customer.subscription.created':
+        await handleSubscriptionCreated(supabase, event.data.object)
+        break
+        
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(supabase, event.data.object)
         break
@@ -87,54 +90,19 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
     // Check if this is a subscription checkout
     if (session.mode === 'subscription' && session.subscription) {
       
-      // Get customer details
-      const { data: customerData, error: customerError } = await supabase
-        .from('stripe.customers')
-        .select('*')
-        .eq('id', session.customer)
-        .single()
-        
-      if (customerError) {
-        console.error('Error fetching customer:', customerError)
-        return
-      }
+      // Get customer details from session
+      const customerEmail = session.customer_details?.email
+      const customerName = session.customer_details?.name
+      const customerId = session.customer
+      const subscriptionId = session.subscription
       
-      // Get subscription details
-      const { data: subscriptionData, error: subscriptionError } = await supabase
-        .from('stripe.subscriptions')
-        .select('*')
-        .eq('id', session.subscription)
-        .single()
-        
-      if (subscriptionError) {
-        console.error('Error fetching subscription:', subscriptionError)
-        return
-      }
-      
-      // Determine plan type based on product
-      const { data: productData, error: productError } = await supabase
-        .from('stripe.products')
-        .select('*')
-        .eq('id', subscriptionData.attrs->>'items'->0->>'price'->>'product')
-        .single()
-        
-      if (productError) {
-        console.error('Error fetching product:', productError)
-        return
-      }
-      
-      let planType = 'starter'
-      if (productData.attrs->>'name'?.includes('pro')) {
-        planType = 'pro'
-      } else if (productData.attrs->>'name'?.includes('enterprise')) {
-        planType = 'enterprise'
-      }
+      console.log('Customer details:', { customerEmail, customerName, customerId, subscriptionId })
       
       // Check if user already exists
       const { data: existingUser, error: userError } = await supabase
         .from('users')
         .select('id')
-        .eq('stripe_customer_id', session.customer)
+        .eq('stripe_customer_id', customerId)
         .single()
         
       let userId = existingUser?.id
@@ -144,9 +112,9 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         const { data: newUser, error: createError } = await supabase
           .from('users')
           .insert({
-            email: customerData.attrs->>'email',
-            full_name: customerData.attrs->>'name' || 'Usuário VMetrics',
-            stripe_customer_id: session.customer,
+            email: customerEmail,
+            full_name: customerName || 'Usuário VMetrics',
+            stripe_customer_id: customerId,
             is_active: true
           })
           .select('id')
@@ -161,17 +129,17 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         console.log('New user created:', userId)
       }
       
-      // Create or update user plan
+      // For now, set plan type as 'starter' (will be updated by subscription events)
       const { error: planError } = await supabase
         .from('user_plans')
         .upsert({
           user_id: userId,
-          plan_type: planType,
-          stripe_subscription_id: session.subscription,
-          stripe_customer_id: session.customer,
+          plan_type: 'starter', // Will be updated by subscription events
+          stripe_subscription_id: subscriptionId,
+          stripe_customer_id: customerId,
           status: 'active',
-          current_period_start: new Date(subscriptionData.attrs->>'current_period_start' * 1000),
-          current_period_end: new Date(subscriptionData.attrs->>'current_period_end' * 1000)
+          current_period_start: new Date(),
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
         })
         
       if (planError) {
@@ -179,14 +147,92 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         return
       }
       
-      console.log('User plan updated successfully')
-      
-      // TODO: Send welcome email
-      // await sendWelcomeEmail(customerData.attrs->>'email', planType)
+      console.log('User plan created/updated successfully')
     }
     
   } catch (error) {
     console.error('Error in handleCheckoutCompleted:', error)
+  }
+}
+
+// Handle subscription creation
+async function handleSubscriptionCreated(supabase: any, subscription: any) {
+  console.log('Processing subscription created:', subscription.id)
+  
+  try {
+    // Determine plan type based on product ID
+    let planType = 'starter'
+    if (subscription.items?.data?.[0]?.price?.product) {
+      const productId = subscription.items.data[0].price.product
+      
+      console.log('Product ID from subscription:', productId)
+      
+      // Map product IDs to plan types (you can customize this)
+      if (productId.includes('pro') || productId.includes('price_pro') || productId === 'prod_PvrF2GjvBWFrqQ') {
+        planType = 'pro'
+      } else if (productId.includes('enterprise') || productId.includes('price_enterprise')) {
+        planType = 'enterprise'
+      }
+    }
+    
+    console.log('Detected plan type for new subscription:', planType)
+    
+    // Check if user already exists
+    const { data: existingUser, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('stripe_customer_id', subscription.customer)
+      .single()
+      
+    let userId = existingUser?.id
+    
+    if (!userId) {
+      console.log('User not found, creating new user for customer:', subscription.customer)
+      // Create new user if not exists
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          email: 'user@example.com', // Will be updated when we have customer details
+          full_name: 'Usuário VMetrics',
+          stripe_customer_id: subscription.customer,
+          is_active: true
+        })
+        .select('id')
+        .single()
+        
+      if (createError) {
+        console.error('Error creating user:', createError)
+        return
+      }
+      
+      userId = newUser.id
+      console.log('New user created:', userId)
+    }
+    
+    // Create or update user plan
+    const { error: planError } = await supabase
+      .from('user_plans')
+      .upsert({
+        user_id: userId,
+        plan_type: planType,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer,
+        status: subscription.status,
+        current_period_start: new Date(subscription.current_period_start * 1000),
+        current_period_end: new Date(subscription.current_period_end * 1000),
+        created_at: new Date(),
+        updated_at: new Date()
+      })
+      
+    if (planError) {
+      console.error('Error creating user plan:', planError)
+      return
+    }
+    
+    console.log('User plan created successfully with plan type:', planType)
+    
+  } catch (error) {
+    console.error('Error in handleSubscriptionCreated:', error)
   }
 }
 
@@ -195,10 +241,28 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
   console.log('Processing subscription updated:', subscription.id)
   
   try {
-    // Update user plan status
+    // Determine plan type based on product ID
+    let planType = 'starter'
+    if (subscription.items?.data?.[0]?.price?.product) {
+      const productId = subscription.items.data[0].price.product
+      
+      console.log('Product ID from subscription update:', productId)
+      
+      // Map product IDs to plan types (you can customize this)
+      if (productId.includes('pro') || productId.includes('price_pro') || productId === 'prod_PvrF2GjvBWFrqQ') {
+        planType = 'pro'
+      } else if (productId.includes('enterprise') || productId.includes('price_enterprise')) {
+        planType = 'enterprise'
+      }
+    }
+    
+    console.log('Detected plan type:', planType)
+    
+    // Update user plan with new plan type and status
     const { error } = await supabase
       .from('user_plans')
       .update({
+        plan_type: planType, // Update plan type when subscription changes
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000),
@@ -211,7 +275,7 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
       return
     }
     
-    console.log('Subscription updated successfully')
+    console.log('Subscription updated successfully with plan type:', planType)
     
   } catch (error) {
     console.error('Error in handleSubscriptionUpdated:', error)

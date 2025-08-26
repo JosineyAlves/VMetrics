@@ -572,11 +572,15 @@ const Settings: React.FC = () => {
             </ul>
                          <Button 
                onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
-               variant="outline" 
-               className="w-full rounded-xl hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30"
-               disabled={planLoading}
+               variant={planType === 'starter' ? 'outline' : 'outline'}
+               className={`w-full rounded-xl ${
+                 planType === 'starter' 
+                   ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
+                   : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
+               }`}
+               disabled={planLoading || planType === 'starter'}
              >
-               {planLoading ? 'Carregando...' : 'Fazer Upgrade'}
+               {planLoading ? 'Carregando...' : planType === 'starter' ? 'Plano Atual' : 'Fazer Upgrade'}
              </Button>
           </div>
 
@@ -604,10 +608,14 @@ const Settings: React.FC = () => {
             </ul>
                          <Button 
                onClick={() => window.open(STRIPE_CHECKOUT_LINKS.pro, '_blank')}
-               className="w-full bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white font-semibold rounded-xl"
-               disabled={planLoading}
+               className={`w-full font-semibold rounded-xl ${
+                 planType === 'pro' 
+                   ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
+                   : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
+               }`}
+               disabled={planLoading || planType === 'pro'}
              >
-               {planLoading ? 'Carregando...' : 'Fazer Upgrade'}
+               {planLoading ? 'Carregando...' : planType === 'pro' ? 'Plano Atual' : 'Fazer Upgrade'}
              </Button>
           </div>
 
@@ -636,8 +644,16 @@ const Settings: React.FC = () => {
                 <span className="text-sm text-gray-700">SLA garantido</span>
               </li>
             </ul>
-            <Button variant="outline" className="w-full rounded-xl">
-              Contatar Vendas
+            <Button 
+              variant={planType === 'enterprise' ? 'outline' : 'outline'}
+              className={`w-full rounded-xl ${
+                planType === 'enterprise' 
+                  ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
+                  : ''
+              }`}
+              disabled={planType === 'enterprise'}
+            >
+              {planType === 'enterprise' ? 'Plano Atual' : 'Contatar Vendas'}
             </Button>
           </div>
         </div>
