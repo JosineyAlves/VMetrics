@@ -117,8 +117,8 @@ export default async function handler(req, res) {
                // Formatar faturas do banco (formato simples)
                invoices = dbInvoices.map(dbInvoice => ({
                  id: dbInvoice.id,
-                 payment_method: 'mastercard', // ✅ Método de pagamento
-                 date: new Date(dbInvoice.created_at).toLocaleDateString('pt-BR'), // ✅ Data formatada
+                 payment_method: '💳', // ✅ Emoji genérico (não sabemos a bandeira)
+                 date: new Date(dbInvoice.created_at).toLocaleDateString('pt-BR'), // ✅ Data do banco
                  amount: dbInvoice.amount,
                  formatted_amount: `R$ ${(dbInvoice.amount / 100).toFixed(2).replace('.', ',')}`, // ✅ Valor formatado
                  status: dbInvoice.status === 'paid' ? 'Pago' : 'Pendente', // ✅ Status simples
