@@ -164,13 +164,13 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     
     console.log('Price amount from subscription:', priceAmount)
     
-    // Map price amounts to plan types
-    if (priceAmount === 6320) { // R$ 63,20
+    // Map price amounts to plan types (usando links de teste)
+    if (priceAmount === 2990) { // Link R$ 29,90 simula R$ 79,00
       planType = 'monthly'
-    } else if (priceAmount === 15760) { // R$ 157,60
+    } else if (priceAmount === 7900) { // Link R$ 79,00 simula R$ 197,00
       planType = 'quarterly'
-    } else if (priceAmount === 2990) { // R$ 29,90
-      planType = 'starter'
+    } else {
+      planType = 'starter' // Fallback para outros valores
     }
     
     console.log('Detected plan type:', planType)
@@ -251,13 +251,13 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
     
     console.log('Price amount from subscription update:', priceAmount)
     
-    // Map price amounts to plan types
-    if (priceAmount === 6320) { // R$ 63,20
+    // Map price amounts to plan types (usando links de teste)
+    if (priceAmount === 2990) { // Link R$ 29,90 simula R$ 79,00
       planType = 'monthly'
-    } else if (priceAmount === 15760) { // R$ 157,60
+    } else if (priceAmount === 7900) { // Link R$ 79,00 simula R$ 197,00
       planType = 'quarterly'
-    } else if (priceAmount === 2990) { // R$ 29,90
-      planType = 'starter'
+    } else {
+      planType = 'starter' // Fallback para outros valores
     }
     
     console.log('Detected plan type:', planType)

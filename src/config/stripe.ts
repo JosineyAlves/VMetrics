@@ -85,44 +85,10 @@ export const validateWebhookConfig = () => {
 
 // Configuração de produtos e preços (SINCRONIZADA com Stripe)
 export const STRIPE_PRODUCTS = {
-  // Plano Starter (básico)
-  starter: {
-    name: 'Plano Starter',
-    description: 'Acesso básico ao vMetrics',
-    features: [
-      'Dashboard integrado ao RedTrack',
-      'Métricas básicas (ROI, CPA, CTR)',
-      'Suporte por email',
-      'Até 5 campanhas'
-    ],
-    stripeIds: {
-      product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
-      prices: {
-        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 29,90
-        yearly: null
-      }
-    },
-    prices: {
-      monthly: {
-        amount: 2990, // R$ 29,90
-        currency: 'brl',
-        interval: 'month',
-        originalPrice: 2990, // R$ 29,90
-        discount: 0 // Sem desconto
-      },
-      yearly: {
-        amount: 29900, // R$ 299,00
-        currency: 'brl',
-        interval: 'year',
-        originalPrice: 29900, // R$ 299,00
-        discount: 0 // Sem desconto
-      }
-    }
-  },
-  // Plano com desconto durante o beta
+  // Plano Mensal (usando link de teste R$ 29,90 para simular R$ 79,00)
   monthly: {
     name: 'Plano Mensal',
-    description: 'Acesso completo ao vMetrics com desconto promocional',
+    description: 'Acesso completo ao vMetrics',
     features: [
       'Dashboard integrado ao RedTrack',
       'Métricas avançadas (ROI, CPA, CTR)',
@@ -134,31 +100,31 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 63,20 (será atualizado)
+        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // Link de teste R$ 29,90
         yearly: null
       }
     },
     prices: {
       monthly: {
-        amount: 6320, // R$ 63,20 (20% desconto vs R$ 79)
+        amount: 7900, // R$ 79,00 (preço real)
         currency: 'brl',
         interval: 'month',
-        originalPrice: 7900, // R$ 79,00 (preço final)
-        discount: 20 // 20% de desconto durante beta
+        originalPrice: 7900, // R$ 79,00
+        discount: 0 // Sem desconto
       },
       yearly: {
-        amount: 63200, // R$ 632,00 (20% desconto vs R$ 790)
+        amount: 79000, // R$ 790,00
         currency: 'brl',
         interval: 'year',
-        originalPrice: 79000, // R$ 790,00 (preço final)
-        discount: 20 // 20% de desconto durante beta
+        originalPrice: 79000, // R$ 790,00
+        discount: 0 // Sem desconto
       }
     }
   },
-  // Plano trimestral com desconto durante o beta
+  // Plano Trimestral (usando link de teste R$ 79,00 para simular R$ 197,00)
   quarterly: {
     name: 'Plano Trimestral',
-    description: 'Acesso completo ao vMetrics com desconto promocional',
+    description: 'Acesso completo ao vMetrics',
     features: [
       'Dashboard integrado ao RedTrack',
       'Métricas avançadas (ROI, CPA, CTR)',
@@ -170,26 +136,26 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        quarterly: 'price_quarterly_new', // R$ 157,60 (será criado)
+        quarterly: 'price_8x200k0wM6x53kZ5ve33W02', // Link de teste R$ 79,00
         yearly: null
       }
     },
     prices: {
       quarterly: {
-        amount: 15760, // R$ 157,60 (20% desconto vs R$ 197)
+        amount: 19700, // R$ 197,00 (preço real)
         currency: 'brl',
         interval: 'month',
         billingInterval: 3, // Cobrança a cada 3 meses
-        totalAmount: 47280, // R$ 472,80 (3 × R$ 157,60)
-        originalPrice: 19700, // R$ 197,00 (preço final)
-        discount: 20 // 20% de desconto durante beta
+        totalAmount: 59100, // R$ 591,00 (3 × R$ 197,00)
+        originalPrice: 19700, // R$ 197,00
+        discount: 0 // Sem desconto
       },
       yearly: {
-        amount: 157600, // R$ 1.576,00 (20% desconto vs R$ 1.970)
+        amount: 197000, // R$ 1.970,00
         currency: 'brl',
         interval: 'year',
-        originalPrice: 197000, // R$ 1.970,00 (preço final)
-        discount: 20 // 20% de desconto durante beta
+        originalPrice: 197000, // R$ 1.970,00
+        discount: 0 // Sem desconto
       }
     }
   }

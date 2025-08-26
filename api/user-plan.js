@@ -164,21 +164,9 @@ export default async function handler(req, res) {
 // Função para mapear tipo de plano para informações detalhadas
 function getPlanInfo(planType) {
   const plans = {
-    starter: {
-      name: 'Plano Starter',
-      price: 'R$ 29,90',
-      period: 'mês',
-      features: [
-        'Dashboard integrado ao RedTrack',
-        'Métricas básicas (ROI, CPA, CTR)',
-        'Suporte por email',
-        'Até 5 campanhas'
-      ],
-      nextBilling: null // Será calculado dinamicamente
-    },
     monthly: {
       name: 'Plano Mensal',
-      price: 'R$ 63,20',
+      price: 'R$ 79,00',
       period: 'mês',
       features: [
         'Dashboard integrado ao RedTrack',
@@ -192,7 +180,7 @@ function getPlanInfo(planType) {
     },
     quarterly: {
       name: 'Plano Trimestral',
-      price: 'R$ 157,60',
+      price: 'R$ 197,00',
       period: 'mês',
       features: [
         'Dashboard integrado ao RedTrack',
