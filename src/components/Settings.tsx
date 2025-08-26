@@ -119,7 +119,7 @@ const Settings: React.FC = () => {
       }
 
       // Criar sessão do portal
-      const response = await fetch('/api/create-portal-session', {
+      const response = await fetch('/api/user-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -141,7 +141,124 @@ const Settings: React.FC = () => {
     }
   }
 
-  // ... resto do código existente ...
+  const renderGeneralTab = () => (
+    <div className="space-y-8">
+      {/* API Key Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-blue-100 rounded-2xl">
+            <Key className="w-7 h-7 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Configuração da API</h3>
+            <p className="text-sm text-gray-600">
+              Configure sua chave de API do RedTrack
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <label className="text-sm font-medium text-gray-600">API Key do RedTrack</label>
+            <div className="mt-1 relative">
+              <Input
+                type={showApiKey ? 'text' : 'password'}
+                value={tempApiKey}
+                onChange={(e) => setTempApiKey(e.target.value)}
+                placeholder="Digite sua API Key"
+                className="pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showApiKey ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
+            >
+              {saving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </>
+              )}
+            </Button>
+
+            {saved && (
+              <div className="flex items-center space-x-2 text-green-600">
+                <CheckCircle className="w-5 h-5" />
+                <span>Salvo com sucesso!</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="flex items-center space-x-2 text-red-600">
+                <AlertCircle className="w-5 h-5" />
+                <span>{error}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* API Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-purple-100 rounded-2xl">
+            <Shield className="w-7 h-7 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Status da API</h3>
+            <p className="text-sm text-gray-600">
+              Status da conexão com RedTrack
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600">Status da API Key</label>
+            <div className="flex items-center mt-1">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <span className="text-green-600 font-medium">Ativa</span>
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">API Key (mascarada)</label>
+            <p className="text-lg font-mono bg-gray-100 p-2 rounded">
+              {apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'Não definida'}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
 
   const renderBillingTab = () => (
     <div className="space-y-8">
@@ -253,11 +370,194 @@ const Settings: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* ... resto do código existente ... */}
+      {/* Available Plans */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-green-100 rounded-2xl">
+            <CreditCard className="w-7 h-7 text-green-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Planos Disponíveis</h3>
+            <p className="text-sm text-gray-600">
+              Escolha o plano ideal para suas necessidades
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Plano Mensal */}
+          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">Plano Mensal</h4>
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">
+                R$ 79,00
+              </div>
+              <div className="text-gray-600">por mês</div>
+            </div>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Campanhas ilimitadas</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Análise de funil 3D</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Métricas avançadas</span>
+              </li>
+            </ul>
+            <Button 
+              variant="outline"
+              className="w-full rounded-xl hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30"
+            >
+              Fazer Upgrade
+            </Button>
+          </div>
+
+          {/* Plano Trimestral */}
+          <div className="border-2 border-[#3cd48f] rounded-2xl p-6 bg-[#3cd48f]/10 relative">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-[#3cd48f] text-white px-3 py-1 rounded-full text-xs font-medium">
+                Melhor Valor
+              </span>
+            </div>
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">Plano Trimestral</h4>
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">
+                R$ 197,00
+              </div>
+              <div className="text-gray-600">por mês</div>
+              <div className="text-xs text-gray-500 mt-1">
+                Cobrança a cada 3 meses: R$ 591,00
+              </div>
+            </div>
+            <ul className="space-y-3 mb-6">
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Campanhas ilimitadas</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Análise de funil 3D</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-gray-700">Métricas avançadas</span>
+              </li>
+            </ul>
+            <Button 
+              className="w-full font-semibold rounded-xl bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white"
+            >
+              Fazer Upgrade
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Invoices */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+      >
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-purple-100 rounded-2xl">
+            <Receipt className="w-7 h-7 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Histórico de Faturas</h3>
+            <p className="text-sm text-gray-600">
+              Suas faturas e pagamentos
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {planLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando faturas...</p>
+            </div>
+          ) : hasInvoices ? (
+            invoices.map((invoice) => (
+              <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center space-x-4">
+                  <div className={`p-2 rounded-lg ${
+                    invoice.status_color === 'green' ? 'bg-green-100' :
+                    invoice.status_color === 'yellow' ? 'bg-yellow-100' :
+                    invoice.status_color === 'red' ? 'bg-red-100' :
+                    'bg-gray-100'
+                  }`}>
+                    <Receipt className={`w-5 h-5 ${
+                      invoice.status_color === 'green' ? 'text-green-600' :
+                      invoice.status_color === 'yellow' ? 'text-yellow-600' :
+                      invoice.status_color === 'red' ? 'text-red-600' :
+                      'text-gray-600'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{invoice.description}</p>
+                    <p className="text-sm text-gray-600">Fatura #{invoice.number}</p>
+                    <p className="text-xs text-gray-500">Criada em: {new Date(invoice.created).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-gray-800">{invoice.formatted_amount}</p>
+                  <p className="text-sm text-gray-600">Vence: {new Date(invoice.due_date).toLocaleDateString('pt-BR')}</p>
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                    invoice.status_color === 'green' ? 'bg-green-100 text-green-800' :
+                    invoice.status_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                    invoice.status_color === 'red' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {invoice.status_text}
+                  </div>
+                  {invoice.hosted_invoice_url && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2"
+                      onClick={() => window.open(invoice.hosted_invoice_url, '_blank')}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Ver Fatura
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
+              <p className="text-sm text-gray-500">
+                As faturas aparecerão aqui quando disponíveis
+              </p>
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   )
 
-  // ... resto do código existente ...
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return renderGeneralTab()
+      case 'billing':
+        return renderBillingTab()
+      default:
+        return renderGeneralTab()
+    }
+  }
 
   return (
     <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
