@@ -5,8 +5,6 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
-import SignupStripe from "./pages/SignupStripe"
-import AuthCallback from "./components/AuthCallback"
 import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
@@ -252,15 +250,7 @@ const App: React.FC = () => {
       {/* Rotas públicas */}
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginForm />} />
-      
-      {/* Rota de callback de autenticação (após clicar no email) */}
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      
-      {/* Rota de cadastro para usuários do Stripe */}
-      <Route path="/signup" element={<SignupStripe />} />
-      
-      {/* Rota de cadastro tradicional (mantida para compatibilidade) */}
-      <Route path="/signup-traditional" element={
+      <Route path="/signup" element={
         needsSignup ? (
           <SignupForm
             email={signupEmail}

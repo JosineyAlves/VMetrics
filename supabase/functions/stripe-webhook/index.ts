@@ -78,38 +78,6 @@ serve(async (req) => {
   }
 })
 
-// 📧 Função para enviar email de boas-vindas
-async function sendWelcomeEmail(supabase: any, email: string, fullName: string, planType: string, stripeCustomerId: string) {
-  try {
-    console.log('📧 [EMAIL] Iniciando envio de email para:', email)
-    
-    // Chamar Edge Function de envio de email
-    const emailResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-welcome-email`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: email,
-        fullName: fullName,
-        planType: planType,
-        stripeCustomerId: stripeCustomerId
-      })
-    })
-
-    if (emailResponse.ok) {
-      const result = await emailResponse.json()
-      console.log('✅ [EMAIL] Email enviado com sucesso:', result)
-    } else {
-      const errorText = await emailResponse.text()
-      console.error('❌ [EMAIL] Falha ao enviar email:', emailResponse.status, errorText)
-    }
-  } catch (error) {
-    console.error('❌ [EMAIL] Erro ao enviar email:', error)
-  }
-}
-
 // Handle checkout session completed
 async function handleCheckoutCompleted(supabase: any, session: any) {
   console.log('Processing checkout completed:', session.id)
@@ -128,7 +96,6 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
       
       // Check if user already exists by email first, then by stripe_customer_id
       let userId = null
-      let isNewUser = false
       
       // Try to find user by email first
       const { data: existingUserByEmail, error: emailError } = await supabase
@@ -184,7 +151,6 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
           }
           
           userId = newUser.id
-          isNewUser = true
           console.log('New user created:', userId)
         }
       }
@@ -210,12 +176,6 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
       }
       
       console.log('User plan created/updated successfully')
-      
-      // 📧 Enviar email de boas-vindas para novos usuários
-      if (isNewUser) {
-        console.log('📧 [EMAIL] Usuário novo detectado, enviando email de boas-vindas...')
-        await sendWelcomeEmail(supabase, customerEmail, customerName || 'Usuário VMetrics', 'monthly', customerId)
-      }
     }
     
   } catch (error) {
