@@ -4,32 +4,35 @@
 export const STRIPE_LINKS = {
   // 🔴 LINKS DE TESTE (Stripe Test Mode)
   test: {
-    starter: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV',
-    pro: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV',
-    enterprise: 'https://buy.stripe.com/test_28o5kL8vB2Fj8wEUV'
+    monthly: 'https://buy.stripe.com/test_8x214oa7m2gP5t7e1K33W03',    // R$ 79,00
+    quarterly: 'https://buy.stripe.com/test_8x2aEY0wM5t11cRaPy33W04'  // R$ 197,00
   },
   
   // 🟢 LINKS DE PRODUÇÃO (Stripe Live Mode)
   production: {
-    starter: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV', // ATUALIZAR COM URL REAL
-    pro: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV',     // ATUALIZAR COM URL REAL
-    enterprise: 'https://buy.stripe.com/28o5kL8vB2Fj8wEUV' // ATUALIZAR COM URL REAL
+    monthly: 'https://buy.stripe.com/8x214oa7m2gP5t7e1K33W03',        // R$ 79,00 - ATUALIZAR QUANDO FOR PARA PRODUÇÃO
+    quarterly: 'https://buy.stripe.com/8x2aEY0wM5t11cRaPy33W04'       // R$ 197,00 - ATUALIZAR QUANDO FOR PARA PRODUÇÃO
   }
 }
 
 // Função para obter os links baseado no ambiente
 export const getStripeLinks = () => {
-  const isProduction = import.meta.env.MODE === 'production' || 
-                      import.meta.env.VITE_NODE_ENV === 'production' ||
-                      window.location.hostname === 'vmetrics.com.br'
+  // Verificar se está em produção baseado no hostname
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname === 'vmetrics.com.br' || hostname === 'www.vmetrics.com.br') {
+      return STRIPE_LINKS.production
+    }
+  }
   
-  return isProduction ? STRIPE_LINKS.production : STRIPE_LINKS.test
+  // Por padrão, usar links de teste
+  return STRIPE_LINKS.test
 }
 
 // Função para obter link específico de um plano
-export const getStripeLink = (planType: 'starter' | 'pro' | 'enterprise') => {
+export const getStripeLink = (planType: 'monthly' | 'quarterly') => {
   const links = getStripeLinks()
-  return links[planType] || links.starter
+  return links[planType] || links.monthly
 }
 
 export default STRIPE_LINKS

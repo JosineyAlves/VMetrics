@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Check, Star, ArrowRight, Shield, Zap, Users, BarChart3, X } from 'lucide-react'
-import { LANDING_PLANS, formatPrice, getMainPrice, hasDiscount, getMaxDiscount, getPlanStripeUrl } from '../config/plans'
+import { Check, Star, ArrowRight, Shield, Zap, Users, BarChart3 } from 'lucide-react'
+import { LANDING_PLANS, formatPrice, getMainPrice, hasDiscount, getMaxDiscount, getBillingNote, getPlanStripeUrl } from '../config/plans'
 import { APP_URLS } from '../config/urls'
 
 const LandingPage: React.FC = () => {
@@ -259,11 +259,12 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {Object.entries(LANDING_PLANS).map(([planType, plan], index) => {
               const mainPrice = getMainPrice(plan)
               const showDiscount = hasDiscount(plan)
               const maxDiscount = getMaxDiscount(plan)
+              const billingNote = getBillingNote(plan)
               
               return (
                 <motion.div
@@ -272,12 +273,12 @@ const LandingPage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   className={`bg-white rounded-2xl shadow-lg p-8 ${
-                    plan.popular ? 'ring-2 ring-[#3cd48f] scale-105' : ''
+                    plan.bestValue ? 'ring-2 ring-[#3cd48f] scale-105' : ''
                   }`}
                 >
-                  {plan.popular && (
+                  {plan.bestValue && (
                     <div className="bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                      Mais Popular
+                      Melhor Valor
                     </div>
                   )}
                   
@@ -303,7 +304,7 @@ const LandingPage: React.FC = () => {
                       <span className="text-gray-600">/mês</span>
                     )}
                     {mainPrice && mainPrice.interval === 'quarter' && (
-                      <span className="text-gray-600">/trimestre</span>
+                      <span className="text-gray-600">/mês</span>
                     )}
                   </div>
                   
@@ -313,22 +314,24 @@ const LandingPage: React.FC = () => {
                         {formatPrice(mainPrice.originalAmount, mainPrice.currency)}
                       </span>
                       <span className="text-green-600 font-semibold ml-2">
-                        Economia de {formatPrice(mainPrice.originalAmount - mainPrice.amount, mainPrice.currency)}
+                        {maxDiscount}% de desconto
                       </span>
+                    </div>
+                  )}
+                  
+                  {billingNote && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-700 font-medium">
+                        {billingNote}
+                      </p>
                     </div>
                   )}
                   
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center">
-                        {feature.included ? (
-                          <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        ) : (
-                          <X className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
-                        )}
-                        <span className={`${feature.included ? 'text-gray-700' : 'text-gray-400'}`}>
-                          {feature.text}
-                        </span>
+                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                        <span className="text-gray-700">{feature.text}</span>
                       </li>
                     ))}
                   </ul>
@@ -337,12 +340,12 @@ const LandingPage: React.FC = () => {
                     onClick={() => handlePlanSelection(planType)}
                     disabled={isLoading}
                     className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 ${
-                      plan.popular
+                      plan.bestValue
                         ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white hover:shadow-lg hover:scale-105'
                         : 'bg-gray-900 text-white hover:bg-gray-800'
                     }`}
                   >
-                    {isLoading ? 'Carregando...' : (planType === 'enterprise' ? 'Falar com Vendas' : 'Começar Agora')}
+                    {isLoading ? 'Carregando...' : 'Começar Agora'}
                   </button>
                 </motion.div>
               )

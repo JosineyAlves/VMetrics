@@ -1,5 +1,5 @@
 // 🎯 Configuração dos Planos para Landing Page
-// Sincronizado com os preços reais do Stripe e tela de faturas
+// Sincronizado EXATAMENTE com os preços reais do Stripe e tela de faturas
 
 import { getStripeLink } from './stripeLinks'
 
@@ -15,6 +15,7 @@ export interface PlanPrice {
   interval: 'month' | 'quarter' | 'year'
   originalAmount?: number // para descontos
   discount?: number // percentual de desconto
+  billingNote?: string // nota sobre cobrança
 }
 
 export interface Plan {
@@ -25,90 +26,58 @@ export interface Plan {
   prices: PlanPrice[]
   popular?: boolean
   recommended?: boolean
+  bestValue?: boolean
 }
 
-// Configuração dos planos atuais (sincronizada com Stripe)
+// Configuração dos planos atuais (sincronizada EXATAMENTE com Stripe)
 export const LANDING_PLANS: Record<string, Plan> = {
-  starter: {
-    id: 'starter',
-    name: 'Plano Starter',
-    description: 'Ideal para começar com análise de campanhas RedTrack',
+  monthly: {
+    id: 'monthly',
+    name: 'Plano Mensal',
+    description: 'Acesso completo ao vMetrics',
     popular: false,
     recommended: false,
-    features: [
-      { id: 'dashboard', text: 'Dashboard integrado ao RedTrack', included: true },
-      { id: 'metrics', text: 'Métricas básicas (ROI, CPA, CTR)', included: true },
-      { id: 'funnel', text: 'Análise de funil básica', included: true },
-      { id: 'campaigns', text: 'Até 5 campanhas', included: true },
-      { id: 'support', text: 'Suporte por email', included: true },
-      { id: 'comparison', text: 'Comparação entre campanhas', included: false },
-      { id: 'advanced_metrics', text: 'Métricas avançadas', included: false },
-      { id: 'unlimited_campaigns', text: 'Campanhas ilimitadas', included: false }
-    ],
-    prices: [
-      {
-        amount: 2990, // R$ 29,90
-        currency: 'brl',
-        interval: 'month'
-      }
-    ]
-  },
-  
-  pro: {
-    id: 'pro',
-    name: 'Plano Pro',
-    description: 'Solução completa para profissionais de marketing',
-    popular: true,
-    recommended: true,
+    bestValue: false,
     features: [
       { id: 'dashboard', text: 'Dashboard integrado ao RedTrack', included: true },
       { id: 'metrics', text: 'Métricas avançadas (ROI, CPA, CTR)', included: true },
       { id: 'funnel', text: 'Análise de funil 3D', included: true },
       { id: 'campaigns', text: 'Campanhas ilimitadas', included: true },
-      { id: 'support', text: 'Suporte prioritário por email', included: true },
-      { id: 'comparison', text: 'Comparação entre campanhas', included: true },
-      { id: 'advanced_metrics', text: 'Métricas avançadas', included: true },
-      { id: 'unlimited_campaigns', text: 'Campanhas ilimitadas', included: true }
+      { id: 'support', text: 'Suporte por email', included: true },
+      { id: 'comparison', text: 'Comparação entre campanhas', included: true }
     ],
     prices: [
       {
         amount: 7900, // R$ 79,00
         currency: 'brl',
         interval: 'month'
-      },
-      {
-        amount: 19700, // R$ 197,00
-        currency: 'brl',
-        interval: 'quarter',
-        originalAmount: 23700, // 3 × R$ 79,00
-        discount: 17 // 17% de desconto
       }
     ]
   },
   
-  enterprise: {
-    id: 'enterprise',
-    name: 'Plano Enterprise',
-    description: 'Solução personalizada para grandes empresas',
+  quarterly: {
+    id: 'quarterly',
+    name: 'Plano Trimestral',
+    description: 'Acesso completo ao vMetrics',
     popular: false,
     recommended: false,
+    bestValue: true,
     features: [
       { id: 'dashboard', text: 'Dashboard integrado ao RedTrack', included: true },
       { id: 'metrics', text: 'Métricas avançadas (ROI, CPA, CTR)', included: true },
       { id: 'funnel', text: 'Análise de funil 3D', included: true },
       { id: 'campaigns', text: 'Campanhas ilimitadas', included: true },
-      { id: 'support', text: 'Suporte dedicado 24/7', included: true },
-      { id: 'comparison', text: 'Comparação entre campanhas', included: true },
-      { id: 'advanced_metrics', text: 'Métricas avançadas', included: true },
-      { id: 'unlimited_campaigns', text: 'Campanhas ilimitadas', included: true },
-      { id: 'custom_integration', text: 'Integração personalizada', included: true },
-      { id: 'dedicated_account_manager', text: 'Gerente de conta dedicado', included: true }
+      { id: 'support', text: 'Suporte por email', included: true },
+      { id: 'comparison', text: 'Comparação entre campanhas', included: true }
     ],
     prices: [
       {
-        amount: 0, // Preço sob consulta
+        amount: 19700, // R$ 197,00
         currency: 'brl',
-        interval: 'month'
+        interval: 'quarter',
+        originalAmount: 23700, // 3 × R$ 79,00
+        discount: 17, // 17% de desconto
+        billingNote: 'Cobrança a cada 3 meses: R$ 591,00'
       }
     ]
   }
@@ -116,7 +85,7 @@ export const LANDING_PLANS: Record<string, Plan> = {
 
 // Função para obter o link do Stripe para um plano
 export const getPlanStripeUrl = (planType: string): string => {
-  return getStripeLink(planType as 'starter' | 'pro' | 'enterprise')
+  return getStripeLink(planType as 'monthly' | 'quarterly')
 }
 
 // Função para formatar preços
@@ -156,6 +125,12 @@ export const getMaxDiscount = (plan: Plan): number => {
     .map(price => price.discount!)
   
   return discounts.length > 0 ? Math.max(...discounts) : 0
+}
+
+// Função para obter a nota de cobrança
+export const getBillingNote = (plan: Plan): string | null => {
+  const price = getMainPrice(plan)
+  return price?.billingNote || null
 }
 
 export default LANDING_PLANS

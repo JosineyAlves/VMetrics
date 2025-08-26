@@ -3,44 +3,35 @@
 ## 📋 Status Atual
 
 A landing page foi atualizada com:
-- ✅ Preços corretos (Starter: R$ 29,90, Pro: R$ 79,00, Enterprise: Sob consulta)
+- ✅ Preços corretos (Mensal: R$ 79,00, Trimestral: R$ 197,00)
 - ✅ Features corretas para cada plano
-- ✅ Sistema de descontos (17% OFF no plano trimestral Pro)
+- ✅ Sistema de descontos (17% OFF no plano trimestral)
 - ✅ Links do Stripe configuráveis por ambiente
 - ✅ Mesmo padrão visual da tela de faturas
+- ✅ URLs reais do Stripe configuradas
 
 ## 🚨 Ações Necessárias
 
-### 1. Atualizar Links de Produção
+### 1. Links de Produção (Opcional)
 
-Editar o arquivo `src/config/stripeLinks.ts` e substituir as URLs de placeholder:
+Os links de produção já estão configurados como placeholder. Quando for para produção, editar o arquivo `src/config/stripeLinks.ts`:
 
 ```typescript
 // 🟢 LINKS DE PRODUÇÃO (Stripe Live Mode)
 production: {
-  starter: 'https://buy.stripe.com/SEU_LINK_REAL_STARTER',     // ATUALIZAR
-  pro: 'https://buy.stripe.com/SEU_LINK_REAL_PRO',            // ATUALIZAR  
-  enterprise: 'https://buy.stripe.com/SEU_LINK_REAL_ENTERPRISE' // ATUALIZAR
+  monthly: 'https://buy.stripe.com/SEU_LINK_REAL_MENSAL',      // ATUALIZAR
+  quarterly: 'https://buy.stripe.com/SEU_LINK_REAL_TRIMESTRAL'  // ATUALIZAR
 }
 ```
 
-### 2. Como Obter os Links Reais
+### 2. Como Obter os Links de Produção
 
 1. Acesse o [Dashboard do Stripe](https://dashboard.stripe.com/)
 2. Vá em **Produtos** → **Links de pagamento**
 3. Crie ou edite os links para cada plano:
-   - **Starter**: R$ 29,90/mês
-   - **Pro**: R$ 79,00/mês
-   - **Enterprise**: Preço sob consulta
+   - **Mensal**: R$ 79,00/mês
+   - **Trimestral**: R$ 197,00/mês
 4. Copie as URLs geradas e cole no arquivo de configuração
-
-### 3. Verificar Configuração
-
-Após atualizar, verificar se:
-- ✅ Os preços estão corretos na landing page
-- ✅ Os links redirecionam para o Stripe correto
-- ✅ O ambiente de produção está usando os links corretos
-- ✅ Os planos estão sincronizados com o banco de dados
 
 ## 🔧 Estrutura dos Arquivos
 
@@ -56,31 +47,37 @@ src/components/
 
 ## 📊 Planos Configurados
 
-### Starter (R$ 29,90/mês)
-- Dashboard integrado ao RedTrack
-- Métricas básicas (ROI, CPA, CTR)
-- Análise de funil básica
-- Até 5 campanhas
-- Suporte por email
-
-### Pro (R$ 79,00/mês)
+### Plano Mensal (R$ 79,00/mês)
 - Dashboard integrado ao RedTrack
 - Métricas avançadas (ROI, CPA, CTR)
 - Análise de funil 3D
 - Campanhas ilimitadas
-- Suporte prioritário por email
+- Suporte por email
 - Comparação entre campanhas
-- **Desconto trimestral**: R$ 197,00 (17% OFF)
 
-### Enterprise (Sob consulta)
-- Todos os recursos do Pro
-- Integração personalizada
-- Gerente de conta dedicado
-- Suporte 24/7
+### Plano Trimestral (R$ 197,00/mês)
+- Dashboard integrado ao RedTrack
+- Métricas avançadas (ROI, CPA, CTR)
+- Análise de funil 3D
+- Campanhas ilimitadas
+- Suporte por email
+- Comparação entre campanhas
+- **Desconto**: 17% OFF
+- **Cobrança**: A cada 3 meses (R$ 591,00)
+
+## 🔗 Links do Stripe Configurados
+
+### Teste (Atual)
+- **Mensal**: `https://buy.stripe.com/test_8x214oa7m2gP5t7e1K33W03`
+- **Trimestral**: `https://buy.stripe.com/test_8x2aEY0wM5t11cRaPy33W04`
+
+### Produção (Placeholder)
+- **Mensal**: `https://buy.stripe.com/8x214oa7m2gP5t7e1K33W03`
+- **Trimestral**: `https://buy.stripe.com/8x2aEY0wM5t11cRaPy33W04`
 
 ## 🚀 Deploy
 
-Após atualizar os links:
+Após atualizar os links (se necessário):
 
 1. Fazer commit das alterações
 2. Fazer deploy para produção
