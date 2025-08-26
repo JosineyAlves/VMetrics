@@ -209,61 +209,30 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       console.log('New user created:', userId)
     }
     
-    // Check if user already has an active plan
-    const { data: existingPlan, error: planCheckError } = await supabase
-      .from('user_plans')
-      .select('id, plan_type, status')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .single()
-    
-    if (existingPlan) {
-      console.log('User already has active plan:', existingPlan.plan_type, '-> Updating to:', planType)
-      
-      // Update existing plan (upgrade/downgrade)
-      const { error: updateError } = await supabase
-        .from('user_plans')
-        .update({
-          plan_type: planType,
-          stripe_subscription_id: subscription.id,
-          status: subscription.status,
-          current_period_start: new Date(subscription.current_period_start * 1000),
-          current_period_end: new Date(subscription.current_period_end * 1000),
-          updated_at: new Date()
-        })
-        .eq('id', existingPlan.id)
-      
-      if (updateError) {
-        console.error('Error updating existing plan:', updateError)
-        return
-      }
-      
-      console.log('Existing plan updated successfully to:', planType)
-    } else {
-      console.log('No existing plan found, creating new plan')
-      
-      // Create new plan if none exists
-      const { error: createError } = await supabase
-        .from('user_plans')
-        .insert({
-          user_id: userId,
-          plan_type: planType,
-          stripe_subscription_id: subscription.id,
-          stripe_customer_id: subscription.customer,
-          status: subscription.status,
-          current_period_start: new Date(subscription.current_period_start * 1000),
-          current_period_end: new Date(subscription.current_period_end * 1000),
-          created_at: new Date(),
-          updated_at: new Date()
-        })
-      
-      if (createError) {
-        console.error('Error creating new plan:', createError)
-        return
-      }
-      
-      console.log('New plan created successfully with plan type:', planType)
-    }
+         // Use UPSERT to handle both new plans and upgrades
+     console.log('Upserting plan for user:', userId, 'with subscription:', subscription.id)
+     
+     const { error: upsertError } = await supabase
+       .from('user_plans')
+       .upsert({
+         user_id: userId,
+         plan_type: planType,
+         stripe_subscription_id: subscription.id,
+         stripe_customer_id: subscription.customer,
+         status: subscription.status,
+         current_period_start: new Date(subscription.current_period_start * 1000),
+         current_period_end: new Date(subscription.current_period_end * 1000),
+         updated_at: new Date()
+       }, {
+         onConflict: 'stripe_subscription_id' // Use subscription ID as conflict resolution
+       })
+     
+     if (upsertError) {
+       console.error('Error upserting user plan:', upsertError)
+       return
+     }
+     
+     console.log('User plan upserted successfully with plan type:', planType)
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)
@@ -292,17 +261,20 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-    // Update user plan with new plan type and status
-    const { error } = await supabase
-      .from('user_plans')
-      .update({
-        plan_type: planType, // Update plan type when subscription changes
-        status: subscription.status,
-        current_period_start: new Date(subscription.current_period_start * 1000),
-        current_period_end: new Date(subscription.current_period_end * 1000),
-        updated_at: new Date()
-      })
-      .eq('stripe_subscription_id', subscription.id)
+         // Use UPSERT to handle subscription updates
+     const { error } = await supabase
+       .from('user_plans')
+       .upsert({
+         plan_type: planType,
+         stripe_subscription_id: subscription.id,
+         stripe_customer_id: subscription.customer,
+         status: subscription.status,
+         current_period_start: new Date(subscription.current_period_start * 1000),
+         current_period_end: new Date(subscription.current_period_end * 1000),
+         updated_at: new Date()
+       }, {
+         onConflict: 'stripe_subscription_id'
+       })
       
     if (error) {
       console.error('Error updating subscription:', error)
