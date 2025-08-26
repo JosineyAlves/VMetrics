@@ -81,4 +81,3 @@ export const useUserPlan = (email: string) => {
     planStatus: planData?.plan?.status || 'inactive'
   }
 }
-
