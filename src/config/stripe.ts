@@ -100,7 +100,7 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // Link de teste R$ 29,90
+        monthly: 'price_1S0DiGL6dVrVagX4o9qeYFQs', // R$ 79,00
         yearly: null
       }
     },
@@ -136,7 +136,7 @@ export const STRIPE_PRODUCTS = {
     stripeIds: {
       product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
       prices: {
-        quarterly: 'price_8x200k0wM6x53kZ5ve33W02', // Link de teste R$ 79,00
+        quarterly: 'price_1S0DjFL6dVrVagX41aQF4wWc', // R$ 197,00
         yearly: null
       }
     },

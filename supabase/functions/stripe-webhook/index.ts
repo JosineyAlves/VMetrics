@@ -130,7 +130,7 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         .from('user_plans')
         .upsert({
           user_id: userId,
-          plan_type: 'starter', // Will be updated by subscription events
+          plan_type: 'monthly', // Will be updated by subscription events
           stripe_subscription_id: subscriptionId,
           stripe_customer_id: customerId,
           status: 'active',
@@ -159,18 +159,18 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
   
   try {
     // Determine plan type based on price amount
-    let planType = 'starter'
+    let planType = 'monthly'
     const priceAmount = subscription.items?.data?.[0]?.price?.unit_amount || 0
     
     console.log('Price amount from subscription:', priceAmount)
     
-    // Map price amounts to plan types (usando links de teste)
-    if (priceAmount === 2990) { // Link R$ 29,90 simula R$ 79,00
+    // Map price amounts to plan types
+    if (priceAmount === 7900) { // R$ 79,00 - Plano Mensal
       planType = 'monthly'
-    } else if (priceAmount === 7900) { // Link R$ 79,00 simula R$ 197,00
+    } else if (priceAmount === 19700) { // R$ 197,00 - Plano Trimestral
       planType = 'quarterly'
     } else {
-      planType = 'starter' // Fallback para outros valores
+      planType = 'monthly' // Fallback para monthly
     }
     
     console.log('Detected plan type:', planType)
@@ -246,18 +246,18 @@ async function handleSubscriptionUpdated(supabase: any, subscription: any) {
   
   try {
     // Determine plan type based on price amount
-    let planType = 'starter'
+    let planType = 'monthly'
     const priceAmount = subscription.items?.data?.[0]?.price?.unit_amount || 0
     
     console.log('Price amount from subscription update:', priceAmount)
     
-    // Map price amounts to plan types (usando links de teste)
-    if (priceAmount === 2990) { // Link R$ 29,90 simula R$ 79,00
+    // Map price amounts to plan types
+    if (priceAmount === 7900) { // R$ 79,00 - Plano Mensal
       planType = 'monthly'
-    } else if (priceAmount === 7900) { // Link R$ 79,00 simula R$ 197,00
+    } else if (priceAmount === 19700) { // R$ 197,00 - Plano Trimestral
       planType = 'quarterly'
     } else {
-      planType = 'starter' // Fallback para outros valores
+      planType = 'monthly' // Fallback para monthly
     }
     
     console.log('Detected plan type:', planType)

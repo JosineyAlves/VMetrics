@@ -152,10 +152,10 @@ const Settings: React.FC = () => {
     loadAccountData(true)
   }
 
-  // Links diretos do Stripe para checkout (usando links de teste)
+  // Links diretos do Stripe para checkout
   const STRIPE_CHECKOUT_LINKS = {
-    monthly: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01', // Link R$ 29,90 simula R$ 79,00
-    quarterly: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02' // Link R$ 79,00 simula R$ 197,00
+    monthly: 'https://buy.stripe.com/test_8x214oa7m2gP5t7e1K33W03', // R$ 79,00
+    quarterly: 'https://buy.stripe.com/test_8x2aEY0wM5t11cRaPy33W04' // R$ 197,00
   }
 
 

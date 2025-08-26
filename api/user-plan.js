@@ -164,6 +164,18 @@ export default async function handler(req, res) {
 // Função para mapear tipo de plano para informações detalhadas
 function getPlanInfo(planType) {
   const plans = {
+    starter: {
+      name: 'Plano Starter',
+      price: 'R$ 29,90',
+      period: 'mês',
+      features: [
+        'Dashboard integrado ao RedTrack',
+        'Métricas básicas (ROI, CPA, CTR)',
+        'Suporte por email',
+        'Até 5 campanhas'
+      ],
+      nextBilling: null // Será calculado dinamicamente
+    },
     monthly: {
       name: 'Plano Mensal',
       price: 'R$ 79,00',
@@ -194,14 +206,14 @@ function getPlanInfo(planType) {
     }
   }
 
-  const plan = plans[planType] || plans.starter
+  const plan = plans[planType] || plans.starter // Fallback para starter se planType não existir
 
   // Calcular próxima cobrança baseada no período atual
   if (planType === 'quarterly') {
     // Para plano trimestral, próxima cobrança em 3 meses
     plan.nextBilling = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
   } else if (planType === 'monthly' || planType === 'starter') {
-    // Para planos mensais, próxima cobrança em 1 mês
+    // Para planos mensais e starter, próxima cobrança em 1 mês
     plan.nextBilling = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
   }
 
