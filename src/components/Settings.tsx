@@ -480,52 +480,52 @@ const Settings: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-6">
-                <div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
                   <h4 className="text-2xl font-bold text-gray-800 mb-2">{planName}</h4>
-                  <div className="flex items-baseline space-x-2">
+              <div className="flex items-baseline space-x-2">
                     <span className="text-3xl font-bold text-[#3cd48f]">{planPrice}</span>
                     <span className="text-gray-600">/mês</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              </div>
+            </div>
+                         <div className="text-right">
+               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                     planStatus === 'active' ? 'bg-green-100 text-green-800' :
                     planStatus === 'canceled' ? 'bg-red-100 text-red-800' :
                     planStatus === 'past_due' ? 'bg-yellow-100 text-yellow-800' :
                     planStatus === 'unpaid' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full mr-2 ${
+                 'bg-gray-100 text-gray-800'
+               }`}>
+                 <div className={`w-2 h-2 rounded-full mr-2 ${
                       planStatus === 'active' ? 'bg-green-500' :
                       planStatus === 'canceled' ? 'bg-red-500' :
                       planStatus === 'past_due' ? 'bg-yellow-500' :
                       planStatus === 'unpaid' ? 'bg-red-500' :
-                      'bg-gray-500'
-                    }`}></div>
+                   'bg-gray-500'
+                 }`}></div>
                     {planStatus === 'active' ? 'Ativo' :
                      planStatus === 'canceled' ? 'Cancelado' :
                      planStatus === 'past_due' ? 'Vencido' :
                      planStatus === 'unpaid' ? 'Não Pago' :
-                     'Inativo'}
-                  </div>
+                  'Inativo'}
+               </div>
                   {planData?.plan?.current_period_end && (
-                    <p className="text-sm text-gray-600 mt-1">
+               <p className="text-sm text-gray-600 mt-1">
                       Expira em: {new Date(planData.plan.current_period_end).toLocaleDateString('pt-BR')}
-                    </p>
+               </p>
                   )}
-                </div>
-              </div>
+             </div>
+          </div>
 
-              <div className="space-y-3">
-                <h5 className="font-semibold text-gray-700 mb-3">Recursos incluídos:</h5>
+          <div className="space-y-3">
+            <h5 className="font-semibold text-gray-700 mb-3">Recursos incluídos:</h5>
                 {planFeatures.map((feature, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span className="text-gray-700">{feature}</span>
-                  </div>
-                ))}
+              <div key={index} className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                <span className="text-gray-700">{feature}</span>
               </div>
+            ))}
+          </div>
 
 
             </>
@@ -578,7 +578,7 @@ const Settings: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <Button 
+                         <Button 
               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.monthly, '_blank')}
               variant={planType === 'monthly' ? 'outline' : 'outline'}
               className={`w-full rounded-xl ${
@@ -589,7 +589,7 @@ const Settings: React.FC = () => {
               disabled={planLoading || planType === 'monthly'}
             >
               {planLoading ? 'Carregando...' : planType === 'monthly' ? 'Plano Atual' : 'Mudar para Mensal'}
-            </Button>
+             </Button>
           </div>
 
           {/* Plano Trimestral */}
@@ -625,7 +625,7 @@ const Settings: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <Button 
+                         <Button 
               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.quarterly, '_blank')}
               className={`w-full font-semibold rounded-xl ${
                 planType === 'quarterly' 
@@ -714,13 +714,13 @@ const Settings: React.FC = () => {
               </div>
             ))
           ) : (
-                      <div className="text-center py-8">
-            <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
+            <div className="text-center py-8">
+              <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
             <p className="text-sm text-gray-500">
               As faturas aparecerão aqui quando disponíveis
             </p>
-          </div>
+            </div>
           )}
         </div>
 

@@ -94,35 +94,65 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
       
       console.log('Customer details:', { customerEmail, customerName, customerId, subscriptionId })
       
-      // Check if user already exists
-      const { data: existingUser, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('stripe_customer_id', customerId)
-        .single()
-        
-      let userId = existingUser?.id
+      // Check if user already exists by email first, then by stripe_customer_id
+      let userId = null
       
-      if (!userId) {
-        // Create new user
-        const { data: newUser, error: createError } = await supabase
-          .from('users')
-          .insert({
-            email: customerEmail,
-            full_name: customerName || 'Usuário VMetrics',
-            stripe_customer_id: customerId,
-            is_active: true
-          })
-          .select('id')
-          .single()
-          
-        if (createError) {
-          console.error('Error creating user:', createError)
-          return
-        }
+      // Try to find user by email first
+      const { data: existingUserByEmail, error: emailError } = await supabase
+        .from('users')
+        .select('id, stripe_customer_id')
+        .eq('email', customerEmail)
+        .single()
+      
+      if (existingUserByEmail) {
+        userId = existingUserByEmail.id
+        console.log('Existing user found by email:', userId)
         
-        userId = newUser.id
-        console.log('New user created:', userId)
+        // Update stripe_customer_id if different
+        if (existingUserByEmail.stripe_customer_id !== customerId) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ stripe_customer_id: customerId })
+            .eq('id', userId)
+          
+          if (updateError) {
+            console.error('Error updating stripe_customer_id:', updateError)
+          } else {
+            console.log('Updated stripe_customer_id for existing user')
+          }
+        }
+      } else {
+        // Try to find by stripe_customer_id
+        const { data: existingUserByStripe, error: stripeError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('stripe_customer_id', customerId)
+          .single()
+        
+        if (existingUserByStripe) {
+          userId = existingUserByStripe.id
+          console.log('Existing user found by stripe_customer_id:', userId)
+        } else {
+          // Create new user only if neither exists
+          const { data: newUser, error: createError } = await supabase
+            .from('users')
+            .insert({
+              email: customerEmail,
+              full_name: customerName || 'Usuário VMetrics',
+              stripe_customer_id: customerId,
+              is_active: true
+            })
+            .select('id')
+            .single()
+          
+          if (createError) {
+            console.error('Error creating user:', createError)
+            return
+          }
+          
+          userId = newUser.id
+          console.log('New user created:', userId)
+        }
       }
       
       // Use UPSERT to handle both new plans and upgrades
@@ -175,47 +205,97 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-    // Find or create user
+    // Find or create user by stripe_customer_id (most reliable for subscriptions)
     let userId = null
-    const { data: existingUser, error: userError } = await supabase
+    const { data: existingUserByStripe, error: stripeError } = await supabase
       .from('users')
-      .select('id')
+      .select('id, email, stripe_customer_id')
       .eq('stripe_customer_id', subscription.customer)
       .single()
     
-    if (userError || !existingUser) {
-      console.log('User not found, creating new user...')
+    if (existingUserByStripe) {
+      userId = existingUserByStripe.id
+      console.log('Existing user found by stripe_customer_id:', userId, 'with email:', existingUserByStripe.email)
       
-      // Create new user
+      // Update stripe_customer_id if different (shouldn't happen, but just in case)
+      if (existingUserByStripe.stripe_customer_id !== subscription.customer) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ stripe_customer_id: subscription.customer })
+          .eq('id', userId)
+        
+        if (updateError) {
+          console.error('Error updating stripe_customer_id:', updateError)
+        } else {
+          console.log('Updated stripe_customer_id for existing user')
+        }
+      }
+    } else {
+      // If not found by stripe_customer_id, try to find by email from customer details
+      console.log('User not found by stripe_customer_id, trying to get customer details from Stripe...')
+      
+      // For now, we'll create a new user but this should be avoided
+      // In production, we should get customer email from Stripe API
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
-          email: subscription.customer_email || 'unknown@example.com',
+          email: `stripe_${subscription.customer}@vmetrics.com.br`, // Temporary email
           full_name: 'Usuário VMetrics',
           stripe_customer_id: subscription.customer,
           is_active: true
         })
         .select('id')
         .single()
-        
+      
       if (createError) {
         console.error('Error creating user:', createError)
         return
       }
       
       userId = newUser.id
-      console.log('New user created:', userId)
-    } else {
-      userId = existingUser.id
-      console.log('Existing user found:', userId)
+      console.log('New user created with temporary email:', userId)
     }
     
-    // Use UPSERT to handle both new plans and upgrades
-    console.log('Upserting plan for user:', userId, 'with subscription:', subscription.id)
+    // First, check if user already has an active plan
+    console.log('Checking existing plans for user:', userId)
     
-    const { error: upsertError } = await supabase
+    const { data: existingPlans, error: plansError } = await supabase
       .from('user_plans')
-      .upsert({
+      .select('id, plan_type, status')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+    
+    if (plansError) {
+      console.error('Error checking existing plans:', plansError)
+      return
+    }
+    
+    console.log('Existing active plans found:', existingPlans?.length || 0)
+    
+    // If user has active plans, deactivate them first
+    if (existingPlans && existingPlans.length > 0) {
+      console.log('Deactivating existing plans...')
+      
+      const { error: deactivateError } = await supabase
+        .from('user_plans')
+        .update({ status: 'cancelled' })
+        .eq('user_id', userId)
+        .eq('status', 'active')
+      
+      if (deactivateError) {
+        console.error('Error deactivating existing plans:', deactivateError)
+        return
+      }
+      
+      console.log('Existing plans deactivated successfully')
+    }
+    
+    // Now create the new plan
+    console.log('Creating new plan for user:', userId, 'with subscription:', subscription.id)
+    
+    const { error: insertError } = await supabase
+      .from('user_plans')
+      .insert({
         user_id: userId,
         plan_type: planType,
         stripe_subscription_id: subscription.id,
@@ -223,16 +303,14 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000)
-      }, {
-        onConflict: 'stripe_subscription_id' // Use subscription ID as conflict resolution
       })
     
-    if (upsertError) {
-      console.error('Error upserting user plan:', upsertError)
+    if (insertError) {
+      console.error('Error creating user plan:', insertError)
       return
     }
     
-    console.log('User plan upserted successfully with plan type:', planType)
+    console.log('User plan created successfully with plan type:', planType)
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)
@@ -318,10 +396,22 @@ async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
   console.log('Processing invoice payment succeeded:', invoice.id)
   
   try {
+    // Check if invoice already exists
+    const { data: existingInvoice, error: checkError } = await supabase
+      .from('invoices')
+      .select('id')
+      .eq('stripe_invoice_id', invoice.id)
+      .single()
+    
+    if (existingInvoice) {
+      console.log('Invoice already exists, skipping duplicate:', invoice.id)
+      return
+    }
+    
     // Log the successful payment
     const { error } = await supabase
       .from('invoices')
-      .upsert({
+      .insert({
         stripe_invoice_id: invoice.id,
         stripe_customer_id: invoice.customer,
         stripe_subscription_id: invoice.subscription,
