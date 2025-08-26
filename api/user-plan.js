@@ -97,55 +97,22 @@ export default async function handler(req, res) {
                // 4. Mapear tipo de plano para informações detalhadas
            const planInfo = getPlanInfo(userPlan.plan_type)
            
-           // 5. Buscar TODAS as faturas do usuário (incluindo planos anteriores)
-           let invoices = []
-           try {
-             console.log('🔍 [USER-PLAN] Buscando TODAS as faturas do usuário:', user.id)
-             
-             // Buscar faturas do banco de dados (mais confiável)
-             const { data: dbInvoices, error: dbError } = await supabase
-               .from('invoices')
-               .select('*')
-               .eq('user_id', user.id)
-               .order('created_at', { ascending: false })
-             
-             if (dbError) {
-               console.error('❌ [USER-PLAN] Erro ao buscar faturas no banco:', dbError)
-             } else if (dbInvoices && dbInvoices.length > 0) {
-               console.log('✅ [USER-PLAN] Faturas encontradas no banco:', dbInvoices.length)
-               
-               // Formatar faturas do banco (formato simples)
-               invoices = dbInvoices.map(dbInvoice => ({
-                 id: dbInvoice.id,
-                 payment_method: '💳', // ✅ Emoji genérico (não sabemos a bandeira)
-                 date: new Date(dbInvoice.created_at).toLocaleDateString('pt-BR'), // ✅ Data do banco
-                 amount: dbInvoice.amount,
-                 formatted_amount: `R$ ${(dbInvoice.amount / 100).toFixed(2).replace('.', ',')}`, // ✅ Valor formatado
-                 status: dbInvoice.status === 'paid' ? 'Pago' : 'Pendente', // ✅ Status simples
-                 pdf_url: `https://invoice.stripe.com/i/${dbInvoice.stripe_invoice_id}` // ✅ Link PDF
-               }))
-               
-               console.log('✅ [USER-PLAN] Faturas formatadas:', invoices.length)
-             }
-           } catch (error) {
-             console.error('❌ [USER-PLAN] Erro ao buscar faturas:', error)
-           }
-           
-           // 6. Buscar fatura atual do Stripe para links de download
-           let currentInvoice = null
+           // 5. Buscar fatura do Stripe se tiver subscription_id
+           let invoice = null
            if (userPlan.stripe_subscription_id) {
              try {
-               console.log('🔍 [USER-PLAN] Buscando fatura atual no Stripe para subscription:', userPlan.stripe_subscription_id)
+               console.log('🔍 [USER-PLAN] Buscando fatura no Stripe para:', userPlan.stripe_subscription_id)
                
-               const stripeInvoices = await stripe.invoices.list({
+               // Buscar a fatura mais recente da assinatura
+               const invoices = await stripe.invoices.list({
                  subscription: userPlan.stripe_subscription_id,
                  limit: 1,
                  status: 'paid'
                })
                
-               if (stripeInvoices.data && stripeInvoices.data.length > 0) {
-                 const stripeInvoice = stripeInvoices.data[0]
-                 currentInvoice = {
+               if (invoices.data.length > 0) {
+                 const stripeInvoice = invoices.data[0]
+                 invoice = {
                    id: stripeInvoice.id,
                    number: stripeInvoice.number,
                    amount: stripeInvoice.amount_paid,
@@ -160,10 +127,11 @@ export default async function handler(req, res) {
                    status_text: stripeInvoice.status === 'paid' ? 'Pago' : 'Pendente',
                    status_color: stripeInvoice.status === 'paid' ? 'green' : 'yellow'
                  }
-                 console.log('✅ [USER-PLAN] Fatura atual encontrada:', currentInvoice.id)
+                 console.log('✅ [USER-PLAN] Fatura encontrada:', invoice.id)
                }
              } catch (error) {
-               console.error('❌ [USER-PLAN] Erro ao buscar fatura atual no Stripe:', error)
+               console.error('❌ [USER-PLAN] Erro ao buscar fatura no Stripe:', error)
+               // Não falhar se Stripe der erro, apenas continuar sem fatura
              }
            }
        
@@ -177,8 +145,7 @@ export default async function handler(req, res) {
                email: email,
                stripe_customer_id: user.stripe_customer_id
              },
-             invoices: invoices,  // ✅ TODAS as faturas
-             currentInvoice: currentInvoice  // ✅ Fatura atual para links
+             invoice: invoice
            }
 
     console.log('✅ [USER-PLAN] Resposta formatada:', response)
