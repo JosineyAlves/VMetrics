@@ -203,20 +203,6 @@ function getPlanInfo(planType) {
         'Comparação entre campanhas'
       ],
       nextBilling: null // Será calculado dinamicamente
-    },
-    pro: {
-      name: 'Plano Pro',
-      price: 'R$ 79,00',
-      period: 'mês',
-      features: [
-        'Dashboard integrado ao RedTrack',
-        'Métricas avançadas (ROI, CPA, CTR)',
-        'Análise de funil 3D',
-        'Campanhas ilimitadas',
-        'Suporte prioritário',
-        'Comparação entre campanhas'
-      ],
-      nextBilling: null // Será calculado dinamicamente
     }
   }
 

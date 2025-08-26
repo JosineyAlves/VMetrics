@@ -158,38 +158,6 @@ export const STRIPE_PRODUCTS = {
         discount: 20 // 20% de desconto durante beta
       }
     }
-  },
-  // Plano Pro (pós-beta)
-  pro: {
-    name: 'Plano Pro',
-    description: 'Acesso completo ao vMetrics',
-    features: [
-      'Dashboard integrado ao RedTrack',
-      'Métricas avançadas (ROI, CPA, CTR)',
-      'Análise de funil 3D',
-      'Campanhas ilimitadas',
-      'Suporte prioritário',
-      'Comparação entre campanhas'
-    ],
-    stripeIds: {
-      product: 'prod_PvrF2GjvBWFrqQ',
-      prices: {
-        monthly: 'price_1Rv5diL6dVrVagX4RVadte0b', // R$ 79,00
-        yearly: null
-      }
-    },
-    prices: {
-      monthly: {
-        amount: 7900, // R$ 79,00 (preço final)
-        currency: 'brl',
-        interval: 'month'
-      },
-      yearly: {
-        amount: 79000, // R$ 790,00 (preço final)
-        currency: 'brl',
-        interval: 'year'
-      }
-    }
   }
 }
 

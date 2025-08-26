@@ -29,12 +29,6 @@
 - **ID Sugerido:** `price_quarterly_157`
 - **Nota:** Desconto promocional durante o beta + cobrança a cada 3 meses
 
-#### **🔴 Plano Pro (R$ 79,00/mês) - Pós-beta**
-- **ID:** `price_1Rv5diL6dVrVagX4RVadte0b`
-- **Valor:** R$ 79,00
-- **Status:** Active (manter para referência)
-- **Nota:** Preço final após o período beta
-
 ## 🔧 **Passos para Configuração no Stripe Dashboard**
 
 ### **Passo 1: Acessar Dashboard do Stripe**
@@ -104,7 +98,6 @@ quarterly: {
 const STRIPE_CHECKOUT_LINKS = {
   monthly: 'https://buy.stripe.com/...', // Link real do plano mensal
   quarterly: 'https://buy.stripe.com/...', // Link real do plano trimestral
-  pro: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02'
 }
 ```
 
@@ -122,11 +115,6 @@ const STRIPE_CHECKOUT_LINKS = {
 - Pagamento a cada 3 meses
 - Todas as funcionalidades
 - **Desconto promocional durante o beta**
-
-🔴 **Plano Pro (R$ 79,00/mês)**
-- Preço final (sem desconto)
-- Disponível pós-beta
-- Todas as funcionalidades
 ```
 
 ## 🎯 **Próximos Passos**
@@ -144,9 +132,11 @@ const STRIPE_CHECKOUT_LINKS = {
 - **Verifique webhooks** para novos tipos de plano
 - **Monitore logs** durante testes
 - **Desconto de 20%** é promocional durante o beta
+- **Apenas 2 planos** disponíveis: Mensal e Trimestral
 
 ---
 
 **Status:** ✅ Configuração atualizada
 **Próximo:** Configurar produtos no Stripe Dashboard
 **Desconto:** 20% durante o beta
+**Planos:** Apenas Mensal e Trimestral

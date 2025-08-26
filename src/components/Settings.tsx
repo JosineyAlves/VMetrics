@@ -554,7 +554,7 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Plano Mensal */}
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
@@ -637,37 +637,6 @@ const Settings: React.FC = () => {
               disabled={planLoading || planType === 'quarterly'}
             >
               {planLoading ? 'Carregando...' : planType === 'quarterly' ? 'Plano Atual' : 'Fazer Upgrade'}
-            </Button>
-          </div>
-
-          {/* Plano Pro (Referência) */}
-          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-center mb-6">
-              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.pro.name}</h4>
-              <div className="text-3xl font-bold text-gray-600 mb-1">
-                {currencySymbol}{(STRIPE_PRODUCTS.pro.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
-              </div>
-              <div className="text-gray-600">por mês</div>
-              <div className="text-sm text-gray-500 mt-1">
-                <span className="text-gray-600 font-medium">
-                  Preço final (pós-beta)
-                </span>
-              </div>
-            </div>
-            <ul className="space-y-3 mb-6">
-              {STRIPE_PRODUCTS.pro.features.map((feature, index) => (
-                <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-gray-700">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <Button 
-              variant="outline"
-              className="w-full rounded-xl border-gray-300 text-gray-600"
-              disabled
-            >
-              Disponível Pós-Beta
             </Button>
           </div>
         </div>
