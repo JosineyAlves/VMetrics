@@ -85,6 +85,40 @@ export const validateWebhookConfig = () => {
 
 // Configuração de produtos e preços (SINCRONIZADA com Stripe)
 export const STRIPE_PRODUCTS = {
+  // Plano Starter (básico)
+  starter: {
+    name: 'Plano Starter',
+    description: 'Acesso básico ao vMetrics',
+    features: [
+      'Dashboard integrado ao RedTrack',
+      'Métricas básicas (ROI, CPA, CTR)',
+      'Suporte por email',
+      'Até 5 campanhas'
+    ],
+    stripeIds: {
+      product: 'prod_PvrF2GjvBWFrqQ', // Usar produto existente
+      prices: {
+        monthly: 'price_1Rv5d9L6dVrVagX4T9MjZETw', // R$ 29,90
+        yearly: null
+      }
+    },
+    prices: {
+      monthly: {
+        amount: 2990, // R$ 29,90
+        currency: 'brl',
+        interval: 'month',
+        originalPrice: 2990, // R$ 29,90
+        discount: 0 // Sem desconto
+      },
+      yearly: {
+        amount: 29900, // R$ 299,00
+        currency: 'brl',
+        interval: 'year',
+        originalPrice: 29900, // R$ 299,00
+        discount: 0 // Sem desconto
+      }
+    }
+  },
   // Plano com desconto durante o beta
   monthly: {
     name: 'Plano Mensal',

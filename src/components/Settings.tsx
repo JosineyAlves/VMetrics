@@ -155,7 +155,6 @@ const Settings: React.FC = () => {
   // Links diretos do Stripe para checkout
   const STRIPE_CHECKOUT_LINKS = {
     starter: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01',
-    pro: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02',
     monthly: 'https://buy.stripe.com/test_14A7sM1AQ8FddZD0aU33W01', // Placeholder for monthly plan
     quarterly: 'https://buy.stripe.com/test_8x200k0wM6x53kZ5ve33W02' // Placeholder for quarterly plan
   }
@@ -554,7 +553,38 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Plano Starter */}
+          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.starter.name}</h4>
+              <div className="text-3xl font-bold text-gray-600 mb-1">
+                {currencySymbol}{(STRIPE_PRODUCTS.starter.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
+              </div>
+              <div className="text-gray-600">por mês</div>
+            </div>
+            <ul className="space-y-3 mb-6">
+              {STRIPE_PRODUCTS.starter.features.map((feature, index) => (
+                <li key={index} className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button 
+              onClick={() => window.open(STRIPE_CHECKOUT_LINKS.starter, '_blank')}
+              variant={planType === 'starter' ? 'outline' : 'outline'}
+              className={`w-full rounded-xl ${
+                planType === 'starter' 
+                  ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
+                  : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
+              }`}
+              disabled={planLoading || planType === 'starter'}
+            >
+              {planLoading ? 'Carregando...' : planType === 'starter' ? 'Plano Atual' : 'Mudar para Starter'}
+            </Button>
+          </div>
+
           {/* Plano Mensal */}
           <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
             <div className="text-center mb-6">
@@ -590,7 +620,7 @@ const Settings: React.FC = () => {
               }`}
               disabled={planLoading || planType === 'monthly'}
             >
-              {planLoading ? 'Carregando...' : planType === 'monthly' ? 'Plano Atual' : 'Fazer Upgrade'}
+              {planLoading ? 'Carregando...' : planType === 'monthly' ? 'Plano Atual' : 'Mudar para Mensal'}
             </Button>
           </div>
 
@@ -636,7 +666,7 @@ const Settings: React.FC = () => {
               }`}
               disabled={planLoading || planType === 'quarterly'}
             >
-              {planLoading ? 'Carregando...' : planType === 'quarterly' ? 'Plano Atual' : 'Fazer Upgrade'}
+              {planLoading ? 'Carregando...' : planType === 'quarterly' ? 'Plano Atual' : 'Mudar para Trimestral'}
             </Button>
           </div>
         </div>

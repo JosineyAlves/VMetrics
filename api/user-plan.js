@@ -208,8 +208,12 @@ function getPlanInfo(planType) {
 
   const plan = plans[planType] || plans.starter
 
-  // Calcular próxima cobrança se o plano for ativo
-  if (planType !== 'enterprise') {
+  // Calcular próxima cobrança baseada no período atual
+  if (planType === 'quarterly') {
+    // Para plano trimestral, próxima cobrança em 3 meses
+    plan.nextBilling = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+  } else if (planType === 'monthly' || planType === 'starter') {
+    // Para planos mensais, próxima cobrança em 1 mês
     plan.nextBilling = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
   }
 
