@@ -1,0 +1,29 @@
+# 🚀 VARIÁVEIS DE AMBIENTE PARA RESEND
+# Copie este arquivo para .env e configure os valores reais
+
+# ========================================
+# SUPABASE
+# ========================================
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_ANON_KEY=sua-chave-anonima
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-service-role
+
+# ========================================
+# RESEND SMTP
+# ========================================
+RESEND_USERNAME=resend
+RESEND_PASSWORD=sua-senha-resend
+RESEND_SMTP_HOST=smtp.resend.com
+RESEND_SMTP_PORT=465
+
+# ========================================
+# STRIPE
+# ========================================
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# ========================================
+# APP
+# ========================================
+APP_URL=https://app.vmetrics.com.br
+NODE_ENV=production

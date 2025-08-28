@@ -118,13 +118,35 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
     // Create signup URL
     const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`;
     
-    // Prepare email payload for MailerSend TEMPLATE
+    // Prepare email payload for Resend
     const emailPayload = {
-      sender: 'suporte@vmetrics.com.br',
+      sender: 'no-reply@vmetrics.com.br',
       recipient: email,
       subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-      // USAR TEMPLATE DO MAILERSEND - NÃO HTML HARDCODED
-      template_id: 'zr6ke4njwrmgon12',
+      // HTML template com variáveis
+      html_body: `
+        <html>
+          <body>
+            <h1>Bem-vindo ao VMetrics, {{user_name}}!</h1>
+            <p>Obrigado por se cadastrar. Para completar seu cadastro, clique no link abaixo:</p>
+            <a href="{{signup_url}}" style="background-color: #3cd48f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Completar Cadastro
+            </a>
+            <p>Se o botão não funcionar, copie e cole este link no seu navegador:</p>
+            <p>{{signup_url}}</p>
+            <p>Atenciosamente,<br>Equipe {{company_name}}</p>
+          </body>
+        </html>
+      `,
+      text_body: `
+        Bem-vindo ao VMetrics, {{user_name}}!
+        
+        Obrigado por se cadastrar. Para completar seu cadastro, acesse:
+        {{signup_url}}
+        
+        Atenciosamente,
+        Equipe {{company_name}}
+      `,
       // Variáveis para o template
       variables: {
         user_name: fullName,
@@ -133,18 +155,18 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
       }
     };
     
-    // Send email using Supabase SQL function for MailerSend
+    // Send email using Supabase SQL function for Resend
     const { data, error } = await supabase.rpc('send_email_message', {
       payload: emailPayload
     });
     
     if (error) {
-      console.error('❌ Error sending email via MailerSend template:', error);
+      console.error('❌ Error sending email via Resend:', error);
       throw error;
     }
     
-    console.log('✅ Welcome email sent successfully via MailerSend template to:', email);
-    console.log('📧 MailerSend response:', data);
+    console.log('✅ Welcome email sent successfully via Resend to:', email);
+    console.log('📧 Resend response:', data);
     
     // ✅ NÃO INSERIR MANUALMENTE - A FUNÇÃO SQL JÁ REGISTRA!
     // A função SQL já insere na tabela messages com status 'pending'
@@ -152,7 +174,7 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
     return { success: true, data };
     
   } catch (error) {
-    console.error('❌ Failed to send welcome email via MailerSend template:', error);
+    console.error('❌ Failed to send welcome email via Resend:', error);
     
     // ✅ NÃO INSERIR MANUALMENTE EM CASO DE ERRO TAMBÉM!
     // A função SQL já trata os erros e registra na tabela
