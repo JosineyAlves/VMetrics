@@ -107,10 +107,10 @@ async function generateSignupToken(supabase: any, email: string) {
   }
 }
 
-// Send welcome email via SMTP
+// Send welcome email via MailerSend using Supabase SQL function
 async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: string, userId: string) {
   try {
-    console.log('📧 Sending welcome email via SMTP to:', email)
+    console.log('📧 Sending welcome email via MailerSend template to:', email)
     
     // Generate signup token
     const signupToken = await generateSignupToken(supabase, email)
@@ -118,90 +118,33 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
     // Create signup URL
     const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`
     
-    // Send email via Supabase SMTP
-    const { data, error } = await supabase.auth.admin.sendRawEmail({
-      to: email,
+    // Prepare email payload for MailerSend TEMPLATE
+    const emailPayload = {
+      sender: 'suporte@vmetrics.com.br',
+      recipient: email,
       subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Bem-vindo ao VMetrics</title>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background-color: #3cd48f; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-            .button { display: inline-block; background-color: #3cd48f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🎉 Bem-vindo ao VMetrics!</h1>
-            </div>
-            <div class="content">
-              <h2>Olá, ${fullName}!</h2>
-              <p>Sua compra foi realizada com sucesso e estamos muito felizes em tê-lo conosco!</p>
-              <p>Para começar a usar o VMetrics, você precisa completar seu cadastro na plataforma.</p>
-              
-              <div style="text-align: center;">
-                <a href="${signupUrl}" class="button">🚀 Completar Cadastro</a>
-              </div>
-              
-              <p><strong>Importante:</strong></p>
-              <ul>
-                <li>Este link é válido por 24 horas</li>
-                <li>Após o cadastro, você poderá configurar sua API key do RedTrack</li>
-                <li>Em seguida, será redirecionado para o dashboard</li>
-              </ul>
-              
-              <p>Se tiver alguma dúvida, entre em contato conosco.</p>
-              
-              <p>Atenciosamente,<br>Equipe VMetrics</p>
-            </div>
-            <div class="footer">
-              <p>Este email foi enviado automaticamente. Não responda a esta mensagem.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-      text: `
-        🎉 Bem-vindo ao VMetrics!
-        
-        Olá, ${fullName}!
-        
-        Sua compra foi realizada com sucesso e estamos muito felizes em tê-lo conosco!
-        
-        Para começar a usar o VMetrics, você precisa completar seu cadastro na plataforma.
-        
-        Link para cadastro: ${signupUrl}
-        
-        IMPORTANTE:
-        - Este link é válido por 24 horas
-        - Após o cadastro, você poderá configurar sua API key do RedTrack
-        - Em seguida, será redirecionado para o dashboard
-        
-        Se tiver alguma dúvida, entre em contato conosco.
-        
-        Atenciosamente,
-        Equipe VMetrics
-        
-        ---
-        Este email foi enviado automaticamente. Não responda a esta mensagem.
-      `
+      // USAR TEMPLATE DO MAILERSEND - NÃO HTML HARDCODED
+      template_id: 'zr6ke4njwrmgon12',
+      // Variáveis para o template
+      variables: {
+        user_name: fullName,
+        signup_url: signupUrl,
+        company_name: 'VMetrics'
+      }
+    }
+    
+    // Send email using Supabase SQL function for MailerSend
+    const { data, error } = await supabase.rpc('send_email_message', {
+      payload: emailPayload
     })
     
     if (error) {
-      console.error('❌ Error sending email via SMTP:', error)
+      console.error('❌ Error sending email via MailerSend template:', error)
       throw error
     }
     
-    console.log('✅ Welcome email sent successfully via SMTP to:', email)
+    console.log('✅ Welcome email sent successfully via MailerSend template to:', email)
+    console.log('📧 MailerSend response:', data)
     
     // Log email in messages table
     await supabase
@@ -210,17 +153,22 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
         sender: 'suporte@vmetrics.com.br',
         recipient: email,
         subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-        html_body: 'Welcome email template',
-        text_body: 'Welcome email template',
+        html_body: 'MailerSend Template zr6ke4njwrmgon12',
+        text_body: 'MailerSend Template zr6ke4njwrmgon12',
         status: 'sent',
         sent_at: new Date(),
-        provider_response: JSON.stringify({ method: 'smtp', success: true })
+        provider_response: JSON.stringify({ 
+          method: 'mailersend_template', 
+          template_id: 'zr6ke4njwrmgon12',
+          response: data,
+          success: true 
+        })
       })
     
     return { success: true, data }
     
   } catch (error) {
-    console.error('❌ Failed to send welcome email via SMTP:', error)
+    console.error('❌ Failed to send welcome email via MailerSend template:', error)
     
     // Log error in messages table
     await supabase
@@ -229,11 +177,15 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
         sender: 'suporte@vmetrics.com.br',
         recipient: email,
         subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-        html_body: 'Welcome email template',
-        text_body: 'Welcome email template',
+        html_body: 'MailerSend Template zr6ke4njwrmgon12',
+        text_body: 'MailerSend Template zr6ke4njwrmgon12',
         status: 'failed',
         sent_at: new Date(),
-        provider_response: JSON.stringify({ method: 'smtp', error: error.message })
+        provider_response: JSON.stringify({ 
+          method: 'mailersend_template', 
+          template_id: 'zr6ke4njwrmgon12',
+          error: error.message 
+        })
       })
     
     throw error
