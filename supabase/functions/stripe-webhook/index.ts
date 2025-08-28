@@ -78,6 +78,168 @@ serve(async (req) => {
   }
 })
 
+// Generate signup token for new users
+async function generateSignupToken(supabase: any, email: string) {
+  try {
+    const token = crypto.randomUUID()
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    
+    const { error } = await supabase
+      .from('signup_tokens')
+      .insert({
+        token: token,
+        email: email,
+        expires_at: expiresAt,
+        used: false
+      })
+    
+    if (error) {
+      console.error('Error creating signup token:', error)
+      throw error
+    }
+    
+    console.log('Signup token generated for:', email)
+    return token
+    
+  } catch (error) {
+    console.error('Failed to generate signup token:', error)
+    throw error
+  }
+}
+
+// Send welcome email via SMTP
+async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: string, userId: string) {
+  try {
+    console.log('📧 Sending welcome email via SMTP to:', email)
+    
+    // Generate signup token
+    const signupToken = await generateSignupToken(supabase, email)
+    
+    // Create signup URL
+    const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`
+    
+    // Send email via Supabase SMTP
+    const { data, error } = await supabase.auth.admin.sendRawEmail({
+      to: email,
+      subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Bem-vindo ao VMetrics</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #3cd48f; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background-color: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; background-color: #3cd48f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Bem-vindo ao VMetrics!</h1>
+            </div>
+            <div class="content">
+              <h2>Olá, ${fullName}!</h2>
+              <p>Sua compra foi realizada com sucesso e estamos muito felizes em tê-lo conosco!</p>
+              <p>Para começar a usar o VMetrics, você precisa completar seu cadastro na plataforma.</p>
+              
+              <div style="text-align: center;">
+                <a href="${signupUrl}" class="button">🚀 Completar Cadastro</a>
+              </div>
+              
+              <p><strong>Importante:</strong></p>
+              <ul>
+                <li>Este link é válido por 24 horas</li>
+                <li>Após o cadastro, você poderá configurar sua API key do RedTrack</li>
+                <li>Em seguida, será redirecionado para o dashboard</li>
+              </ul>
+              
+              <p>Se tiver alguma dúvida, entre em contato conosco.</p>
+              
+              <p>Atenciosamente,<br>Equipe VMetrics</p>
+            </div>
+            <div class="footer">
+              <p>Este email foi enviado automaticamente. Não responda a esta mensagem.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+        🎉 Bem-vindo ao VMetrics!
+        
+        Olá, ${fullName}!
+        
+        Sua compra foi realizada com sucesso e estamos muito felizes em tê-lo conosco!
+        
+        Para começar a usar o VMetrics, você precisa completar seu cadastro na plataforma.
+        
+        Link para cadastro: ${signupUrl}
+        
+        IMPORTANTE:
+        - Este link é válido por 24 horas
+        - Após o cadastro, você poderá configurar sua API key do RedTrack
+        - Em seguida, será redirecionado para o dashboard
+        
+        Se tiver alguma dúvida, entre em contato conosco.
+        
+        Atenciosamente,
+        Equipe VMetrics
+        
+        ---
+        Este email foi enviado automaticamente. Não responda a esta mensagem.
+      `
+    })
+    
+    if (error) {
+      console.error('❌ Error sending email via SMTP:', error)
+      throw error
+    }
+    
+    console.log('✅ Welcome email sent successfully via SMTP to:', email)
+    
+    // Log email in messages table
+    await supabase
+      .from('messages')
+      .insert({
+        sender: 'suporte@vmetrics.com.br',
+        recipient: email,
+        subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
+        html_body: 'Welcome email template',
+        text_body: 'Welcome email template',
+        status: 'sent',
+        sent_at: new Date(),
+        provider_response: JSON.stringify({ method: 'smtp', success: true })
+      })
+    
+    return { success: true, data }
+    
+  } catch (error) {
+    console.error('❌ Failed to send welcome email via SMTP:', error)
+    
+    // Log error in messages table
+    await supabase
+      .from('messages')
+      .insert({
+        sender: 'suporte@vmetrics.com.br',
+        recipient: email,
+        subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
+        html_body: 'Welcome email template',
+        text_body: 'Welcome email template',
+        status: 'failed',
+        sent_at: new Date(),
+        provider_response: JSON.stringify({ method: 'smtp', error: error.message })
+      })
+    
+    throw error
+  }
+}
+
 // Handle checkout session completed
 async function handleCheckoutCompleted(supabase: any, session: any) {
   console.log('Processing checkout completed:', session.id)
@@ -176,6 +338,11 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
       }
       
       console.log('User plan created/updated successfully')
+      
+      // Send welcome email via SMTP
+      if (customerEmail && customerName && userId) {
+        await sendWelcomeEmailWithSMTP(supabase, customerEmail, customerName, userId)
+      }
     }
     
   } catch (error) {
@@ -206,10 +373,12 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     console.log('Detected plan type:', planType)
     
     // Find or create user by email (most reliable for subscriptions)
-    let userId = null
+    let userId: string | null = null
+    let customerEmail: string | null = null
+    let customerName: string | null = null
     
     // First, try to get customer email from Stripe subscription
-    let customerEmail = subscription.customer_email
+    customerEmail = subscription.customer_email
     
     if (!customerEmail) {
       console.log('No customer_email in subscription, trying to find user by stripe_customer_id...')
@@ -217,13 +386,14 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       // Try to find user by stripe_customer_id first
       const { data: existingUserByStripe, error: stripeError } = await supabase
         .from('users')
-        .select('id, email, stripe_customer_id')
+        .select('id, email, full_name, stripe_customer_id')
         .eq('stripe_customer_id', subscription.customer)
         .single()
       
       if (existingUserByStripe) {
         userId = existingUserByStripe.id
         customerEmail = existingUserByStripe.email
+        customerName = existingUserByStripe.full_name
         console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
         
         // Update stripe_customer_id if different
@@ -248,12 +418,13 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       
       const { data: existingUserByEmail, error: emailError } = await supabase
         .from('users')
-        .select('id, email, stripe_customer_id')
+        .select('id, email, full_name, stripe_customer_id')
         .eq('email', customerEmail)
         .single()
       
       if (existingUserByEmail) {
         userId = existingUserByEmail.id
+        customerName = existingUserByEmail.full_name
         console.log('Existing user found by email:', userId, 'with stripe_customer_id:', existingUserByEmail.stripe_customer_id)
         
         // Update stripe_customer_id if different
@@ -296,6 +467,8 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       }
       
       userId = newUser.id
+      customerEmail = finalEmail
+      customerName = 'Usuário VMetrics'
       console.log('New user created with email:', finalEmail, 'ID:', userId)
     }
     
@@ -354,6 +527,11 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     }
     
     console.log('User plan created successfully with plan type:', planType)
+    
+    // Send welcome email via SMTP if we have email and name
+    if (customerEmail && customerName && userId) {
+      await sendWelcomeEmailWithSMTP(supabase, customerEmail, customerName, userId)
+    }
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)
