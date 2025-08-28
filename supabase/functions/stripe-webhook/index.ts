@@ -110,13 +110,13 @@ async function generateSignupToken(supabase: any, email: string) {
 // Send welcome email via MailerSend using Supabase SQL function
 async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: string, userId: string) {
   try {
-    console.log('📧 Sending welcome email via MailerSend template to:', email)
+    console.log('📧 Sending welcome email via MailerSend template to:', email);
     
     // Generate signup token
-    const signupToken = await generateSignupToken(supabase, email)
+    const signupToken = await generateSignupToken(supabase, email);
     
     // Create signup URL
-    const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`
+    const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`;
     
     // Prepare email payload for MailerSend TEMPLATE
     const emailPayload = {
@@ -131,64 +131,33 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
         signup_url: signupUrl,
         company_name: 'VMetrics'
       }
-    }
+    };
     
     // Send email using Supabase SQL function for MailerSend
     const { data, error } = await supabase.rpc('send_email_message', {
       payload: emailPayload
-    })
+    });
     
     if (error) {
-      console.error('❌ Error sending email via MailerSend template:', error)
-      throw error
+      console.error('❌ Error sending email via MailerSend template:', error);
+      throw error;
     }
     
-    console.log('✅ Welcome email sent successfully via MailerSend template to:', email)
-    console.log('📧 MailerSend response:', data)
+    console.log('✅ Welcome email sent successfully via MailerSend template to:', email);
+    console.log('📧 MailerSend response:', data);
     
-    // Log email in messages table
-    await supabase
-      .from('messages')
-      .insert({
-        sender: 'suporte@vmetrics.com.br',
-        recipient: email,
-        subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-        html_body: 'MailerSend Template zr6ke4njwrmgon12',
-        text_body: 'MailerSend Template zr6ke4njwrmgon12',
-        status: 'sent',
-        sent_at: new Date(),
-        provider_response: JSON.stringify({ 
-          method: 'mailersend_template', 
-          template_id: 'zr6ke4njwrmgon12',
-          response: data,
-          success: true 
-        })
-      })
+    // ✅ NÃO INSERIR MANUALMENTE - A FUNÇÃO SQL JÁ REGISTRA!
+    // A função SQL já insere na tabela messages com status 'pending'
     
-    return { success: true, data }
+    return { success: true, data };
     
   } catch (error) {
-    console.error('❌ Failed to send welcome email via MailerSend template:', error)
+    console.error('❌ Failed to send welcome email via MailerSend template:', error);
     
-    // Log error in messages table
-    await supabase
-      .from('messages')
-      .insert({
-        sender: 'suporte@vmetrics.com.br',
-        recipient: email,
-        subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-        html_body: 'MailerSend Template zr6ke4njwrmgon12',
-        text_body: 'MailerSend Template zr6ke4njwrmgon12',
-        status: 'failed',
-        sent_at: new Date(),
-        provider_response: JSON.stringify({ 
-          method: 'mailersend_template', 
-          template_id: 'zr6ke4njwrmgon12',
-          error: error.message 
-        })
-      })
+    // ✅ NÃO INSERIR MANUALMENTE EM CASO DE ERRO TAMBÉM!
+    // A função SQL já trata os erros e registra na tabela
     
-    throw error
+    throw error;
   }
 }
 
