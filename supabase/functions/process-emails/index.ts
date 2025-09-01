@@ -192,3 +192,4 @@ async function processPendingEmails(supabase: any) {
     throw error
   }
 }
+

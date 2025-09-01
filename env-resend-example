@@ -1,29 +1,22 @@
-# 🚀 VARIÁVEIS DE AMBIENTE PARA RESEND
-# Copie este arquivo para .env e configure os valores reais
+# Configurações do Resend para o Supabase
+# Adicione estas variáveis no painel do Supabase > Settings > Edge Functions > Environment Variables
 
-# ========================================
-# SUPABASE
-# ========================================
-SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_ANON_KEY=sua-chave-anonima
-SUPABASE_SERVICE_ROLE_KEY=sua-chave-service-role
+# Chave da API do Resend (obrigatória)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# ========================================
-# RESEND SMTP
-# ========================================
-RESEND_USERNAME=resend
-RESEND_PASSWORD=sua-senha-resend
-RESEND_SMTP_HOST=smtp.resend.com
-RESEND_SMTP_PORT=465
+# Configurações opcionais do Resend
+RESEND_FROM_EMAIL=noreply@vmetrics.com.br
+RESEND_FROM_NAME=VMetrics
 
-# ========================================
-# STRIPE
-# ========================================
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+# URLs do projeto
+FRONTEND_URL=https://app.vmetrics.com.br
+BACKEND_URL=https://api.vmetrics.com.br
 
-# ========================================
-# APP
-# ========================================
-APP_URL=https://app.vmetrics.com.br
-NODE_ENV=production
+# Configurações do Supabase (já configuradas)
+SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxxxxxx.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Configurações do Stripe (já configuradas)
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxx

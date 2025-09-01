@@ -169,7 +169,7 @@ async function processPendingEmailsResend(supabase: any) {
   }
 }
 
-// Send email via Resend (placeholder - will be implemented with actual SMTP)
+// Send email via Resend API
 async function sendEmailViaResend(emailData: {
   from: string
   to: string
@@ -178,26 +178,48 @@ async function sendEmailViaResend(emailData: {
   text: string
 }): Promise<boolean> {
   try {
-    // This is a placeholder - in a real implementation, you would:
-    // 1. Use a proper SMTP library
-    // 2. Connect to smtp.resend.com:465
-    // 3. Authenticate with resend credentials
-    // 4. Send the email
-    
-    console.log(`📧 Sending email via Resend SMTP:`)
+    console.log(`📧 Sending email via Resend API:`)
     console.log(`   From: ${emailData.from}`)
     console.log(`   To: ${emailData.to}`)
     console.log(`   Subject: ${emailData.subject}`)
     
-    // For now, simulate successful email sending
-    // TODO: Implement actual SMTP connection to Resend
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate delay
+    // Get Resend API key from environment
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
     
-    console.log(`✅ Email sent successfully via Resend`)
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY environment variable not set')
+    }
+    
+    // Send email via Resend API
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: emailData.from,
+        to: [emailData.to],
+        subject: emailData.subject,
+        html: emailData.html,
+        text: emailData.text
+      })
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`Resend API error: ${errorData.message || response.statusText}`)
+    }
+    
+    const result = await response.json()
+    
+    console.log(`✅ Email sent successfully via Resend API`)
+    console.log(`📧 Resend response:`, result)
+    
     return true
     
   } catch (error) {
-    console.error(`❌ Error sending email via Resend:`, error)
+    console.error(`❌ Error sending email via Resend API:`, error)
     return false
   }
 }

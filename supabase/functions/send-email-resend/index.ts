@@ -16,7 +16,7 @@ serve(async (req) => {
     // Get request body
     const { emailData } = await req.json()
     
-    // Send email via Resend
+    // Send email via Resend API
     const result = await sendEmailViaResend(emailData)
 
     return new Response(
@@ -40,7 +40,7 @@ serve(async (req) => {
   }
 })
 
-// Send email via Resend SMTP
+// Send email via Resend API
 async function sendEmailViaResend(emailData: {
   from: string
   to: string
@@ -49,85 +49,58 @@ async function sendEmailViaResend(emailData: {
   text: string
 }) {
   try {
-    console.log(`📧 Sending email via Resend SMTP:`)
+    console.log(`📧 Sending email via Resend API:`)
     console.log(`   From: ${emailData.from}`)
     console.log(`   To: ${emailData.to}`)
     console.log(`   Subject: ${emailData.subject}`)
     
-    // Get Resend credentials from environment
-    const resendUsername = Deno.env.get('RESEND_USERNAME') || 'resend'
-    const resendPassword = Deno.env.get('RESEND_PASSWORD')
+    // Get Resend API key from environment
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
     
-    if (!resendPassword) {
-      throw new Error('RESEND_PASSWORD environment variable not set')
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY environment variable not set')
     }
     
-    // Create SMTP connection to Resend
-    const smtpConnection = await connectToResendSMTP(resendUsername, resendPassword)
+    // Send email via Resend API
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: emailData.from,
+        to: [emailData.to],
+        subject: emailData.subject,
+        html: emailData.html,
+        text: emailData.text
+      })
+    })
     
-    if (!smtpConnection) {
-      throw new Error('Failed to connect to Resend SMTP')
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`Resend API error: ${errorData.message || response.statusText}`)
     }
     
-    // Send email
-    const emailSent = await sendEmail(smtpConnection, emailData)
+    const result = await response.json()
     
-    if (emailSent) {
-      console.log(`✅ Email sent successfully via Resend`)
-      return {
-        success: true,
-        message: 'Email sent successfully via Resend',
-        provider: 'resend',
-        sent_at: new Date().toISOString()
-      }
-    } else {
-      throw new Error('Failed to send email via Resend SMTP')
+    console.log(`✅ Email sent successfully via Resend API`)
+    console.log(`📧 Resend response:`, result)
+    
+    return {
+      success: true,
+      message: 'Email sent successfully via Resend API',
+      provider: 'resend',
+      resend_id: result.id,
+      sent_at: new Date().toISOString()
     }
     
   } catch (error) {
-    console.error(`❌ Error sending email via Resend:`, error)
+    console.error(`❌ Error sending email via Resend API:`, error)
     return {
       success: false,
       error: error.message,
       provider: 'resend'
     }
-  }
-}
-
-// Connect to Resend SMTP server
-async function connectToResendSMTP(username: string, password: string) {
-  try {
-    // This is a simplified SMTP connection
-    // In a real implementation, you would use a proper SMTP library
-    
-    console.log(`🔌 Connecting to Resend SMTP: smtp.resend.com:465`)
-    console.log(`   Username: ${username}`)
-    
-    // Simulate SMTP connection
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    console.log(`✅ Connected to Resend SMTP successfully`)
-    return { connected: true, host: 'smtp.resend.com', port: 465 }
-    
-  } catch (error) {
-    console.error(`❌ Failed to connect to Resend SMTP:`, error)
-    return null
-  }
-}
-
-// Send email via SMTP connection
-async function sendEmail(smtpConnection: any, emailData: any) {
-  try {
-    console.log(`📤 Sending email via SMTP connection...`)
-    
-    // Simulate email sending process
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    console.log(`✅ Email sent successfully`)
-    return true
-    
-  } catch (error) {
-    console.error(`❌ Failed to send email:`, error)
-    return false
   }
 }

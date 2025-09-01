@@ -375,3 +375,7 @@ export class WebhookService {
 export const webhookService = new WebhookService()
 
 export default webhookService
+
+import { sendWelcomeEmail } from './emailService'
+        // Enviar email de boas-vindas após checkout
+        await this.sendWelcomeEmailAfterCheckout(session)

@@ -107,10 +107,10 @@ async function generateSignupToken(supabase: any, email: string) {
   }
 }
 
-// Send welcome email via MailerSend using Supabase SQL function
+// Send welcome email via Resend API
 async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: string, userId: string) {
   try {
-    console.log('📧 Sending welcome email via MailerSend template to:', email);
+    console.log('📧 Sending welcome email via Resend API to:', email);
     
     // Generate signup token
     const signupToken = await generateSignupToken(supabase, email);
@@ -118,46 +118,80 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
     // Create signup URL
     const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`;
     
-    // Prepare email payload for Resend
-    const emailPayload = {
-      sender: 'no-reply@vmetrics.com.br',
-      recipient: email,
-      subject: 'Bem-vindo ao VMetrics! Complete seu cadastro',
-      // HTML template com variáveis
-      html_body: `
+    // Prepare email data for Resend API
+    const emailData = {
+      from: 'VMetrics <noreply@vmetrics.com.br>',
+      to: email,
+      subject: '🎉 Bem-vindo ao VMetrics! Sua conta está pronta',
+      html: `
+        <!DOCTYPE html>
         <html>
-          <body>
-            <h1>Bem-vindo ao VMetrics, {{user_name}}!</h1>
-            <p>Obrigado por se cadastrar. Para completar seu cadastro, clique no link abaixo:</p>
-            <a href="{{signup_url}}" style="background-color: #3cd48f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Completar Cadastro
-            </a>
-            <p>Se o botão não funcionar, copie e cole este link no seu navegador:</p>
-            <p>{{signup_url}}</p>
-            <p>Atenciosamente,<br>Equipe {{company_name}}</p>
-          </body>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Bem-vindo ao VMetrics!</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #3cd48f 0%, #2bb673 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                .cta-button { display: inline-block; background: #3cd48f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>🎉 Bem-vindo ao VMetrics!</h1>
+                    <p>Sua plataforma de análise de marketing está pronta!</p>
+                </div>
+                <div class='content'>
+                    <h2>Olá ${fullName}!</h2>
+                    <p>Parabéns! Você acabou de adquirir um plano no VMetrics.</p>
+                    <p>Para começar a usar sua plataforma, você precisa criar sua conta:</p>
+                    <div style='text-align: center;'>
+                        <a href='${signupUrl}' class='cta-button'>🚀 Criar Minha Conta</a>
+                    </div>
+                    <p><strong>O que você pode fazer agora:</strong></p>
+                    <ul>
+                        <li>📊 Analisar campanhas de marketing</li>
+                        <li>💰 Rastrear conversões e ROI</li>
+                        <li>📈 Visualizar funis de conversão</li>
+                        <li>🎯 Otimizar performance das campanhas</li>
+                    </ul>
+                    <p>Se tiver alguma dúvida, nossa equipe está aqui para ajudar!</p>
+                </div>
+                <div class='footer'>
+                    <p>© 2025 VMetrics. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </body>
         </html>
       `,
-      text_body: `
-        Bem-vindo ao VMetrics, {{user_name}}!
+      text: `
+        Bem-vindo ao VMetrics, ${fullName}!
         
-        Obrigado por se cadastrar. Para completar seu cadastro, acesse:
-        {{signup_url}}
+        Parabéns! Você acabou de adquirir um plano no VMetrics.
+        
+        Para começar a usar sua plataforma, acesse:
+        ${signupUrl}
+        
+        O que você pode fazer agora:
+        - Analisar campanhas de marketing
+        - Rastrear conversões e ROI
+        - Visualizar funis de conversão
+        - Otimizar performance das campanhas
+        
+        Se tiver alguma dúvida, nossa equipe está aqui para ajudar!
         
         Atenciosamente,
-        Equipe {{company_name}}
-      `,
-      // Variáveis para o template
-      variables: {
-        user_name: fullName,
-        signup_url: signupUrl,
-        company_name: 'VMetrics'
-      }
+        Equipe VMetrics
+      `
     };
     
-    // Send email using Supabase SQL function for Resend
-    const { data, error } = await supabase.rpc('send_email_message', {
-      payload: emailPayload
+    // Send email using Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('send-email-resend', {
+      body: { emailData }
     });
     
     if (error) {
@@ -168,17 +202,10 @@ async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: 
     console.log('✅ Welcome email sent successfully via Resend to:', email);
     console.log('📧 Resend response:', data);
     
-    // ✅ NÃO INSERIR MANUALMENTE - A FUNÇÃO SQL JÁ REGISTRA!
-    // A função SQL já insere na tabela messages com status 'pending'
-    
     return { success: true, data };
     
   } catch (error) {
     console.error('❌ Failed to send welcome email via Resend:', error);
-    
-    // ✅ NÃO INSERIR MANUALMENTE EM CASO DE ERRO TAMBÉM!
-    // A função SQL já trata os erros e registra na tabela
-    
     throw error;
   }
 }

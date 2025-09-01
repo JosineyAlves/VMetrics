@@ -307,3 +307,14 @@ app.listen(PORT, () => {
     console.log(`   - POST /api/stripe/test-webhook (DEV)`)
   }
 }) 
+import sendEmailHandler from './api/send-email.js'
+
+// Rota do Resend
+app.post('/api/send-email', async (req, res) => {
+  try {
+    await sendEmailHandler(req, res)
+  } catch (error) {
+    console.error('Error in send-email route:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
