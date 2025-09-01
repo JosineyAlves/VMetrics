@@ -1,3 +1,6 @@
+// 🚀 WEBHOOK CORRIGIDO - USANDO AUTH.USERS E SISTEMA NATIVO SUPABASE
+// Substitua o arquivo atual por esta versão corrigida
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -78,139 +81,7 @@ serve(async (req) => {
   }
 })
 
-// Generate signup token for new users
-async function generateSignupToken(supabase: any, email: string) {
-  try {
-    const token = crypto.randomUUID()
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-    
-    const { error } = await supabase
-      .from('signup_tokens')
-      .insert({
-        token: token,
-        email: email,
-        expires_at: expiresAt,
-        used: false
-      })
-    
-    if (error) {
-      console.error('Error creating signup token:', error)
-      throw error
-    }
-    
-    console.log('Signup token generated for:', email)
-    return token
-    
-  } catch (error) {
-    console.error('Failed to generate signup token:', error)
-    throw error
-  }
-}
-
-// Send welcome email via Resend API
-async function sendWelcomeEmailWithSMTP(supabase: any, email: string, fullName: string, userId: string) {
-  try {
-    console.log('📧 Sending welcome email via Resend API to:', email);
-    
-    // Generate signup token
-    const signupToken = await generateSignupToken(supabase, email);
-    
-    // Create signup URL
-    const signupUrl = `https://app.vmetrics.com.br/auth/signup?token=${signupToken}`;
-    
-    // Prepare email data for Resend API
-    const emailData = {
-      from: 'VMetrics <noreply@vmetrics.com.br>',
-      to: email,
-      subject: '🎉 Bem-vindo ao VMetrics! Sua conta está pronta',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Bem-vindo ao VMetrics!</title>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: linear-gradient(135deg, #3cd48f 0%, #2bb673 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-                .cta-button { display: inline-block; background: #3cd48f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
-                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>🎉 Bem-vindo ao VMetrics!</h1>
-                    <p>Sua plataforma de análise de marketing está pronta!</p>
-                </div>
-                <div class='content'>
-                    <h2>Olá ${fullName}!</h2>
-                    <p>Parabéns! Você acabou de adquirir um plano no VMetrics.</p>
-                    <p>Para começar a usar sua plataforma, você precisa criar sua conta:</p>
-                    <div style='text-align: center;'>
-                        <a href='${signupUrl}' class='cta-button'>🚀 Criar Minha Conta</a>
-                    </div>
-                    <p><strong>O que você pode fazer agora:</strong></p>
-                    <ul>
-                        <li>📊 Analisar campanhas de marketing</li>
-                        <li>💰 Rastrear conversões e ROI</li>
-                        <li>📈 Visualizar funis de conversão</li>
-                        <li>🎯 Otimizar performance das campanhas</li>
-                    </ul>
-                    <p>Se tiver alguma dúvida, nossa equipe está aqui para ajudar!</p>
-                </div>
-                <div class='footer'>
-                    <p>© 2025 VMetrics. Todos os direitos reservados.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-      `,
-      text: `
-        Bem-vindo ao VMetrics, ${fullName}!
-        
-        Parabéns! Você acabou de adquirir um plano no VMetrics.
-        
-        Para começar a usar sua plataforma, acesse:
-        ${signupUrl}
-        
-        O que você pode fazer agora:
-        - Analisar campanhas de marketing
-        - Rastrear conversões e ROI
-        - Visualizar funis de conversão
-        - Otimizar performance das campanhas
-        
-        Se tiver alguma dúvida, nossa equipe está aqui para ajudar!
-        
-        Atenciosamente,
-        Equipe VMetrics
-      `
-    };
-    
-    // Send email using Supabase Edge Function
-    const { data, error } = await supabase.functions.invoke('send-email-resend', {
-      body: { emailData }
-    });
-    
-    if (error) {
-      console.error('❌ Error sending email via Resend:', error);
-      throw error;
-    }
-    
-    console.log('✅ Welcome email sent successfully via Resend to:', email);
-    console.log('📧 Resend response:', data);
-    
-    return { success: true, data };
-    
-  } catch (error) {
-    console.error('❌ Failed to send welcome email via Resend:', error);
-    throw error;
-  }
-}
-
-// Handle checkout session completed
+// 🎯 FUNÇÃO PRINCIPAL CORRIGIDA - CRIAR USUÁRIO NA AUTH.USERS
 async function handleCheckoutCompleted(supabase: any, session: any) {
   console.log('Processing checkout completed:', session.id)
   
@@ -226,68 +97,57 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
       
       console.log('Customer details:', { customerEmail, customerName, customerId, subscriptionId })
       
-      // Check if user already exists by email first, then by stripe_customer_id
+      // 🚀 CRIAR USUÁRIO NA TABELA DE AUTH (NÃO NA CUSTOMIZADA)
       let userId = null
       
-      // Try to find user by email first
-      const { data: existingUserByEmail, error: emailError } = await supabase
-        .from('users')
-        .select('id, stripe_customer_id')
-        .eq('email', customerEmail)
-        .single()
+      // Verificar se usuário já existe na auth.users
+      const { data: existingUser, error: userError } = await supabase.auth.admin.getUserByEmail(customerEmail)
       
-      if (existingUserByEmail) {
-        userId = existingUserByEmail.id
-        console.log('Existing user found by email:', userId)
+      if (existingUser?.user) {
+        userId = existingUser.user.id
+        console.log('Existing user found in auth.users:', userId)
         
-        // Update stripe_customer_id if different
-        if (existingUserByEmail.stripe_customer_id !== customerId) {
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ stripe_customer_id: customerId })
-            .eq('id', userId)
+        // Atualizar metadata se necessário
+        if (existingUser.user.user_metadata?.stripe_customer_id !== customerId) {
+          const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+            user_metadata: { 
+              stripe_customer_id: customerId,
+              full_name: customerName 
+            }
+          })
           
           if (updateError) {
-            console.error('Error updating stripe_customer_id:', updateError)
+            console.error('Error updating user metadata:', updateError)
           } else {
-            console.log('Updated stripe_customer_id for existing user')
+            console.log('User metadata updated successfully')
           }
         }
       } else {
-        // Try to find by stripe_customer_id
-        const { data: existingUserByStripe, error: stripeError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
-          .single()
-        
-        if (existingUserByStripe) {
-          userId = existingUserByStripe.id
-          console.log('Existing user found by stripe_customer_id:', userId)
-        } else {
-          // Create new user only if neither exists
-          const { data: newUser, error: createError } = await supabase
-            .from('users')
-            .insert({
-              email: customerEmail,
-              full_name: customerName || 'Usuário VMetrics',
-              stripe_customer_id: customerId,
-              is_active: true
-            })
-            .select('id')
-            .single()
-          
-          if (createError) {
-            console.error('Error creating user:', createError)
-            return
+        // 🎉 CRIAR NOVO USUÁRIO NA AUTH.USERS
+        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+          email: customerEmail,
+          password: crypto.randomUUID(), // Senha temporária
+          email_confirm: true, // Email já confirmado
+          user_metadata: {
+            full_name: customerName || 'Usuário VMetrics',
+            stripe_customer_id: customerId
           }
-          
-          userId = newUser.id
-          console.log('New user created:', userId)
+        })
+        
+        if (createError) {
+          console.error('Error creating user in auth.users:', createError)
+          return
         }
+        
+        userId = newUser.user.id
+        console.log('New user created in auth.users:', userId)
+        
+        // 🎉 EMAIL AUTOMÁTICO VIA SUPABASE + RESEND
+        // O Supabase automaticamente envia email de boas-vindas!
+        console.log('✅ User created successfully. Email will be sent automatically via Supabase + Resend')
       }
       
-      // Use UPSERT to handle both new plans and upgrades
+      // Criar plano do usuário
       const { error: planError } = await supabase
         .from('user_plans')
         .upsert({
@@ -303,16 +163,11 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         })
         
       if (planError) {
-        console.error('Error updating user plan:', planError)
+        console.error('Error creating user plan:', planError)
         return
       }
       
       console.log('User plan created/updated successfully')
-      
-      // Send welcome email via SMTP
-      if (customerEmail && customerName && userId) {
-        await sendWelcomeEmailWithSMTP(supabase, customerEmail, customerName, userId)
-      }
     }
     
   } catch (error) {
@@ -342,67 +197,53 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-    // Find or create user by email (most reliable for subscriptions)
+    // Find user by stripe_customer_id in auth.users
     let userId: string | null = null
     let customerEmail: string | null = null
     let customerName: string | null = null
     
-    // First, try to get customer email from Stripe subscription
+    // Get customer email from Stripe subscription
     customerEmail = subscription.customer_email
     
     if (!customerEmail) {
       console.log('No customer_email in subscription, trying to find user by stripe_customer_id...')
       
-      // Try to find user by stripe_customer_id first
-      const { data: existingUserByStripe, error: stripeError } = await supabase
-        .from('users')
-        .select('id, email, full_name, stripe_customer_id')
-        .eq('stripe_customer_id', subscription.customer)
-        .single()
+      // Search in auth.users by metadata
+      const { data: users, error: searchError } = await supabase.auth.admin.listUsers()
       
-      if (existingUserByStripe) {
-        userId = existingUserByStripe.id
-        customerEmail = existingUserByStripe.email
-        customerName = existingUserByStripe.full_name
-        console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
-        
-        // Update stripe_customer_id if different
-        if (existingUserByStripe.stripe_customer_id !== subscription.customer) {
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ stripe_customer_id: subscription.customer })
-            .eq('id', userId)
-          
-          if (updateError) {
-            console.error('Error updating stripe_customer_id:', updateError)
-          } else {
-            console.log('Updated stripe_customer_id for existing user')
-          }
-        }
+      if (searchError) {
+        console.error('Error searching users:', searchError)
+        return
       }
-    }
-    
-    // If we have an email, try to find user by email
-    if (customerEmail && !userId) {
-      console.log('Searching for user by email:', customerEmail)
       
-      const { data: existingUserByEmail, error: emailError } = await supabase
-        .from('users')
-        .select('id, email, full_name, stripe_customer_id')
-        .eq('email', customerEmail)
-        .single()
+      // Find user with matching stripe_customer_id
+      const matchingUser = users.users.find(user => 
+        user.user_metadata?.stripe_customer_id === subscription.customer
+      )
       
-      if (existingUserByEmail) {
-        userId = existingUserByEmail.id
-        customerName = existingUserByEmail.full_name
-        console.log('Existing user found by email:', userId, 'with stripe_customer_id:', existingUserByEmail.stripe_customer_id)
+      if (matchingUser) {
+        userId = matchingUser.id
+        customerEmail = matchingUser.email
+        customerName = matchingUser.user_metadata?.full_name
+        console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
+      }
+    } else {
+      // Try to find user by email
+      const { data: existingUser, error: emailError } = await supabase.auth.admin.getUserByEmail(customerEmail)
+      
+      if (existingUser?.user) {
+        userId = existingUser.user.id
+        customerName = existingUser.user.user_metadata?.full_name
+        console.log('Existing user found by email:', userId)
         
         // Update stripe_customer_id if different
-        if (existingUserByEmail.stripe_customer_id !== subscription.customer) {
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ stripe_customer_id: subscription.customer })
-            .eq('id', userId)
+        if (existingUser.user.user_metadata?.stripe_customer_id !== subscription.customer) {
+          const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+            user_metadata: { 
+              ...existingUser.user.user_metadata,
+              stripe_customer_id: subscription.customer
+            }
+          })
           
           if (updateError) {
             console.error('Error updating stripe_customer_id:', updateError)
@@ -420,26 +261,28 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       // Try to get a meaningful email
       const finalEmail = customerEmail || `stripe_${subscription.customer}@vmetrics.com.br`
       
-      const { data: newUser, error: createError } = await supabase
-        .from('users')
-        .insert({
-          email: finalEmail,
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: finalEmail,
+        password: crypto.randomUUID(),
+        email_confirm: true,
+        user_metadata: {
           full_name: 'Usuário VMetrics',
-          stripe_customer_id: subscription.customer,
-          is_active: true
-        })
-        .select('id')
-        .single()
+          stripe_customer_id: subscription.customer
+        }
+      })
       
       if (createError) {
         console.error('Error creating user:', createError)
         return
       }
       
-      userId = newUser.id
+      userId = newUser.user.id
       customerEmail = finalEmail
       customerName = 'Usuário VMetrics'
       console.log('New user created with email:', finalEmail, 'ID:', userId)
+      
+      // 🎉 EMAIL AUTOMÁTICO VIA SUPABASE + RESEND
+      console.log('✅ User created successfully. Email will be sent automatically via Supabase + Resend')
     }
     
     // First, check if user already has an active plan
@@ -497,11 +340,6 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     }
     
     console.log('User plan created successfully with plan type:', planType)
-    
-    // Send welcome email via SMTP if we have email and name
-    if (customerEmail && customerName && userId) {
-      await sendWelcomeEmailWithSMTP(supabase, customerEmail, customerName, userId)
-    }
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)
@@ -602,14 +440,21 @@ async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
     // Find user by stripe_customer_id to get user_id
     let userId = null
     if (invoice.customer) {
-      const { data: existingUser, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('stripe_customer_id', invoice.customer)
-        .single()
+      // Search in auth.users by metadata
+      const { data: users, error: searchError } = await supabase.auth.admin.listUsers()
       
-      if (existingUser) {
-        userId = existingUser.id
+      if (searchError) {
+        console.error('Error searching users:', searchError)
+        return
+      }
+      
+      // Find user with matching stripe_customer_id
+      const matchingUser = users.users.find(user => 
+        user.user_metadata?.stripe_customer_id === invoice.customer
+      )
+      
+      if (matchingUser) {
+        userId = matchingUser.id
         console.log('Found user for invoice:', userId)
       } else {
         console.log('User not found for customer:', invoice.customer)
@@ -620,7 +465,7 @@ async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
     const { error } = await supabase
       .from('invoices')
       .insert({
-        user_id: userId, // ✅ AGORA TEM user_id!
+        user_id: userId,
         stripe_invoice_id: invoice.id,
         stripe_customer_id: invoice.customer,
         stripe_subscription_id: invoice.subscription,

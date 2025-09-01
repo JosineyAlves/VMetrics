@@ -1,23 +1,30 @@
-# Configurações do Resend para o Supabase
-# ✅ INTEGRAÇÃO NATIVA CONFIGURADA - NÃO PRECISA DE CHAVES MANUAIS!
+# 🚀 VARIÁVEIS DE AMBIENTE PARA RESEND
+# Copie este arquivo para .env e configure os valores reais
 
-# O Supabase já tem integração nativa com Resend configurada:
-# - Vercel Integration: Sending access
-# - Supabase Integration: Sending access
+# ========================================
+# SUPABASE
+# ========================================
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_ANON_KEY=sua-chave-anonima
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-service-role
 
-# Configurações opcionais (se necessário)
-RESEND_FROM_EMAIL=noreply@vmetrics.com.br
-RESEND_FROM_NAME=VMetrics
+# ========================================
+# RESEND SMTP
+# ========================================
+RESEND_USERNAME=resend
+RESEND_PASSWORD=sua-senha-resend
+RESEND_SMTP_HOST=smtp.resend.com
+RESEND_SMTP_PORT=465
 
-# URLs do projeto
-FRONTEND_URL=https://app.vmetrics.com.br
-BACKEND_URL=https://api.vmetrics.com.br
+# ========================================
+# STRIPE
+# ========================================
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-# Configurações do Supabase (já configuradas)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_supabase_anon_key_here
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+# ========================================
+# APP
+# ========================================
+APP_URL=https://app.vmetrics.com.br
+NODE_ENV=production
 
-# Configurações do Stripe (já configuradas)
-STRIPE_SECRET_KEY=your_stripe_secret_key_here
-STRIPE_WEBHOOK_SECRET=your_webhook_secret_here

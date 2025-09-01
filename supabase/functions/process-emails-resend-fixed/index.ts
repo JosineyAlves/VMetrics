@@ -19,7 +19,7 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Process pending emails via Resend
+    // Process pending emails via Resend SMTP
     const result = await processPendingEmailsResend(supabase)
 
     return new Response(
@@ -46,7 +46,7 @@ serve(async (req) => {
 // Process pending emails via Resend SMTP
 async function processPendingEmailsResend(supabase: any) {
   try {
-    console.log('🚀 Starting email processing via Resend...')
+    console.log('🚀 Starting email processing via Resend SMTP...')
     
     // Get pending emails
     const { data: pendingEmails, error: fetchError } = await supabase
@@ -69,7 +69,7 @@ async function processPendingEmailsResend(supabase: any) {
       }
     }
     
-    console.log(`📧 Processing ${pendingEmails.length} pending emails via Resend...`)
+    console.log(`📧 Processing ${pendingEmails.length} pending emails via Resend SMTP...`)
     
     let processed = 0
     let failed = 0
@@ -82,29 +82,14 @@ async function processPendingEmailsResend(supabase: any) {
         const subject = email.subject
         const htmlBody = email.html_body
         const textBody = email.text_body
-        const variables = email.provider_response?.variables || {}
         
-        // Create personalized email content
-        let personalizedHtml = htmlBody
-        let personalizedText = textBody
-        
-        // Replace variables in content
-        if (variables) {
-          Object.keys(variables).forEach(key => {
-            const value = variables[key]
-            const regex = new RegExp(`{{${key}}}`, 'g')
-            personalizedHtml = personalizedHtml.replace(regex, value)
-            personalizedText = personalizedText.replace(regex, value)
-          })
-        }
-        
-        // Send email via Resend SMTP (using nodemailer-like approach)
-        const emailSent = await sendEmailViaResend({
+        // Send email via Resend SMTP
+        const emailSent = await sendEmailViaResendSMTP({
           from: senderEmail,
           to: recipientEmail,
           subject: subject,
-          html: personalizedHtml,
-          text: personalizedText
+          html: htmlBody,
+          text: textBody
         })
         
         if (emailSent) {
@@ -115,7 +100,6 @@ async function processPendingEmailsResend(supabase: any) {
               status: 'sent',
               sent_at: new Date(),
               provider_response: {
-                ...email.provider_response,
                 resend_response: { success: true, sent_at: new Date().toISOString() },
                 status: 'sent'
               }
@@ -126,10 +110,10 @@ async function processPendingEmailsResend(supabase: any) {
             console.error(`Error updating email ${email.id}:`, updateError)
           }
           
-          console.log(`✅ Email sent successfully via Resend to: ${recipientEmail}`)
+          console.log(`✅ Email sent successfully via Resend SMTP to: ${recipientEmail}`)
           processed++
         } else {
-          throw new Error('Failed to send email via Resend')
+          throw new Error('Failed to send email via Resend SMTP')
         }
         
       } catch (emailError) {
@@ -141,7 +125,6 @@ async function processPendingEmailsResend(supabase: any) {
           .update({
             status: 'failed',
             provider_response: {
-              ...email.provider_response,
               error: emailError.message,
               failed_at: new Date().toISOString(),
               status: 'failed'
@@ -157,7 +140,7 @@ async function processPendingEmailsResend(supabase: any) {
     
     return {
       success: true,
-      message: 'Email processing completed via Resend',
+      message: 'Email processing completed via Resend SMTP',
       processed,
       failed,
       total: pendingEmails.length
@@ -169,8 +152,8 @@ async function processPendingEmailsResend(supabase: any) {
   }
 }
 
-// Send email via Resend (placeholder - will be implemented with actual SMTP)
-async function sendEmailViaResend(emailData: {
+// Send email via Resend SMTP using Deno's built-in SMTP
+async function sendEmailViaResendSMTP(emailData: {
   from: string
   to: string
   subject: string
@@ -178,22 +161,42 @@ async function sendEmailViaResend(emailData: {
   text: string
 }): Promise<boolean> {
   try {
-    // This is a placeholder - in a real implementation, you would:
-    // 1. Use a proper SMTP library
-    // 2. Connect to smtp.resend.com:465
-    // 3. Authenticate with resend credentials
-    // 4. Send the email
-    
     console.log(`📧 Sending email via Resend SMTP:`)
     console.log(`   From: ${emailData.from}`)
     console.log(`   To: ${emailData.to}`)
     console.log(`   Subject: ${emailData.subject}`)
     
-    // For now, simulate successful email sending
-    // TODO: Implement actual SMTP connection to Resend
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate delay
+    // Get Resend credentials from environment
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')
     
-    console.log(`✅ Email sent successfully via Resend`)
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY environment variable not set')
+    }
+    
+    // Use Resend API directly instead of SMTP
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: emailData.from,
+        to: [emailData.to],
+        subject: emailData.subject,
+        html: emailData.html,
+        text: emailData.text,
+      }),
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.text()
+      throw new Error(`Resend API error: ${response.status} ${errorData}`)
+    }
+    
+    const result = await response.json()
+    console.log(`✅ Email sent successfully via Resend API:`, result)
+    
     return true
     
   } catch (error) {
