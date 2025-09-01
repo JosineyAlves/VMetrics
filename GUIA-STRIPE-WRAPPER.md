@@ -43,7 +43,7 @@ Após executar o script, você deve ver:
 ### 2.2 Atualizar o Script SQL
 - No script `supabase-stripe-wrapper.sql`, linha 35:
 ```sql
-api_key 'sk_test_...', -- ⚠️ SUBSTITUIR PELA SUA CHAVE SECRETA
+api_key 'your_stripe_secret_key_here', -- ⚠️ SUBSTITUIR PELA SUA CHAVE SECRETA
 ```
 
 ### 2.3 Reexecutar o Script
@@ -75,8 +75,8 @@ api_key 'sk_test_...', -- ⚠️ SUBSTITUIR PELA SUA CHAVE SECRETA
 ```bash
 # Stripe
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+STRIPE_WEBHOOK_SECRET=your_webhook_secret_here
 
 # Supabase
 VITE_SUPABASE_URL=https://your-project.supabase.co
