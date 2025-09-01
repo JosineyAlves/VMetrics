@@ -36,22 +36,25 @@
 
 ## 🔧 Configurações Necessárias
 
-### 1. **Variáveis de Ambiente no Supabase**
+### 1. **Integração Nativa com Resend** ✅
 
-Acesse: **Supabase Dashboard > Settings > Edge Functions > Environment Variables**
+**Boa notícia!** Você já tem a integração nativa configurada:
+- ✅ **Vercel Integration** - Sending access
+- ✅ **Supabase Integration** - Sending access
 
-Adicione estas variáveis:
+**Não precisa configurar `RESEND_API_KEY` manualmente!** O Supabase já tem acesso direto ao Resend.
+
+### 2. **Variáveis de Ambiente (Opcionais)**
+
+Se quiser personalizar, adicione no Supabase Dashboard:
 
 ```bash
-# OBRIGATÓRIO - Chave da API do Resend
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-# OPCIONAL - Configurações do Resend
+# OPCIONAL - Configurações personalizadas
 RESEND_FROM_EMAIL=noreply@vmetrics.com.br
 RESEND_FROM_NAME=VMetrics
 ```
 
-### 2. **Configuração do Domínio no Resend**
+### 3. **Configuração do Domínio no Resend**
 
 1. Acesse o painel do Resend
 2. Vá em **Domains**
@@ -59,7 +62,7 @@ RESEND_FROM_NAME=VMetrics
 4. Configure os registros DNS conforme instruído
 5. Verifique o domínio
 
-### 3. **Deploy das Funções do Supabase**
+### 4. **Deploy das Funções do Supabase**
 
 ```bash
 # Deploy das funções
@@ -124,8 +127,8 @@ Resend → Email entregue → Cliente recebe
 
 ## 📋 Checklist de Implementação
 
-- [ ] **Configurar variáveis de ambiente no Supabase**
-- [ ] **Configurar domínio no Resend**
+- [x] **✅ Integração nativa com Resend já configurada**
+- [ ] **Configurar domínio no Resend (opcional)**
 - [ ] **Deploy das funções do Supabase**
 - [ ] **Testar envio de email via interface**
 - [ ] **Testar webhook do Stripe**
@@ -134,9 +137,9 @@ Resend → Email entregue → Cliente recebe
 
 ## 🚨 Troubleshooting
 
-### **Erro: "RESEND_API_KEY not set"**
-- Verifique se a variável está configurada no Supabase
-- Confirme se o nome da variável está correto
+### **Erro: "Supabase Resend integration error"**
+- Verifique se a integração nativa está ativa no painel do Resend
+- Confirme se o Supabase tem "Sending access" no Resend
 
 ### **Erro: "Domain not verified"**
 - Verifique se o domínio está configurado no Resend

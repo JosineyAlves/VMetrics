@@ -169,7 +169,7 @@ async function processPendingEmailsResend(supabase: any) {
   }
 }
 
-// Send email via Resend API
+// Send email via Supabase Resend Integration
 async function sendEmailViaResend(emailData: {
   from: string
   to: string
@@ -178,48 +178,39 @@ async function sendEmailViaResend(emailData: {
   text: string
 }): Promise<boolean> {
   try {
-    console.log(`📧 Sending email via Resend API:`)
+    console.log(`📧 Sending email via Supabase Resend Integration:`)
     console.log(`   From: ${emailData.from}`)
     console.log(`   To: ${emailData.to}`)
     console.log(`   Subject: ${emailData.subject}`)
     
-    // Get Resend API key from environment
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
-    if (!resendApiKey) {
-      throw new Error('RESEND_API_KEY environment variable not set')
-    }
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
-    // Send email via Resend API
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    // Send email using Supabase's native Resend integration
+    const { data, error } = await supabase.functions.invoke('resend', {
+      body: {
+        to: emailData.to,
         from: emailData.from,
-        to: [emailData.to],
         subject: emailData.subject,
         html: emailData.html,
         text: emailData.text
-      })
+      }
     })
     
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(`Resend API error: ${errorData.message || response.statusText}`)
+    if (error) {
+      throw new Error(`Supabase Resend integration error: ${error.message}`)
     }
     
-    const result = await response.json()
-    
-    console.log(`✅ Email sent successfully via Resend API`)
-    console.log(`📧 Resend response:`, result)
+    console.log(`✅ Email sent successfully via Supabase Resend Integration`)
+    console.log(`📧 Supabase response:`, data)
     
     return true
     
   } catch (error) {
-    console.error(`❌ Error sending email via Resend API:`, error)
+    console.error(`❌ Error sending email via Supabase Resend Integration:`, error)
     return false
   }
 }

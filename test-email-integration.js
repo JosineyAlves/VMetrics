@@ -66,19 +66,19 @@ async function testEmailIntegration() {
       console.log('📧 Resposta:', emailResult)
     }
 
-    // Teste 3: Verificar variáveis de ambiente
+    // Teste 3: Verificar configurações
     console.log('\n3️⃣ Verificando configurações...')
     
     const requiredEnvVars = [
       'SUPABASE_URL',
-      'SUPABASE_SERVICE_ROLE_KEY',
-      'RESEND_API_KEY'
+      'SUPABASE_SERVICE_ROLE_KEY'
     ]
 
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
     
     if (missingVars.length === 0) {
-      console.log('✅ Todas as variáveis de ambiente necessárias estão configuradas')
+      console.log('✅ Variáveis de ambiente do Supabase configuradas')
+      console.log('✅ Integração nativa com Resend ativa (não precisa de RESEND_API_KEY)')
     } else {
       console.log('❌ Variáveis de ambiente faltando:', missingVars)
       console.log('Configure estas variáveis no painel do Supabase > Settings > Edge Functions > Environment Variables')

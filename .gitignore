@@ -20,13 +20,6 @@ stripe-keys.env
 *.env.local
 .env.production
 
-# Arquivos com chaves secretas
-*secret*
-*key*
-*api*
-*resend*
-*stripe*
-
 # IDE
 .vscode/
 .idea/
