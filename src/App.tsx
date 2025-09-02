@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
 import ApiKeySetup from "./components/ApiKeySetup"
+import InviteAccept from "./components/InviteAccept"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -250,6 +251,7 @@ const App: React.FC = () => {
       {/* Rotas públicas */}
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginForm />} />
+      <Route path="/auth/invite" element={<InviteAccept />} />
       <Route path="/signup" element={
         needsSignup ? (
           <SignupForm
