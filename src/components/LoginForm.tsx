@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/auth'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
+import { supabase } from '../lib/supabase'
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -25,21 +26,47 @@ const LoginForm: React.FC = () => {
     setError('')
 
     try {
-      // TODO: Implementar autenticação real com Supabase
-      // Por enquanto, vamos simular um login bem-sucedido
-      if (email && password) {
-        // Simular verificação de credenciais
-        await new Promise(resolve => setTimeout(resolve, 1000))
+      // 🚀 AUTENTICAÇÃO REAL COM SUPABASE
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      })
+
+      if (authError) {
+        setError(authError.message)
+        return
+      }
+
+      if (data.user) {
+        // ✅ LOGIN BEM-SUCEDIDO
+        console.log('Login successful:', data.user.id)
         
-        // Simular login bem-sucedido
-        login('simulated_user')
+        // Verificar se usuário tem plano ativo
+        const { data: userPlan, error: planError } = await supabase
+          .from('user_plans')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .eq('status', 'active')
+          .single()
+
+        if (planError || !userPlan) {
+          setError('Usuário não possui plano ativo. Entre em contato com o suporte.')
+          return
+        }
+
+        // Salvar dados do usuário no store
+        login(data.user.id, {
+          email: data.user.email,
+          name: data.user.user_metadata?.full_name,
+          plan: userPlan.plan_type,
+          stripe_customer_id: data.user.user_metadata?.stripe_customer_id
+        })
         
-        // Redirecionar para setup ou dashboard
-        navigate('/setup', { replace: true })
-      } else {
-        setError('Por favor, preencha todos os campos')
+        // Redirecionar para dashboard
+        navigate('/dashboard', { replace: true })
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Erro ao fazer login. Tente novamente.')
     } finally {
       setIsLoading(false)

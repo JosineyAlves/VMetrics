@@ -8,7 +8,7 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   user: any | null
-  login: (userData: any) => void
+  login: (userId: string, userData: any) => void
   setApiKey: (key: string) => void
   logout: () => void
   testApiKey: (key: string) => Promise<boolean>
@@ -22,11 +22,11 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
       user: null,
-      login: (userData: any) => {
-        console.log('[AUTH] Login realizado:', userData)
+      login: (userId: string, userData: any) => {
+        console.log('[AUTH] Login realizado:', userId, userData)
         set({ 
           isAuthenticated: true, 
-          user: userData,
+          user: { id: userId, ...userData },
           error: null 
         })
       },
