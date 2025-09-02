@@ -1,5 +1,5 @@
-// 🚀 WEBHOOK CORRIGIDO - USANDO AUTH.USERS E SISTEMA NATIVO SUPABASE
-// Substitua o arquivo atual por esta versão corrigida
+// 🚀 WEBHOOK CORRIGIDO - USANDO FUNÇÕES RPC PARA AUTH.USERS
+// Versão que funciona com Edge Functions
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -10,13 +10,11 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Get the request body
     const body = await req.text()
     const signature = req.headers.get('stripe-signature')
 
@@ -24,17 +22,14 @@ serve(async (req) => {
       throw new Error('No Stripe signature found')
     }
 
-    // Parse the event
     const event = JSON.parse(body)
     console.log('Received Stripe webhook:', event.type)
 
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Handle different event types
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutCompleted(supabase, event.data.object)
@@ -62,34 +57,24 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ received: true }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
   } catch (error) {
     console.error('Error processing webhook:', error)
-    
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
 })
 
-// 🎯 FUNÇÃO PRINCIPAL CORRIGIDA - CRIAR USUÁRIO NA AUTH.USERS
+// 🎯 FUNÇÃO PRINCIPAL CORRIGIDA - USANDO RPC FUNCTIONS
 async function handleCheckoutCompleted(supabase: any, session: any) {
   console.log('Processing checkout completed:', session.id)
   
   try {
-    // Check if this is a subscription checkout
     if (session.mode === 'subscription' && session.subscription) {
-      
-      // Get customer details from session
       const customerEmail = session.customer_details?.email
       const customerName = session.customer_details?.name
       const customerId = session.customer
@@ -97,24 +82,31 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
       
       console.log('Customer details:', { customerEmail, customerName, customerId, subscriptionId })
       
-      // 🚀 CRIAR USUÁRIO NA TABELA DE AUTH (NÃO NA CUSTOMIZADA)
+      // 🚀 BUSCAR USUÁRIO USANDO RPC FUNCTION
       let userId = null
       
-      // Verificar se usuário já existe na auth.users
-      const { data: existingUser, error: userError } = await supabase.auth.admin.getUserByEmail(customerEmail)
+      // Verificar se usuário já existe por email
+      const { data: existingUser, error: userError } = await supabase
+        .rpc('find_user_by_email', { user_email: customerEmail })
       
-      if (existingUser?.user) {
-        userId = existingUser.user.id
-        console.log('Existing user found in auth.users:', userId)
+      if (userError) {
+        console.error('Error searching user by email:', userError)
+        return
+      }
+      
+      if (existingUser && existingUser.length > 0) {
+        const user = existingUser[0]
+        userId = user.user_id
+        console.log('Existing user found:', userId)
         
         // Atualizar metadata se necessário
-        if (existingUser.user.user_metadata?.stripe_customer_id !== customerId) {
-          const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
-            user_metadata: { 
+        if (user.stripe_customer_id !== customerId) {
+          const { error: updateError } = await supabase
+            .rpc('update_user_metadata', {
+              user_id: userId,
               stripe_customer_id: customerId,
-              full_name: customerName 
-            }
-          })
+              full_name: customerName
+            })
           
           if (updateError) {
             console.error('Error updating user metadata:', updateError)
@@ -123,27 +115,23 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
           }
         }
       } else {
-        // 🎉 CRIAR NOVO USUÁRIO NA AUTH.USERS
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email: customerEmail,
-          password: crypto.randomUUID(), // Senha temporária
-          email_confirm: true, // Email já confirmado
-          user_metadata: {
-            full_name: customerName || 'Usuário VMetrics',
+        // 🎉 CRIAR NOVO USUÁRIO USANDO RPC FUNCTION
+        const { data: newUserId, error: createError } = await supabase
+          .rpc('create_auth_user', {
+            user_email: customerEmail,
+            user_name: customerName || 'Usuário VMetrics',
             stripe_customer_id: customerId
-          }
-        })
+          })
         
         if (createError) {
-          console.error('Error creating user in auth.users:', createError)
+          console.error('Error creating user:', createError)
           return
         }
         
-        userId = newUser.user.id
-        console.log('New user created in auth.users:', userId)
+        userId = newUserId
+        console.log('New user created:', userId)
         
         // 🎉 EMAIL AUTOMÁTICO VIA SUPABASE + RESEND
-        // O Supabase automaticamente envia email de boas-vindas!
         console.log('✅ User created successfully. Email will be sent automatically via Supabase + Resend')
       }
       
@@ -152,12 +140,12 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         .from('user_plans')
         .upsert({
           user_id: userId,
-          plan_type: 'monthly', // Will be updated by subscription events
+          plan_type: 'monthly',
           stripe_subscription_id: subscriptionId,
           stripe_customer_id: customerId,
           status: 'active',
           current_period_start: new Date(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         }, {
           onConflict: 'stripe_subscription_id'
         })
@@ -197,7 +185,7 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     
     console.log('Detected plan type:', planType)
     
-    // Find user by stripe_customer_id in auth.users
+    // Find user by stripe_customer_id using RPC
     let userId: string | null = null
     let customerEmail: string | null = null
     let customerName: string | null = null
@@ -208,42 +196,46 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     if (!customerEmail) {
       console.log('No customer_email in subscription, trying to find user by stripe_customer_id...')
       
-      // Search in auth.users by metadata
-      const { data: users, error: searchError } = await supabase.auth.admin.listUsers()
+      // Search by stripe_customer_id using RPC
+      const { data: userByStripeId, error: searchError } = await supabase
+        .rpc('find_user_by_stripe_id', { stripe_id: subscription.customer })
       
       if (searchError) {
         console.error('Error searching users:', searchError)
         return
       }
       
-      // Find user with matching stripe_customer_id
-      const matchingUser = users.users.find(user => 
-        user.user_metadata?.stripe_customer_id === subscription.customer
-      )
-      
-      if (matchingUser) {
-        userId = matchingUser.id
-        customerEmail = matchingUser.email
-        customerName = matchingUser.user_metadata?.full_name
+      if (userByStripeId && userByStripeId.length > 0) {
+        const user = userByStripeId[0]
+        userId = user.user_id
+        customerEmail = user.user_email
+        customerName = user.full_name
         console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
       }
     } else {
-      // Try to find user by email
-      const { data: existingUser, error: emailError } = await supabase.auth.admin.getUserByEmail(customerEmail)
+      // Try to find user by email using RPC
+      const { data: userByEmail, error: emailError } = await supabase
+        .rpc('find_user_by_email', { user_email: customerEmail })
       
-      if (existingUser?.user) {
-        userId = existingUser.user.id
-        customerName = existingUser.user.user_metadata?.full_name
+      if (emailError) {
+        console.error('Error searching user by email:', emailError)
+        return
+      }
+      
+      if (userByEmail && userByEmail.length > 0) {
+        const user = userByEmail[0]
+        userId = user.user_id
+        customerName = user.full_name
         console.log('Existing user found by email:', userId)
         
         // Update stripe_customer_id if different
-        if (existingUser.user.user_metadata?.stripe_customer_id !== subscription.customer) {
-          const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
-            user_metadata: { 
-              ...existingUser.user.user_metadata,
-              stripe_customer_id: subscription.customer
-            }
-          })
+        if (user.stripe_customer_id !== subscription.customer) {
+          const { error: updateError } = await supabase
+            .rpc('update_user_metadata', {
+              user_id: userId,
+              stripe_customer_id: subscription.customer,
+              full_name: customerName
+            })
           
           if (updateError) {
             console.error('Error updating stripe_customer_id:', updateError)
@@ -261,22 +253,19 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       // Try to get a meaningful email
       const finalEmail = customerEmail || `stripe_${subscription.customer}@vmetrics.com.br`
       
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: finalEmail,
-        password: crypto.randomUUID(),
-        email_confirm: true,
-        user_metadata: {
-          full_name: 'Usuário VMetrics',
+      const { data: newUserId, error: createError } = await supabase
+        .rpc('create_auth_user', {
+          user_email: finalEmail,
+          user_name: 'Usuário VMetrics',
           stripe_customer_id: subscription.customer
-        }
-      })
+        })
       
       if (createError) {
         console.error('Error creating user:', createError)
         return
       }
       
-      userId = newUser.user.id
+      userId = newUserId
       customerEmail = finalEmail
       customerName = 'Usuário VMetrics'
       console.log('New user created with email:', finalEmail, 'ID:', userId)
@@ -437,24 +426,19 @@ async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
       return
     }
     
-    // Find user by stripe_customer_id to get user_id
+    // Find user by stripe_customer_id using RPC
     let userId = null
     if (invoice.customer) {
-      // Search in auth.users by metadata
-      const { data: users, error: searchError } = await supabase.auth.admin.listUsers()
+      const { data: userByStripeId, error: searchError } = await supabase
+        .rpc('find_user_by_stripe_id', { stripe_id: invoice.customer })
       
       if (searchError) {
         console.error('Error searching users:', searchError)
         return
       }
       
-      // Find user with matching stripe_customer_id
-      const matchingUser = users.users.find(user => 
-        user.user_metadata?.stripe_customer_id === invoice.customer
-      )
-      
-      if (matchingUser) {
-        userId = matchingUser.id
+      if (userByStripeId && userByStripeId.length > 0) {
+        userId = userByStripeId[0].user_id
         console.log('Found user for invoice:', userId)
       } else {
         console.log('User not found for customer:', invoice.customer)
