@@ -14,6 +14,8 @@ interface AuthState {
   logout: () => void
   testApiKey: (key: string) => Promise<{ success: boolean; error?: string }>
   initializeAuth: () => Promise<void>
+  saveApiKeyToDatabase: (key: string) => Promise<{ success: boolean; error?: string }>
+  loadApiKeyFromDatabase: () => Promise<string | null>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -39,22 +41,6 @@ export const useAuthStore = create<AuthState>()(
         // Detectar moeda automaticamente quando API Key for configurada
         const { detectCurrency } = useCurrencyStore.getState()
         detectCurrency(key)
-        
-        // Verificar se foi salvo no localStorage
-        setTimeout(() => {
-          const persisted = localStorage.getItem('auth-storage')
-          console.log('[AUTH] Conteúdo atual do localStorage:', persisted)
-          
-          // Verificar se a API Key foi realmente salva
-          if (persisted) {
-            try {
-              const parsed = JSON.parse(persisted)
-              console.log('[AUTH] API Key salva no localStorage:', parsed.state?.apiKey ? 'SIM' : 'NÃO')
-            } catch (e) {
-              console.error('[AUTH] Erro ao parsear localStorage:', e)
-            }
-          }
-        }, 100)
       },
       logout: async () => {
         console.log('[AUTH] Logout chamado. Limpando API Key.')
@@ -226,24 +212,14 @@ export const useAuthStore = create<AuthState>()(
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
             
-            // Verificar se há API Key persistida no localStorage
-            const persisted = localStorage.getItem('auth-storage')
-            let persistedApiKey = null
-            
-            if (persisted) {
-              try {
-                const parsed = JSON.parse(persisted)
-                persistedApiKey = parsed.state?.apiKey
-                console.log('[AUTH] API Key persistida encontrada:', persistedApiKey ? 'SIM' : 'NÃO')
-              } catch (e) {
-                console.error('[AUTH] Erro ao parsear localStorage:', e)
-              }
-            }
+            // Carregar API Key do banco de dados
+            const { loadApiKeyFromDatabase } = get()
+            const apiKeyFromDatabase = await loadApiKeyFromDatabase()
             
             set({ 
               isAuthenticated: true, 
               user: session.user,
-              apiKey: persistedApiKey,
+              apiKey: apiKeyFromDatabase,
               error: null 
             })
           } else {
@@ -263,6 +239,61 @@ export const useAuthStore = create<AuthState>()(
             apiKey: null,
             error: 'Erro ao verificar autenticação' 
           })
+        }
+      },
+      saveApiKeyToDatabase: async (key: string) => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          
+          if (!user) {
+            return { success: false, error: 'Usuário não autenticado' }
+          }
+
+          const { error } = await supabase.rpc('upsert_user_api_key', {
+            p_user_id: user.id,
+            p_redtrack_api_key: key
+          })
+
+          if (error) {
+            console.error('[AUTH] Erro ao salvar API Key no banco:', error)
+            return { success: false, error: 'Erro ao salvar API Key no banco de dados' }
+          }
+
+          console.log('[AUTH] API Key salva no banco de dados com sucesso')
+          return { success: true }
+        } catch (error) {
+          console.error('[AUTH] Erro ao salvar API Key:', error)
+          return { success: false, error: 'Erro ao salvar API Key' }
+        }
+      },
+      loadApiKeyFromDatabase: async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser()
+          
+          if (!user) {
+            console.log('[AUTH] Usuário não autenticado')
+            return null
+          }
+
+          const { data, error } = await supabase.rpc('get_user_api_key', {
+            p_user_id: user.id
+          })
+
+          if (error) {
+            console.error('[AUTH] Erro ao carregar API Key do banco:', error)
+            return null
+          }
+
+          if (data) {
+            console.log('[AUTH] API Key carregada do banco de dados')
+            return data
+          }
+
+          console.log('[AUTH] Nenhuma API Key encontrada no banco')
+          return null
+        } catch (error) {
+          console.error('[AUTH] Erro ao carregar API Key:', error)
+          return null
         }
       }
     }),

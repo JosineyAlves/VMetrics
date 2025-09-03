@@ -34,6 +34,7 @@ import { useMetricsStore } from '../store/metrics'
 import { useCurrencyStore } from '../store/currency'
 import type { Metric } from '../store/metrics'
 import CustomSelect from './ui/CustomSelect'
+import ApiKeyBanner from './ApiKeyBanner'
 
 const metricOptions = [
   { value: 'cost_revenue', label: 'Custo x Receita', left: 'cost', right: 'revenue' },
@@ -45,6 +46,12 @@ const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
   const { selectedMetrics, availableMetrics, metricsOrder } = useMetricsStore()
   const { currency } = useCurrencyStore()
+  const [showApiKeyBanner, setShowApiKeyBanner] = useState(!apiKey)
+
+  // Controlar banner baseado na API Key
+  useEffect(() => {
+    setShowApiKeyBanner(!apiKey)
+  }, [apiKey])
   
   // Função para formatar moeda
   const formatCurrency = (value: number) => {
@@ -1023,6 +1030,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      {/* Banner para configurar API Key */}
+      {showApiKeyBanner && (
+        <ApiKeyBanner onDismiss={() => setShowApiKeyBanner(false)} />
+      )}
+      
       {/* Header com ações */}
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
