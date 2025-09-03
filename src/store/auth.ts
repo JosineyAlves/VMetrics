@@ -116,8 +116,8 @@ export const useAuthStore = create<AuthState>()(
               }
               set({ 
                 isLoading: false, 
-                error: errorMessage,
-                isAuthenticated: false 
+                error: errorMessage
+                // NÃO alterar isAuthenticated aqui - manter o usuário logado
               });
               return { success: false, error: errorMessage };
             }
@@ -144,8 +144,8 @@ export const useAuthStore = create<AuthState>()(
             
             set({ 
               isLoading: false, 
-              error: errorMessage,
-              isAuthenticated: false 
+              error: errorMessage
+              // NÃO alterar isAuthenticated aqui - manter o usuário logado
             })
             return { success: false, error: errorMessage }
           }
@@ -165,8 +165,8 @@ export const useAuthStore = create<AuthState>()(
           
           set({ 
             isLoading: false, 
-            error: errorMessage,
-            isAuthenticated: false 
+            error: errorMessage
+            // NÃO alterar isAuthenticated aqui - manter o usuário logado
           })
           return { success: false, error: errorMessage }
         }

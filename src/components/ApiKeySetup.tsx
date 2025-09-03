@@ -118,14 +118,14 @@ const ApiKeySetup: React.FC = () => {
                  <h3 className="font-semibold text-[#1f1f1f] mb-3 text-lg">
                    Como obter sua API Key do RedTrack
                  </h3>
-                 <ol className="text-[#1f1f1f]/80 space-y-2 text-sm">
+                                 <ol className="text-[#1f1f1f]/80 space-y-2 text-sm">
                   <li className="flex items-start">
                     <span className="font-medium mr-2">1.</span>
-                                         Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
+                    Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
                   </li>
                   <li className="flex items-start">
                     <span className="font-medium mr-2">2.</span>
-                    Vá em <strong>Settings → API</strong> no menu lateral
+                    Vá em <strong>Tools → Integrations → General</strong>
                   </li>
                   <li className="flex items-start">
                     <span className="font-medium mr-2">3.</span>
@@ -176,10 +176,7 @@ const ApiKeySetup: React.FC = () => {
               )}
             </div>
 
-            <p className="text-sm text-gray-500">
-              <Shield className="w-4 h-4 inline mr-1" />
-              Sua API Key será salva de forma segura e usada para conectar ao RedTrack
-            </p>
+
           </div>
 
           {/* Connect Button */}
@@ -203,19 +200,7 @@ const ApiKeySetup: React.FC = () => {
             </Button>
           </div>
 
-          {/* Security Note */}
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-start space-x-3">
-              <Shield className="w-5 h-5 text-gray-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-gray-600">
-                                 <p className="font-medium text-[#1f1f1f] mb-1">Segurança da API Key</p>
-                 <p>
-                   Sua API Key é armazenada localmente e nunca é compartilhada. 
-                   Ela é usada apenas para conectar ao RedTrack e buscar dados das suas campanhas.
-                 </p>
-              </div>
-            </div>
-          </div>
+
         </motion.div>
       </div>
     </div>
