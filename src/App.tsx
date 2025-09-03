@@ -26,8 +26,17 @@ import usePageTitle from './hooks/usePageTitle'
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, apiKey } = useAuthStore()
+  const { isAuthenticated, apiKey, isLoading } = useAuthStore()
   const location = useLocation()
+  
+  // Mostrar loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 animate-spin border-2 border-[#3cd48f] border-t-transparent rounded-full"></div>
+      </div>
+    )
+  }
   
   if (!isAuthenticated) {
     // Redirecionar para login mantendo a URL de destino
