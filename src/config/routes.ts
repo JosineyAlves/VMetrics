@@ -8,6 +8,7 @@ export const ROUTES = {
   
   // Rotas de setup
   SETUP: '/setup',
+  SETUP_PASSWORD: '/setup-password',
   
   // Rotas do dashboard
   DASHBOARD: '/dashboard',
@@ -46,7 +47,8 @@ export const PROTECTED_ROUTES: RoutePath[] = [
 export const PUBLIC_ROUTES: RoutePath[] = [
   ROUTES.LANDING,
   ROUTES.LOGIN,
-  ROUTES.SIGNUP
+  ROUTES.SIGNUP,
+  ROUTES.SETUP_PASSWORD
 ]
 
 // Verificar se uma rota é protegida
@@ -66,6 +68,7 @@ export const getRouteTitle = (path: string): string => {
     [ROUTES.LOGIN]: 'Login - TrackView',
     [ROUTES.SIGNUP]: 'Criar Conta - TrackView',
     [ROUTES.SETUP]: 'Configuração - TrackView',
+    [ROUTES.SETUP_PASSWORD]: 'Definir Senha - TrackView',
     [ROUTES.DASHBOARD]: 'Dashboard - TrackView',
     [ROUTES.CAMPAIGNS]: 'Campanhas - TrackView',
     [ROUTES.CONVERSIONS]: 'Conversões - TrackView',
@@ -89,6 +92,7 @@ export const getRouteDescription = (path: string): string => {
     [ROUTES.LOGIN]: 'Acesse sua conta TrackView',
     [ROUTES.SIGNUP]: 'Crie sua conta TrackView e comece a analisar suas campanhas',
     [ROUTES.SETUP]: 'Configure sua conta e API Key para começar',
+    [ROUTES.SETUP_PASSWORD]: 'Defina sua senha para acessar sua conta VMetrics',
     [ROUTES.DASHBOARD]: 'Visão geral e KPIs das suas campanhas',
     [ROUTES.CAMPAIGNS]: 'Análise detalhada de campanhas e performance',
     [ROUTES.CONVERSIONS]: 'Log completo de conversões e eventos',

@@ -42,12 +42,9 @@ const metricOptions = [
 ]
 
 const Dashboard: React.FC = () => {
-  const { apiKey, user } = useAuthStore()
+  const { apiKey } = useAuthStore()
   const { selectedMetrics, availableMetrics, metricsOrder } = useMetricsStore()
   const { currency } = useCurrencyStore()
-  
-  // Verificar se usuário tem plano ativo
-  const hasActivePlan = user?.plan && user?.plan !== 'inactive'
   
   // Função para formatar moeda
   const formatCurrency = (value: number) => {
@@ -1013,20 +1010,6 @@ const Dashboard: React.FC = () => {
     processSourceStatsFromExistingCampaigns()
   }, [apiKey, selectedPeriod, customRange, campaigns]) // Adicionar campaigns como dependência
 
-
-  // Verificar se usuário tem plano ativo
-  if (!hasActivePlan) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Acesso Restrito</h2>
-          <p className="text-gray-600 mb-4">Você precisa de um plano ativo para acessar o dashboard.</p>
-          <p className="text-sm text-gray-500">Entre em contato com o suporte para ativar seu plano.</p>
-        </div>
-      </div>
-    )
-  }
 
   if (loading) {
     return (

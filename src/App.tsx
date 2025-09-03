@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
 import ApiKeySetup from "./components/ApiKeySetup"
-import InviteAccept from "./components/InviteAccept"
+import SetupPassword from "./components/SetupPassword"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -17,7 +17,7 @@ import Settings from "./components/Settings"
 import LandingPage from "./components/LandingPage"
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
-import { useAuthStore } from './store/auth'
+import { useAuthSupabaseStore } from './store/authSupabase'
 import { useSidebarStore } from './store/sidebar'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
@@ -25,7 +25,7 @@ import usePageTitle from './hooks/usePageTitle'
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, apiKey } = useAuthStore()
+  const { isAuthenticated, hasApiKey } = useAuthSupabaseStore()
   const location = useLocation()
   
   if (!isAuthenticated) {
@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
   
   // ✅ VALIDAÇÃO RESTAURADA: Se estiver autenticado mas não tiver API Key, redirecionar para setup
-  if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
+  if (isAuthenticated && !hasApiKey && location.pathname !== '/setup') {
     return <Navigate to="/setup" replace />
   }
   
@@ -43,7 +43,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Componente para o layout do dashboard
 const DashboardLayout: React.FC = () => {
-  const { isAuthenticated, apiKey } = useAuthStore()
+  const { isAuthenticated, hasApiKey } = useAuthSupabaseStore()
   const { isCollapsed, toggle } = useSidebarStore()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -57,10 +57,10 @@ const DashboardLayout: React.FC = () => {
   
   // ✅ VALIDAÇÃO RESTAURADA: Verificar se tem API Key configurada
   useEffect(() => {
-    if (isAuthenticated && !apiKey) {
+    if (isAuthenticated && !hasApiKey) {
       navigate('/setup', { replace: true })
     }
-  }, [isAuthenticated, apiKey, navigate])
+  }, [isAuthenticated, hasApiKey, navigate])
   
   // Determinar seção atual baseada na rota
   const getCurrentSection = () => {
@@ -251,7 +251,7 @@ const App: React.FC = () => {
       {/* Rotas públicas */}
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginForm />} />
-      <Route path="/auth/invite" element={<InviteAccept />} />
+      <Route path="/setup-password" element={<SetupPassword />} />
       <Route path="/signup" element={
         needsSignup ? (
           <SignupForm

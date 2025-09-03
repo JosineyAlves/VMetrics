@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../store/auth'
+import { useAuthSupabaseStore } from '../store/authSupabase'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import Logo from './ui/Logo'
@@ -12,13 +12,28 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   
-  const { login } = useAuthStore()
+  const { login } = useAuthSupabaseStore()
   const navigate = useNavigate()
   const location = useLocation()
 
   // Verificar se há redirecionamento pendente
   const from = location.state?.from?.pathname || '/dashboard'
+
+  // Verificar se há mensagem de sucesso do setup de senha
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message)
+      // Limpar a mensagem após 5 segundos
+      setTimeout(() => setSuccessMessage(''), 5000)
+    }
+    
+    // Preencher email se veio do setup de senha
+    if (location.state?.email) {
+      setEmail(location.state.email)
+    }
+  }, [location.state])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,48 +41,47 @@ const LoginForm: React.FC = () => {
     setError('')
 
     try {
-      // 🚀 AUTENTICAÇÃO REAL COM SUPABASE
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+      if (!email || !password) {
+        setError('Por favor, preencha todos os campos')
+        setIsLoading(false)
+        return
+      }
+
+      // Autenticação real com Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
       })
 
-      if (authError) {
-        setError(authError.message)
+      if (error) {
+        console.error('Erro de login:', error)
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Email ou senha incorretos')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Email não confirmado. Verifique sua caixa de entrada.')
+        } else {
+          setError('Erro ao fazer login. Tente novamente.')
+        }
+        setIsLoading(false)
         return
       }
 
       if (data.user) {
-        // ✅ LOGIN BEM-SUCEDIDO
-        console.log('Login successful:', data.user.id)
+        // Login bem-sucedido
+        await login(data.user.id)
         
-        // Verificar se usuário tem plano ativo
-        const { data: userPlan, error: planError } = await supabase
-          .from('user_plans')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .eq('status', 'active')
-          .single()
-
-        if (planError || !userPlan) {
-          setError('Usuário não possui plano ativo. Entre em contato com o suporte.')
-          return
+        // Redirecionar baseado no status (o store já verifica se tem API key)
+        const { hasApiKey } = useAuthSupabaseStore.getState()
+        
+        if (hasApiKey) {
+          navigate('/dashboard', { replace: true })
+        } else {
+          navigate('/setup', { replace: true })
         }
-
-        // Salvar dados do usuário no store
-        login(data.user.id, {
-          email: data.user.email,
-          name: data.user.user_metadata?.full_name,
-          plan: userPlan.plan_type,
-          stripe_customer_id: data.user.user_metadata?.stripe_customer_id
-        })
-        
-        // Redirecionar para dashboard
-        navigate('/dashboard', { replace: true })
       }
     } catch (err) {
-      console.error('Login error:', err)
-      setError('Erro ao fazer login. Tente novamente.')
+      console.error('Erro inesperado no login:', err)
+      setError('Erro inesperado. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
@@ -157,6 +171,12 @@ const LoginForm: React.FC = () => {
             </Button>
           </form>
 
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 mt-6">
+              <p className="text-sm text-green-600 font-medium">{successMessage}</p>
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
               <p className="text-sm text-red-600 font-medium">{error}</p>
@@ -165,7 +185,7 @@ const LoginForm: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
-              Após o login, você será direcionado para configurar sua API Key
+              Após o login, você será direcionado para o dashboard ou configuração
             </p>
           </div>
         </div>
