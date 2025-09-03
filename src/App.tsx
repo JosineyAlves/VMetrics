@@ -113,6 +113,9 @@ const App: React.FC = () => {
     <div className="App">
       <AnimatePresence mode="wait">
         <Routes>
+          {/* ✅ ROTA PRINCIPAL */}
+          <Route path="/" element={<LandingPage />} />
+          
           {/* Rotas públicas */}
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/login" element={<LoginForm />} />
@@ -129,7 +132,7 @@ const App: React.FC = () => {
             </ProtectedRoute>
           } />
           
-          {/* Rotas protegidas com layout do dashboard */}
+          {/* ✅ ROTAS PROTEGIDAS COM LAYOUT DO DASHBOARD */}
           <Route path="/*" element={
             <ProtectedRoute>
               <DashboardLayout />

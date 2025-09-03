@@ -15,7 +15,7 @@ export const APP_URLS = {
   
   // URLs de autenticação
   AUTH_CALLBACK: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/auth/callback`,
-  AUTH_RESET_PASSWORD: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/auth/reset-password`,
+  AUTH_RESET_PASSWORD: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/setup-password`,
   
   // URLs de suporte
   SUPPORT: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/support`,
@@ -88,7 +88,7 @@ export const getResetPasswordUrl = (): string => {
   if (isDashboardApp()) {
     return APP_URLS.AUTH_RESET_PASSWORD
   }
-  return APP_URLS.LOCALHOST + '/auth/reset-password'
+  return APP_URLS.LOCALHOST + '/setup-password'
 }
 
 export default APP_URLS
