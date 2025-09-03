@@ -110,10 +110,29 @@ export const useAuthStore = create<AuthState>()(
               return { success: true };
             } else {
               // Caso a resposta seja um objeto de erro explícito
-              let errorMessage = responseData.error || 'API Key inválida';
+              let errorMessage = 'API Key inválida';
+              
+              // Verificar se há detalhes específicos do RedTrack
+              if (responseData.details) {
+                if (responseData.details.includes('user account is blocked')) {
+                  errorMessage = 'Conta bloqueada. Verifique o status da sua conta RedTrack.'
+                } else if (responseData.details.includes('invalid date format')) {
+                  errorMessage = 'Formato de data inválido. Tente novamente.'
+                } else if (responseData.details.includes('unauthorized')) {
+                  errorMessage = 'API Key inválida ou expirada.'
+                } else if (responseData.details.includes('forbidden')) {
+                  errorMessage = 'Sem permissão de acesso. Verifique sua conta RedTrack.'
+                } else {
+                  errorMessage = responseData.details
+                }
+              } else if (responseData.error) {
+                errorMessage = responseData.error;
+              }
+              
               if (responseData.status) {
                 errorMessage = `Erro ${responseData.status}: ${errorMessage}`;
               }
+              
               set({ 
                 isLoading: false, 
                 error: errorMessage
@@ -125,10 +144,23 @@ export const useAuthStore = create<AuthState>()(
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
             
-            // Processar erro com mais detalhes baseado no status HTTP
+            // Processar erro com mais detalhes baseado no status HTTP e resposta do RedTrack
             let errorMessage = 'Erro ao conectar ao RedTrack'
             
-            if (response.status === 401) {
+            // Verificar se há detalhes específicos do RedTrack
+            if (errorData.details) {
+              if (errorData.details.includes('user account is blocked')) {
+                errorMessage = 'Conta bloqueada. Verifique o status da sua conta RedTrack.'
+              } else if (errorData.details.includes('invalid date format')) {
+                errorMessage = 'Formato de data inválido. Tente novamente.'
+              } else if (errorData.details.includes('unauthorized')) {
+                errorMessage = 'API Key inválida ou expirada.'
+              } else if (errorData.details.includes('forbidden')) {
+                errorMessage = 'Sem permissão de acesso. Verifique sua conta RedTrack.'
+              } else {
+                errorMessage = errorData.details
+              }
+            } else if (response.status === 401) {
               errorMessage = 'API Key inválida ou expirada'
             } else if (response.status === 403) {
               errorMessage = 'Conta bloqueada ou sem permissão de acesso'
