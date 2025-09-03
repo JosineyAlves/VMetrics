@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Shield, CheckCircle, AlertCircle, ArrowRight, Info, Key, Loader2 } from 'lucide-react'
@@ -13,8 +13,16 @@ const ApiKeySetup: React.FC = () => {
   const [connectionResult, setConnectionResult] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   
-  const { testApiKey, setApiKey: setAuthApiKey } = useAuthStore()
+  const { testApiKey, setApiKey: setAuthApiKey, apiKey: existingApiKey } = useAuthStore()
   const navigate = useNavigate()
+
+  // Verificar se já existe API Key configurada
+  useEffect(() => {
+    if (existingApiKey) {
+      console.log('[SETUP] API Key já configurada, redirecionando para dashboard')
+      navigate('/dashboard', { replace: true })
+    }
+  }, [existingApiKey, navigate])
 
   const handleApiKeyChange = (value: string) => {
     setApiKey(value)

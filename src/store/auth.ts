@@ -44,6 +44,16 @@ export const useAuthStore = create<AuthState>()(
         setTimeout(() => {
           const persisted = localStorage.getItem('auth-storage')
           console.log('[AUTH] Conteúdo atual do localStorage:', persisted)
+          
+          // Verificar se a API Key foi realmente salva
+          if (persisted) {
+            try {
+              const parsed = JSON.parse(persisted)
+              console.log('[AUTH] API Key salva no localStorage:', parsed.state?.apiKey ? 'SIM' : 'NÃO')
+            } catch (e) {
+              console.error('[AUTH] Erro ao parsear localStorage:', e)
+            }
+          }
         }, 100)
       },
       logout: async () => {
@@ -215,9 +225,25 @@ export const useAuthStore = create<AuthState>()(
           
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
+            
+            // Verificar se há API Key persistida no localStorage
+            const persisted = localStorage.getItem('auth-storage')
+            let persistedApiKey = null
+            
+            if (persisted) {
+              try {
+                const parsed = JSON.parse(persisted)
+                persistedApiKey = parsed.state?.apiKey
+                console.log('[AUTH] API Key persistida encontrada:', persistedApiKey ? 'SIM' : 'NÃO')
+              } catch (e) {
+                console.error('[AUTH] Erro ao parsear localStorage:', e)
+              }
+            }
+            
             set({ 
               isAuthenticated: true, 
               user: session.user,
+              apiKey: persistedApiKey,
               error: null 
             })
           } else {
@@ -225,6 +251,7 @@ export const useAuthStore = create<AuthState>()(
             set({ 
               isAuthenticated: false, 
               user: null,
+              apiKey: null,
               error: null 
             })
           }
@@ -233,6 +260,7 @@ export const useAuthStore = create<AuthState>()(
           set({ 
             isAuthenticated: false, 
             user: null,
+            apiKey: null,
             error: 'Erro ao verificar autenticação' 
           })
         }
@@ -242,6 +270,9 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
+        if (state?.apiKey) {
+          console.log('[AUTH] API Key restaurada do localStorage:', state.apiKey)
+        }
       }
     }
   )
