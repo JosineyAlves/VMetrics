@@ -12,8 +12,7 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showForgotPassword, setShowForgotPassword] = useState(false)
-  const [resetEmailSent, setResetEmailSent] = useState(false)
+
   
   const { login } = useAuthStore()
   const navigate = useNavigate()
@@ -53,36 +52,9 @@ const LoginForm: React.FC = () => {
     }
   }
 
-  const handleSignupClick = () => {
-    navigate('/signup')
-  }
 
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setError('Por favor, digite seu email primeiro')
-      return
-    }
 
-    setIsLoading(true)
-    setError('')
 
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      })
-
-      if (error) {
-        setError(error.message)
-        return
-      }
-
-      setResetEmailSent(true)
-    } catch (err) {
-      setError('Erro ao enviar email de reset. Tente novamente.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -95,15 +67,7 @@ const LoginForm: React.FC = () => {
                          <p className="text-[#1f1f1f]/70">
                Faça login na sua conta
              </p>
-            <div className="mt-4 text-sm text-slate-500">
-              <p>Novo por aqui? </p>
-              <button 
-                onClick={handleSignupClick}
-                className="text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
-              >
-                Criar conta
-              </button>
-            </div>
+
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -166,33 +130,12 @@ const LoginForm: React.FC = () => {
             <div className="text-center mt-4">
               <button
                 type="button"
-                onClick={() => setShowForgotPassword(!showForgotPassword)}
+                onClick={() => navigate('/forgot-password')}
                 className="text-sm text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
               >
                 Esqueci minha senha
               </button>
             </div>
-
-            {showForgotPassword && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <p className="text-sm text-blue-800 mb-3">
-                  Digite seu email para receber um link de redefinição de senha.
-                </p>
-                <Button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2"
-                  disabled={isLoading || !email}
-                >
-                  {isLoading ? 'Enviando...' : 'Enviar Link de Reset'}
-                </Button>
-                {resetEmailSent && (
-                  <p className="text-sm text-green-600 mt-2">
-                    ✅ Email enviado! Verifique sua caixa de entrada.
-                  </p>
-                )}
-              </div>
-            )}
           </form>
 
           {error && (

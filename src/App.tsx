@@ -5,6 +5,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import { motion, AnimatePresence } from 'framer-motion'
 import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
+import ForgotPasswordForm from "./components/ForgotPasswordForm"
 import ResetPasswordForm from "./components/ResetPasswordForm"
 import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
@@ -255,6 +256,7 @@ const App: React.FC = () => {
       {/* Rotas públicas */}
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginForm />} />
+      <Route path="/forgot-password" element={<ForgotPasswordForm />} />
       <Route path="/auth/reset-password" element={<ResetPasswordForm />} />
       <Route path="/signup" element={
         needsSignup ? (
