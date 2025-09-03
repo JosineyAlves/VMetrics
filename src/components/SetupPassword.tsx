@@ -14,31 +14,35 @@ const SetupPassword: React.FC = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [userEmail, setUserEmail] = useState('')
+  const [tokenType, setTokenType] = useState<'invite' | 'recovery' | null>(null)
   
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  // Verificar se há token de convite na URL
+  // ✅ VERIFICAR SE HÁ TOKEN DE CONVITE OU REDEFINIÇÃO NA URL
   useEffect(() => {
     const token = searchParams.get('token')
     const type = searchParams.get('type')
     
-    if (!token || type !== 'invite') {
-      setError('Link de convite inválido ou expirado')
+    // ✅ ACEITAR AMBOS: invite E recovery
+    if (!token || (type !== 'invite' && type !== 'recovery')) {
+      setError('Link inválido ou expirado')
       return
     }
+
+    setTokenType(type as 'invite' | 'recovery')
 
     // Verificar se o token é válido e obter email do usuário
     const verifyToken = async () => {
       try {
         const { data, error } = await supabase.auth.verifyOtp({
           token_hash: token,
-          type: 'invite'
+          type: type as 'invite' | 'recovery' // ✅ USAR O TIPO CORRETO
         })
 
         if (error) {
           console.error('Erro ao verificar token:', error)
-          setError('Link de convite inválido ou expirado')
+          setError('Link inválido ou expirado')
           return
         }
 
@@ -47,7 +51,7 @@ const SetupPassword: React.FC = () => {
         }
       } catch (err) {
         console.error('Erro ao verificar token:', err)
-        setError('Erro ao processar convite')
+        setError('Erro ao processar link')
       }
     }
 
@@ -81,23 +85,39 @@ const SetupPassword: React.FC = () => {
     try {
       const token = searchParams.get('token')
       
-      if (!token) {
-        setError('Token de convite não encontrado')
+      if (!token || !tokenType) {
+        setError('Token não encontrado')
         setIsLoading(false)
         return
       }
 
-      // Aceitar o convite e definir a senha
-      const { data, error } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: 'invite'
-      })
+      // ✅ PROCESSAR CONVITE OU REDEFINIÇÃO DE SENHA
+      if (tokenType === 'invite') {
+        // Aceitar o convite e definir a senha
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'invite'
+        })
 
-      if (error) {
-        console.error('Erro ao aceitar convite:', error)
-        setError('Erro ao processar convite. Tente novamente.')
-        setIsLoading(false)
-        return
+        if (error) {
+          console.error('Erro ao aceitar convite:', error)
+          setError('Erro ao processar convite. Tente novamente.')
+          setIsLoading(false)
+          return
+        }
+      } else if (tokenType === 'recovery') {
+        // ✅ PROCESSAR REDEFINIÇÃO DE SENHA
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'recovery'
+        })
+
+        if (error) {
+          console.error('Erro ao verificar token de redefinição:', error)
+          setError('Erro ao processar redefinição de senha. Tente novamente.')
+          setIsLoading(false)
+          return
+        }
       }
 
       // Atualizar a senha do usuário
@@ -137,6 +157,21 @@ const SetupPassword: React.FC = () => {
     navigate('/login')
   }
 
+  // ✅ TÍTULO DINÂMICO BASEADO NO TIPO DE TOKEN
+  const getTitle = () => {
+    if (tokenType === 'recovery') {
+      return 'Redefinir Senha'
+    }
+    return 'Definir Senha'
+  }
+
+  const getDescription = () => {
+    if (tokenType === 'recovery') {
+      return 'Redefina sua senha para acessar sua conta VMetrics'
+    }
+    return 'Defina sua senha para acessar sua conta VMetrics'
+  }
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -150,7 +185,7 @@ const SetupPassword: React.FC = () => {
                 Senha Definida!
               </h1>
               <p className="text-[#1f1f1f]/70">
-                Sua senha foi definida com sucesso. Você será redirecionado para o login.
+                Sua senha foi {tokenType === 'recovery' ? 'redefinida' : 'definida'} com sucesso. Você será redirecionado para o login.
               </p>
             </div>
             
@@ -160,7 +195,7 @@ const SetupPassword: React.FC = () => {
                   <span className="text-white text-sm">✓</span>
                 </div>
                 <p className="text-sm text-green-700 font-medium">
-                  Conta configurada com sucesso!
+                  {tokenType === 'recovery' ? 'Senha redefinida com sucesso!' : 'Conta configurada com sucesso!'}
                 </p>
               </div>
             </div>
@@ -188,10 +223,10 @@ const SetupPassword: React.FC = () => {
               <Logo size="xl" variant="gradient" />
             </div>
             <h1 className="text-2xl font-bold text-[#1f1f1f] mb-2">
-              Definir Senha
+              {getTitle()}
             </h1>
             <p className="text-[#1f1f1f]/70">
-              Defina sua senha para acessar sua conta VMetrics
+              {getDescription()}
             </p>
             {userEmail && (
               <p className="text-sm text-slate-500 mt-2">
@@ -203,7 +238,7 @@ const SetupPassword: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-[#1f1f1f] mb-2">
-                Nova Senha
+                {tokenType === 'recovery' ? 'Nova Senha' : 'Nova Senha'}
               </label>
               <div className="relative">
                 <Input
@@ -262,10 +297,10 @@ const SetupPassword: React.FC = () => {
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
-                  Definindo senha...
+                  {tokenType === 'recovery' ? 'Redefinindo senha...' : 'Definindo senha...'}
                 </>
               ) : (
-                'Definir Senha'
+                tokenType === 'recovery' ? 'Redefinir Senha' : 'Definir Senha'
               )}
             </Button>
           </form>
@@ -287,7 +322,7 @@ const SetupPassword: React.FC = () => {
 
           <div className="mt-4 text-center">
             <p className="text-xs text-slate-500">
-              Após definir sua senha, você poderá fazer login e acessar sua conta
+              Após {tokenType === 'recovery' ? 'redefinir' : 'definir'} sua senha, você poderá fazer login e acessar sua conta
             </p>
           </div>
         </div>
@@ -297,4 +332,3 @@ const SetupPassword: React.FC = () => {
 }
 
 export default SetupPassword
-

@@ -105,21 +105,21 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
         const randomPassword = generateRandomPassword()
         
         const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-          email: customerEmail,
+              email: customerEmail,
           password: randomPassword, // Senha temporária
           email_confirm: true, // Email já confirmado
           user_metadata: {
-            full_name: customerName || 'Usuário VMetrics',
-            stripe_customer_id: customerId,
+              full_name: customerName || 'Usuário VMetrics',
+              stripe_customer_id: customerId,
             is_paying_customer: true
           }
-        })
-
+            })
+          
         if (userError) {
           console.error('Error creating user:', userError)
-          return
-        }
-
+            return
+          }
+          
         userId = userData.user.id
         console.log('User created successfully:', userId)
         
@@ -249,7 +249,7 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       const randomPassword = generateRandomPassword()
       
       const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-        email: finalEmail,
+          email: finalEmail,
         password: randomPassword, // Senha temporária
         email_confirm: true, // Email já confirmado
         user_metadata: {
@@ -257,13 +257,13 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
           stripe_customer_id: subscription.customer,
           is_paying_customer: true
         }
-      })
-
+        })
+      
       if (userError) {
         console.error('Error creating user:', userError)
         return
       }
-
+      
       userId = userData.user.id
       customerEmail = finalEmail
       customerName = 'Usuário VMetrics'
@@ -364,8 +364,8 @@ async function sendWelcomeEmail(supabase: any, email: string, name: string) {
           <p>Obrigado,<br>Equipe VMetrics</p>
         `
       }
-    })
-
+      })
+      
     if (error) {
       console.error('Error sending welcome email:', error)
     } else {
