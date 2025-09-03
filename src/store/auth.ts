@@ -12,7 +12,7 @@ interface AuthState {
   login: (userData: any) => void
   setApiKey: (key: string) => void
   logout: () => void
-  testApiKey: (key: string) => Promise<boolean>
+  testApiKey: (key: string) => Promise<{ success: boolean; error?: string }>
   initializeAuth: () => Promise<void>
 }
 
@@ -59,37 +59,17 @@ export const useAuthStore = create<AuthState>()(
         }, 100)
       },
       testApiKey: async (key: string) => {
-        // TESTE IMEDIATO - SEMPRE EXECUTAR
-        console.log('🚨 TESTE IMEDIATO - FUNÇÃO CHAMADA!')
-        console.log('🚨 API Key recebida:', key ? 'SIM' : 'NÃO')
-        console.log('🚨 Hostname:', window.location.hostname)
-        console.log('🚨 URL:', window.location.href)
-        
-        set({ isLoading: true, error: null })
-        
         console.log('🔍 Iniciando teste de API key...')
-        console.log('🔍 Hostname atual:', window.location.hostname)
-        console.log('🔍 URL atual:', window.location.href)
+        set({ isLoading: true, error: null })
         
         try {
           // Chaves de teste sempre funcionam
           if (key === 'kXlmMfpINGQqv4btkwRL' || key === 'test_key' || key === 'yY6GLcfv5E6cWnWDt3KP') {
             console.log('🔍 Chave de teste detectada')
             set({ isLoading: false, isAuthenticated: true })
-            return true
+            return { success: true }
           }
           
-          // Em desenvolvimento local, simula sucesso para evitar CORS
-          // const isLocalDevelopment = window.location.hostname === 'localhost' || 
-          //                           window.location.hostname === '127.0.0.1'
-          // 
-          // console.log('🔍 É desenvolvimento local?', isLocalDevelopment)
-          // 
-          // if (isLocalDevelopment) {
-          //   console.log('🔧 Modo desenvolvimento local detectado. Aceitando qualquer chave não vazia.')
-          //   set({ isLoading: false, isAuthenticated: true })
-          //   return true
-          // }
           // Em produção, testar via proxy
           // Tentar validar usando /conversions (mais compatível com trial)
           let url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
@@ -114,23 +94,20 @@ export const useAuthStore = create<AuthState>()(
           }
 
           console.log('[DEBUG] Endpoint de validação testado:', endpointTested);
-          console.log('[DEBUG] URL de validação:', url);
-          console.log('[DEBUG] Chave enviada:', key);
-          console.log('🔍 Status da resposta:', response.status);
-          console.log('🔍 OK?', response.ok);
+          console.log('[DEBUG] Status da resposta:', response.status);
           
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
             // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
             if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
               console.log('✅ API Key válida!');
-            set({ 
+              set({ 
                 apiKey: key,
-              isLoading: false, 
-              isAuthenticated: true,
-              error: null
+                isLoading: false, 
+                isAuthenticated: true,
+                error: null
               });
-              return true;
+              return { success: true };
             } else {
               // Caso a resposta seja um objeto de erro explícito
               let errorMessage = responseData.error || 'API Key inválida';
@@ -142,17 +119,26 @@ export const useAuthStore = create<AuthState>()(
                 error: errorMessage,
                 isAuthenticated: false 
               });
-              return false;
+              return { success: false, error: errorMessage };
             }
           } else {
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
             
-            // Processar erro com mais detalhes
-            let errorMessage = errorData.error || 'API Key inválida'
+            // Processar erro com mais detalhes baseado no status HTTP
+            let errorMessage = 'Erro ao conectar ao RedTrack'
             
-            // Adicionar código de status se disponível
-            if (errorData.status) {
+            if (response.status === 401) {
+              errorMessage = 'API Key inválida ou expirada'
+            } else if (response.status === 403) {
+              errorMessage = 'Conta bloqueada ou sem permissão de acesso'
+            } else if (response.status === 429) {
+              errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos'
+            } else if (response.status >= 500) {
+              errorMessage = 'Erro interno do RedTrack. Tente novamente mais tarde'
+            } else if (errorData.error) {
+              errorMessage = errorData.error
+            } else if (errorData.status) {
               errorMessage = `Erro ${errorData.status}: ${errorMessage}`
             }
             
@@ -161,19 +147,28 @@ export const useAuthStore = create<AuthState>()(
               error: errorMessage,
               isAuthenticated: false 
             })
-            return false
+            return { success: false, error: errorMessage }
           }
           
         } catch (error) {
           console.error('❌ Erro ao testar API key:', error)
-          console.error('❌ Tipo do erro:', typeof error)
-          console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : 'Erro desconhecido')
+          
+          let errorMessage = 'Erro de conexão. Verifique sua API Key.'
+          
+          if (error instanceof Error) {
+            if (error.message.includes('Failed to fetch')) {
+              errorMessage = 'Erro de conexão com o RedTrack. Verifique sua internet.'
+            } else {
+              errorMessage = error.message
+            }
+          }
+          
           set({ 
             isLoading: false, 
-            error: 'Erro de conexão. Verifique sua API Key.',
+            error: errorMessage,
             isAuthenticated: false 
           })
-          return false
+          return { success: false, error: errorMessage }
         }
       },
       initializeAuth: async () => {

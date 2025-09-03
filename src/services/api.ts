@@ -162,11 +162,11 @@ class RedTrackAPI {
   }
 
   // Test API key
-  async testConnection(): Promise<boolean> {
+  async testConnection(): Promise<{ success: boolean; error?: string }> {
     try {
       // Para chaves de teste, sempre retorna true
       if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
-        return true
+        return { success: true }
       }
       
       // Em desenvolvimento, simula sucesso para evitar CORS
@@ -176,16 +176,35 @@ class RedTrackAPI {
       
       if (isDevelopment) {
         console.log('🔧 Modo desenvolvimento detectado. Usando dados simulados.')
-        return true
+        return { success: true }
       }
       
       // Em produção, testar via proxy
       await this.request('/settings')
-      return true
+      return { success: true }
       
     } catch (error) {
       console.error('Erro ao testar API key:', error)
-      return false
+      
+      // Capturar mensagem de erro específica do RedTrack
+      let errorMessage = 'Erro ao conectar ao RedTrack'
+      
+      if (error instanceof Error) {
+        // Verificar se é erro de API Key inválida
+        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          errorMessage = 'API Key inválida ou expirada'
+        } else if (error.message.includes('403') || error.message.includes('Forbidden')) {
+          errorMessage = 'Conta bloqueada ou sem permissão de acesso'
+        } else if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+          errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos'
+        } else if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
+          errorMessage = 'Erro interno do RedTrack. Tente novamente mais tarde'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      return { success: false, error: errorMessage }
     }
   }
 
