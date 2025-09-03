@@ -297,3 +297,4 @@ const SetupPassword: React.FC = () => {
 }
 
 export default SetupPassword
+

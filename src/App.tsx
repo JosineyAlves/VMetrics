@@ -7,6 +7,7 @@ import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
 import ApiKeySetup from "./components/ApiKeySetup"
 import SetupPassword from "./components/SetupPassword"
+import InviteRedirect from "./components/InviteRedirect"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -252,6 +253,7 @@ const App: React.FC = () => {
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/setup-password" element={<SetupPassword />} />
+      <Route path="/invite-redirect" element={<InviteRedirect />} />
       <Route path="/signup" element={
         needsSignup ? (
           <SignupForm

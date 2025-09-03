@@ -115,24 +115,25 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
           }
         }
       } else {
-        // 🎉 CRIAR NOVO USUÁRIO USANDO RPC FUNCTION
-        const { data: newUserId, error: createError } = await supabase
-          .rpc('create_auth_user', {
-            user_email: customerEmail,
-            user_name: customerName || 'Usuário VMetrics',
-            stripe_customer_id: customerId
-          })
-        
-        if (createError) {
-          console.error('Error creating user:', createError)
+        // 🚀 USAR INVITE USER (ENVIA EMAIL AUTOMATICAMENTE)
+        const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+          customerEmail,
+          {
+            data: {
+              full_name: customerName || 'Usuário VMetrics',
+              stripe_customer_id: customerId
+            }
+          }
+        )
+
+        if (inviteError) {
+          console.error('Error inviting user:', inviteError)
           return
         }
-        
-        userId = newUserId
-        console.log('New user created:', userId)
-        
-        // 🎉 EMAIL AUTOMÁTICO VIA SUPABASE + RESEND
-        console.log('✅ User created successfully. Email will be sent automatically via Supabase + Resend')
+
+        userId = inviteData.user.id
+        console.log('User invited successfully:', userId)
+        console.log('✅ Email de convite enviado automaticamente via Supabase + Resend')
       }
       
       // Criar plano do usuário
@@ -253,25 +254,27 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       // Try to get a meaningful email
       const finalEmail = customerEmail || `stripe_${subscription.customer}@vmetrics.com.br`
       
-      const { data: newUserId, error: createError } = await supabase
-        .rpc('create_auth_user', {
-          user_email: finalEmail,
-          user_name: 'Usuário VMetrics',
-          stripe_customer_id: subscription.customer
-        })
-      
-      if (createError) {
-        console.error('Error creating user:', createError)
+      // 🚀 USAR INVITE USER (ENVIA EMAIL AUTOMATICAMENTE)
+      const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+        finalEmail,
+        {
+          data: {
+            full_name: 'Usuário VMetrics',
+            stripe_customer_id: subscription.customer
+          }
+        }
+      )
+
+      if (inviteError) {
+        console.error('Error inviting user:', inviteError)
         return
       }
-      
-      userId = newUserId
+
+      userId = inviteData.user.id
       customerEmail = finalEmail
       customerName = 'Usuário VMetrics'
-      console.log('New user created with email:', finalEmail, 'ID:', userId)
-      
-      // 🎉 EMAIL AUTOMÁTICO VIA SUPABASE + RESEND
-      console.log('✅ User created successfully. Email will be sent automatically via Supabase + Resend')
+      console.log('User invited successfully with email:', finalEmail, 'ID:', userId)
+      console.log('✅ Email de convite enviado automaticamente via Supabase + Resend')
     }
     
     // First, check if user already has an active plan

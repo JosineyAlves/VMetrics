@@ -23,6 +23,11 @@ https://app.vmetrics.com.br/dashboard
 https://app.vmetrics.com.br/setup
 ```
 
+#### **Site URL (URL padrão):**
+```
+https://app.vmetrics.com.br/setup-password
+```
+
 ### **3. CONFIGURAR EMAIL TEMPLATES:**
 
 #### **Invite User Template:**
@@ -40,7 +45,7 @@ Você foi convidado para o VMetrics
 <h2>Bem-vindo ao VMetrics!</h2>
 <p>Você foi convidado para criar uma conta no VMetrics.</p>
 <p>Clique no link abaixo para definir sua senha e acessar sua conta:</p>
-<p><a href="{{ .ConfirmationURL }}">Definir Senha e Acessar Conta</a></p>
+<p><a href="{{ .ConfirmationURL }}&redirect_to=https://app.vmetrics.com.br/setup-password">Definir Senha e Acessar Conta</a></p>
 <p>Se você não solicitou este convite, pode ignorar este email.</p>
 <p>Obrigado,<br>Equipe VMetrics</p>
 ```

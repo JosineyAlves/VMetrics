@@ -145,3 +145,4 @@ export const useAuthSupabaseStore = create<AuthSupabaseState>()(
     }
   )
 )
+
