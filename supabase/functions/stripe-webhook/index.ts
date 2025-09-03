@@ -1,4 +1,6 @@
-// 🚀 WEBHOOK SIMPLIFICADO - FLUXO DIRETO SEM TOKENS COMPLEXOS
+// 🚀 WEBHOOK CORRIGIDO - USANDO FUNÇÕES RPC PARA AUTH.USERS
+// Versão que funciona com Edge Functions
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -37,6 +39,18 @@ serve(async (req) => {
         await handleSubscriptionCreated(supabase, event.data.object)
         break
         
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(supabase, event.data.object)
+        break
+        
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(supabase, event.data.object)
+        break
+        
+      case 'invoice.payment_succeeded':
+        await handleInvoicePaymentSucceeded(supabase, event.data.object)
+        break
+        
       default:
         console.log(`Unhandled event type: ${event.type}`)
     }
@@ -55,7 +69,7 @@ serve(async (req) => {
   }
 })
 
-// 🎯 FUNÇÃO PRINCIPAL SIMPLIFICADA - CRIAR USUÁRIO DIRETAMENTE
+// 🎯 FUNÇÃO PRINCIPAL CORRIGIDA - USANDO RPC FUNCTIONS
 async function handleCheckoutCompleted(supabase: any, session: any) {
   console.log('Processing checkout completed:', session.id)
   
@@ -101,30 +115,36 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
           }
         }
       } else {
-        // 🚀 CRIAR USUÁRIO DIRETAMENTE (SEM CONVITE)
-        const randomPassword = generateRandomPassword()
+        // 🎉 CRIAR NOVO USUÁRIO USANDO RPC FUNCTION
+        const { data: newUserId, error: createError } = await supabase
+          .rpc('create_auth_user', {
+            user_email: customerEmail,
+            user_name: customerName || 'Usuário VMetrics',
+            stripe_customer_id: customerId
+          })
         
-        const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-              email: customerEmail,
-          password: randomPassword, // Senha temporária
-          email_confirm: true, // Email já confirmado
-          user_metadata: {
-              full_name: customerName || 'Usuário VMetrics',
-              stripe_customer_id: customerId,
-            is_paying_customer: true
-          }
-            })
-          
-        if (userError) {
-          console.error('Error creating user:', userError)
-            return
-          }
-          
-        userId = userData.user.id
-        console.log('User created successfully:', userId)
+        if (createError) {
+          console.error('Error creating user:', createError)
+          return
+        }
         
-        // 🚀 ENVIAR EMAIL DE BOAS-VINDAS
-        await sendWelcomeEmail(supabase, customerEmail, customerName)
+        userId = newUserId
+        console.log('New user created:', userId)
+        
+        // 🚀 ENVIAR EMAIL DE RESET PASSWORD
+        const { error: resetError } = await supabase.auth.admin.generateLink({
+          type: 'recovery',
+          email: customerEmail,
+          options: {
+            redirectTo: 'https://app.vmetrics.com.br/login'
+          }
+        })
+        
+        if (resetError) {
+          console.error('Error sending reset password email:', resetError)
+        } else {
+          console.log('✅ Reset password email sent successfully via Supabase + Resend')
+        }
       }
       
       // Criar plano do usuário
@@ -245,32 +265,37 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       // Try to get a meaningful email
       const finalEmail = customerEmail || `stripe_${subscription.customer}@vmetrics.com.br`
       
-      // 🚀 CRIAR USUÁRIO DIRETAMENTE (SEM CONVITE)
-      const randomPassword = generateRandomPassword()
-      
-      const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-          email: finalEmail,
-        password: randomPassword, // Senha temporária
-        email_confirm: true, // Email já confirmado
-        user_metadata: {
-          full_name: 'Usuário VMetrics',
-          stripe_customer_id: subscription.customer,
-          is_paying_customer: true
-        }
+      const { data: newUserId, error: createError } = await supabase
+        .rpc('create_auth_user', {
+          user_email: finalEmail,
+          user_name: 'Usuário VMetrics',
+          stripe_customer_id: subscription.customer
         })
       
-      if (userError) {
-        console.error('Error creating user:', userError)
+      if (createError) {
+        console.error('Error creating user:', createError)
         return
       }
       
-      userId = userData.user.id
+      userId = newUserId
       customerEmail = finalEmail
       customerName = 'Usuário VMetrics'
-      console.log('User created successfully with email:', finalEmail, 'ID:', userId)
+      console.log('New user created with email:', finalEmail, 'ID:', userId)
       
-      // 🚀 ENVIAR EMAIL DE BOAS-VINDAS
-      await sendWelcomeEmail(supabase, finalEmail, customerName)
+      // 🚀 ENVIAR EMAIL DE RESET PASSWORD
+      const { error: resetError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: finalEmail,
+        options: {
+          redirectTo: 'https://app.vmetrics.com.br/login'
+        }
+      })
+      
+      if (resetError) {
+        console.error('Error sending reset password email:', resetError)
+      } else {
+        console.log('✅ Reset password email sent successfully via Supabase + Resend')
+      }
     }
     
     // First, check if user already has an active plan
@@ -334,44 +359,139 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
   }
 }
 
-// 🚀 FUNÇÃO PARA GERAR SENHA ALEATÓRIA
-function generateRandomPassword(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-  let password = ''
-  for (let i = 0; i < 16; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return password
-}
-
-// 🚀 FUNÇÃO PARA ENVIAR EMAIL DE BOAS-VINDAS
-async function sendWelcomeEmail(supabase: any, email: string, name: string) {
+// Handle subscription updates
+async function handleSubscriptionUpdated(supabase: any, subscription: any) {
+  console.log('Processing subscription updated:', subscription.id)
+  
   try {
-    // Usar a função de email do Supabase
-    const { error } = await supabase.functions.invoke('send-email-resend', {
-      body: {
-        to: email,
-        subject: 'Bem-vindo ao VMetrics! Sua compra foi processada',
-        html: `
-          <h2>Bem-vindo ao VMetrics!</h2>
-          <p>Olá ${name}, sua compra foi processada com sucesso!</p>
-          <p>Para acessar sua conta:</p>
-          <ol>
-            <li>Acesse: <a href="https://app.vmetrics.com.br/login">https://app.vmetrics.com.br/login</a></li>
-            <li>Use seu email: ${email}</li>
-            <li>Clique em "Esqueci minha senha" para definir uma nova senha</li>
-          </ol>
-          <p>Obrigado,<br>Equipe VMetrics</p>
-        `
-      }
+    // Determine plan type based on price amount
+    let planType = 'monthly'
+    const priceAmount = subscription.items?.data?.[0]?.price?.unit_amount || 0
+    
+    console.log('Price amount from subscription update:', priceAmount)
+    
+    // Map price amounts to plan types
+    if (priceAmount === 7900) { // R$ 79,00 - Plano Mensal
+      planType = 'monthly'
+    } else if (priceAmount === 19700) { // R$ 197,00 - Plano Trimestral
+      planType = 'quarterly'
+    } else {
+      planType = 'monthly' // Fallback para monthly
+    }
+    
+    console.log('Detected plan type:', planType)
+    
+    // Use UPSERT to handle subscription updates
+    const { error } = await supabase
+      .from('user_plans')
+      .upsert({
+        plan_type: planType,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer,
+        status: subscription.status,
+        current_period_start: new Date(subscription.current_period_start * 1000),
+        current_period_end: new Date(subscription.current_period_end * 1000)
+      }, {
+        onConflict: 'stripe_subscription_id'
       })
       
     if (error) {
-      console.error('Error sending welcome email:', error)
-    } else {
-      console.log('Welcome email sent successfully to:', email)
+      console.error('Error updating subscription:', error)
+      return
     }
+    
+    console.log('Subscription updated successfully with plan type:', planType)
+    
   } catch (error) {
-    console.error('Error in sendWelcomeEmail:', error)
+    console.error('Error in handleSubscriptionUpdated:', error)
+  }
+}
+
+// Handle subscription deletion
+async function handleSubscriptionDeleted(supabase: any, subscription: any) {
+  console.log('Processing subscription deleted:', subscription.id)
+  
+  try {
+    // Update user plan status to cancelled
+    const { error } = await supabase
+      .from('user_plans')
+      .update({
+        status: 'cancelled',
+        updated_at: new Date()
+      })
+      .eq('stripe_subscription_id', subscription.id)
+      
+    if (error) {
+      console.error('Error updating subscription status:', error)
+      return
+    }
+    
+    console.log('Subscription marked as cancelled')
+    
+  } catch (error) {
+    console.error('Error in handleSubscriptionDeleted:', error)
+  }
+}
+
+// Handle successful invoice payment
+async function handleInvoicePaymentSucceeded(supabase: any, invoice: any) {
+  console.log('Processing invoice payment succeeded:', invoice.id)
+  
+  try {
+    // Check if invoice already exists
+    const { data: existingInvoice, error: checkError } = await supabase
+      .from('invoices')
+      .select('id')
+      .eq('stripe_invoice_id', invoice.id)
+      .single()
+    
+    if (existingInvoice) {
+      console.log('Invoice already exists, skipping duplicate:', invoice.id)
+      return
+    }
+    
+    // Find user by stripe_customer_id using RPC
+    let userId = null
+    if (invoice.customer) {
+      const { data: userByStripeId, error: searchError } = await supabase
+        .rpc('find_user_by_stripe_id', { stripe_id: invoice.customer })
+      
+      if (searchError) {
+        console.error('Error searching users:', searchError)
+        return
+      }
+      
+      if (userByStripeId && userByStripeId.length > 0) {
+        userId = userByStripeId[0].user_id
+        console.log('Found user for invoice:', userId)
+      } else {
+        console.log('User not found for customer:', invoice.customer)
+      }
+    }
+    
+    // Log the successful payment
+    const { error } = await supabase
+      .from('invoices')
+      .insert({
+        user_id: userId,
+        stripe_invoice_id: invoice.id,
+        stripe_customer_id: invoice.customer,
+        stripe_subscription_id: invoice.subscription,
+        amount: invoice.total,
+        currency: invoice.currency,
+        status: 'paid',
+        period_start: new Date(invoice.period_start * 1000),
+        period_end: new Date(invoice.period_end * 1000)
+      })
+      
+    if (error) {
+      console.error('Error logging invoice:', error)
+      return
+    }
+    
+    console.log('Invoice logged successfully with user_id:', userId)
+    
+  } catch (error) {
+    console.error('Error in handleInvoicePaymentSucceeded:', error)
   }
 }

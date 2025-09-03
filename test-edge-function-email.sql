@@ -115,4 +115,3 @@ LIMIT 3;
 -- 3. Execute a Edge Function corrigida via terminal ou API
 -- 4. Verifique se o email chegou na sua caixa de entrada
 -- 5. Verifique se o status mudou para 'sent'
-

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '../lib/supabase'
 import { useCurrencyStore } from './currency'
 
 interface AuthState {
@@ -12,6 +13,7 @@ interface AuthState {
   setApiKey: (key: string) => void
   logout: () => void
   testApiKey: (key: string) => Promise<boolean>
+  initializeAuth: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -44,9 +46,13 @@ export const useAuthStore = create<AuthState>()(
           console.log('[AUTH] Conteúdo atual do localStorage:', persisted)
         }, 100)
       },
-      logout: () => {
+      logout: async () => {
         console.log('[AUTH] Logout chamado. Limpando API Key.')
-        set({ apiKey: null, isAuthenticated: false })
+        
+        // Fazer logout do Supabase
+        await supabase.auth.signOut()
+        
+        set({ apiKey: null, isAuthenticated: false, user: null })
         setTimeout(() => {
           const persisted = localStorage.getItem('auth-storage')
           console.log('[AUTH] Conteúdo do localStorage após logout:', persisted)
@@ -168,6 +174,40 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false 
           })
           return false
+        }
+      },
+      initializeAuth: async () => {
+        try {
+          // Verificar se há uma sessão ativa
+          const { data: { session }, error } = await supabase.auth.getSession()
+          
+          if (error) {
+            console.error('[AUTH] Erro ao verificar sessão:', error)
+            return
+          }
+          
+          if (session?.user) {
+            console.log('[AUTH] Sessão encontrada:', session.user.email)
+            set({ 
+              isAuthenticated: true, 
+              user: session.user,
+              error: null 
+            })
+          } else {
+            console.log('[AUTH] Nenhuma sessão ativa encontrada')
+            set({ 
+              isAuthenticated: false, 
+              user: null,
+              error: null 
+            })
+          }
+        } catch (error) {
+          console.error('[AUTH] Erro ao inicializar auth:', error)
+          set({ 
+            isAuthenticated: false, 
+            user: null,
+            error: 'Erro ao verificar autenticação' 
+          })
         }
       }
     }),
