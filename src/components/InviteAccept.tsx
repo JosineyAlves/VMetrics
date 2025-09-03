@@ -162,3 +162,4 @@ const InviteAccept: React.FC = () => {
 }
 
 export default InviteAccept
+
