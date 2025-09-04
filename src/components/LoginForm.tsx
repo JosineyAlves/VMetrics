@@ -56,14 +56,13 @@ const LoginForm: React.FC = () => {
         // Login bem-sucedido
         login(data.user)
         
-        // Aguardar um pouco para garantir que o estado foi atualizado
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true })
-        }, 100)
+        // Redirecionar para dashboard
+        navigate('/dashboard', { replace: true })
       }
     } catch (err) {
       console.error('Erro no login:', err)
       setError('Erro ao fazer login. Tente novamente.')
+    } finally {
       setIsLoading(false)
     }
   }
@@ -155,17 +154,8 @@ const LoginForm: React.FC = () => {
           </form>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-6">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-800 font-medium">{error}</p>
-                </div>
-              </div>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
+              <p className="text-sm text-red-600 font-medium">{error}</p>
             </div>
           )}
 
