@@ -57,12 +57,15 @@ export const useAuthStore = create<AuthState>()(
         }, 100)
       },
       logout: async () => {
-        console.log('[AUTH] Logout chamado. Limpando API Key.')
+        console.log('[AUTH] Logout chamado. Mantendo API Key para próxima sessão.')
         
         // Fazer logout do Supabase
         await supabase.auth.signOut()
         
-        set({ apiKey: null, isAuthenticated: false, user: null })
+        // Manter API Key no localStorage para próxima sessão
+        set({ isAuthenticated: false, user: null })
+        // NÃO limpar apiKey - manter para próxima sessão
+        
         setTimeout(() => {
           const persisted = localStorage.getItem('auth-storage')
           console.log('[AUTH] Conteúdo do localStorage após logout:', persisted)
