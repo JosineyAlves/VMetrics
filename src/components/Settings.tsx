@@ -97,30 +97,23 @@ const Settings: React.FC = () => {
     setError('')
 
     try {
-      // Importar testApiKey do store
-      const { testApiKey } = useAuthStore.getState()
+      // Simular salvamento
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Testar a API Key
-      const result = await testApiKey(tempApiKey.trim())
+      setApiKey(tempApiKey)
+      setSaved(true)
       
-      if (result.success) {
-        // Salvar API Key no store
-        setApiKey(tempApiKey.trim())
-        setSaved(true)
-        
-        // Recarregar dados da conta com nova API key
-        loadAccountData()
-        
-        console.log('✅ [SETTINGS] API Key configurada com sucesso')
-        
-        setTimeout(() => {
-          setSaved(false)
-        }, 3000)
-      } else {
-        setError(result.error || 'API Key inválida ou conta bloqueada. Verifique sua conta RedTrack e tente novamente.')
-      }
+      // Recarregar dados da conta com nova API key
+      loadAccountData()
+      
+      // A moeda agora é configurada manualmente
+      console.log('✅ [SETTINGS] API Key configurada com sucesso')
+      
+      setTimeout(() => {
+        setSaved(false)
+      }, 3000)
     } catch (err) {
-      setError('Erro ao conectar ao RedTrack. Verifique sua API Key.')
+      setError('Erro ao salvar configurações')
     } finally {
       setSaving(false)
     }
@@ -214,36 +207,6 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {/* Instructions */}
-          <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <Info className="w-5 h-5 text-[#3cd48f] mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-[#1f1f1f] mb-2 text-sm">
-                  Como obter sua API Key do RedTrack
-                </h4>
-                <ol className="text-[#1f1f1f]/80 space-y-1 text-xs">
-                  <li className="flex items-start">
-                    <span className="font-medium mr-2">1.</span>
-                    Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="font-medium mr-2">2.</span>
-                    Vá em <strong>Tools → Integrations → General</strong>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="font-medium mr-2">3.</span>
-                    Clique em <strong>Generate New Key</strong> ou use uma chave existente
-                  </li>
-                  <li className="flex items-start">
-                    <span className="font-medium mr-2">4.</span>
-                    Copie a chave gerada (formato: xxxxxxxxxxxxxxxxxxxx)
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               Chave da API
@@ -251,7 +214,7 @@ const Settings: React.FC = () => {
             <div className="relative">
               <Input
                 type={showApiKey ? 'text' : 'password'}
-                placeholder="Cole sua API Key aqui"
+                placeholder="Digite sua API Key"
                 value={tempApiKey}
                 onChange={(e) => setTempApiKey(e.target.value)}
                 className="pr-12 rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f] shadow-sm"
@@ -279,25 +242,19 @@ const Settings: React.FC = () => {
           <div className="flex items-center justify-between">
             <Button
               onClick={handleSave}
-              disabled={saving || !tempApiKey.trim()}
+              disabled={saving}
               className="flex items-center space-x-3 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  <span className="font-semibold">Conectando ao RedTrack...</span>
-                </>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
               ) : saved ? (
-                <>
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-semibold">Conectado com Sucesso!</span>
-                </>
+                <CheckCircle className="w-5 h-5" />
               ) : (
-                <>
-                  <Shield className="w-5 h-5" />
-                  <span className="font-semibold">Conectar ao RedTrack</span>
-                </>
+                <Save className="w-5 h-5" />
               )}
+              <span className="font-semibold">
+                {saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar Configurações'}
+              </span>
             </Button>
           </div>
         </div>

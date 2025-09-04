@@ -12,7 +12,7 @@ interface AuthState {
   login: (userData: any) => void
   setApiKey: (key: string) => void
   logout: () => void
-  testApiKey: (key: string) => Promise<{ success: boolean; error?: string }>
+  testApiKey: (key: string) => Promise<boolean>
   initializeAuth: () => Promise<void>
 }
 
@@ -44,45 +44,52 @@ export const useAuthStore = create<AuthState>()(
         setTimeout(() => {
           const persisted = localStorage.getItem('auth-storage')
           console.log('[AUTH] Conteúdo atual do localStorage:', persisted)
-          
-          // Verificar se a API Key foi realmente salva
-          if (persisted) {
-            try {
-              const parsed = JSON.parse(persisted)
-              console.log('[AUTH] API Key salva no localStorage:', parsed.state?.apiKey ? 'SIM' : 'NÃO')
-            } catch (e) {
-              console.error('[AUTH] Erro ao parsear localStorage:', e)
-            }
-          }
         }, 100)
       },
       logout: async () => {
-        console.log('[AUTH] Logout chamado. Mantendo API Key para próxima sessão.')
+        console.log('[AUTH] Logout chamado. Limpando API Key.')
         
         // Fazer logout do Supabase
         await supabase.auth.signOut()
         
-        // Manter API Key no localStorage para próxima sessão
-        set({ isAuthenticated: false, user: null })
-        // NÃO limpar apiKey - manter para próxima sessão
-        
+        set({ apiKey: null, isAuthenticated: false, user: null })
         setTimeout(() => {
           const persisted = localStorage.getItem('auth-storage')
           console.log('[AUTH] Conteúdo do localStorage após logout:', persisted)
         }, 100)
       },
       testApiKey: async (key: string) => {
-        console.log('🔍 Iniciando teste de API key...')
+        // TESTE IMEDIATO - SEMPRE EXECUTAR
+        console.log('🚨 TESTE IMEDIATO - FUNÇÃO CHAMADA!')
+        console.log('🚨 API Key recebida:', key ? 'SIM' : 'NÃO')
+        console.log('🚨 Hostname:', window.location.hostname)
+        console.log('🚨 URL:', window.location.href)
+        
         set({ isLoading: true, error: null })
+        
+        console.log('🔍 Iniciando teste de API key...')
+        console.log('🔍 Hostname atual:', window.location.hostname)
+        console.log('🔍 URL atual:', window.location.href)
         
         try {
           // Chaves de teste sempre funcionam
           if (key === 'kXlmMfpINGQqv4btkwRL' || key === 'test_key' || key === 'yY6GLcfv5E6cWnWDt3KP') {
             console.log('🔍 Chave de teste detectada')
             set({ isLoading: false, isAuthenticated: true })
-            return { success: true }
+            return true
           }
           
+          // Em desenvolvimento local, simula sucesso para evitar CORS
+          // const isLocalDevelopment = window.location.hostname === 'localhost' || 
+          //                           window.location.hostname === '127.0.0.1'
+          // 
+          // console.log('🔍 É desenvolvimento local?', isLocalDevelopment)
+          // 
+          // if (isLocalDevelopment) {
+          //   console.log('🔧 Modo desenvolvimento local detectado. Aceitando qualquer chave não vazia.')
+          //   set({ isLoading: false, isAuthenticated: true })
+          //   return true
+          // }
           // Em produção, testar via proxy
           // Tentar validar usando /conversions (mais compatível com trial)
           let url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
@@ -107,113 +114,66 @@ export const useAuthStore = create<AuthState>()(
           }
 
           console.log('[DEBUG] Endpoint de validação testado:', endpointTested);
-          console.log('[DEBUG] Status da resposta:', response.status);
+          console.log('[DEBUG] URL de validação:', url);
+          console.log('[DEBUG] Chave enviada:', key);
+          console.log('🔍 Status da resposta:', response.status);
+          console.log('🔍 OK?', response.ok);
           
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
             // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
             if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
               console.log('✅ API Key válida!');
-              set({ 
+            set({ 
                 apiKey: key,
-                isLoading: false, 
-                isAuthenticated: true,
-                error: null
+              isLoading: false, 
+              isAuthenticated: true,
+              error: null
               });
-              return { success: true };
+              return true;
             } else {
               // Caso a resposta seja um objeto de erro explícito
-              let errorMessage = 'API Key inválida';
-              
-              // Verificar se há detalhes específicos do RedTrack
-              if (responseData.details) {
-                if (responseData.details.includes('user account is blocked')) {
-                  errorMessage = 'Conta bloqueada. Verifique o status da sua conta RedTrack.'
-                } else if (responseData.details.includes('invalid date format')) {
-                  errorMessage = 'Formato de data inválido. Tente novamente.'
-                } else if (responseData.details.includes('unauthorized')) {
-                  errorMessage = 'API Key inválida ou expirada.'
-                } else if (responseData.details.includes('forbidden')) {
-                  errorMessage = 'Sem permissão de acesso. Verifique sua conta RedTrack.'
-                } else {
-                  errorMessage = responseData.details
-                }
-              } else if (responseData.error) {
-                errorMessage = responseData.error;
-              }
-              
+              let errorMessage = responseData.error || 'API Key inválida';
               if (responseData.status) {
                 errorMessage = `Erro ${responseData.status}: ${errorMessage}`;
               }
-              
               set({ 
                 isLoading: false, 
-                error: errorMessage
-                // NÃO alterar isAuthenticated aqui - manter o usuário logado
+                error: errorMessage,
+                isAuthenticated: false 
               });
-              return { success: false, error: errorMessage };
+              return false;
             }
           } else {
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
             
-            // Processar erro com mais detalhes baseado no status HTTP e resposta do RedTrack
-            let errorMessage = 'Erro ao conectar ao RedTrack'
+            // Processar erro com mais detalhes
+            let errorMessage = errorData.error || 'API Key inválida'
             
-            // Verificar se há detalhes específicos do RedTrack
-            if (errorData.details) {
-              if (errorData.details.includes('user account is blocked')) {
-                errorMessage = 'Conta bloqueada. Verifique o status da sua conta RedTrack.'
-              } else if (errorData.details.includes('invalid date format')) {
-                errorMessage = 'Formato de data inválido. Tente novamente.'
-              } else if (errorData.details.includes('unauthorized')) {
-                errorMessage = 'API Key inválida ou expirada.'
-              } else if (errorData.details.includes('forbidden')) {
-                errorMessage = 'Sem permissão de acesso. Verifique sua conta RedTrack.'
-              } else {
-                errorMessage = errorData.details
-              }
-            } else if (response.status === 401) {
-              errorMessage = 'API Key inválida ou expirada'
-            } else if (response.status === 403) {
-              errorMessage = 'Conta bloqueada ou sem permissão de acesso'
-            } else if (response.status === 429) {
-              errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos'
-            } else if (response.status >= 500) {
-              errorMessage = 'Erro interno do RedTrack. Tente novamente mais tarde'
-            } else if (errorData.error) {
-              errorMessage = errorData.error
-            } else if (errorData.status) {
+            // Adicionar código de status se disponível
+            if (errorData.status) {
               errorMessage = `Erro ${errorData.status}: ${errorMessage}`
             }
             
             set({ 
               isLoading: false, 
-              error: errorMessage
-              // NÃO alterar isAuthenticated aqui - manter o usuário logado
+              error: errorMessage,
+              isAuthenticated: false 
             })
-            return { success: false, error: errorMessage }
+            return false
           }
           
         } catch (error) {
           console.error('❌ Erro ao testar API key:', error)
-          
-          let errorMessage = 'Erro de conexão. Verifique sua API Key.'
-          
-          if (error instanceof Error) {
-            if (error.message.includes('Failed to fetch')) {
-              errorMessage = 'Erro de conexão com o RedTrack. Verifique sua internet.'
-            } else {
-              errorMessage = error.message
-            }
-          }
-          
+          console.error('❌ Tipo do erro:', typeof error)
+          console.error('❌ Mensagem do erro:', error instanceof Error ? error.message : 'Erro desconhecido')
           set({ 
             isLoading: false, 
-            error: errorMessage
-            // NÃO alterar isAuthenticated aqui - manter o usuário logado
+            error: 'Erro de conexão. Verifique sua API Key.',
+            isAuthenticated: false 
           })
-          return { success: false, error: errorMessage }
+          return false
         }
       },
       initializeAuth: async () => {
@@ -228,25 +188,9 @@ export const useAuthStore = create<AuthState>()(
           
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
-            
-            // Verificar se há API Key persistida no localStorage
-            const persisted = localStorage.getItem('auth-storage')
-            let persistedApiKey = null
-            
-            if (persisted) {
-              try {
-                const parsed = JSON.parse(persisted)
-                persistedApiKey = parsed.state?.apiKey
-                console.log('[AUTH] API Key persistida encontrada:', persistedApiKey ? 'SIM' : 'NÃO')
-              } catch (e) {
-                console.error('[AUTH] Erro ao parsear localStorage:', e)
-              }
-            }
-            
             set({ 
               isAuthenticated: true, 
               user: session.user,
-              apiKey: persistedApiKey,
               error: null 
             })
           } else {
@@ -254,7 +198,6 @@ export const useAuthStore = create<AuthState>()(
             set({ 
               isAuthenticated: false, 
               user: null,
-              apiKey: null,
               error: null 
             })
           }
@@ -263,7 +206,6 @@ export const useAuthStore = create<AuthState>()(
           set({ 
             isAuthenticated: false, 
             user: null,
-            apiKey: null,
             error: 'Erro ao verificar autenticação' 
           })
         }
@@ -273,9 +215,6 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
-        if (state?.apiKey) {
-          console.log('[AUTH] API Key restaurada do localStorage:', state.apiKey)
-        }
       }
     }
   )
