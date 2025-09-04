@@ -16,6 +16,8 @@ interface AuthState {
   initializeAuth: () => Promise<void>
   saveApiKeyToDatabase: (key: string) => Promise<{ success: boolean; error?: string }>
   loadApiKeyFromDatabase: () => Promise<string | null>
+  loadApiKeyFromLocalStorage: () => { success: boolean; data?: string; error?: string }
+  syncApiKey: () => Promise<{ success: boolean; data?: string; error?: string }>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -38,6 +40,9 @@ export const useAuthStore = create<AuthState>()(
         console.log('[AUTH] Salvando API Key:', key)
         set({ apiKey: key, isAuthenticated: true })
         
+        // Salvar no localStorage para carregamento rápido
+        localStorage.setItem('redtrack_api_key', key)
+        
         // Detectar moeda automaticamente quando API Key for configurada
         const { detectCurrency } = useCurrencyStore.getState()
         detectCurrency(key)
@@ -47,6 +52,9 @@ export const useAuthStore = create<AuthState>()(
         
         // Fazer logout do Supabase
         await supabase.auth.signOut()
+        
+        // Limpar localStorage da API Key
+        localStorage.removeItem('redtrack_api_key')
         
         set({ apiKey: null, isAuthenticated: false, user: null })
         setTimeout(() => {
@@ -212,16 +220,41 @@ export const useAuthStore = create<AuthState>()(
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
             
-            // Carregar API Key do banco de dados
-            const { loadApiKeyFromDatabase } = get()
-            const apiKeyFromDatabase = await loadApiKeyFromDatabase()
+            // 🚀 CARREGAMENTO RÁPIDO: Tentar localStorage primeiro
+            const { loadApiKeyFromLocalStorage, syncApiKey } = get()
+            const localResult = loadApiKeyFromLocalStorage()
             
-            set({ 
-              isAuthenticated: true, 
-              user: session.user,
-              apiKey: apiKeyFromDatabase,
-              error: null 
-            })
+            if (localResult.success) {
+              console.log('[AUTH] API Key carregada do localStorage (rápido):', localResult.data)
+              set({ 
+                isAuthenticated: true, 
+                user: session.user,
+                apiKey: localResult.data,
+                error: null 
+              })
+              
+              // Sincronizar com banco em background (sem bloquear UI)
+              syncApiKey().then(result => {
+                if (result.success && result.data !== localResult.data) {
+                  console.log('[AUTH] API Key sincronizada com banco:', result.data)
+                  set({ apiKey: result.data })
+                }
+              }).catch(error => {
+                console.error('[AUTH] Erro na sincronização em background:', error)
+              })
+            } else {
+              // Se não encontrou no localStorage, carregar do banco
+              console.log('[AUTH] API Key não encontrada no localStorage, carregando do banco...')
+              const { loadApiKeyFromDatabase } = get()
+              const apiKeyFromDatabase = await loadApiKeyFromDatabase()
+              
+              set({ 
+                isAuthenticated: true, 
+                user: session.user,
+                apiKey: apiKeyFromDatabase,
+                error: null 
+              })
+            }
           } else {
             console.log('[AUTH] Nenhuma sessão ativa encontrada')
             set({ 
@@ -259,7 +292,9 @@ export const useAuthStore = create<AuthState>()(
             return { success: false, error: 'Erro ao salvar API Key no banco de dados' }
           }
 
-          console.log('[AUTH] API Key salva no banco de dados com sucesso')
+          // Sincronizar com localStorage
+          localStorage.setItem('redtrack_api_key', key)
+          console.log('[AUTH] API Key salva no banco de dados e localStorage com sucesso')
           return { success: true }
         } catch (error) {
           console.error('[AUTH] Erro ao salvar API Key:', error)
@@ -294,6 +329,46 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('[AUTH] Erro ao carregar API Key:', error)
           return null
+        }
+      },
+      loadApiKeyFromLocalStorage: () => {
+        try {
+          const apiKey = localStorage.getItem('redtrack_api_key')
+          if (apiKey) {
+            console.log('[AUTH] API Key carregada do localStorage:', apiKey)
+            return { success: true, data: apiKey }
+          }
+          return { success: false, error: 'API Key não encontrada no localStorage' }
+        } catch (error) {
+          console.error('[AUTH] Erro ao carregar API Key do localStorage:', error)
+          return { success: false, error: 'Erro interno' }
+        }
+      },
+      syncApiKey: async () => {
+        try {
+          // 1. Tentar carregar do localStorage primeiro (rápido)
+          const localResult = get().loadApiKeyFromLocalStorage()
+          if (localResult.success) {
+            // 2. Verificar se está sincronizada com o banco
+            const dbResult = await get().loadApiKeyFromDatabase()
+            if (dbResult === localResult.data) {
+              console.log('[AUTH] API Key já sincronizada entre localStorage e banco')
+              return { success: true, data: localResult.data }
+            }
+          }
+
+          // 3. Se não encontrou no localStorage, carregar do banco
+          const dbResult = await get().loadApiKeyFromDatabase()
+          if (dbResult) {
+            // Sincronizar com localStorage
+            localStorage.setItem('redtrack_api_key', dbResult)
+            return { success: true, data: dbResult }
+          }
+
+          return { success: false, error: 'API Key não encontrada' }
+        } catch (error) {
+          console.error('[AUTH] Erro ao sincronizar API Key:', error)
+          return { success: false, error: 'Erro interno' }
         }
       }
     }),
