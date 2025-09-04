@@ -43,7 +43,7 @@ interface AccountSettings {
 type TabType = 'general' | 'billing'
 
 const Settings: React.FC = () => {
-  const { apiKey, setApiKey, testApiKey, saveApiKeyToDatabase } = useAuthStore()
+  const { apiKey, setApiKey } = useAuthStore()
   const { currency, currencySymbol, setCurrency } = useCurrencyStore()
   const [activeTab, setActiveTab] = useState<TabType>('general')
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
@@ -51,9 +51,6 @@ const Settings: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
-  const [validating, setValidating] = useState(false)
-  const [validationResult, setValidationResult] = useState<'idle' | 'success' | 'error'>('idle')
-  const [isEditing, setIsEditing] = useState(false)
   
   // Estados para dados da conta
   const [settings, setSettings] = useState<AccountSettings | null>(null)
@@ -97,53 +94,35 @@ const Settings: React.FC = () => {
     }
 
     setSaving(true)
-    setValidating(true)
     setError('')
-    setValidationResult('idle')
 
     try {
-      // 1. Testar a API Key
-      console.log('[SETTINGS] Testando API Key...')
-      const testResult = await testApiKey(tempApiKey.trim())
+      // Importar testApiKey do store
+      const { testApiKey } = useAuthStore.getState()
       
-      if (!testResult.success) {
-        setValidationResult('error')
-        setError(testResult.error || 'API Key inválida ou conta bloqueada. Verifique sua conta RedTrack e tente novamente.')
-        return
+      // Testar a API Key
+      const result = await testApiKey(tempApiKey.trim())
+      
+      if (result.success) {
+        // Salvar API Key no store
+        setApiKey(tempApiKey.trim())
+        setSaved(true)
+        
+        // Recarregar dados da conta com nova API key
+        loadAccountData()
+        
+        console.log('✅ [SETTINGS] API Key configurada com sucesso')
+        
+        setTimeout(() => {
+          setSaved(false)
+        }, 3000)
+      } else {
+        setError(result.error || 'API Key inválida ou conta bloqueada. Verifique sua conta RedTrack e tente novamente.')
       }
-
-      // 2. Salvar no banco de dados
-      console.log('[SETTINGS] Salvando API Key no banco...')
-      const saveResult = await saveApiKeyToDatabase(tempApiKey.trim())
-      
-      if (!saveResult.success) {
-        setValidationResult('error')
-        setError(saveResult.error || 'Erro ao salvar API Key no banco de dados')
-        return
-      }
-
-      // 3. Atualizar estado local
-      setApiKey(tempApiKey.trim())
-      setValidationResult('success')
-      setSaved(true)
-      setIsEditing(false) // Sair do modo de edição
-      
-      // 4. Recarregar dados da conta com nova API key
-      loadAccountData()
-      
-      console.log('✅ [SETTINGS] API Key configurada e salva com sucesso')
-      
-      setTimeout(() => {
-        setSaved(false)
-        setValidationResult('idle')
-      }, 3000)
     } catch (err) {
-      setValidationResult('error')
-      setError('Erro ao salvar configurações')
-      console.error('[SETTINGS] Erro:', err)
+      setError('Erro ao conectar ao RedTrack. Verifique sua API Key.')
     } finally {
       setSaving(false)
-      setValidating(false)
     }
   }
 
@@ -176,27 +155,8 @@ const Settings: React.FC = () => {
     }
   }, [apiKey])
 
-  // Atualizar tempApiKey quando apiKey mudar
-  useEffect(() => {
-    setTempApiKey(apiKey || '')
-  }, [apiKey])
-
   const handleRefresh = () => {
     loadAccountData(true)
-  }
-
-  const handleEdit = () => {
-    setIsEditing(true)
-    setTempApiKey(apiKey || '')
-    setError('')
-    setValidationResult('idle')
-  }
-
-  const handleCancel = () => {
-    setIsEditing(false)
-    setTempApiKey(apiKey || '')
-    setError('')
-    setValidationResult('idle')
   }
 
   // Links diretos do Stripe para checkout
@@ -254,124 +214,92 @@ const Settings: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {!isEditing ? (
-            // Modo de visualização
-            <div className="space-y-4">
+          {/* Instructions */}
+          <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Info className="w-5 h-5 text-[#3cd48f] mt-0.5 flex-shrink-0" />
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Chave da API
-                </label>
-                <div className="flex items-center space-x-3">
-                  <div className="flex-1 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <span className="font-mono text-sm text-gray-700">
-                      {apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'Não configurada'}
-                    </span>
-                  </div>
-                  <Button
-                    onClick={handleEdit}
-                    variant="outline"
-                    className="px-4 py-2 border-[#3cd48f] text-[#3cd48f] hover:bg-[#3cd48f] hover:text-white transition-colors duration-200"
-                  >
-                    <Key className="w-4 h-4 mr-2" />
-                    Editar
-                  </Button>
-                </div>
+                <h4 className="font-semibold text-[#1f1f1f] mb-2 text-sm">
+                  Como obter sua API Key do RedTrack
+                </h4>
+                <ol className="text-[#1f1f1f]/80 space-y-1 text-xs">
+                  <li className="flex items-start">
+                    <span className="font-medium mr-2">1.</span>
+                    Acesse sua conta RedTrack em <a href="https://redtrack.io" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#3cd48f]">redtrack.io</a>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-medium mr-2">2.</span>
+                    Vá em <strong>Tools → Integrations → General</strong>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-medium mr-2">3.</span>
+                    Clique em <strong>Generate New Key</strong> ou use uma chave existente
+                  </li>
+                  <li className="flex items-start">
+                    <span className="font-medium mr-2">4.</span>
+                    Copie a chave gerada (formato: xxxxxxxxxxxxxxxxxxxx)
+                  </li>
+                </ol>
               </div>
-              
-              {apiKey && (
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  <span className="text-sm font-medium">API Key configurada e ativa</span>
-                </div>
-              )}
             </div>
-          ) : (
-            // Modo de edição
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Chave da API
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showApiKey ? 'text' : 'password'}
-                    placeholder="Digite sua API Key"
-                    value={tempApiKey}
-                    onChange={(e) => {
-                      setTempApiKey(e.target.value)
-                      // Reset validation state when user types
-                      if (validationResult !== 'idle') {
-                        setValidationResult('idle')
-                        setError('')
-                      }
-                    }}
-                    className={`pr-12 rounded-xl shadow-sm ${
-                      validationResult === 'success' ? 'border-green-500 bg-green-50' :
-                      validationResult === 'error' ? 'border-red-500 bg-red-50' : 
-                      'border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f]'
-                    }`}
-                    disabled={validating}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#3cd48f] transition-colors duration-200"
-                    disabled={validating}
-                  >
-                    {showApiKey ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                
-                {validationResult === 'success' && (
-                  <div className="flex items-center text-green-600 mt-3">
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">API Key válida e salva com sucesso!</span>
-                  </div>
-                )}
-                
-                {validationResult === 'error' && (
-                  <div className="flex items-center text-red-600 mt-3">
-                    <AlertCircle className="w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">{error}</span>
-                  </div>
-                )}
-              </div>
+          </div>
 
-              <div className="flex items-center space-x-3">
-                <Button
-                  onClick={handleSave}
-                  disabled={saving || validating}
-                  className="flex items-center space-x-3 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
-                >
-                  {validating ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  ) : saving ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  ) : saved ? (
-                    <CheckCircle className="w-5 h-5" />
-                  ) : (
-                    <Save className="w-5 h-5" />
-                  )}
-                  <span className="font-semibold">
-                    {validating ? 'Validando...' : saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar'}
-                  </span>
-                </Button>
-                
-                <Button
-                  onClick={handleCancel}
-                  variant="outline"
-                  disabled={saving || validating}
-                  className="px-6 py-3 border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                >
-                  Cancelar
-                </Button>
-              </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Chave da API
+            </label>
+            <div className="relative">
+              <Input
+                type={showApiKey ? 'text' : 'password'}
+                placeholder="Cole sua API Key aqui"
+                value={tempApiKey}
+                onChange={(e) => setTempApiKey(e.target.value)}
+                className="pr-12 rounded-xl border-gray-200 focus:border-[#3cd48f] focus:ring-[#3cd48f] shadow-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#3cd48f] transition-colors duration-200"
+              >
+                {showApiKey ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
             </div>
-          )}
+            {error && (
+              <p className="text-sm text-red-600 mt-3 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                {error}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={handleSave}
+              disabled={saving || !tempApiKey.trim()}
+              className="flex items-center space-x-3 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
+            >
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  <span className="font-semibold">Conectando ao RedTrack...</span>
+                </>
+              ) : saved ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">Conectado com Sucesso!</span>
+                </>
+              ) : (
+                <>
+                  <Shield className="w-5 h-5" />
+                  <span className="font-semibold">Conectar ao RedTrack</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </motion.div>
 

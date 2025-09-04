@@ -205,33 +205,36 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
     // Get customer email from Stripe subscription
     customerEmail = subscription.customer_email
     
-    console.log('Customer email from subscription:', customerEmail)
-    console.log('Customer ID from subscription:', subscription.customer)
-    
-    // First, try to find user by stripe_customer_id (most reliable)
-    const { data: userByStripeId, error: searchError } = await supabase
-      .rpc('find_user_by_stripe_id', { stripe_id: subscription.customer })
-    
-    if (searchError) {
-      console.error('Error searching users by stripe_id:', searchError)
-    } else if (userByStripeId && userByStripeId.length > 0) {
-      const user = userByStripeId[0]
-      userId = user.user_id
-      customerEmail = user.user_email
-      customerName = user.full_name
-      console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
-    }
-    
-    // If not found by stripe_id and we have an email, try by email
-    if (!userId && customerEmail) {
-      console.log('Trying to find user by email:', customerEmail)
+    if (!customerEmail) {
+      console.log('No customer_email in subscription, trying to find user by stripe_customer_id...')
       
+      // Search by stripe_customer_id using RPC
+      const { data: userByStripeId, error: searchError } = await supabase
+        .rpc('find_user_by_stripe_id', { stripe_id: subscription.customer })
+      
+      if (searchError) {
+        console.error('Error searching users:', searchError)
+        return
+      }
+      
+      if (userByStripeId && userByStripeId.length > 0) {
+        const user = userByStripeId[0]
+        userId = user.user_id
+        customerEmail = user.user_email
+        customerName = user.full_name
+        console.log('Existing user found by stripe_customer_id:', userId, 'with email:', customerEmail)
+      }
+    } else {
+      // Try to find user by email using RPC
       const { data: userByEmail, error: emailError } = await supabase
         .rpc('find_user_by_email', { user_email: customerEmail })
       
       if (emailError) {
         console.error('Error searching user by email:', emailError)
-      } else if (userByEmail && userByEmail.length > 0) {
+        return
+      }
+      
+      if (userByEmail && userByEmail.length > 0) {
         const user = userByEmail[0]
         userId = user.user_id
         customerName = user.full_name
@@ -279,23 +282,19 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       customerName = 'Usuário VMetrics'
       console.log('New user created with email:', finalEmail, 'ID:', userId)
       
-      // 🚀 ENVIAR EMAIL DE RESET PASSWORD APENAS SE EMAIL VÁLIDO
-      if (customerEmail && !customerEmail.includes('stripe_')) {
-        const { error: resetError } = await supabase.auth.admin.generateLink({
-          type: 'recovery',
-          email: customerEmail,
-          options: {
-            redirectTo: 'https://app.vmetrics.com.br/login'
-          }
-        })
-        
-        if (resetError) {
-          console.error('Error sending reset password email:', resetError)
-        } else {
-          console.log('✅ Reset password email sent successfully via Supabase + Resend')
+      // 🚀 ENVIAR EMAIL DE RESET PASSWORD
+      const { error: resetError } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: finalEmail,
+        options: {
+          redirectTo: 'https://app.vmetrics.com.br/login'
         }
+      })
+      
+      if (resetError) {
+        console.error('Error sending reset password email:', resetError)
       } else {
-        console.log('Skipping email send for generated email:', customerEmail)
+        console.log('✅ Reset password email sent successfully via Supabase + Resend')
       }
     }
     
@@ -333,12 +332,12 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       console.log('Existing plans deactivated successfully')
     }
     
-    // Now create/update the plan using UPSERT
-    console.log('Creating/updating plan for user:', userId, 'with subscription:', subscription.id)
+    // Now create the new plan
+    console.log('Creating new plan for user:', userId, 'with subscription:', subscription.id)
     
-    const { error: upsertError } = await supabase
+    const { error: insertError } = await supabase
       .from('user_plans')
-      .upsert({
+      .insert({
         user_id: userId,
         plan_type: planType,
         stripe_subscription_id: subscription.id,
@@ -346,16 +345,14 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
         status: subscription.status,
         current_period_start: new Date(subscription.current_period_start * 1000),
         current_period_end: new Date(subscription.current_period_end * 1000)
-      }, {
-        onConflict: 'stripe_subscription_id'
       })
     
-    if (upsertError) {
-      console.error('Error creating/updating user plan:', upsertError)
+    if (insertError) {
+      console.error('Error creating user plan:', insertError)
       return
     }
     
-    console.log('User plan created/updated successfully with plan type:', planType)
+    console.log('User plan created successfully with plan type:', planType)
     
   } catch (error) {
     console.error('Error in handleSubscriptionCreated:', error)

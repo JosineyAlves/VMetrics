@@ -7,7 +7,6 @@ import LoginForm from "./components/LoginForm"
 import SignupForm from "./components/SignupForm"
 import ForgotPasswordForm from "./components/ForgotPasswordForm"
 import ResetPasswordForm from "./components/ResetPasswordForm"
-
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
@@ -43,7 +42,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
-
+  // ✅ VALIDAÇÃO REMOVIDA: API Key agora é configurada em Configurações
+  // Usuário pode acessar dashboard mesmo sem API Key configurada
   
   return <>{children}</>
 }
@@ -62,7 +62,8 @@ const DashboardLayout: React.FC = () => {
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
-
+  // ✅ VALIDAÇÃO REMOVIDA: API Key agora é configurada em Configurações
+  // Usuário pode acessar dashboard mesmo sem API Key configurada
   
   // Determinar seção atual baseada na rota
   const getCurrentSection = () => {
@@ -275,7 +276,6 @@ const App: React.FC = () => {
         )
       } />
       
-
       
       {/* Rotas protegidas do dashboard */}
       <Route path="/*" element={
