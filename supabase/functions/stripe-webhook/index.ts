@@ -115,44 +115,30 @@ async function handleCheckoutCompleted(supabase: any, session: any) {
           }
         }
       } else {
-        // 🎉 CRIAR NOVO USUÁRIO USANDO RPC FUNCTION
-        const { data: newUserId, error: createError } = await supabase
-          .rpc('create_auth_user', {
-            user_email: customerEmail,
-            user_name: customerName || 'Usuário VMetrics',
+        // 🎉 USAR INVITE USER (ENVIA EMAIL AUTOMATICAMENTE)
+        const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(customerEmail, {
+          data: {
+            full_name: customerName || 'Usuário VMetrics',
             stripe_customer_id: customerId
-          })
-        
-        if (createError) {
-          console.error('Error creating user:', createError)
-          return
-        }
-        
-        userId = newUserId
-        console.log('New user created:', userId)
-        
-        // 🚀 ENVIAR EMAIL DE RESET PASSWORD
-        const { error: resetError } = await supabase.auth.admin.generateLink({
-          type: 'recovery',
-          email: customerEmail,
-          options: {
-            redirectTo: 'https://app.vmetrics.com.br/login'
           }
         })
         
-        if (resetError) {
-          console.error('Error sending reset password email:', resetError)
-        } else {
-          console.log('✅ Reset password email sent successfully via Supabase + Resend')
-        }
+        if (inviteError) {
+          console.error('Error inviting user:', inviteError)
+            return
+          }
+          
+        userId = inviteData.user.id
+        console.log('User invited successfully:', userId)
+        console.log('✅ Email de convite enviado automaticamente via Supabase + Resend')
       }
       
-      // Criar plano do usuário
+      // Criar plano do usuário (será atualizado pelo handleSubscriptionCreated)
       const { error: planError } = await supabase
         .from('user_plans')
         .upsert({
           user_id: userId,
-          plan_type: 'monthly',
+          plan_type: 'monthly', // Temporário, será atualizado pelo subscription.created
           stripe_subscription_id: subscriptionId,
           stripe_customer_id: customerId,
           status: 'active',
@@ -258,44 +244,16 @@ async function handleSubscriptionCreated(supabase: any, subscription: any) {
       }
     }
     
-    // If still no user found, create a new one
+    // If still no user found, log warning but don't create user
+    // The user should have been created in checkout.session.completed
     if (!userId) {
-      console.log('No existing user found, creating new user...')
+      console.log('⚠️ No existing user found for subscription. This should have been created in checkout.session.completed')
+      console.log('Subscription customer:', subscription.customer)
+      console.log('Customer email:', customerEmail)
       
-      // Try to get a meaningful email
-      const finalEmail = customerEmail || `stripe_${subscription.customer}@vmetrics.com.br`
-      
-      const { data: newUserId, error: createError } = await supabase
-        .rpc('create_auth_user', {
-          user_email: finalEmail,
-          user_name: 'Usuário VMetrics',
-          stripe_customer_id: subscription.customer
-        })
-      
-      if (createError) {
-        console.error('Error creating user:', createError)
+      // Don't create a new user here - this should have been handled in checkout.session.completed
+      // Just log the issue for debugging
         return
-      }
-      
-      userId = newUserId
-      customerEmail = finalEmail
-      customerName = 'Usuário VMetrics'
-      console.log('New user created with email:', finalEmail, 'ID:', userId)
-      
-      // 🚀 ENVIAR EMAIL DE RESET PASSWORD
-      const { error: resetError } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: finalEmail,
-        options: {
-          redirectTo: 'https://app.vmetrics.com.br/login'
-        }
-      })
-      
-      if (resetError) {
-        console.error('Error sending reset password email:', resetError)
-      } else {
-        console.log('✅ Reset password email sent successfully via Supabase + Resend')
-      }
     }
     
     // First, check if user already has an active plan
