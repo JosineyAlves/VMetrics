@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "API routes for VMetrics",
   "main": "user-plan.js",
+  "type": "commonjs",
   "engines": {
     "node": ">=18.0.0"
   },
