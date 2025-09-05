@@ -43,14 +43,32 @@ interface AccountSettings {
 type TabType = 'general' | 'billing'
 
 const Settings: React.FC = () => {
-  const { apiKey, setApiKey } = useAuthStore()
+  const { apiKey, setApiKey, connectionStatus, testConnection } = useAuthStore()
   const { currency, currencySymbol, setCurrency } = useCurrencyStore()
   const [activeTab, setActiveTab] = useState<TabType>('general')
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
+  const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+
+  // Função para testar conexão
+  const handleTestConnection = async () => {
+    setIsTestingConnection(true)
+    try {
+      await testConnection()
+    } finally {
+      setIsTestingConnection(false)
+    }
+  }
+
+  // Testar conexão automaticamente quando a API Key mudar
+  useEffect(() => {
+    if (apiKey) {
+      testConnection()
+    }
+  }, [apiKey, testConnection])
   
   // Estados para dados da conta
   const [settings, setSettings] = useState<AccountSettings | null>(null)
@@ -437,25 +455,57 @@ const Settings: React.FC = () => {
         transition={{ delay: 0.2 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-purple-100 rounded-2xl">
-            <Shield className="w-7 h-7 text-purple-600" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-purple-100 rounded-2xl">
+              <Shield className="w-7 h-7 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Status da Integração</h3>
+              <p className="text-sm text-gray-600">
+                Status da conexão com RedTrack
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Status da API</h3>
-            <p className="text-sm text-gray-600">
-              Status da conexão com RedTrack
-            </p>
-          </div>
+          <Button
+            onClick={handleTestConnection}
+            disabled={isTestingConnection || !apiKey}
+            variant="outline"
+            size="sm"
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isTestingConnection ? 'animate-spin' : ''}`} />
+            <span>{isTestingConnection ? 'Testando...' : 'Testar Conexão'}</span>
+          </Button>
         </div>
 
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium text-gray-600">Status da API Key</label>
             <div className="flex items-center mt-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-green-600 font-medium">Ativa</span>
+              <div className={`w-3 h-3 rounded-full mr-2 ${
+                connectionStatus === 'connected' ? 'bg-green-500' :
+                connectionStatus === 'blocked' ? 'bg-red-500' :
+                connectionStatus === 'disconnected' ? 'bg-yellow-500' :
+                'bg-gray-400'
+              }`}></div>
+              <span className={`font-medium ${
+                connectionStatus === 'connected' ? 'text-green-600' :
+                connectionStatus === 'blocked' ? 'text-red-600' :
+                connectionStatus === 'disconnected' ? 'text-yellow-600' :
+                'text-gray-600'
+              }`}>
+                {connectionStatus === 'connected' ? 'Conectada' :
+                 connectionStatus === 'blocked' ? 'Conta Bloqueada' :
+                 connectionStatus === 'disconnected' ? 'Desconectada' :
+                 'Desconhecido'}
+              </span>
             </div>
+            {connectionStatus === 'blocked' && (
+              <p className="text-sm text-red-600 mt-1">
+                Sua conta RedTrack está bloqueada. Entre em contato com o suporte.
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-600">API Key (mascarada)</label>
