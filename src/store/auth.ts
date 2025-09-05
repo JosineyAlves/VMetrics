@@ -9,12 +9,10 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   user: any | null
-  connectionStatus: 'connected' | 'disconnected' | 'blocked' | 'unknown'
   login: (userData: any) => void
   setApiKey: (key: string) => void
   logout: () => void
   testApiKey: (key: string) => Promise<boolean>
-  testConnection: () => Promise<boolean>
   initializeAuth: () => Promise<void>
 }
 
@@ -26,7 +24,6 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
       user: null,
-      connectionStatus: 'unknown',
       login: (userData: any) => {
         console.log('[AUTH] Login realizado:', userData)
         set({ 
@@ -143,18 +140,6 @@ export const useAuthStore = create<AuthState>()(
           
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
-            
-            // VERIFICAR SE A CONTA ESTÁ BLOQUEADA
-            if (responseData.error === 'user account is blocked') {
-              console.log('❌ Conta bloqueada detectada!')
-              set({ 
-                isLoading: false, 
-                error: '🚫 Sua conta RedTrack está bloqueada. Entre em contato com o suporte para reativar sua conta.',
-                isAuthenticated: false 
-              });
-              return false;
-            }
-            
             // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
             if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
               console.log('✅ API Key válida!');
@@ -207,49 +192,6 @@ export const useAuthStore = create<AuthState>()(
             error: 'Erro de conexão. Verifique sua API Key.',
             isAuthenticated: false 
           })
-          return false
-        }
-      },
-      testConnection: async () => {
-        const { apiKey } = get()
-        
-        if (!apiKey) {
-          set({ connectionStatus: 'disconnected' })
-          return false
-        }
-        
-        try {
-          // Testar conexão com RedTrack
-          const url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(apiKey) + '&date_from=2024-01-01&date_to=2024-12-31'
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })
-          
-          if (response.ok) {
-            const responseData = await response.json().catch(() => ({}))
-            
-            // Verificar se a conta está bloqueada
-            if (responseData.error === 'user account is blocked') {
-              set({ connectionStatus: 'blocked' })
-              return false
-            }
-            
-            // Se retornou dados válidos, conexão OK
-            if (Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null)) {
-              set({ connectionStatus: 'connected' })
-              return true
-            }
-          }
-          
-          set({ connectionStatus: 'disconnected' })
-          return false
-          
-        } catch (error) {
-          console.error('[AUTH] Erro ao testar conexão:', error)
-          set({ connectionStatus: 'disconnected' })
           return false
         }
       },
