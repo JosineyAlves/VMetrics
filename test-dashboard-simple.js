@@ -37,3 +37,4 @@ const testDashboardSimple = () => {
 }
 
 testDashboardSimple()
+

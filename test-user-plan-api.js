@@ -51,3 +51,4 @@ const testUserPlanAPI = async () => {
 
 // Executar teste
 testUserPlanAPI()
+
