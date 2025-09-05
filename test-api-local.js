@@ -39,4 +39,3 @@ const testAPI = async () => {
 }
 
 testAPI()
-

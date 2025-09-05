@@ -60,4 +60,3 @@ const testEdgeFunction = async () => {
 
 // Executar teste
 testEdgeFunction()
-

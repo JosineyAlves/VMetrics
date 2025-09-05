@@ -8,6 +8,7 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
+  Database,
   RefreshCw,
   Calendar,
   DollarSign,
@@ -33,7 +34,7 @@ type TabType = 'general' | 'billing'
 
 const Settings: React.FC = () => {
   const { apiKey, setApiKey } = useAuthStore()
-  const { currency, currencySymbol, setCurrency, detectCurrency, isDetecting } = useCurrencyStore()
+  const { currency, currencySymbol, setCurrency } = useCurrencyStore()
   const [activeTab, setActiveTab] = useState<TabType>('general')
   const [tempApiKey, setTempApiKey] = useState(apiKey || '')
   const [showApiKey, setShowApiKey] = useState(false)
@@ -100,9 +101,8 @@ const Settings: React.FC = () => {
       await setApiKey(tempApiKey.trim())
       setSaved(true)
       
-      // Detectar moeda automaticamente após configurar API Key
-      console.log('🔍 [SETTINGS] Detectando moeda automaticamente...')
-      await detectCurrency(tempApiKey.trim())
+      // Recarregar dados da conta com nova API key
+      loadAccountData()
       
       console.log('✅ [SETTINGS] API Key configurada e integrada com sucesso!')
       
@@ -116,6 +116,35 @@ const Settings: React.FC = () => {
       setSaving(false)
     }
   }
+
+  const loadAccountData = async (isRefresh = false) => {
+    if (!apiKey) return
+    
+    if (isRefresh) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
+
+    try {
+      const api = new RedTrackAPI(apiKey)
+      const response = await api.getSettings()
+      setSettings(response)
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('Error loading account data:', error)
+      setSettings(null)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    if (apiKey) {
+      loadAccountData()
+    }
+  }, [apiKey])
 
 
   // Links diretos do Stripe para checkout
@@ -142,15 +171,6 @@ const Settings: React.FC = () => {
 
 
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   const renderGeneralTab = () => (
     <div className="space-y-8">
@@ -253,37 +273,16 @@ const Settings: React.FC = () => {
         transition={{ delay: 0.15 }}
         className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
-              <DollarSign className="w-7 h-7 text-[#3cd48f]" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">Configuração de Moeda</h3>
-              <p className="text-sm text-gray-600">
-                Moeda do seu painel RedTrack
-              </p>
-            </div>
+        <div className="flex items-center space-x-4 mb-6">
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <DollarSign className="w-7 h-7 text-[#3cd48f]" />
           </div>
-          <Button
-            onClick={() => apiKey && detectCurrency(apiKey)}
-            disabled={!apiKey || isDetecting}
-            variant="outline"
-            size="sm"
-            className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-          >
-            {isDetecting ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Detectando...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Detectar Automaticamente
-              </>
-            )}
-          </Button>
+          <div>
+            <h3 className="text-xl font-bold text-gray-800">Configuração de Moeda</h3>
+            <p className="text-sm text-gray-600">
+              Selecione a moeda configurada no seu RedTrack
+            </p>
+          </div>
         </div>
 
         {/* Dropdown de Seleção de Moeda */}
@@ -333,10 +332,10 @@ const Settings: React.FC = () => {
           <div className="flex items-start space-x-3">
             <Info className="w-5 h-5 text-[#3cd48f] mt-0.5" />
             <div className="text-sm text-[#1f1f1f]">
-                <p className="font-medium mb-1">Detecção Automática de Moeda</p>
+                <p className="font-medium mb-1">Configuração de Moeda</p>
                 <p>
-                  A moeda pode ser detectada automaticamente do seu painel RedTrack ou selecionada manualmente. 
-                  Use o botão "Detectar Automaticamente" para buscar a moeda configurada na sua conta.
+                  A moeda selecionada será usada para exibir todos os valores monetários no dashboard. 
+                  Certifique-se de escolher a mesma moeda configurada no seu RedTrack.
                 </p>
               </div>
             </div>

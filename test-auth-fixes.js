@@ -41,4 +41,3 @@ const testAuthFixes = () => {
 }
 
 testAuthFixes()
-

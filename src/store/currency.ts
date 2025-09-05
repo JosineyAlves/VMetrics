@@ -146,99 +146,30 @@ export const useCurrencyStore = create<CurrencyState>()(
         console.log('🔍 [CURRENCY] Detectando moeda da conta RedTrack...')
         
         try {
-          let detectedCurrency = 'USD' // Fallback padrão
-          
-          // 1. TENTAR ENDPOINT /me/settings (Bearer token)
-          console.log('🔍 [CURRENCY] Tentando endpoint /me/settings...')
-          try {
-            const settingsResponse = await fetch('https://api.redtrack.io/me/settings', {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-              }
-            })
-            
-            if (settingsResponse.ok) {
-              const settingsData = await settingsResponse.json()
-              console.log('✅ [CURRENCY] Configurações obtidas via /me/settings:', settingsData)
-              
-              // Verificar campos possíveis para moeda
-              const currency = settingsData.currency || settingsData.default_currency || settingsData.account_currency
-              if (currency) {
-                detectedCurrency = currency.toUpperCase()
-                console.log(`✅ [CURRENCY] Moeda encontrada em /me/settings: ${detectedCurrency}`)
-              }
-            } else {
-              console.log('⚠️ [CURRENCY] Endpoint /me/settings não disponível ou erro:', settingsResponse.status)
+          // Fazer requisição para /me/settings para obter configurações da conta
+          const response = await fetch(`/api/settings?api_key=${encodeURIComponent(apiKey)}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
             }
-          } catch (settingsError) {
-            console.log('⚠️ [CURRENCY] Erro ao acessar /me/settings:', settingsError)
+          })
+          
+                                          if (response.ok) {
+             const settings = await response.json() as RedTrackSettings
+             console.log('🔍 [CURRENCY] Configurações da conta:', settings)
+             
+             // Usar a função especializada para detectar moeda
+             const detectedCurrency = detectCurrencyFromSettings(settings)
+             
+             console.log(`✅ [CURRENCY] Moeda detectada: ${detectedCurrency}`)
+             get().setCurrency(detectedCurrency)
+          } else {
+            console.log('⚠️ [CURRENCY] Erro ao buscar configurações da conta')
+            // Manter moeda padrão
+            get().setCurrency('USD')
           }
-          
-          // 2. SE NÃO ENCONTROU, TENTAR ENDPOINT /conversions (fallback)
-          if (detectedCurrency === 'USD') {
-            console.log('🔍 [CURRENCY] Tentando detectar moeda via /conversions...')
-            try {
-              const conversionsResponse = await fetch(`https://api.redtrack.io/conversions?api_key=${encodeURIComponent(apiKey)}&date_from=2024-01-01&date_to=2024-01-31&per=5`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-              
-              if (conversionsResponse.ok) {
-                const conversionsData = await conversionsResponse.json()
-                console.log('✅ [CURRENCY] Conversões obtidas:', conversionsData)
-                
-                if (conversionsData.items && conversionsData.items.length > 0) {
-                  const firstConversion = conversionsData.items[0]
-                  if (firstConversion.currency) {
-                    detectedCurrency = firstConversion.currency.toUpperCase()
-                    console.log(`✅ [CURRENCY] Moeda encontrada em conversões: ${detectedCurrency}`)
-                  }
-                }
-              } else {
-                console.log('⚠️ [CURRENCY] Endpoint /conversions não disponível ou erro:', conversionsResponse.status)
-              }
-            } catch (conversionsError) {
-              console.log('⚠️ [CURRENCY] Erro ao acessar /conversions:', conversionsError)
-            }
-          }
-          
-          // 3. SE AINDA NÃO ENCONTROU, USAR PROXY INTERNO (fallback final)
-          if (detectedCurrency === 'USD') {
-            console.log('🔍 [CURRENCY] Tentando via proxy interno /api/settings...')
-            try {
-              const proxyResponse = await fetch(`/api/settings?api_key=${encodeURIComponent(apiKey)}`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              })
-              
-              if (proxyResponse.ok) {
-                const settings = await proxyResponse.json() as RedTrackSettings
-                console.log('✅ [CURRENCY] Configurações via proxy:', settings)
-                
-                // Usar a função especializada para detectar moeda
-                const proxyCurrency = detectCurrencyFromSettings(settings)
-                if (proxyCurrency && proxyCurrency !== 'USD') {
-                  detectedCurrency = proxyCurrency
-                  console.log(`✅ [CURRENCY] Moeda detectada via proxy: ${detectedCurrency}`)
-                }
-              }
-            } catch (proxyError) {
-              console.log('⚠️ [CURRENCY] Erro no proxy interno:', proxyError)
-            }
-          }
-          
-          // Definir moeda detectada
-          console.log(`✅ [CURRENCY] Moeda final detectada: ${detectedCurrency}`)
-          get().setCurrency(detectedCurrency)
-          
         } catch (error) {
-          console.error('❌ [CURRENCY] Erro geral ao detectar moeda:', error)
+          console.error('❌ [CURRENCY] Erro ao detectar moeda:', error)
           // Em caso de erro, manter moeda padrão
           get().setCurrency('USD')
         } finally {
