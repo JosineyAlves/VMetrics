@@ -110,9 +110,9 @@ export const useAuthStore = create<AuthState>()(
           //   return true
           // }
           // Em produção, testar via proxy
-          // Usar /api/report que realmente chama o RedTrack e detecta conta bloqueada
-          let url = '/api/report?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31&group_by=date';
-          let endpointTested = '/report';
+          // Tentar validar usando /conversions (mais compatível com trial)
+          let url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
+          let endpointTested = '/conversions';
           let response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -120,10 +120,10 @@ export const useAuthStore = create<AuthState>()(
             }
           });
 
-          // Se /report não existir, tentar /conversions como fallback
+          // Se /conversions não existir, tentar /campaigns como fallback
           if (response.status === 404) {
-            url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
-            endpointTested = '/conversions';
+            url = '/api/campaigns?v=' + Date.now() + '&api_key=' + encodeURIComponent(key);
+            endpointTested = '/campaigns';
             response = await fetch(url, {
               method: 'GET',
               headers: {
@@ -140,19 +140,6 @@ export const useAuthStore = create<AuthState>()(
           
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
-            
-            // VERIFICAR SE A CONTA ESTÁ BLOQUEADA
-            if (responseData.error === 'user account is blocked' || 
-                (responseData.details && responseData.details === 'user account is blocked')) {
-              console.log('❌ Conta bloqueada detectada!')
-              set({ 
-                isLoading: false, 
-                error: '🚫 Sua conta RedTrack está bloqueada. Entre em contato com o suporte para reativar sua conta.',
-                isAuthenticated: false 
-              });
-              return false;
-            }
-            
             // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
             if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
               console.log('✅ API Key válida!');
@@ -179,18 +166,6 @@ export const useAuthStore = create<AuthState>()(
           } else {
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
-            
-            // VERIFICAR SE A CONTA ESTÁ BLOQUEADA (mesmo em caso de erro)
-            if (errorData.error === 'user account is blocked' || 
-                (errorData.details && errorData.details === 'user account is blocked')) {
-              console.log('❌ Conta bloqueada detectada (erro)!')
-              set({ 
-                isLoading: false, 
-                error: '🚫 Sua conta RedTrack está bloqueada. Entre em contato com o suporte para reativar sua conta.',
-                isAuthenticated: false 
-              });
-              return false;
-            }
             
             // Processar erro com mais detalhes
             let errorMessage = errorData.error || 'API Key inválida'

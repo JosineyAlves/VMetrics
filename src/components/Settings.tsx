@@ -8,9 +8,6 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
-  User,
-  Shield,
-  Database,
   RefreshCw,
   Calendar,
   DollarSign,
@@ -31,14 +28,6 @@ import { useCurrencyStore } from '../store/currency'
 import CustomSelect from './ui/CustomSelect'
 import { useUserPlan } from '../hooks/useUserPlan'
 
-interface AccountSettings {
-  id: string
-  user_id: string
-  created_at: string
-  updated_at: string
-  table_campaigns?: any
-  [key: string]: any
-}
 
 type TabType = 'general' | 'billing'
 
@@ -53,10 +42,7 @@ const Settings: React.FC = () => {
   const [error, setError] = useState('')
   
   // Estados para dados da conta
-  const [settings, setSettings] = useState<AccountSettings | null>(null)
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
   // Hook para gerenciar plano do usuário - CORRIGIDO
   const { 
@@ -114,8 +100,6 @@ const Settings: React.FC = () => {
       await setApiKey(tempApiKey.trim())
       setSaved(true)
       
-      // Recarregar dados da conta com nova API key
-      loadAccountData()
       
       console.log('✅ [SETTINGS] API Key configurada e integrada com sucesso!')
       
@@ -130,38 +114,6 @@ const Settings: React.FC = () => {
     }
   }
 
-  const loadAccountData = async (isRefresh = false) => {
-    if (!apiKey) return
-    
-    if (isRefresh) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-
-    try {
-      const api = new RedTrackAPI(apiKey)
-      const response = await api.getSettings()
-      setSettings(response)
-      setLastUpdate(new Date())
-    } catch (error) {
-      console.error('Error loading account data:', error)
-      setSettings(null)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  useEffect(() => {
-    if (apiKey) {
-      loadAccountData()
-    }
-  }, [apiKey])
-
-  const handleRefresh = () => {
-    loadAccountData(true)
-  }
 
   // Links diretos do Stripe para checkout
   const STRIPE_CHECKOUT_LINKS = {
@@ -290,68 +242,6 @@ const Settings: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Account Information */}
-      {settings && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-        >
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-green-100 rounded-2xl">
-                <User className="w-7 h-7 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">Informações da Conta</h3>
-                <p className="text-sm text-gray-600">
-                  Dados da sua conta RedTrack
-                </p>
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Atualizando...' : 'Atualizar'}
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">ID da Conta</label>
-                <p className="text-lg font-mono bg-gray-100 p-2 rounded">{settings.id}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">ID do Usuário</label>
-                <p className="text-lg font-mono bg-gray-100 p-2 rounded">{settings.user_id}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">Criado em</label>
-                <p className="text-lg">{formatDate(settings.created_at)}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Atualizado em</label>
-                <p className="text-lg">{formatDate(settings.updated_at)}</p>
-              </div>
-            </div>
-          </div>
-
-          {lastUpdate && (
-            <div className="mt-6 text-sm text-gray-500">
-              Última atualização: {lastUpdate.toLocaleTimeString('pt-BR')}
-            </div>
-          )}
-        </motion.div>
-      )}
 
       {/* Currency Settings */}
       <motion.div
@@ -430,41 +320,6 @@ const Settings: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* API Status */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-      >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-purple-100 rounded-2xl">
-            <Shield className="w-7 h-7 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Status da API</h3>
-            <p className="text-sm text-gray-600">
-              Status da conexão com RedTrack
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-600">Status da API Key</label>
-            <div className="flex items-center mt-1">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-green-600 font-medium">Ativa</span>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">API Key (mascarada)</label>
-            <p className="text-lg font-mono bg-gray-100 p-2 rounded">
-              {apiKey ? `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}` : 'Não definida'}
-            </p>
-          </div>
-        </div>
-      </motion.div>
     </div>
   )
 
