@@ -45,12 +45,44 @@ const metricOptions = [
 ]
 
 const Dashboard: React.FC = () => {
+  // TODOS OS HOOKS DEVEM SER CHAMADOS PRIMEIRO
   const { apiKey } = useAuthStore()
   const { selectedMetrics, availableMetrics, metricsOrder } = useMetricsStore()
   const { currency } = useCurrencyStore()
   const navigate = useNavigate()
+  
+  // Estados locais
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [dashboardData, setDashboardData] = useState<any>({})
+  const [dailyData, setDailyData] = useState<any[]>([])
+  const [sourceStats, setSourceStats] = useState<any[]>([])
+  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
 
-  // Verificar se API Key está configurada - MOVER PARA DEPOIS DOS HOOKS
+  // Hooks de stores
+  const { selectedPeriod, customRange } = useDateRangeStore()
+
+  // Mais estados locais
+  const [campaigns, setCampaigns] = useState<{
+    id: string
+    name: string
+    source_title?: string
+    source?: string
+    traffic_source?: string
+    media_source?: string
+    stat?: any
+    cost?: number
+    spend?: number
+    ad_spend?: number
+    status?: string
+  }[]>([])
+  const [selectedCampaign, setSelectedCampaign] = useState<string>('all')
+  const [funnelData, setFunnelData] = useState<any>({})
+
+  // Verificar se API Key está configurada - DEPOIS DE TODOS OS HOOKS
   if (!apiKey) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -82,67 +114,12 @@ const Dashboard: React.FC = () => {
       minimumFractionDigits: 2
     }).format(value)
   }
-  
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
-  // REMOVER: showFilters não é mais necessário
-  // const [showFilters, setShowFilters] = useState(false)
-  // REMOVER: estados de filtros
-  // const [filters, setFilters] = useState({
-  //   dateFrom: '',
-  //   dateTo: '',
-  //   utm_source: '',
-  //   traffic_channel: '',
-  //   country: '',
-  //   device: '',
-  //   browser: '',
-  //   os: ''
-  // })
-  // const [tempFilters, setTempFilters] = useState(filters)
-
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
-  const [autoRefresh, setAutoRefresh] = useState(false)
-
-  // Remover estados locais de datas
-  const { selectedPeriod, customRange } = useDateRangeStore()
-
-  // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
-
-  // Atualizar label do período para customizado
-  // Função para calcular datas reais baseadas no período (não utilizada)
-  // Função para calcular datas reais baseadas no período (não utilizada)
-
-
-  const [dashboardData, setDashboardData] = useState<any>({})
-
-  // Novo estado para armazenar dados diários para o gráfico
-  const [dailyData, setDailyData] = useState<any[]>([]);
-  const [sourceStats, setSourceStats] = useState<any[]>([])
-
-  // Estado para métricas cruzadas
-  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
   const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
   
   // Debug: monitorar mudanças no sourceStats
   useEffect(() => {
     console.log('🔍 [SOURCE STATS DEBUG] sourceStats atualizado:', sourceStats)
   }, [sourceStats])
-  const [campaigns, setCampaigns] = useState<{
-    id: string
-    name: string
-    source_title?: string
-    source?: string
-    traffic_source?: string
-    media_source?: string
-    stat?: any
-    cost?: number
-    spend?: number
-    ad_spend?: number
-    status?: string
-  }[]>([])
-  const [selectedCampaign, setSelectedCampaign] = useState<string>('all')
-  const [funnelData, setFunnelData] = useState<any>({})
 
   // Buscar campanhas ao carregar
   useEffect(() => {
