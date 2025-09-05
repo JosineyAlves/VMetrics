@@ -10,6 +10,7 @@ import ResetPasswordForm from "./components/ResetPasswordForm"
 import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
+import DashboardSimple from "./components/DashboardSimple"
 import Campaigns from "./components/Campaigns"
 import Conversions from "./components/Conversions"
 import Performance from "./components/Performance"
@@ -194,7 +195,7 @@ const DashboardLayout: React.FC = () => {
             className="h-full"
           >
             <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<DashboardSimple />} />
               <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/conversions" element={<Conversions />} />
               <Route path="/performance" element={<Performance />} />
