@@ -58,8 +58,7 @@ const Settings: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  // Hook para gerenciar plano do usuário
-  const userEmail = 'alvesjosiney@yahoo.com.br' // TODO: Pegar do contexto de autenticação
+  // Hook para gerenciar plano do usuário - CORRIGIDO
   const { 
     planData, 
     loading: planLoading, 
@@ -71,7 +70,7 @@ const Settings: React.FC = () => {
     planPrice,
     planFeatures,
     planStatus
-  } = useUserPlan(userEmail)
+  } = useUserPlan() // Remover parâmetro - usa user_id automaticamente
 
   // Gerar array de faturas baseado no plano
   const generateInvoices = () => {
