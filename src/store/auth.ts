@@ -66,16 +66,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: async () => {
-        console.log('[AUTH] Logout chamado. Limpando API Key.')
+        console.log('[AUTH] Logout chamado. Mantendo API Key no cache.')
         
         // Fazer logout do Supabase
         await supabase.auth.signOut()
         
-        set({ apiKey: null, isAuthenticated: false, user: null })
-        setTimeout(() => {
-          const persisted = localStorage.getItem('auth-storage')
-          console.log('[AUTH] Conteúdo do localStorage após logout:', persisted)
-        }, 100)
+        // MANTER API Key no localStorage para cache rápido
+        // Apenas limpar isAuthenticated e user
+        set({ isAuthenticated: false, user: null })
+        
+        console.log('[AUTH] API Key mantida no cache para próximo login')
       },
       testApiKey: async (key: string) => {
         // TESTE IMEDIATO - SEMPRE EXECUTAR
@@ -222,6 +222,8 @@ export const useAuthStore = create<AuthState>()(
                 apiKey: cachedApiKey, // ← USAR CACHE PRIMEIRO
                 error: null 
               })
+            } else {
+              console.log('[AUTH] Nenhuma API Key encontrada no cache')
             }
             
             // 2. SEGUNDO: Sincronizar com banco de dados em background
@@ -290,6 +292,7 @@ export const useAuthStore = create<AuthState>()(
       }),
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
+        console.log('[AUTH] API Key no localStorage:', state?.apiKey)
         // NÃO chamar initializeAuth aqui - isso causa hooks condicionais
         // A inicialização será feita no App.tsx
       }
