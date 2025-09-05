@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
   const { currency } = useCurrencyStore()
   const navigate = useNavigate()
 
-  // Verificar se API Key está configurada
+  // Verificar se API Key está configurada - MOVER PARA DEPOIS DOS HOOKS
   if (!apiKey) {
     return (
       <div className="flex items-center justify-center min-h-screen">

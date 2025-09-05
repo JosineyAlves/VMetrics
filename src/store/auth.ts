@@ -223,6 +223,9 @@ export const useAuthStore = create<AuthState>()(
             
             const savedApiKey = profile?.api_key || null
             
+            console.log('[AUTH] Dados do perfil:', profile)
+            console.log('[AUTH] API Key encontrada:', savedApiKey)
+            
             set({ 
               isAuthenticated: true, 
               user: session.user,
@@ -262,6 +265,14 @@ export const useAuthStore = create<AuthState>()(
       }),
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
+        // Inicializar auth após reidratação
+        if (state?.isAuthenticated && state?.user) {
+          console.log('[AUTH] Inicializando auth após reidratação...')
+          // Chamar initializeAuth após um pequeno delay para garantir que o estado foi reidratado
+          setTimeout(() => {
+            state.initializeAuth()
+          }, 100)
+        }
       }
     }
   )
