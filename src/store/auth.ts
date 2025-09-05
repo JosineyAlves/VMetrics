@@ -265,14 +265,8 @@ export const useAuthStore = create<AuthState>()(
       }),
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
-        // Inicializar auth após reidratação
-        if (state?.isAuthenticated && state?.user) {
-          console.log('[AUTH] Inicializando auth após reidratação...')
-          // Chamar initializeAuth após um pequeno delay para garantir que o estado foi reidratado
-          setTimeout(() => {
-            state.initializeAuth()
-          }, 100)
-        }
+        // NÃO chamar initializeAuth aqui - isso causa hooks condicionais
+        // A inicialização será feita no App.tsx
       }
     }
   )

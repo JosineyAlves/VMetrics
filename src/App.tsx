@@ -11,6 +11,7 @@ import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
 import Dashboard from "./components/Dashboard"
 import DashboardSimple from "./components/DashboardSimple"
+import DashboardUltraSimple from "./components/DashboardUltraSimple"
 import Campaigns from "./components/Campaigns"
 import Conversions from "./components/Conversions"
 import Performance from "./components/Performance"
@@ -195,7 +196,7 @@ const DashboardLayout: React.FC = () => {
             className="h-full"
           >
             <Routes>
-              <Route path="/dashboard" element={<DashboardSimple />} />
+              <Route path="/dashboard" element={<DashboardUltraSimple />} />
               <Route path="/campaigns" element={<Campaigns />} />
               <Route path="/conversions" element={<Conversions />} />
               <Route path="/performance" element={<Performance />} />
