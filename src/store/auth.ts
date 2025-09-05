@@ -140,6 +140,18 @@ export const useAuthStore = create<AuthState>()(
           
           if (response.ok) {
             const responseData = await response.json().catch(() => ({}))
+            
+            // VERIFICAR SE A CONTA ESTÁ BLOQUEADA
+            if (responseData.error === 'user account is blocked') {
+              console.log('❌ Conta bloqueada detectada!')
+              set({ 
+                isLoading: false, 
+                error: '🚫 Sua conta RedTrack está bloqueada. Entre em contato com o suporte para reativar sua conta.',
+                isAuthenticated: false 
+              });
+              return false;
+            }
+            
             // Se a resposta for um array (mesmo vazio) ou objeto esperado, considerar sucesso
             if ((Array.isArray(responseData) || (typeof responseData === 'object' && responseData !== null))) {
               console.log('✅ API Key válida!');
@@ -166,6 +178,17 @@ export const useAuthStore = create<AuthState>()(
           } else {
             const errorData = await response.json().catch(() => ({}))
             console.log('❌ Erro na resposta:', errorData)
+            
+            // VERIFICAR SE A CONTA ESTÁ BLOQUEADA (mesmo em caso de erro)
+            if (errorData.error === 'user account is blocked') {
+              console.log('❌ Conta bloqueada detectada (erro)!')
+              set({ 
+                isLoading: false, 
+                error: '🚫 Sua conta RedTrack está bloqueada. Entre em contato com o suporte para reativar sua conta.',
+                isAuthenticated: false 
+              });
+              return false;
+            }
             
             // Processar erro com mais detalhes
             let errorMessage = errorData.error || 'API Key inválida'
