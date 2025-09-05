@@ -8,17 +8,13 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
-  Database,
-  RefreshCw,
-  Calendar,
   DollarSign,
   Info,
-  ChevronDown,
   CreditCard,
   Receipt,
   Crown,
-  Zap,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react'
 import { STRIPE_PRODUCTS } from '../config/stripe'
 import { Button } from './ui/button'
@@ -42,8 +38,6 @@ const Settings: React.FC = () => {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   
-  // Estados para dados da conta
-  const [loading, setLoading] = useState(true)
 
   // Hook para gerenciar plano do usuário - CORRIGIDO
   const { 
@@ -101,8 +95,6 @@ const Settings: React.FC = () => {
       await setApiKey(tempApiKey.trim())
       setSaved(true)
       
-      // Recarregar dados da conta com nova API key
-      loadAccountData()
       
       console.log('✅ [SETTINGS] API Key configurada e integrada com sucesso!')
       
@@ -116,35 +108,6 @@ const Settings: React.FC = () => {
       setSaving(false)
     }
   }
-
-  const loadAccountData = async (isRefresh = false) => {
-    if (!apiKey) return
-    
-    if (isRefresh) {
-      setRefreshing(true)
-    } else {
-      setLoading(true)
-    }
-
-    try {
-      const api = new RedTrackAPI(apiKey)
-      const response = await api.getSettings()
-      setSettings(response)
-      setLastUpdate(new Date())
-    } catch (error) {
-      console.error('Error loading account data:', error)
-      setSettings(null)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  useEffect(() => {
-    if (apiKey) {
-      loadAccountData()
-    }
-  }, [apiKey])
 
 
   // Links diretos do Stripe para checkout
