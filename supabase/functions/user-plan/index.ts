@@ -76,6 +76,33 @@ serve(async (req) => {
 
     console.log('✅ [EDGE-FUNCTION] Usuário encontrado:', user)
 
+    // Buscar faturas do usuário
+    const { data: invoices, error: invoicesError } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (invoicesError) {
+      console.error('❌ [EDGE-FUNCTION] Erro ao buscar faturas:', invoicesError)
+    } else {
+      console.log('✅ [EDGE-FUNCTION] Faturas encontradas:', invoices?.length || 0)
+    }
+
+    // Formatar faturas
+    const formattedInvoices = invoices?.map(invoice => ({
+      id: invoice.id,
+      stripe_invoice_id: invoice.stripe_invoice_id,
+      amount: invoice.amount,
+      currency: invoice.currency,
+      status: invoice.status,
+      status_color: getStatusColor(invoice.status),
+      invoice_date: invoice.invoice_date,
+      due_date: invoice.due_date,
+      paid_at: invoice.paid_at,
+      formatted_amount: formatAmount(invoice.amount, invoice.currency)
+    })) || []
+
     // Formatar resposta
     const response = {
       plan: userPlan ? {
@@ -96,7 +123,8 @@ serve(async (req) => {
         id: user.id,
         email: user.email,
         stripe_customer_id: user.stripe_customer_id
-      }
+      },
+      invoices: formattedInvoices
     }
 
     console.log('✅ [EDGE-FUNCTION] Resposta formatada:', response)
@@ -163,4 +191,24 @@ function getPlanFeatures(planType: string) {
     'enterprise': ['Acesso completo', 'Suporte dedicado', 'Relatórios customizados', 'API access']
   }
   return features[planType] || ['Acesso básico']
+}
+
+// Funções auxiliares para faturas
+function getStatusColor(status: string) {
+  const colors = {
+    'paid': 'green',
+    'open': 'yellow',
+    'void': 'gray',
+    'uncollectible': 'red'
+  }
+  return colors[status] || 'gray'
+}
+
+function formatAmount(amount: number, currency: string) {
+  const formatters = {
+    'BRL': (amount: number) => `R$ ${(amount / 100).toFixed(2).replace('.', ',')}`,
+    'USD': (amount: number) => `$${(amount / 100).toFixed(2)}`,
+    'EUR': (amount: number) => `€${(amount / 100).toFixed(2)}`
+  }
+  return formatters[currency] || formatters['BRL'](amount)
 }
