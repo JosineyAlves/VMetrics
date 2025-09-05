@@ -110,9 +110,9 @@ export const useAuthStore = create<AuthState>()(
           //   return true
           // }
           // Em produção, testar via proxy
-          // Tentar validar usando /conversions (mais compatível com trial)
-          let url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
-          let endpointTested = '/conversions';
+          // Usar /api/report que realmente chama o RedTrack e detecta conta bloqueada
+          let url = '/api/report?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31&group_by=date';
+          let endpointTested = '/report';
           let response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -120,10 +120,10 @@ export const useAuthStore = create<AuthState>()(
             }
           });
 
-          // Se /conversions não existir, tentar /campaigns como fallback
+          // Se /report não existir, tentar /conversions como fallback
           if (response.status === 404) {
-            url = '/api/campaigns?v=' + Date.now() + '&api_key=' + encodeURIComponent(key);
-            endpointTested = '/campaigns';
+            url = '/api/conversions?v=' + Date.now() + '&api_key=' + encodeURIComponent(key) + '&date_from=2024-01-01&date_to=2024-12-31';
+            endpointTested = '/conversions';
             response = await fetch(url, {
               method: 'GET',
               headers: {
@@ -142,7 +142,8 @@ export const useAuthStore = create<AuthState>()(
             const responseData = await response.json().catch(() => ({}))
             
             // VERIFICAR SE A CONTA ESTÁ BLOQUEADA
-            if (responseData.error === 'user account is blocked') {
+            if (responseData.error === 'user account is blocked' || 
+                (responseData.details && responseData.details === 'user account is blocked')) {
               console.log('❌ Conta bloqueada detectada!')
               set({ 
                 isLoading: false, 
@@ -180,7 +181,8 @@ export const useAuthStore = create<AuthState>()(
             console.log('❌ Erro na resposta:', errorData)
             
             // VERIFICAR SE A CONTA ESTÁ BLOQUEADA (mesmo em caso de erro)
-            if (errorData.error === 'user account is blocked') {
+            if (errorData.error === 'user account is blocked' || 
+                (errorData.details && errorData.details === 'user account is blocked')) {
               console.log('❌ Conta bloqueada detectada (erro)!')
               set({ 
                 isLoading: false, 
