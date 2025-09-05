@@ -32,19 +32,38 @@ export const useAuthStore = create<AuthState>()(
           error: null 
         })
       },
-      setApiKey: (key: string) => {
+      setApiKey: async (key: string) => {
         console.log('[AUTH] Salvando API Key:', key)
-        set({ apiKey: key, isAuthenticated: true })
         
-        // Detectar moeda automaticamente quando API Key for configurada
-        const { detectCurrency } = useCurrencyStore.getState()
-        detectCurrency(key)
-        
-        // Verificar se foi salvo no localStorage
-        setTimeout(() => {
-          const persisted = localStorage.getItem('auth-storage')
-          console.log('[AUTH] Conteúdo atual do localStorage:', persisted)
-        }, 100)
+        try {
+          // Salvar no banco de dados
+          const { data: { user } } = await supabase.auth.getUser()
+          
+          if (user) {
+            const { error } = await supabase
+              .from('profiles')
+              .update({ api_key: key })
+              .eq('id', user.id)
+            
+            if (error) {
+              console.error('[AUTH] Erro ao salvar API Key no banco:', error)
+              throw error
+            }
+            
+            console.log('[AUTH] API Key salva no banco com sucesso')
+          }
+          
+          // Salvar no estado local
+          set({ apiKey: key, isAuthenticated: true })
+          
+          // Detectar moeda automaticamente quando API Key for configurada
+          const { detectCurrency } = useCurrencyStore.getState()
+          detectCurrency(key)
+          
+        } catch (error) {
+          console.error('[AUTH] Erro ao salvar API Key:', error)
+          set({ error: 'Erro ao salvar API Key' })
+        }
       },
       logout: async () => {
         console.log('[AUTH] Logout chamado. Limpando API Key.')
@@ -177,6 +196,8 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       initializeAuth: async () => {
+        set({ isLoading: true })
+        
         try {
           // Verificar se há uma sessão ativa
           const { data: { session }, error } = await supabase.auth.getSession()
@@ -188,16 +209,34 @@ export const useAuthStore = create<AuthState>()(
           
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
+            
+            // Buscar API Key salva no banco
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('api_key')
+              .eq('id', session.user.id)
+              .single()
+            
+            if (profileError) {
+              console.error('[AUTH] Erro ao buscar perfil:', profileError)
+            }
+            
+            const savedApiKey = profile?.api_key || null
+            
             set({ 
               isAuthenticated: true, 
               user: session.user,
+              apiKey: savedApiKey, // ← RECUPERAR API KEY DO BANCO
               error: null 
             })
+            
+            console.log('[AUTH] API Key recuperada do banco:', savedApiKey ? 'Sim' : 'Não')
           } else {
             console.log('[AUTH] Nenhuma sessão ativa encontrada')
             set({ 
               isAuthenticated: false, 
               user: null,
+              apiKey: null,
               error: null 
             })
           }
@@ -206,13 +245,21 @@ export const useAuthStore = create<AuthState>()(
           set({ 
             isAuthenticated: false, 
             user: null,
+            apiKey: null,
             error: 'Erro ao verificar autenticação' 
           })
+        } finally {
+          set({ isLoading: false })
         }
       }
     }),
     {
       name: 'auth-storage',
+      partialize: (state) => ({ 
+        isAuthenticated: state.isAuthenticated,
+        user: state.user
+        // NÃO salvar apiKey no localStorage - sempre buscar do banco
+      }),
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
       }

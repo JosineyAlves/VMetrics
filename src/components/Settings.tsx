@@ -96,23 +96,35 @@ const Settings: React.FC = () => {
     setError('')
 
     try {
-      // Simular salvamento
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Validar API Key com RedTrack
+      console.log('🔍 [SETTINGS] Validando API Key com RedTrack...')
+      const api = new RedTrackAPI(tempApiKey.trim())
       
-      setApiKey(tempApiKey)
+      // Testar conexão com RedTrack
+      const isValid = await api.testConnection()
+      
+      if (!isValid) {
+        setError('API Key inválida. Verifique e tente novamente.')
+        return
+      }
+      
+      console.log('✅ [SETTINGS] API Key válida! Salvando no banco...')
+      
+      // Salvar API Key no banco de dados
+      await setApiKey(tempApiKey.trim())
       setSaved(true)
       
       // Recarregar dados da conta com nova API key
       loadAccountData()
       
-      // A moeda agora é configurada manualmente
-      console.log('✅ [SETTINGS] API Key configurada com sucesso')
+      console.log('✅ [SETTINGS] API Key configurada e integrada com sucesso!')
       
       setTimeout(() => {
         setSaved(false)
       }, 3000)
     } catch (err) {
-      setError('Erro ao salvar configurações')
+      console.error('❌ [SETTINGS] Erro ao validar/salvar API Key:', err)
+      setError('Erro ao validar API Key. Verifique sua conexão e tente novamente.')
     } finally {
       setSaving(false)
     }
@@ -187,6 +199,25 @@ const Settings: React.FC = () => {
 
   const renderGeneralTab = () => (
     <div className="space-y-8">
+      {/* API Key Warning */}
+      {!apiKey && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-6"
+        >
+          <div className="flex items-center space-x-3">
+            <AlertCircle className="w-6 h-6 text-yellow-600" />
+            <div>
+              <h4 className="text-lg font-semibold text-yellow-800">API Key não configurada</h4>
+              <p className="text-sm text-yellow-700">
+                Configure sua API Key do RedTrack para acessar todas as funcionalidades do dashboard.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* API Key Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

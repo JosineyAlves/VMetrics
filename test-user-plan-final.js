@@ -1,14 +1,15 @@
-// 🧪 TESTE DA EDGE FUNCTION USER-PLAN
-// Execute: node test-edge-function.js
+// 🧪 TESTE FINAL DA EDGE FUNCTION USER-PLAN
+// Execute: node test-user-plan-final.js
 
 const testEdgeFunction = async () => {
   const userId = 'fdc6c3f1-323f-49b9-a90e-ec5ae030dc9d' // ID do usuário josineyalves.produtos@gmail.com
-  const supabaseUrl = 'https://your-project.supabase.co' // Substitua pela sua URL
-  const supabaseAnonKey = 'your-anon-key' // Substitua pela sua chave
+  const supabaseUrl = 'https://fkqkwhzjvpzycfkbnqaq.supabase.co'
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcWt3aHpqdnB6eWNma2JucWFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3NTE0OTYsImV4cCI6MjA3MDMyNzQ5Nn0.69mJMOg5_qiJIyNAPLsjb-FY1mXT7cJWkf_p3rE68K0'
   
   try {
     console.log('🔍 Testando Edge Function user-plan...')
     console.log('User ID:', userId)
+    console.log('URL:', `${supabaseUrl}/functions/v1/user-plan`)
     
     const response = await fetch(`${supabaseUrl}/functions/v1/user-plan`, {
       method: 'POST',
@@ -20,7 +21,6 @@ const testEdgeFunction = async () => {
     })
     
     console.log('Status:', response.status)
-    console.log('Headers:', response.headers)
     
     if (!response.ok) {
       const errorText = await response.text()
@@ -51,6 +51,13 @@ const testEdgeFunction = async () => {
       console.log('- Stripe Customer ID:', data.user.stripe_customer_id)
     } else {
       console.log('❌ Nenhum usuário encontrado')
+    }
+    
+    // Verificar se é o usuário correto
+    if (data.user && data.user.email === 'josineyalves.produtos@gmail.com') {
+      console.log('✅ CORRETO: Usuário logado é o correto!')
+    } else {
+      console.log('❌ ERRO: Usuário incorreto!')
     }
     
   } catch (error) {

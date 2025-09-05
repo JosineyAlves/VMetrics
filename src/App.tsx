@@ -34,10 +34,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
-  // ✅ VALIDAÇÃO RESTAURADA: Se estiver autenticado mas não tiver API Key, redirecionar para setup
-  if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
-    return <Navigate to="/setup" replace />
-  }
+  // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
+  // if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
+  //   return <Navigate to="/setup" replace />
+  // }
   
   return <>{children}</>
 }
@@ -56,12 +56,12 @@ const DashboardLayout: React.FC = () => {
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
-  // ✅ VALIDAÇÃO RESTAURADA: Verificar se tem API Key configurada
-  useEffect(() => {
-    if (isAuthenticated && !apiKey) {
-      navigate('/setup', { replace: true })
-    }
-  }, [isAuthenticated, apiKey, navigate])
+  // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
+  // useEffect(() => {
+  //   if (isAuthenticated && !apiKey) {
+  //     navigate('/setup', { replace: true })
+  //   }
+  // }, [isAuthenticated, apiKey, navigate])
   
   // Determinar seção atual baseada na rota
   const getCurrentSection = () => {

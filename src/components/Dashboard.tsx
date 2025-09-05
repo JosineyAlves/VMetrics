@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   TrendingUp,
@@ -17,7 +18,9 @@ import {
   Calculator,
   BarChart2,
   Shuffle,
-  Info
+  Info,
+  Key,
+  Settings
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from 'recharts'
 import { Button } from './ui/button'
@@ -45,6 +48,31 @@ const Dashboard: React.FC = () => {
   const { apiKey } = useAuthStore()
   const { selectedMetrics, availableMetrics, metricsOrder } = useMetricsStore()
   const { currency } = useCurrencyStore()
+  const navigate = useNavigate()
+
+  // Verificar se API Key está configurada
+  if (!apiKey) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Key className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-600 mb-2">
+            API Key não configurada
+          </h2>
+          <p className="text-gray-500 mb-4">
+            Configure sua API Key do RedTrack em Configurações para acessar o dashboard.
+          </p>
+          <Button 
+            onClick={() => navigate('/settings')}
+            className="bg-[#3cd48f] hover:bg-[#3cd48f]/80"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Ir para Configurações
+          </Button>
+        </div>
+      </div>
+    )
+  }
   
   // Função para formatar moeda
   const formatCurrency = (value: number) => {

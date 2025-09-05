@@ -19,9 +19,9 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get user_id from query parameters
-    const url = new URL(req.url)
-    const userId = url.searchParams.get('user_id')
+    // Get user_id from request body
+    const body = await req.json()
+    const userId = body.user_id
 
     if (!userId) {
       return new Response(
