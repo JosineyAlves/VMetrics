@@ -59,8 +59,13 @@ const Settings: React.FC = () => {
     planStatus
   } = useUserPlan() // Remover parâmetro - usa user_id automaticamente
 
-  // Usar array de faturas real da Edge Function
-  const invoices = planData?.invoices || []
+  // Gerar array de faturas baseado no plano
+  const generateInvoices = () => {
+    if (!planData?.invoice) return []
+    return [planData.invoice]
+  }
+
+  const invoices = generateInvoices()
   const hasInvoices = invoices.length > 0
 
   const tabs = [
@@ -586,9 +591,9 @@ const Settings: React.FC = () => {
                     }`} />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-800">Fatura #{invoice.stripe_invoice_id}</p>
-                    <p className="text-sm text-gray-600">Status: {invoice.status}</p>
-                    <p className="text-xs text-gray-500">Criada em: {new Date(invoice.invoice_date).toLocaleDateString('pt-BR')}</p>
+                    <p className="font-medium text-gray-800">{invoice.description}</p>
+                    <p className="text-sm text-gray-600">Fatura #{invoice.number}</p>
+                    <p className="text-xs text-gray-500">Criada em: {new Date(invoice.created).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
                 <div className="text-right">

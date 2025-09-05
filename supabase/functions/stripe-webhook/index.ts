@@ -29,9 +29,6 @@ serve(async (req)=>{
       case 'customer.subscription.created':
         await handleSubscriptionCreated(supabase, event.data.object);
         break;
-      case 'invoice.payment_succeeded':
-        await handleInvoicePaymentSucceeded(supabase, event.data.object);
-        break;
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -126,61 +123,4 @@ async function handleSubscriptionCreated(supabase, subscription) {
   console.log('Processing subscription created:', subscription.id);
   console.log('Subscription processed by handleCheckoutCompleted - no action needed');
   // Não faz nada - tudo é feito no handleCheckoutCompleted
-}
-
-// Handle invoice payment succeeded - NOVA FUNCIONALIDADE
-async function handleInvoicePaymentSucceeded(supabase, invoice) {
-  console.log('💰 [WEBHOOK] Processando fatura paga:', invoice.id);
-  
-  try {
-    // Buscar user_id pelo stripe_customer_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('stripe_customer_id', invoice.customer)
-      .single();
-
-    if (profileError || !profile) {
-      console.error('❌ [WEBHOOK] Usuário não encontrado para customer:', invoice.customer);
-      return;
-    }
-
-    console.log('✅ [WEBHOOK] Usuário encontrado:', profile.id);
-
-    // Verificar se a fatura já existe
-    const { data: existingInvoice, error: checkError } = await supabase
-      .from('invoices')
-      .select('id')
-      .eq('stripe_invoice_id', invoice.id)
-      .single();
-
-    if (existingInvoice) {
-      console.log('⚠️ [WEBHOOK] Fatura já existe:', invoice.id);
-      return;
-    }
-
-    // Salvar fatura na tabela invoices
-    const { data: invoiceData, error: invoiceError } = await supabase
-      .from('invoices')
-      .insert({
-        user_id: profile.id,
-        stripe_invoice_id: invoice.id,
-        stripe_subscription_id: invoice.subscription,
-        amount: invoice.amount_paid,
-        currency: invoice.currency.toUpperCase(),
-        status: 'paid',
-        invoice_date: new Date(invoice.created * 1000).toISOString(),
-        due_date: new Date(invoice.due_date * 1000).toISOString(),
-        paid_at: new Date(invoice.status_transitions.paid_at * 1000).toISOString()
-      });
-
-    if (invoiceError) {
-      console.error('❌ [WEBHOOK] Erro ao salvar fatura:', invoiceError);
-    } else {
-      console.log('✅ [WEBHOOK] Fatura salva com sucesso:', invoiceData);
-    }
-
-  } catch (error) {
-    console.error('❌ [WEBHOOK] Erro ao processar fatura:', error);
-  }
 }
