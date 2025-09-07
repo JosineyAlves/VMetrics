@@ -36,25 +36,31 @@ export const useAuthStore = create<AuthState>()(
         console.log('[AUTH] Salvando API Key:', key)
         
         try {
-          // Salvar no banco de dados
+          // 1. Salvar no localStorage primeiro (instantâneo)
+          localStorage.setItem('vmetrics_api_key', key)
+          set({ apiKey: key, isAuthenticated: true })
+          
+          // 2. Salvar no banco de dados em background
           const { data: { user } } = await supabase.auth.getUser()
           
           if (user) {
-            const { error } = await supabase
-              .from('profiles')
-              .update({ api_key: key })
-              .eq('id', user.id)
-            
-            if (error) {
-              console.error('[AUTH] Erro ao salvar API Key no banco:', error)
-              throw error
+            console.log('[AUTH] Salvando API Key no banco de dados...')
+            try {
+              const { error } = await supabase
+                .from('profiles')
+                .update({ api_key: key })
+                .eq('id', user.id)
+              
+              if (error) {
+                console.error('[AUTH] Erro ao salvar no banco:', error)
+                // Não falhar se o banco falhar, pois já salvou no localStorage
+              } else {
+                console.log('[AUTH] API Key salva no banco com sucesso')
+              }
+            } catch (dbError) {
+              console.error('[AUTH] Erro na operação do banco:', dbError)
             }
-            
-            console.log('[AUTH] API Key salva no banco com sucesso')
           }
-          
-          // Salvar no estado local
-          set({ apiKey: key, isAuthenticated: true })
           
           // Detectar moeda automaticamente quando API Key for configurada
           const { detectCurrency } = useCurrencyStore.getState()
@@ -70,6 +76,9 @@ export const useAuthStore = create<AuthState>()(
         
         // Fazer logout do Supabase
         await supabase.auth.signOut()
+        
+        // Limpar localStorage
+        localStorage.removeItem('vmetrics_api_key')
         
         set({ apiKey: null, isAuthenticated: false, user: null })
         setTimeout(() => {
@@ -199,7 +208,14 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         
         try {
-          // Verificar se há uma sessão ativa
+          // 1. Carregar do localStorage primeiro (instantâneo)
+          const storedApiKey = localStorage.getItem('vmetrics_api_key')
+          if (storedApiKey) {
+            console.log('[AUTH] API Key encontrada no localStorage:', storedApiKey)
+            set({ apiKey: storedApiKey })
+          }
+
+          // 2. Verificar se há uma sessão ativa
           const { data: { session }, error } = await supabase.auth.getSession()
           
           if (error) {
@@ -210,30 +226,51 @@ export const useAuthStore = create<AuthState>()(
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
             
-            // Buscar API Key salva no banco
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('api_key')
-              .eq('id', session.user.id)
-              .single()
-            
-            if (profileError) {
-              console.error('[AUTH] Erro ao buscar perfil:', profileError)
-            }
-            
-            const savedApiKey = profile?.api_key || null
-            
-            console.log('[AUTH] Dados do perfil:', profile)
-            console.log('[AUTH] API Key encontrada:', savedApiKey)
-            
             set({ 
               isAuthenticated: true, 
               user: session.user,
-              apiKey: savedApiKey, // ← RECUPERAR API KEY DO BANCO
               error: null 
             })
-            
-            console.log('[AUTH] API Key recuperada do banco:', savedApiKey ? 'Sim' : 'Não')
+
+            // 3. Sincronizar API Key com banco de dados em background
+            if (storedApiKey) {
+              console.log('[AUTH] Sincronizando API Key com banco de dados...')
+              try {
+                const { error: updateError } = await supabase
+                  .from('profiles')
+                  .update({ api_key: storedApiKey })
+                  .eq('id', session.user.id)
+
+                if (updateError) {
+                  console.error('[AUTH] Erro ao sincronizar API Key:', updateError)
+                } else {
+                  console.log('[AUTH] API Key sincronizada com sucesso')
+                }
+              } catch (syncError) {
+                console.error('[AUTH] Erro na sincronização:', syncError)
+              }
+            } else {
+              // 4. Se não há API Key no localStorage, buscar do banco
+              console.log('[AUTH] Buscando API Key do banco de dados...')
+              try {
+                const { data: profile, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('api_key')
+                  .eq('id', session.user.id)
+                  .single()
+                
+                if (profileError) {
+                  console.error('[AUTH] Erro ao buscar perfil:', profileError)
+                } else if (profile?.api_key) {
+                  console.log('[AUTH] API Key encontrada no banco:', profile.api_key)
+                  set({ apiKey: profile.api_key })
+                  // Salvar no localStorage para próximas vezes
+                  localStorage.setItem('vmetrics_api_key', profile.api_key)
+                }
+              } catch (dbError) {
+                console.error('[AUTH] Erro ao buscar do banco:', dbError)
+              }
+            }
           } else {
             console.log('[AUTH] Nenhuma sessão ativa encontrada')
             set({ 
