@@ -210,55 +210,30 @@ export const useAuthStore = create<AuthState>()(
           if (session?.user) {
             console.log('[AUTH] Sessão encontrada:', session.user.email)
             
-            // 1. PRIMEIRO: Usar API Key do localStorage (cache rápido)
-            const currentState = get()
-            const cachedApiKey = currentState.apiKey
+            // Buscar API Key salva no banco
+            const { data: profile, error: profileError } = await supabase
+              .from('profiles')
+              .select('api_key')
+              .eq('id', session.user.id)
+              .single()
             
-            if (cachedApiKey) {
-              console.log('[AUTH] API Key encontrada no cache:', cachedApiKey)
-              set({ 
-                isAuthenticated: true, 
-                user: session.user,
-                apiKey: cachedApiKey, // ← USAR CACHE PRIMEIRO
-                error: null 
-              })
+            if (profileError) {
+              console.error('[AUTH] Erro ao buscar perfil:', profileError)
             }
             
-            // 2. SEGUNDO: Sincronizar com banco de dados em background
-            try {
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('api_key')
-                .eq('id', session.user.id)
-                .single()
-              
-              if (profileError) {
-                console.error('[AUTH] Erro ao buscar perfil:', profileError)
-                return
-              }
-              
-              const savedApiKey = profile?.api_key || null
-              
-              console.log('[AUTH] Dados do perfil:', profile)
-              console.log('[AUTH] API Key encontrada no banco:', savedApiKey)
-              
-              // 3. TERCEIRO: Atualizar se diferente do cache
-              if (savedApiKey !== cachedApiKey) {
-                console.log('[AUTH] API Key diferente do cache, atualizando...')
-                set({ 
-                  isAuthenticated: true, 
-                  user: session.user,
-                  apiKey: savedApiKey, // ← ATUALIZAR COM DADOS DO BANCO
-                  error: null 
-                })
-              } else {
-                console.log('[AUTH] API Key sincronizada com cache')
-              }
-              
-            } catch (syncError) {
-              console.error('[AUTH] Erro ao sincronizar com banco:', syncError)
-              // Continuar com cache se houver erro na sincronização
-            }
+            const savedApiKey = profile?.api_key || null
+            
+            console.log('[AUTH] Dados do perfil:', profile)
+            console.log('[AUTH] API Key encontrada:', savedApiKey)
+            
+            set({ 
+              isAuthenticated: true, 
+              user: session.user,
+              apiKey: savedApiKey, // ← RECUPERAR API KEY DO BANCO
+              error: null 
+            })
+            
+            console.log('[AUTH] API Key recuperada do banco:', savedApiKey ? 'Sim' : 'Não')
           } else {
             console.log('[AUTH] Nenhuma sessão ativa encontrada')
             set({ 
@@ -285,8 +260,8 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       partialize: (state) => ({ 
         isAuthenticated: state.isAuthenticated,
-        user: state.user,
-        apiKey: state.apiKey // ← SALVAR API KEY NO LOCALSTORAGE PARA CACHE RÁPIDO
+        user: state.user
+        // NÃO salvar apiKey no localStorage - sempre buscar do banco
       }),
       onRehydrateStorage: (state) => {
         console.log('[AUTH] Reidratando estado do auth-storage:', state)
