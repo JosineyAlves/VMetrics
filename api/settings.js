@@ -115,7 +115,7 @@ async function handleUserPlan(req, res) {
 
     // 2. Buscar plano do usuário
     const { data: subscription, error: subscriptionError } = await supabase
-      .from('subscriptions')
+      .from('user_plans')
       .select('*')
       .eq('user_id', user.id)
       .eq('status', 'active')
@@ -125,6 +125,21 @@ async function handleUserPlan(req, res) {
 
     if (subscriptionError || !subscription) {
       console.log('❌ [USER-PLAN] Plano não encontrado:', subscriptionError)
+      console.log('🔍 [USER-PLAN] Tentando buscar todos os planos para debug...')
+      
+      // Debug: buscar todos os planos do usuário
+      try {
+        const { data: allPlans, error: allPlansError } = await supabase
+          .from('user_plans')
+          .select('*')
+          .eq('user_id', user.id)
+        
+        console.log('🔍 [USER-PLAN] Todos os planos do usuário:', allPlans)
+        console.log('🔍 [USER-PLAN] Erro ao buscar todos os planos:', allPlansError)
+      } catch (debugError) {
+        console.log('🔍 [USER-PLAN] Erro no debug:', debugError)
+      }
+      
       return res.json({
         user: {
           id: user.id,
