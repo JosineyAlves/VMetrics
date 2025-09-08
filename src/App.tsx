@@ -16,9 +16,12 @@ import Performance from "./components/Performance"
 import Funnel from "./components/Funnel"
 import Settings from "./components/Settings"
 import LandingPage from "./components/LandingPage"
+import PeriodDropdown from './components/ui/PeriodDropdown'
+import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
 import { useApiKeySync } from './hooks/useApiKeySync'
+import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 import usePageTitle from './hooks/usePageTitle'
 
@@ -45,9 +48,14 @@ const DashboardLayout: React.FC = () => {
   const { isAuthenticated, apiKey } = useAuthStore()
   const { isCollapsed, toggle } = useSidebarStore()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
   const location = useLocation()
   const navigate = useNavigate()
   
+  // Estado global de datas
+  const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
   // 🔄 Hook de sincronização da API Key
   const { isSyncing } = useApiKeySync()
@@ -73,6 +81,16 @@ const DashboardLayout: React.FC = () => {
 
   const currentSection = getCurrentSection()
 
+  // Função para atualizar dados
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    setLastUpdateTime(new Date())
+    
+    // Simular delay de atualização
+    setTimeout(() => {
+      setIsRefreshing(false)
+    }, 1000)
+  }
 
   // Função para alternar sidebar
   const handleToggleSidebar = () => {
@@ -152,18 +170,55 @@ const DashboardLayout: React.FC = () => {
               </svg>
             </button>
             
-            <h1 className="text-xl font-semibold text-gray-800 capitalize">
-              {currentSection === 'dashboard' ? 'Dashboard' : 
-               currentSection === 'campaigns' ? 'Campanhas' :
-               currentSection === 'conversions' ? 'Conversões' :
-               currentSection === 'performance' ? 'Performance' :
-               currentSection === 'funnel' ? 'Funil' :
-               currentSection === 'settings' ? 'Configurações' : 'Dashboard'}
-            </h1>
+            <div className="flex items-center space-x-3">
+              <h1 className="text-xl font-semibold text-gray-800 capitalize">
+                {currentSection === 'dashboard' ? 'Dashboard' : 
+                 currentSection === 'campaigns' ? 'Campanhas' :
+                 currentSection === 'conversions' ? 'Conversões' :
+                 currentSection === 'performance' ? 'Performance' :
+                 currentSection === 'funnel' ? 'Funil' :
+                 currentSection === 'settings' ? 'Configurações' : 'Dashboard'}
+              </h1>
+              
+              {/* Indicador de sincronização */}
+              {isSyncing && (
+                <div className="flex items-center text-sm text-[#3cd48f]">
+                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-[#3cd48f] border-t-transparent rounded-full"></div>
+                  Sincronizando...
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Espaço para futuras funcionalidades */}
+            {/* Seletor de período */}
+            <PeriodDropdown
+              selectedPeriod={selectedPeriod}
+              customRange={customRange}
+              onPeriodChange={setSelectedPeriod}
+              onCustomRangeChange={setCustomRange}
+            />
+
+            {/* Botão de refresh */}
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+              title="Atualizar dados"
+            >
+              {isRefreshing ? (
+                <RefreshCw className="w-5 h-5 text-gray-600 animate-spin" />
+              ) : (
+                <RefreshCw className="w-5 h-5 text-gray-600" />
+              )}
+            </button>
+
+            {/* Indicador de última atualização */}
+            {lastUpdateTime && (
+              <div className="text-sm text-gray-500">
+                Atualizado às {lastUpdateTime.toLocaleTimeString()}
+              </div>
+            )}
           </div>
         </header>
 
