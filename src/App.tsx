@@ -20,7 +20,6 @@ import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
-import { useApiKeySync } from './hooks/useApiKeySync'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 import usePageTitle from './hooks/usePageTitle'
@@ -57,8 +56,7 @@ const DashboardLayout: React.FC = () => {
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
-  // 🔄 Hook de sincronização da API Key
-  const { isSyncing } = useApiKeySync()
+  // 🔄 Hook de sincronização da API Key removido - não existe
   
   // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
   // useEffect(() => {
@@ -128,7 +126,7 @@ const DashboardLayout: React.FC = () => {
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 animate-spin border-4 border-[#3cd48f] border-t-transparent rounded-full"></div>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            {isSyncing ? 'Sincronizando API Key...' : 'Configurando API Key...'}
+            Configurando API Key...
           </h2>
           <p className="text-gray-500 mb-6">
             Aguarde enquanto carregamos sua configuração
@@ -180,23 +178,21 @@ const DashboardLayout: React.FC = () => {
                  currentSection === 'settings' ? 'Configurações' : 'Dashboard'}
               </h1>
               
-              {/* Indicador de sincronização */}
-              {isSyncing && (
-                <div className="flex items-center text-sm text-[#3cd48f]">
-                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-[#3cd48f] border-t-transparent rounded-full"></div>
-                  Sincronizando...
-                </div>
-              )}
+              {/* Indicador de sincronização removido */}
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
             {/* Seletor de período */}
             <PeriodDropdown
-              selectedPeriod={selectedPeriod}
+              value={selectedPeriod}
               customRange={customRange}
-              onPeriodChange={setSelectedPeriod}
-              onCustomRangeChange={setCustomRange}
+              onChange={(period, customRange) => {
+                setSelectedPeriod(period)
+                if (customRange) {
+                  setCustomRange(customRange)
+                }
+              }}
             />
 
             {/* Botão de refresh */}
