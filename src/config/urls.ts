@@ -1,31 +1,36 @@
 // 🌐 Configuração de URLs da aplicação VMetrics
 
+// URLs base
+const LANDING_PAGE_URL = (import.meta as any).env?.VITE_APP_URL || 'https://vmetrics.com.br'
+const DASHBOARD_APP_URL = (import.meta as any).env?.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'
+const LOCALHOST_URL = 'http://localhost:5173'
+
 export const APP_URLS = {
-  // URLs principais - usando variáveis de ambiente
-  LANDING_PAGE: import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br',
-  DASHBOARD_APP: import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br',
+  // URLs principais
+  LANDING_PAGE: LANDING_PAGE_URL,
+  DASHBOARD_APP: DASHBOARD_APP_URL,
   
   // URLs de desenvolvimento
-  LOCALHOST: 'http://localhost:5173',
+  LOCALHOST: LOCALHOST_URL,
   
   // URLs do Stripe
-  STRIPE_SUCCESS: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/success`,
-  STRIPE_CANCEL: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/pricing`,
-  STRIPE_PORTAL_RETURN: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/dashboard`,
+  STRIPE_SUCCESS: `${DASHBOARD_APP_URL}/success`,
+  STRIPE_CANCEL: `${LANDING_PAGE_URL}/pricing`,
+  STRIPE_PORTAL_RETURN: `${DASHBOARD_APP_URL}/dashboard`,
   
   // URLs de autenticação
-  AUTH_CALLBACK: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/auth/callback`,
-  AUTH_RESET_PASSWORD: `${import.meta.env.VITE_DASHBOARD_URL || 'https://app.vmetrics.com.br'}/auth/reset-password`,
+  AUTH_CALLBACK: `${DASHBOARD_APP_URL}/auth/callback`,
+  AUTH_RESET_PASSWORD: `${DASHBOARD_APP_URL}/auth/reset-password`,
   
   // URLs de suporte
-  SUPPORT: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/support`,
-  DOCS: `${import.meta.env.VITE_APP_URL || 'https://vmetrics.com.br'}/docs`,
+  SUPPORT: `${LANDING_PAGE_URL}/support`,
+  DOCS: `${LANDING_PAGE_URL}/docs`,
   
   // URLs sociais
   GITHUB: 'https://github.com/vmetrics',
   LINKEDIN: 'https://linkedin.com/company/vmetrics',
   TWITTER: 'https://twitter.com/vmetrics'
-}
+} as const
 
 // Função para detectar se está na URL do dashboard
 export const isDashboardApp = (): boolean => {
@@ -48,7 +53,6 @@ export const getCurrentBaseUrl = (): string => {
   if (typeof window === 'undefined') return APP_URLS.LANDING_PAGE
   
   const hostname = window.location.hostname
-  const protocol = window.location.protocol
   
   if (hostname === 'app.vmetrics.com.br') {
     return APP_URLS.DASHBOARD_APP
