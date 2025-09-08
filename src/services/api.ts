@@ -923,28 +923,6 @@ class RedTrackAPI {
     }
   }
 
-  // Testar conexão com RedTrack
-  async testConnection(): Promise<boolean> {
-    try {
-      console.log('🔍 [REDTRACK-API] Testando conexão...')
-      
-      // Testar com endpoint de settings (mais leve)
-      const response = await fetch(`/api/settings?api_key=${encodeURIComponent(this.apiKey)}&test=true`)
-      
-      if (!response.ok) {
-        console.error('❌ [REDTRACK-API] Erro na resposta:', response.status)
-        return false
-      }
-      
-      const data = await response.json()
-      console.log('✅ [REDTRACK-API] Conexão válida:', data)
-      return true
-      
-    } catch (error) {
-      console.error('❌ [REDTRACK-API] Erro na conexão:', error)
-      return false
-    }
-  }
 }
 
 export default RedTrackAPI 
