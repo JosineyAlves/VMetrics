@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '../store/auth'
-import { supabase } from '../lib/supabase'
 
 interface UserPlan {
   id: string
@@ -27,14 +25,13 @@ interface UserPlanData {
   invoice?: any // Adicionar propriedade invoice opcional
 }
 
-export const useUserPlan = () => {
-  const { user } = useAuthStore()
+export const useUserPlan = (email: string) => {
   const [planData, setPlanData] = useState<UserPlanData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const loadUserPlan = async () => {
-    if (!user?.id) {
+    if (!email) {
       setLoading(false)
       return
     }
@@ -43,18 +40,17 @@ export const useUserPlan = () => {
       setLoading(true)
       setError(null)
       
-      console.log('🔍 [USE-USER-PLAN] Carregando plano para user_id:', user.id)
+      console.log('🔍 [USE-USER-PLAN] Carregando plano para:', email)
       
-      // Usar Supabase Edge Function
-      const { data, error: functionError } = await supabase.functions.invoke('user-plan', {
-        body: { user_id: user.id }
-      })
+      const response = await fetch(`/api/user-plan?email=${encodeURIComponent(email)}`)
       
-      if (functionError) {
-        throw new Error(`Erro na Edge Function: ${functionError.message}`)
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`)
       }
       
+      const data = await response.json()
       console.log('✅ [USE-USER-PLAN] Dados recebidos:', data)
+      
       setPlanData(data)
       
     } catch (err) {
@@ -71,7 +67,7 @@ export const useUserPlan = () => {
 
   useEffect(() => {
     loadUserPlan()
-  }, [user?.id])
+  }, [email])
 
   return {
     planData,

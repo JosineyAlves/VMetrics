@@ -159,6 +159,11 @@ const LoginForm: React.FC = () => {
             </div>
           )}
 
+          <div className="mt-6 text-center">
+            <p className="text-xs text-slate-500">
+              Após o login, você será direcionado para o painel ou configuração
+            </p>
+          </div>
         </div>
       </div>
     </div>

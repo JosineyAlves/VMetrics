@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { stripeWrapperService } from './stripeWrapperService'
+import type { StripeSubscription } from './stripeWrapperService'
 
 export interface CheckoutSession {
   id: string
@@ -133,13 +135,11 @@ export class CheckoutService {
 
   /**
    * Busca dados de assinatura de um usuário
-   * TODO: Implementar busca via Stripe API direta
    */
-  async getUserSubscription(userEmail: string): Promise<any | null> {
+  async getUserSubscription(userEmail: string): Promise<StripeSubscription | null> {
     try {
-      // TODO: Implementar busca via Stripe API
-      console.log('Função getUserSubscription não implementada')
-      return null
+      const subscription = await stripeWrapperService.getUserSubscription(userEmail)
+      return subscription
     } catch (error) {
       console.error('Erro ao buscar assinatura do usuário:', error)
       return null

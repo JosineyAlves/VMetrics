@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   TrendingUp,
@@ -18,9 +17,7 @@ import {
   Calculator,
   BarChart2,
   Shuffle,
-  Info,
-  Key,
-  Settings
+  Info
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, Cell } from 'recharts'
 import { Button } from './ui/button'
@@ -45,27 +42,64 @@ const metricOptions = [
 ]
 
 const Dashboard: React.FC = () => {
-  // TODOS OS HOOKS DEVEM SER CHAMADOS PRIMEIRO
   const { apiKey } = useAuthStore()
   const { selectedMetrics, availableMetrics, metricsOrder } = useMetricsStore()
   const { currency } = useCurrencyStore()
-  const navigate = useNavigate()
   
-  // Estados locais
+  // Função para formatar moeda
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2
+    }).format(value)
+  }
+  
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false)
+  // REMOVER: showFilters não é mais necessário
+  // const [showFilters, setShowFilters] = useState(false)
+  // REMOVER: estados de filtros
+  // const [filters, setFilters] = useState({
+  //   dateFrom: '',
+  //   dateTo: '',
+  //   utm_source: '',
+  //   traffic_channel: '',
+  //   country: '',
+  //   device: '',
+  //   browser: '',
+  //   os: ''
+  // })
+  // const [tempFilters, setTempFilters] = useState(filters)
+
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [autoRefresh, setAutoRefresh] = useState(false)
-  const [dashboardData, setDashboardData] = useState<any>({})
-  const [dailyData, setDailyData] = useState<any[]>([])
-  const [sourceStats, setSourceStats] = useState<any[]>([])
-  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
 
-  // Hooks de stores
+  // Remover estados locais de datas
   const { selectedPeriod, customRange } = useDateRangeStore()
 
-  // Mais estados locais
+  // Remover periodOptions, getPeriodLabel, getDateRange antigos se não forem mais usados
+
+  // Atualizar label do período para customizado
+  // Função para calcular datas reais baseadas no período (não utilizada)
+  // Função para calcular datas reais baseadas no período (não utilizada)
+
+
+  const [dashboardData, setDashboardData] = useState<any>({})
+
+  // Novo estado para armazenar dados diários para o gráfico
+  const [dailyData, setDailyData] = useState<any[]>([]);
+  const [sourceStats, setSourceStats] = useState<any[]>([])
+
+  // Estado para métricas cruzadas
+  const [crossMetric, setCrossMetric] = useState(metricOptions[0].value)
+  const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
+  
+  // Debug: monitorar mudanças no sourceStats
+  useEffect(() => {
+    console.log('🔍 [SOURCE STATS DEBUG] sourceStats atualizado:', sourceStats)
+  }, [sourceStats])
   const [campaigns, setCampaigns] = useState<{
     id: string
     name: string
@@ -81,45 +115,6 @@ const Dashboard: React.FC = () => {
   }[]>([])
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all')
   const [funnelData, setFunnelData] = useState<any>({})
-
-  // Verificar se API Key está configurada - DEPOIS DE TODOS OS HOOKS
-  if (!apiKey) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Key className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">
-            API Key não configurada
-          </h2>
-          <p className="text-gray-500 mb-4">
-            Configure sua API Key do RedTrack em Configurações para acessar o dashboard.
-          </p>
-          <Button 
-            onClick={() => navigate('/settings')}
-            className="bg-[#3cd48f] hover:bg-[#3cd48f]/80"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Ir para Configurações
-          </Button>
-        </div>
-      </div>
-    )
-  }
-  
-  // Função para formatar moeda
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 2
-    }).format(value)
-  }
-  const selectedOption = metricOptions.find(opt => opt.value === crossMetric) || metricOptions[0]
-  
-  // Debug: monitorar mudanças no sourceStats
-  useEffect(() => {
-    console.log('🔍 [SOURCE STATS DEBUG] sourceStats atualizado:', sourceStats)
-  }, [sourceStats])
 
   // Buscar campanhas ao carregar
   useEffect(() => {
