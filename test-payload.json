@@ -1,1 +1,0 @@
-{"payload": {"sender": "test@vmetrics.com.br", "recipient": "test@example.com", "subject": "Teste", "html_body": "<p>Teste</p>", "text_body": "Teste", "variables": {"user_name": "Teste", "signup_url": "https://test.com", "company_name": "VMetrics"}}}
