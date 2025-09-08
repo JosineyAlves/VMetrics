@@ -13,8 +13,7 @@ import {
   CreditCard,
   Receipt,
   Crown,
-  ExternalLink,
-  RefreshCw
+  ExternalLink
 } from 'lucide-react'
 import { STRIPE_PRODUCTS } from '../config/stripe'
 import { Button } from './ui/button'
@@ -51,7 +50,7 @@ const Settings: React.FC = () => {
     planPrice,
     planFeatures,
     planStatus
-  } = useUserPlan(user?.email || '') // Email obtido do contexto de autenticação
+  } = useUserPlan(user?.email || '')
 
   // Gerar array de faturas baseado no plano
   const generateInvoices = () => {
@@ -345,7 +344,6 @@ const Settings: React.FC = () => {
                 variant="outline" 
                 className="mt-4"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
                 Tentar Novamente
               </Button>
             </div>
