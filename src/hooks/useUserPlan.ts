@@ -44,7 +44,7 @@ export const useUserPlan = (email: string) => {
       
       console.log('🔍 [USE-USER-PLAN] Carregando plano para:', email)
       
-      const response = await fetch(`/api/user-plan?email=${encodeURIComponent(email)}`)
+      const response = await fetch(`/api/settings?user_plan=true&email=${encodeURIComponent(email)}`)
       
       if (!response.ok) {
         throw new Error(`Erro na API: ${response.status}`)

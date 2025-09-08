@@ -25,7 +25,6 @@ import tracksHandler from './api/tracks.js'
 import settingsHandler from './api/settings.js'
 import dictionariesHandler from './api/dictionaries.js'
 import performanceHandler from './api/performance.js'
-import userPlanHandler from './api/user-plan.js'
 
 // Importar Stripe para webhooks
 import Stripe from 'stripe'
@@ -104,15 +103,6 @@ app.get('/performance', async (req, res) => {
     await performanceHandler(req, res)
   } catch (error) {
     console.error('Erro no endpoint /performance:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
-  }
-})
-
-app.get('/user-plan', async (req, res) => {
-  try {
-    await userPlanHandler(req, res)
-  } catch (error) {
-    console.error('Erro no endpoint /user-plan:', error)
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })
@@ -309,7 +299,6 @@ app.listen(PORT, () => {
   console.log(`   - GET /tracks`)
   console.log(`   - GET /settings`)
   console.log(`   - GET /dictionaries`)
-  console.log(`   - GET /user-plan`)
   console.log(`   - POST /api/stripe/create-checkout-session`)
   console.log(`   - POST /api/stripe/create-portal-session`)
   console.log(`   - POST /api/webhooks/stripe`)
