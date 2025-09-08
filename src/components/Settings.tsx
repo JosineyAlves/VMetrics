@@ -39,9 +39,14 @@ const Settings: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
+
+  // Sincronizar tempApiKey quando apiKey mudar
+  useEffect(() => {
+    setTempApiKey(apiKey || '')
+  }, [apiKey])
   
 
-  // Hook para gerenciar plano do usuário - CORRIGIDO
+  // Hook para gerenciar plano do usuário
   const { user } = useAuthStore()
   const { 
     planData, 
@@ -54,7 +59,7 @@ const Settings: React.FC = () => {
     planPrice,
     planFeatures,
     planStatus
-  } = useUserPlan(user?.email || '') // Passar email do usuário
+  } = useUserPlan(user?.email || '')
 
   // Gerar array de faturas baseado no plano
   const generateInvoices = () => {

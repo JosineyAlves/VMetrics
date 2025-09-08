@@ -33,6 +33,8 @@ export const useUserPlan = (email: string) => {
   const loadUserPlan = async () => {
     if (!email) {
       setLoading(false)
+      setPlanData(null)
+      setError(null)
       return
     }
 
@@ -69,16 +71,26 @@ export const useUserPlan = (email: string) => {
     loadUserPlan()
   }, [email])
 
+  // Valores padrão para quando não há plano
+  const defaultPlan = {
+    hasActivePlan: false,
+    planType: null,
+    planName: 'Nenhum plano ativo',
+    planPrice: 'Gratuito',
+    planFeatures: ['Acesso básico ao dashboard'],
+    planStatus: 'inactive'
+  }
+
   return {
     planData,
     loading,
     error,
     refreshPlan,
-    hasActivePlan: planData?.plan?.status === 'active',
-    planType: planData?.plan?.plan_type || null,
-    planName: planData?.plan?.name || 'Nenhum plano ativo',
-    planPrice: planData?.plan?.price || 'Gratuito',
-    planFeatures: planData?.plan?.features || ['Acesso básico'],
-    planStatus: planData?.plan?.status || 'inactive'
+    hasActivePlan: planData?.plan?.status === 'active' || false,
+    planType: planData?.plan?.plan_type || defaultPlan.planType,
+    planName: planData?.plan?.name || defaultPlan.planName,
+    planPrice: planData?.plan?.price || defaultPlan.planPrice,
+    planFeatures: planData?.plan?.features || defaultPlan.planFeatures,
+    planStatus: planData?.plan?.status || defaultPlan.planStatus
   }
 }
