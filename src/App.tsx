@@ -20,7 +20,6 @@ import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
-import { useApiKeySync } from './hooks/useApiKeySync'
 import { RefreshCw, Play, Pause } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 import usePageTitle from './hooks/usePageTitle'
@@ -57,9 +56,6 @@ const DashboardLayout: React.FC = () => {
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
-  // 🔄 Hook de sincronização da API Key
-  const { isSyncing } = useApiKeySync()
-  
   // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
   // useEffect(() => {
   //   if (isAuthenticated && !apiKey) {
@@ -78,174 +74,137 @@ const DashboardLayout: React.FC = () => {
     if (path === '/settings') return 'settings'
     return 'dashboard'
   }
-
+  
   const currentSection = getCurrentSection()
 
-  // Função para atualizar dados
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  // Função para formatar tempo desde última atualização
+  const getTimeSinceLastUpdate = () => {
+    if (!lastUpdateTime) return null
+    
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) {
+      return 'Agora mesmo'
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `Há ${minutes} minuto${minutes > 1 ? 's' : ''}`
+    } else {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `Há ${hours} hora${hours > 1 ? 's' : ''}`
+    }
+  }
+
+  // Função para forçar atualização de dados
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    setLastUpdateTime(new Date())
-    
-    // Simular delay de atualização
-    setTimeout(() => {
+    try {
+      // Forçar re-render dos componentes atuais para buscar dados atualizados
+      const event = new CustomEvent('forceRefresh', { detail: { section: currentSection } })
+      window.dispatchEvent(event)
+      
+      // Simular delay para feedback visual
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Atualizar timestamp da última atualização
+      setLastUpdateTime(new Date())
+    } catch (error) {
+      console.error('Erro ao atualizar dados:', error)
+    } finally {
       setIsRefreshing(false)
-    }, 1000)
-  }
-
-  // Função para alternar sidebar
-  const handleToggleSidebar = () => {
-    toggle()
-    setIsMobileMenuOpen(false)
-  }
-
-  // Função para fechar menu mobile
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false)
-  }
-
-  // Função para mudança de seção (usada pelo Sidebar)
-  const handleSectionChange = (section: string) => {
-    const pathMap: { [key: string]: string } = {
-      'dashboard': '/dashboard',
-      'campaigns': '/campaigns',
-      'conversions': '/conversions',
-      'performance': '/performance',
-      'funnel': '/funnel',
-      'settings': '/settings'
-    }
-    
-    const path = pathMap[section]
-    if (path) {
-      navigate(path)
-      closeMobileMenu()
     }
   }
 
-  // Verificar se API Key está configurada - DEPOIS DE TODOS OS HOOKS
-  if (!apiKey) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 animate-spin border-4 border-[#3cd48f] border-t-transparent rounded-full"></div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">
-            {isSyncing ? 'Sincronizando API Key...' : 'Configurando API Key...'}
-          </h2>
-          <p className="text-gray-500 mb-6">
-            Aguarde enquanto carregamos sua configuração
-          </p>
-          <button
-            onClick={() => navigate('/settings')}
-            className="px-6 py-2 bg-[#3cd48f] text-white rounded-lg hover:bg-[#3cd48f]/90 transition-colors"
-          >
-            Ir para Configurações
-          </button>
-        </div>
-      </div>
-    )
+
+
+  // Definir o título da tela selecionada
+  const sectionTitles: Record<string, string> = {
+    dashboard: 'Dashboard',
+    campaigns: 'Campanhas',
+    conversions: 'Conversões',
+    performance: 'Performance',
+    funnel: 'Funil',
+    settings: 'Configurações'
   }
+  const sectionTitle = sectionTitles[currentSection] || ''
+
+  // Definir quais botões mostrar por tela
+  const showRefresh = ['dashboard', 'campaigns', 'conversions', 'performance', 'funnel'].includes(currentSection)
+
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar 
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white">
+      <Sidebar
         currentSection={currentSection}
-        onSectionChange={handleSectionChange}
+        onSectionChange={(section) => navigate(`/${section}`)}
         isMobileMenuOpen={isMobileMenuOpen}
-        onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        onToggleMobileMenu={toggleMobileMenu}
         isSidebarCollapsed={isCollapsed}
-        onToggleSidebar={handleToggleSidebar}
+        onToggleSidebar={toggle}
       />
-
-      {/* Conteúdo principal */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleToggleSidebar}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            
-            <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-semibold text-gray-800 capitalize">
-                {currentSection === 'dashboard' ? 'Dashboard' : 
-                 currentSection === 'campaigns' ? 'Campanhas' :
-                 currentSection === 'conversions' ? 'Conversões' :
-                 currentSection === 'performance' ? 'Performance' :
-                 currentSection === 'funnel' ? 'Funil' :
-                 currentSection === 'settings' ? 'Configurações' : 'Dashboard'}
-              </h1>
-              
-              {/* Indicador de sincronização */}
-              {isSyncing && (
-                <div className="flex items-center text-sm text-[#3cd48f]">
-                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-[#3cd48f] border-t-transparent rounded-full"></div>
-                  Sincronizando...
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Seletor de período */}
-            <PeriodDropdown
-              selectedPeriod={selectedPeriod}
-              customRange={customRange}
-              onPeriodChange={setSelectedPeriod}
-              onCustomRangeChange={setCustomRange}
-            />
-
-            {/* Botão de refresh */}
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
-              title="Atualizar dados"
-            >
-              {isRefreshing ? (
-                <RefreshCw className="w-5 h-5 text-gray-600 animate-spin" />
-              ) : (
-                <RefreshCw className="w-5 h-5 text-gray-600" />
-              )}
-            </button>
-
-            {/* Indicador de última atualização */}
+      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''}`}>
+        {/* Barra global fixa */}
+        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
+          {/* Título da tela à esquerda */}
+          <div className="flex items-center gap-3">
+                         <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
             {lastUpdateTime && (
               <div className="text-sm text-gray-500">
-                Atualizado às {lastUpdateTime.toLocaleTimeString()}
+                Atualizado {getTimeSinceLastUpdate()}
               </div>
             )}
           </div>
-        </header>
-
-        {/* Conteúdo das páginas */}
-        <div className="flex-1 overflow-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="h-full"
-            >
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/campaigns" element={<Campaigns />} />
-                <Route path="/conversions" element={<Conversions />} />
-                <Route path="/performance" element={<Performance />} />
-                <Route path="/funnel" element={<Funnel />} />
-                <Route path="/settings" element={<Settings />} />
-                {/* Redirecionar / para /dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </motion.div>
-          </AnimatePresence>
+          {/* Ações e seletor à direita */}
+          <div className="flex items-center gap-3">
+            {/* Não mostrar PeriodDropdown na tela de configurações */}
+            {currentSection !== 'settings' && (
+              <PeriodDropdown
+                value={selectedPeriod}
+                customRange={customRange}
+                onChange={(period, range) => {
+                  setSelectedPeriod(period)
+                  if (period === 'custom' && range) setCustomRange(range)
+                }}
+              />
+            )}
+            {showRefresh && (
+              <button 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="inline-flex items-center px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+              </button>
+            )}
+            
+          </div>
         </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSection}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="h-full"
+          >
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/campaigns" element={<Campaigns />} />
+              <Route path="/conversions" element={<Conversions />} />
+              <Route path="/performance" element={<Performance />} />
+              <Route path="/funnel" element={<Funnel />} />
+              <Route path="/settings" element={<Settings />} />
+              {/* Redirecionar / para /dashboard */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   )
@@ -332,4 +291,4 @@ const App: React.FC = () => {
   )
 }
 
-export default App
+export default App 
