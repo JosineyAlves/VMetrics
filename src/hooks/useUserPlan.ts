@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuthStore } from '../store/auth'
 
 interface UserPlan {
   id: string
@@ -25,13 +26,15 @@ interface UserPlanData {
   invoice?: any // Adicionar propriedade invoice opcional
 }
 
-export const useUserPlan = (email: string) => {
+export const useUserPlan = () => {
+  const { user } = useAuthStore()
   const [planData, setPlanData] = useState<UserPlanData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const loadUserPlan = async () => {
-    if (!email) {
+    if (!user?.id) {
+      console.log('🔍 [USE-USER-PLAN] Usuário não logado, aguardando...')
       setLoading(false)
       setPlanData(null)
       setError(null)
@@ -42,9 +45,9 @@ export const useUserPlan = (email: string) => {
       setLoading(true)
       setError(null)
       
-      console.log('🔍 [USE-USER-PLAN] Carregando plano para:', email)
+      console.log('🔍 [USE-USER-PLAN] Carregando plano para user_id:', user.id)
       
-      const response = await fetch(`/api/settings?user_plan=true&email=${encodeURIComponent(email)}`)
+      const response = await fetch(`/api/settings?user_plan=true&user_id=${encodeURIComponent(user.id)}`)
       
       if (!response.ok) {
         throw new Error(`Erro na API: ${response.status}`)
@@ -69,7 +72,7 @@ export const useUserPlan = (email: string) => {
 
   useEffect(() => {
     loadUserPlan()
-  }, [email])
+  }, [user?.id])
 
   // Valores padrão para quando não há plano
   const defaultPlan = {

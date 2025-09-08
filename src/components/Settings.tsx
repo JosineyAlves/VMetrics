@@ -27,7 +27,6 @@ import { useCurrencyStore } from '../store/currency'
 import CustomSelect from './ui/CustomSelect'
 import { useUserPlan } from '../hooks/useUserPlan'
 
-
 type TabType = 'general' | 'billing'
 
 const Settings: React.FC = () => {
@@ -47,7 +46,6 @@ const Settings: React.FC = () => {
   
 
   // Hook para gerenciar plano do usuário
-  const { user } = useAuthStore()
   const { 
     planData, 
     loading: planLoading, 
@@ -59,7 +57,7 @@ const Settings: React.FC = () => {
     planPrice,
     planFeatures,
     planStatus
-  } = useUserPlan(user?.email || '')
+  } = useUserPlan() // Sem parâmetros - usa user_id automaticamente
 
   // Gerar array de faturas baseado no plano
   const generateInvoices = () => {
@@ -103,7 +101,6 @@ const Settings: React.FC = () => {
       await setApiKey(tempApiKey.trim())
       setSaved(true)
       
-      
       console.log('✅ [SETTINGS] API Key configurada e integrada com sucesso!')
       
       setTimeout(() => {
@@ -117,13 +114,11 @@ const Settings: React.FC = () => {
     }
   }
 
-
   // Links diretos do Stripe para checkout
   const STRIPE_CHECKOUT_LINKS = {
     monthly: 'https://buy.stripe.com/test_8x214oa7m2gP5t7e1K33W03', // R$ 79,00
     quarterly: 'https://buy.stripe.com/test_8x2aEY0wM5t11cRaPy33W04' // R$ 197,00
   }
-
 
 
 
@@ -139,7 +134,6 @@ const Settings: React.FC = () => {
       loadCurrentPlan()
     }
   }, [activeTab])
-
 
 
 
@@ -236,7 +230,6 @@ const Settings: React.FC = () => {
         </div>
       </motion.div>
 
-
       {/* Currency Settings */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -313,7 +306,6 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </motion.div>
-
     </div>
   )
 
@@ -650,4 +642,4 @@ const Settings: React.FC = () => {
   )
 }
 
-export default Settings 
+export default Settings

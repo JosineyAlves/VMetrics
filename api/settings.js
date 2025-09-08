@@ -10,7 +10,7 @@ let isProcessingQueue = false;
 
 // Função para processar fila de requisições
 async function processRequestQueue() {
-  if (isProcessingQueue || requestQueue.length === 0) return;
+  if (isProcessingQueue || requestQueue.length > 0) return;
   
   isProcessingQueue = true;
   
@@ -28,48 +28,23 @@ async function processRequestQueue() {
       console.log('⏳ [SETTINGS] Processando requisição da fila...');
       const response = await fetch(url, {
         method: 'GET',
-        headers
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        }
       });
       
       lastRequestTime = Date.now();
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('🔴 [SETTINGS] Erro da RedTrack:', {
-          status: response.status,
-          url: url,
-          errorData,
-          headers: Object.fromEntries(response.headers.entries())
-        });
-        
-        // Se for rate limiting, aguardar e tentar novamente
-        if (response.status === 429) {
-          console.log('⚠️ [SETTINGS] Rate limiting detectado - aguardando 5 segundos...');
-          await new Promise(resolve => setTimeout(resolve, 5000));
-          
-          // Tentar novamente uma vez
-          const retryResponse = await fetch(url, {
-            method: 'GET',
-            headers
-          });
-          
-          if (!retryResponse.ok) {
-            console.log('⚠️ [SETTINGS] Rate limiting persistente - retornando dados vazios');
-            resolve(null);
-            continue;
-          }
-          
-          const retryData = await retryResponse.json();
-          resolve(retryData);
-        } else {
-          reject(new Error(errorData.error || 'Erro na API do RedTrack'));
-        }
-      } else {
-        const data = await response.json();
-        resolve(data);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+      
+      const data = await response.json();
+      resolve(data);
+      
     } catch (error) {
-      console.error('❌ [SETTINGS] Erro de conexão:', error);
+      console.error('❌ [SETTINGS] Erro na requisição da fila:', error);
       reject(error);
     }
   }
@@ -77,16 +52,54 @@ async function processRequestQueue() {
   isProcessingQueue = false;
 }
 
+// Função para adicionar requisição à fila
+function addToQueue(url, headers = {}) {
+  return new Promise((resolve, reject) => {
+    requestQueue.push({ resolve, reject, url, headers });
+    processRequestQueue();
+  });
+}
+
+// Função para fazer requisição com cache e rate limiting
+async function makeRequest(url, headers = {}) {
+  const cacheKey = `request_${url}_${JSON.stringify(headers)}`;
+  
+  // Verificar cache primeiro
+  if (requestCache.has(cacheKey)) {
+    const cached = requestCache.get(cacheKey);
+    if (Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('📦 [SETTINGS] Retornando dados do cache');
+      return cached.data;
+    }
+  }
+  
+  try {
+    console.log('🌐 [SETTINGS] Fazendo requisição para:', url);
+    const data = await addToQueue(url, headers);
+    
+    // Salvar no cache
+    requestCache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    
+    return data;
+  } catch (error) {
+    console.error('❌ [SETTINGS] Erro na requisição:', error);
+    throw error;
+  }
+}
+
 // Função para lidar com requisições de plano do usuário
 async function handleUserPlan(req, res) {
   try {
-    const { email } = req.query
+    const { user_id } = req.query
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email é obrigatório' })
+    if (!user_id) {
+      return res.status(400).json({ error: 'User ID é obrigatório' })
     }
 
-    console.log('🔍 [USER-PLAN] Buscando plano para email:', email)
+    console.log('🔍 [USER-PLAN] Buscando plano para user_id:', user_id)
 
     // Importar Supabase e Stripe dinamicamente para evitar problemas
     const { createClient } = await import('@supabase/supabase-js')
@@ -99,11 +112,11 @@ async function handleUserPlan(req, res) {
     const supabase = createClient(supabaseUrl, supabaseKey)
     const stripe = new Stripe(stripeSecretKey, { apiVersion: '2024-06-20' })
 
-    // 1. Buscar usuário pelo email
+    // 1. Buscar usuário pelo user_id
     const { data: user, error: userError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('email', email)
+      .eq('id', user_id)
       .single()
 
     if (userError || !user) {
@@ -113,14 +126,14 @@ async function handleUserPlan(req, res) {
 
     console.log('✅ [USER-PLAN] Usuário encontrado:', user.id)
 
-    // 2. Buscar plano do usuário
-    console.log('🔍 [USER-PLAN] Buscando plano para user_id:', user.id)
+    // 2. Buscar plano do usuário diretamente por user_id
+    console.log('🔍 [USER-PLAN] Buscando plano para user_id:', user_id)
     
     // Primeiro, buscar todos os planos do usuário para debug
     const { data: allUserPlans, error: allPlansError } = await supabase
       .from('user_plans')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
     
     console.log('🔍 [USER-PLAN] Todos os planos encontrados:', allUserPlans)
     console.log('🔍 [USER-PLAN] Erro ao buscar todos os planos:', allPlansError)
@@ -129,7 +142,7 @@ async function handleUserPlan(req, res) {
     const { data: subscription, error: subscriptionError } = await supabase
       .from('user_plans')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -266,7 +279,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   // Verificar se é uma requisição de plano do usuário
-  if (req.query.user_plan && req.query.email) {
+  if (req.query.user_plan && req.query.user_id) {
     return await handleUserPlan(req, res)
   }
 
@@ -287,104 +300,115 @@ export default async function handler(req, res) {
     apiKey = url.searchParams.get('api_key')
   }
 
+  if (!apiKey) {
+    return res.status(400).json({ error: 'API Key é obrigatória' })
+  }
+
   console.log('🔍 [SETTINGS] API Key extraída:', apiKey ? 'SIM' : 'NÃO')
 
-  if (!apiKey) {
-    console.log('❌ [SETTINGS] API Key não encontrada')
-    return res.status(401).json({ error: 'API Key não fornecida' })
-  }
-
-  // Verificar cache
-  const cacheKey = `settings_${apiKey}_${req.query.debug || 'false'}`;
-  const cachedData = requestCache.get(cacheKey);
-  if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
-    console.log('✅ [SETTINGS] Dados retornados do cache');
-    return res.status(200).json(cachedData.data);
-  }
-
   try {
-    console.log('🔍 [SETTINGS] Fazendo requisição para RedTrack /me/settings...')
-    console.log('🔍 [SETTINGS] URL:', 'https://api.redtrack.io/me/settings')
-    console.log('🔍 [SETTINGS] API Key sendo testada:', apiKey)
-
-    const data = await new Promise((resolve, reject) => {
-      requestQueue.push({ 
-        resolve, 
-        reject, 
-        url: `https://api.redtrack.io/me/settings?api_key=${apiKey}`, 
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent': 'VMetrics-Dashboard/1.0 (https://vmetrics.com.br)',
-          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      processRequestQueue();
-    });
-
-    if (!data) {
-      console.log('❌ [SETTINGS] Erro na resposta da API');
-      return res.status(500).json({ error: 'Erro na API do RedTrack' });
+    // Verificar cache primeiro
+    const cacheKey = `settings_${apiKey}_${req.query.debug || 'false'}`;
+    
+    if (requestCache.has(cacheKey)) {
+      const cached = requestCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.log('📦 [SETTINGS] Retornando dados do cache');
+        return res.status(200).json(cached.data);
+      }
     }
 
-    console.log('✅ [SETTINGS] Dados recebidos com sucesso')
-    console.log('🔍 [SETTINGS] Estrutura dos dados:', JSON.stringify(data, null, 2))
+    // Fazer requisição para RedTrack
+    const url = `https://api.redtrack.io/settings?api_key=${apiKey}`;
+    console.log('🌐 [SETTINGS] Fazendo requisição para RedTrack...');
     
-    // Se o parâmetro debug=true estiver presente, adicionar análise de moeda
+    const data = await makeRequest(url, {
+      'Authorization': `Bearer ${apiKey}`
+    });
+
+    console.log('✅ [SETTINGS] Dados recebidos do RedTrack');
+
+    // Se debug está ativado, fazer análise de moeda
     if (req.query.debug === 'true') {
-      console.log('🔍 [SETTINGS] Modo debug ativado - analisando moeda...')
+      console.log('🔍 [SETTINGS] Modo debug ativado - analisando moeda...');
       
-      const currencyAnalysis = {
-        timestamp: new Date().toISOString(),
-        fields_count: Object.keys(data).length,
-        fields_available: Object.keys(data),
+      let currencyAnalysis = {
         currency_detected: null,
         analysis_details: {}
-      }
+      };
 
-      // 1. Verificar campos diretos
-      if (data.currency) {
-        currencyAnalysis.currency_detected = data.currency
-        currencyAnalysis.analysis_details.direct_field = 'currency'
-      } else if (data.default_currency) {
-        currencyAnalysis.currency_detected = data.default_currency
-        currencyAnalysis.analysis_details.direct_field = 'default_currency'
-      }
+      try {
+        // 1. Verificar se há dados de campanhas para análise
+        const campaignsUrl = `https://api.redtrack.io/campaigns?api_key=${apiKey}`;
+        const campaignsData = await makeRequest(campaignsUrl, {
+          'Authorization': `Bearer ${apiKey}`
+        });
 
-      // 2. Verificar campos aninhados
-      if (!currencyAnalysis.currency_detected) {
-        const nestedFields = ['account', 'user', 'settings', 'preferences']
-        for (const field of nestedFields) {
-          if (data[field]?.currency) {
-            currencyAnalysis.currency_detected = data[field].currency
-            currencyAnalysis.analysis_details.nested_field = `${field}.currency`
-            break
+        if (campaignsData && Array.isArray(campaignsData) && campaignsData.length > 0) {
+          // Analisar campanhas para detectar moeda
+          const currencies = campaignsData
+            .map(campaign => campaign.currency)
+            .filter(currency => currency && currency.length > 0)
+            .reduce((acc, currency) => {
+              acc[currency] = (acc[currency] || 0) + 1;
+              return acc;
+            }, {});
+
+          const mostCommonCurrency = Object.keys(currencies).reduce((a, b) => 
+            currencies[a] > currencies[b] ? a : b, null
+          );
+
+          if (mostCommonCurrency) {
+            currencyAnalysis.currency_detected = mostCommonCurrency;
+            currencyAnalysis.analysis_details = {
+              method: 'campaign_analysis',
+              total_campaigns: campaignsData.length,
+              currency_distribution: currencies,
+              most_common: mostCommonCurrency
+            };
           }
         }
-      }
 
-      // 3. Procurar por padrões em todos os campos
-      if (!currencyAnalysis.currency_detected) {
-        currencyAnalysis.analysis_details.pattern_search = []
-        for (const [field, value] of Object.entries(data)) {
-          if (typeof value === 'string') {
-            if (value.includes('BRL')) {
-              currencyAnalysis.currency_detected = 'BRL'
-              currencyAnalysis.analysis_details.pattern_search.push(`${field}: BRL encontrado`)
-              break
-            } else if (value.includes('USD')) {
-              currencyAnalysis.currency_detected = 'USD'
-              currencyAnalysis.analysis_details.pattern_search.push(`${field}: USD encontrado`)
-              break
-            } else if (value.includes('EUR')) {
-              currencyAnalysis.currency_detected = 'EUR'
-              currencyAnalysis.analysis_details.pattern_search.push(`${field}: EUR encontrado`)
-              break
+        // 2. Se não encontrou nas campanhas, verificar conversões
+        if (!currencyAnalysis.currency_detected) {
+          const conversionsUrl = `https://api.redtrack.io/conversions?api_key=${apiKey}&date_from=2024-01-01&date_to=2024-12-31`;
+          const conversionsData = await makeRequest(conversionsUrl, {
+            'Authorization': `Bearer ${apiKey}`
+          });
+
+          if (conversionsData && Array.isArray(conversionsData) && conversionsData.length > 0) {
+            const currencies = conversionsData
+              .map(conversion => conversion.currency)
+              .filter(currency => currency && currency.length > 0)
+              .reduce((acc, currency) => {
+                acc[currency] = (acc[currency] || 0) + 1;
+                return acc;
+              }, {});
+
+            const mostCommonCurrency = Object.keys(currencies).reduce((a, b) => 
+              currencies[a] > currencies[b] ? a : b, null
+            );
+
+            if (mostCommonCurrency) {
+              currencyAnalysis.currency_detected = mostCommonCurrency;
+              currencyAnalysis.analysis_details = {
+                method: 'conversion_analysis',
+                total_conversions: conversionsData.length,
+                currency_distribution: currencies,
+                most_common: mostCommonCurrency
+              };
             }
           }
         }
+
+        // 3. Se ainda não encontrou, verificar configurações da conta
+        if (!currencyAnalysis.currency_detected) {
+          currencyAnalysis.analysis_details.fallback = 'Nenhuma moeda detectada nas campanhas ou conversões'
+        }
+
+      } catch (currencyError) {
+        console.error('❌ [SETTINGS] Erro na análise de moeda:', currencyError);
+        currencyAnalysis.analysis_details.error = currencyError.message;
       }
 
       // 4. Se não encontrou, usar USD como padrão
@@ -420,4 +444,4 @@ export default async function handler(req, res) {
     console.error('❌ [SETTINGS] Erro na requisição:', error)
     return res.status(500).json({ error: 'Erro interno do servidor' })
   }
-} 
+}
