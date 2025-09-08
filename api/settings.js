@@ -126,59 +126,54 @@ async function handleUserPlan(req, res) {
 
     console.log('✅ [USER-PLAN] Usuário encontrado:', user.id)
 
-    // 2. Buscar plano do usuário diretamente por user_id
-    console.log('🔍 [USER-PLAN] Buscando plano para user_id:', user_id)
+    // 2. Buscar TODOS os planos do usuário (sem filtros)
+    console.log('🔍 [USER-PLAN] Buscando todos os planos para user_id:', user_id)
     
-    // Primeiro, buscar todos os planos do usuário para debug
-    const { data: allUserPlans, error: allPlansError } = await supabase
+    const { data: allPlans, error: allPlansError } = await supabase
       .from('user_plans')
       .select('*')
       .eq('user_id', user_id)
     
-    console.log('🔍 [USER-PLAN] Todos os planos encontrados:', allUserPlans)
-    console.log('🔍 [USER-PLAN] Erro ao buscar todos os planos:', allPlansError)
-    
-    // Agora buscar apenas o ativo
-    const { data: subscription, error: subscriptionError } = await supabase
-      .from('user_plans')
-      .select('*')
-      .eq('user_id', user_id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-    
-    console.log('🔍 [USER-PLAN] Plano ativo encontrado:', subscription)
-    console.log('🔍 [USER-PLAN] Erro ao buscar plano ativo:', subscriptionError)
+    console.log('🔍 [USER-PLAN] Todos os planos encontrados:', allPlans)
+    console.log('🔍 [USER-PLAN] Erro ao buscar planos:', allPlansError)
 
-    // Se não encontrou com .single(), usar o primeiro plano ativo da lista
-    let activePlan = subscription
-    if (subscriptionError || !subscription) {
-      console.log('❌ [USER-PLAN] Plano ativo não encontrado com .single(), tentando fallback...')
-      
-      if (allUserPlans && allUserPlans.length > 0) {
-        // Encontrar o primeiro plano ativo
-        activePlan = allUserPlans.find(plan => plan.status === 'active')
-        console.log('🔍 [USER-PLAN] Plano ativo encontrado no fallback:', activePlan)
-      }
-      
-      if (!activePlan) {
-        console.log('❌ [USER-PLAN] Nenhum plano ativo encontrado')
-        return res.json({
-          user: {
-            id: user.id,
-            email: user.email,
-            stripe_customer_id: user.stripe_customer_id
-          },
-          plan: null,
-          invoice: null
-        })
-      }
+    if (allPlansError) {
+      console.log('❌ [USER-PLAN] Erro ao buscar planos:', allPlansError)
+      return res.status(500).json({ error: 'Erro ao buscar planos do usuário' })
     }
 
-    console.log('✅ [USER-PLAN] Plano encontrado:', activePlan)
+    if (!allPlans || allPlans.length === 0) {
+      console.log('❌ [USER-PLAN] Nenhum plano encontrado para o usuário')
+      return res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          stripe_customer_id: user.stripe_customer_id
+        },
+        plan: null,
+        invoice: null
+      })
+    }
 
-    // 3. Buscar detalhes da subscription no Stripe se necessário
+    // 3. Encontrar o primeiro plano ativo
+    const activePlan = allPlans.find(plan => plan.status === 'active')
+    
+    if (!activePlan) {
+      console.log('❌ [USER-PLAN] Nenhum plano ativo encontrado')
+      return res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          stripe_customer_id: user.stripe_customer_id
+        },
+        plan: null,
+        invoice: null
+      })
+    }
+
+    console.log('✅ [USER-PLAN] Plano ativo encontrado:', activePlan)
+
+    // 4. Buscar detalhes da subscription no Stripe se necessário
     let stripeSubscription = null
     let invoice = null
     
@@ -216,7 +211,7 @@ async function handleUserPlan(req, res) {
       }
     }
 
-    // 4. Mapear dados do plano
+    // 5. Mapear dados do plano
     const planFeatures = activePlan.plan_type === 'monthly' ? [
       'Dashboard completo de métricas',
       'Relatórios avançados',

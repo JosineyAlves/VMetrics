@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/auth'
+import { supabase } from '../lib/supabase'
 
 interface UserPlan {
   id: string
@@ -47,13 +48,15 @@ export const useUserPlan = () => {
       
       console.log('🔍 [USE-USER-PLAN] Carregando plano para user_id:', user.id)
       
-      const response = await fetch(`/api/settings?user_plan=true&user_id=${encodeURIComponent(user.id)}`)
+      // Usar Supabase Edge Function
+      const { data, error: functionError } = await supabase.functions.invoke('user-plan', {
+        body: { user_id: user.id }
+      })
       
-      if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status}`)
+      if (functionError) {
+        throw new Error(`Erro na Edge Function: ${functionError.message}`)
       }
       
-      const data = await response.json()
       console.log('✅ [USE-USER-PLAN] Dados recebidos:', data)
       
       setPlanData(data)
