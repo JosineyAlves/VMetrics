@@ -114,6 +114,18 @@ async function handleUserPlan(req, res) {
     console.log('✅ [USER-PLAN] Usuário encontrado:', user.id)
 
     // 2. Buscar plano do usuário
+    console.log('🔍 [USER-PLAN] Buscando plano para user_id:', user.id)
+    
+    // Primeiro, buscar todos os planos do usuário para debug
+    const { data: allUserPlans, error: allPlansError } = await supabase
+      .from('user_plans')
+      .select('*')
+      .eq('user_id', user.id)
+    
+    console.log('🔍 [USER-PLAN] Todos os planos encontrados:', allUserPlans)
+    console.log('🔍 [USER-PLAN] Erro ao buscar todos os planos:', allPlansError)
+    
+    // Agora buscar apenas o ativo
     const { data: subscription, error: subscriptionError } = await supabase
       .from('user_plans')
       .select('*')
@@ -122,48 +134,48 @@ async function handleUserPlan(req, res) {
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
+    
+    console.log('🔍 [USER-PLAN] Plano ativo encontrado:', subscription)
+    console.log('🔍 [USER-PLAN] Erro ao buscar plano ativo:', subscriptionError)
 
+    // Se não encontrou com .single(), usar o primeiro plano ativo da lista
+    let activePlan = subscription
     if (subscriptionError || !subscription) {
-      console.log('❌ [USER-PLAN] Plano não encontrado:', subscriptionError)
-      console.log('🔍 [USER-PLAN] Tentando buscar todos os planos para debug...')
+      console.log('❌ [USER-PLAN] Plano ativo não encontrado com .single(), tentando fallback...')
       
-      // Debug: buscar todos os planos do usuário
-      try {
-        const { data: allPlans, error: allPlansError } = await supabase
-          .from('user_plans')
-          .select('*')
-          .eq('user_id', user.id)
-        
-        console.log('🔍 [USER-PLAN] Todos os planos do usuário:', allPlans)
-        console.log('🔍 [USER-PLAN] Erro ao buscar todos os planos:', allPlansError)
-      } catch (debugError) {
-        console.log('🔍 [USER-PLAN] Erro no debug:', debugError)
+      if (allUserPlans && allUserPlans.length > 0) {
+        // Encontrar o primeiro plano ativo
+        activePlan = allUserPlans.find(plan => plan.status === 'active')
+        console.log('🔍 [USER-PLAN] Plano ativo encontrado no fallback:', activePlan)
       }
       
-      return res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          stripe_customer_id: user.stripe_customer_id
-        },
-        plan: null,
-        invoice: null
-      })
+      if (!activePlan) {
+        console.log('❌ [USER-PLAN] Nenhum plano ativo encontrado')
+        return res.json({
+          user: {
+            id: user.id,
+            email: user.email,
+            stripe_customer_id: user.stripe_customer_id
+          },
+          plan: null,
+          invoice: null
+        })
+      }
     }
 
-    console.log('✅ [USER-PLAN] Plano encontrado:', subscription)
+    console.log('✅ [USER-PLAN] Plano encontrado:', activePlan)
 
     // 3. Buscar detalhes da subscription no Stripe se necessário
     let stripeSubscription = null
     let invoice = null
     
-    if (subscription.stripe_subscription_id) {
+    if (activePlan.stripe_subscription_id) {
       try {
-        stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id)
+        stripeSubscription = await stripe.subscriptions.retrieve(activePlan.stripe_subscription_id)
         
         // Buscar última fatura
         const invoices = await stripe.invoices.list({
-          subscription: subscription.stripe_subscription_id,
+          subscription: activePlan.stripe_subscription_id,
           limit: 1
         })
         
@@ -172,7 +184,7 @@ async function handleUserPlan(req, res) {
           invoice = {
             id: stripeInvoice.id,
             number: stripeInvoice.number,
-            description: `Plano ${subscription.plan_type === 'monthly' ? 'Mensal' : 'Trimestral'}`,
+            description: `Plano ${activePlan.plan_type === 'monthly' ? 'Mensal' : 'Trimestral'}`,
             amount: stripeInvoice.amount_due,
             formatted_amount: `R$ ${(stripeInvoice.amount_due / 100).toFixed(2).replace('.', ',')}`,
             status: stripeInvoice.status,
@@ -192,7 +204,7 @@ async function handleUserPlan(req, res) {
     }
 
     // 4. Mapear dados do plano
-    const planFeatures = subscription.plan_type === 'monthly' ? [
+    const planFeatures = activePlan.plan_type === 'monthly' ? [
       'Dashboard completo de métricas',
       'Relatórios avançados',
       'Análise de campanhas',
@@ -207,18 +219,18 @@ async function handleUserPlan(req, res) {
     ]
 
     const planData = {
-      id: subscription.id,
-      plan_type: subscription.plan_type,
-      status: subscription.status,
-      stripe_subscription_id: subscription.stripe_subscription_id,
-      stripe_customer_id: subscription.stripe_customer_id,
-      current_period_start: subscription.current_period_start,
-      current_period_end: subscription.current_period_end,
-      name: subscription.plan_type === 'monthly' ? 'Plano Mensal' : 'Plano Trimestral',
-      price: subscription.plan_type === 'monthly' ? 'R$ 79,00' : 'R$ 65,67',
-      period: subscription.plan_type === 'monthly' ? 'mensal' : 'trimestral',
+      id: activePlan.id,
+      plan_type: activePlan.plan_type,
+      status: activePlan.status,
+      stripe_subscription_id: activePlan.stripe_subscription_id,
+      stripe_customer_id: activePlan.stripe_customer_id,
+      current_period_start: activePlan.current_period_start,
+      current_period_end: activePlan.current_period_end,
+      name: activePlan.plan_type === 'monthly' ? 'Plano Mensal' : 'Plano Trimestral',
+      price: activePlan.plan_type === 'monthly' ? 'R$ 79,00' : 'R$ 65,67',
+      period: activePlan.plan_type === 'monthly' ? 'mensal' : 'trimestral',
       features: planFeatures,
-      nextBilling: subscription.current_period_end
+      nextBilling: activePlan.current_period_end
     }
 
     const response = {
