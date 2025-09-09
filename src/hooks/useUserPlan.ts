@@ -24,7 +24,7 @@ interface UserPlanData {
     email: string
     stripe_customer_id: string
   } | null
-  invoices?: any[] // 🆕 MUDANÇA: de invoice para invoices (array)
+  invoice?: any // Adicionar propriedade invoice opcional
 }
 
 export const useUserPlan = () => {

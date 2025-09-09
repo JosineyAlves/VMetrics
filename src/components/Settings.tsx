@@ -10,12 +10,8 @@ import {
   AlertCircle,
   DollarSign,
   Info,
-  ChevronDown,
   CreditCard,
-  Receipt,
   Crown,
-  Zap,
-  ExternalLink,
   RefreshCw
 } from 'lucide-react'
 import { STRIPE_PRODUCTS } from '../config/stripe'
@@ -59,18 +55,9 @@ const Settings: React.FC = () => {
     planStatus
   } = useUserPlan() // Sem parâmetros - usa user_id automaticamente
 
-  // Gerar array de faturas baseado no plano
-  const generateInvoices = () => {
-    if (!planData?.invoice) return []
-    return [planData.invoice]
-  }
-
-  const invoices = generateInvoices()
-  const hasInvoices = invoices.length > 0
-
   const tabs = [
     { id: 'general', label: 'Geral', icon: SettingsIcon },
-    { id: 'billing', label: 'Planos & Faturas', icon: CreditCard }
+    { id: 'billing', label: 'Planos', icon: CreditCard }
   ]
 
   const handleSave = async () => {
@@ -510,95 +497,6 @@ const Settings: React.FC = () => {
           </div>
         </div>
       </motion.div>
-
-      {/* Invoices */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
-      >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-purple-100 rounded-2xl">
-            <Receipt className="w-7 h-7 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-gray-800">Histórico de Faturas</h3>
-            <p className="text-sm text-gray-600">
-              Suas faturas e pagamentos
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          {planLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando faturas...</p>
-            </div>
-          ) : hasInvoices ? (
-            invoices.map((invoice) => (
-              <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="flex items-center space-x-4">
-                  <div className={`p-2 rounded-lg ${
-                    invoice.status_color === 'green' ? 'bg-green-100' :
-                    invoice.status_color === 'yellow' ? 'bg-yellow-100' :
-                    invoice.status_color === 'red' ? 'bg-red-100' :
-                    'bg-gray-100'
-                  }`}>
-                    <Receipt className={`w-5 h-5 ${
-                      invoice.status_color === 'green' ? 'text-green-600' :
-                      invoice.status_color === 'yellow' ? 'text-yellow-600' :
-                      invoice.status_color === 'red' ? 'text-red-600' :
-                      'text-gray-600'
-                    }`} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">{invoice.description}</p>
-                    <p className="text-sm text-gray-600">Fatura #{invoice.number}</p>
-                    <p className="text-xs text-gray-500">Criada em: {new Date(invoice.created).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-gray-800">{invoice.formatted_amount}</p>
-                  <p className="text-sm text-gray-600">Vence: {new Date(invoice.due_date).toLocaleDateString('pt-BR')}</p>
-                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                    invoice.status_color === 'green' ? 'bg-green-100 text-green-800' :
-                    invoice.status_color === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
-                    invoice.status_color === 'red' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {invoice.status_text}
-                  </div>
-                  {invoice.hosted_invoice_url && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-2"
-                      onClick={() => window.open(invoice.hosted_invoice_url, '_blank')}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-1" />
-                      Ver Fatura
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8">
-              <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">Nenhuma fatura encontrada</p>
-            <p className="text-sm text-gray-500">
-              As faturas aparecerão aqui quando disponíveis
-            </p>
-            </div>
-          )}
-        </div>
-
-
-      </motion.div>
-
-
     </div>
   )
 
