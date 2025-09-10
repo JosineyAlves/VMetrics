@@ -383,15 +383,6 @@ const Settings: React.FC = () => {
              </div>
           </div>
 
-          <div className="space-y-3">
-            <h5 className="font-semibold text-gray-700 mb-3">Recursos incluídos:</h5>
-                {planFeatures.map((feature, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-gray-700">{feature}</span>
-              </div>
-            ))}
-          </div>
 
 
             </>
@@ -420,21 +411,19 @@ const Settings: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Plano Mensal */}
-          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 relative">
+            {/* Banner Beta */}
+            <div className="absolute -top-3 -right-3 transform rotate-12">
+              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                BETA
+              </span>
+            </div>
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.monthly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
                 R${(STRIPE_PRODUCTS.monthly.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
-              <div className="text-sm text-gray-500 mt-1">
-                <span className="line-through text-gray-400">
-                  R${(STRIPE_PRODUCTS.monthly.prices.monthly.originalPrice / 100).toFixed(2).replace('.', ',')}
-                </span>
-                <span className="text-green-600 font-medium ml-2">
-                  {STRIPE_PRODUCTS.monthly.prices.monthly.discount}% de desconto
-                </span>
-              </div>
             </div>
             <ul className="space-y-3 mb-6">
               {STRIPE_PRODUCTS.monthly.features.map((feature, index) => (
@@ -460,6 +449,12 @@ const Settings: React.FC = () => {
 
           {/* Plano Trimestral */}
           <div className="border-2 border-[#3cd48f] rounded-2xl p-6 bg-[#3cd48f]/10 relative">
+            {/* Banner Beta */}
+            <div className="absolute -top-3 -right-3 transform rotate-12">
+              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                BETA
+              </span>
+            </div>
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <span className="bg-[#3cd48f] text-white px-3 py-1 rounded-full text-xs font-medium">
                 Melhor Valor
@@ -468,19 +463,16 @@ const Settings: React.FC = () => {
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.quarterly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                R${(STRIPE_PRODUCTS.quarterly.prices.quarterly.amount / 100).toFixed(2).replace('.', ',')}
+                R$ 197,00
               </div>
-              <div className="text-gray-600">por mês</div>
+              <div className="text-gray-600">R$ 65,66 por mês</div>
               <div className="text-sm text-gray-500 mt-1">
-                <span className="line-through text-gray-400">
-                  R${(STRIPE_PRODUCTS.quarterly.prices.quarterly.originalPrice / 100).toFixed(2).replace('.', ',')}
-                </span>
-                <span className="text-green-600 font-medium ml-2">
-                  {STRIPE_PRODUCTS.quarterly.prices.quarterly.discount}% de desconto
+                <span className="text-green-600 font-medium">
+                  16,87% de desconto em relação ao plano mensal
                 </span>
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                Cobrança a cada 3 meses: R${(STRIPE_PRODUCTS.quarterly.prices.quarterly.totalAmount / 100).toFixed(2).replace('.', ',')}
+                Cobrança a cada 3 meses: R$ 197,00
               </div>
             </div>
             <ul className="space-y-3 mb-6">

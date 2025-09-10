@@ -30,7 +30,7 @@ const ForgotPasswordForm: React.FC = () => {
 
       setEmailSent(true)
     } catch (err) {
-      setError('Erro ao enviar email de reset. Tente novamente.')
+      setError('Erro ao enviar email. Tente novamente.')
     } finally {
       setIsLoading(false)
     }
@@ -124,7 +124,7 @@ const ForgotPasswordForm: React.FC = () => {
                   Enviando...
                 </>
               ) : (
-                'Enviar Link de Reset'
+                'Enviar Link'
               )}
             </Button>
           </form>

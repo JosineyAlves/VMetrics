@@ -107,30 +107,21 @@ serve(async (req)=>{
 function getPlanName(planType) {
   const plans = {
     'monthly': 'Plano Mensal',
-    'quarterly': 'Plano Trimestral',
-    'starter': 'Starter',
-    'pro': 'Pro',
-    'enterprise': 'Enterprise'
+    'quarterly': 'Plano Trimestral'
   };
   return plans[planType] || 'Plano Desconhecido';
 }
 function getPlanPrice(planType) {
   const prices = {
     'monthly': 'R$ 79,00',
-    'quarterly': 'R$ 197,00',
-    'starter': 'R$ 29,00',
-    'pro': 'R$ 79,00',
-    'enterprise': 'R$ 199,00'
+    'quarterly': 'R$ 197,00'
   };
   return prices[planType] || 'Gratuito';
 }
 function getPlanPeriod(planType) {
   const periods = {
     'monthly': 'mês',
-    'quarterly': 'trimestre',
-    'starter': 'mês',
-    'pro': 'mês',
-    'enterprise': 'mês'
+    'quarterly': 'trimestre'
   };
   return periods[planType] || 'mês';
 }
@@ -146,21 +137,6 @@ function getPlanFeatures(planType) {
       'Suporte prioritário',
       'Relatórios avançados',
       'Desconto trimestral'
-    ],
-    'starter': [
-      'Acesso básico',
-      'Suporte por email'
-    ],
-    'pro': [
-      'Acesso completo',
-      'Suporte prioritário',
-      'Relatórios avançados'
-    ],
-    'enterprise': [
-      'Acesso completo',
-      'Suporte dedicado',
-      'Relatórios customizados',
-      'API access'
     ]
   };
   return features[planType] || [
