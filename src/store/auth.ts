@@ -234,15 +234,7 @@ export const useAuthStore = create<AuthState>()(
               error: null 
             })
 
-            // 2. Verificar se já há uma API Key definida (não sobrescrever)
-            const currentState = get()
-            if (currentState.apiKey) {
-              console.log('[AUTH] API Key já definida, não sobrescrevendo:', currentState.apiKey)
-              set({ isLoading: false })
-              return
-            }
-
-            // 3. Buscar API Key do banco de dados apenas se não há API Key definida
+            // 2. Buscar API Key do banco de dados (prioridade)
             console.log('[AUTH] Buscando API Key do banco de dados...')
             try {
               const { data: profile, error: profileError } = await supabase
