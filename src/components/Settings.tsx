@@ -218,7 +218,7 @@ const Settings: React.FC = () => {
                 <Save className="w-5 h-5" />
               )}
               <span className="font-semibold">
-                {saving ? 'Salvando...' : saved ? 'Salvo!' : 'Salvar Configurações'}
+                {saving ? 'Salvando...' : saved ? 'API Key Salva!' : 'Salvar API Key'}
               </span>
             </Button>
           </div>

@@ -215,6 +215,12 @@ class RedTrackAPI {
         return { isValid: false, errorMessage: 'Conta bloqueada no RedTrack' }
       }
       
+      // Se for erro interno do servidor, traduzir mensagem
+      if (errorMessage.includes('Internal server error')) {
+        console.log('❌ [API] Erro interno do servidor RedTrack')
+        return { isValid: false, errorMessage: 'Erro interno do servidor RedTrack. Tente novamente mais tarde.' }
+      }
+      
       // Para timeouts ou outros erros de rede, considerar válida
       if (errorMessage.includes('504') || errorMessage.includes('timeout')) {
         console.log('⚠️ [API] Timeout detectado, considerando API Key como válida')
