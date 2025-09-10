@@ -156,7 +156,14 @@ class RedTrackAPI {
     })
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `HTTP ${response.status}`)
+      
+      // Incluir detalhes específicos do erro se disponível
+      let errorMessage = errorData.error || `HTTP ${response.status}`
+      if (errorData.details) {
+        errorMessage = errorData.details
+      }
+      
+      throw new Error(errorMessage)
     }
     return response.json()
   }
@@ -199,20 +206,23 @@ class RedTrackAPI {
     } catch (error) {
       console.error('❌ [API] Erro ao testar API key:', error)
       
+      // Extrair mensagem de erro
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      
       // Se for erro de conta bloqueada, rejeitar com mensagem específica
-      if (error instanceof Error && error.message.includes('user account is blocked')) {
+      if (errorMessage.includes('user account is blocked')) {
         console.log('❌ [API] Conta bloqueada no RedTrack')
         return { isValid: false, errorMessage: 'Conta bloqueada no RedTrack' }
       }
       
       // Para timeouts ou outros erros de rede, considerar válida
-      if (error instanceof Error && (error.message.includes('504') || error.message.includes('timeout'))) {
+      if (errorMessage.includes('504') || errorMessage.includes('timeout')) {
         console.log('⚠️ [API] Timeout detectado, considerando API Key como válida')
         return { isValid: true }
       }
       
-      // Para outros erros, rejeitar com mensagem genérica
-      return { isValid: false, errorMessage: error instanceof Error ? error.message : 'Erro desconhecido' }
+      // Para outros erros, rejeitar com mensagem específica
+      return { isValid: false, errorMessage }
     }
   }
 
