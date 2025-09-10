@@ -32,39 +32,60 @@ export const useAuthStore = create<AuthState>()(
         })
       },
       setApiKey: async (key: string) => {
-        console.log('[AUTH] Salvando API Key:', key)
+        console.log('🚀 [AUTH] INICIANDO setApiKey com:', key)
         
         try {
           // 1. Verificar se há uma sessão ativa PRIMEIRO
+          console.log('🔍 [AUTH] Verificando sessão...')
           const { data: { session }, error: sessionError } = await supabase.auth.getSession()
           
-          if (sessionError || !session) {
-            console.error('[AUTH] Nenhuma sessão ativa encontrada')
+          if (sessionError) {
+            console.error('❌ [AUTH] Erro ao verificar sessão:', sessionError)
+            throw new Error('Erro ao verificar sessão')
+          }
+          
+          if (!session) {
+            console.error('❌ [AUTH] Nenhuma sessão ativa encontrada')
             throw new Error('Usuário não autenticado. Faça login novamente.')
           }
           
-          console.log('[AUTH] Sessão ativa encontrada:', session.user.email)
+          console.log('✅ [AUTH] Sessão ativa encontrada:', session.user.email)
+          console.log('🔍 [AUTH] User ID:', session.user.id)
           
           // 2. Salvar no localStorage primeiro (instantâneo)
+          console.log('💾 [AUTH] Salvando no localStorage...')
           localStorage.setItem('vmetrics_api_key', key)
           set({ apiKey: key, isAuthenticated: true })
+          console.log('✅ [AUTH] Salvo no localStorage e estado')
           
           // 3. Salvar no banco de dados
-          console.log('[AUTH] Salvando API Key no banco de dados...')
-          const { error } = await supabase
+          console.log('🗄️ [AUTH] Iniciando UPDATE na tabela profiles...')
+          console.log('🔍 [AUTH] Query:', {
+            table: 'profiles',
+            data: { api_key: key },
+            filter: { id: session.user.id }
+          })
+          
+          const { error, data } = await supabase
             .from('profiles')
             .update({ api_key: key })
             .eq('id', session.user.id)
+            .select() // Adicionar select para ver o que foi retornado
+          
+          console.log('📊 [AUTH] Resultado do UPDATE:', { error, data })
           
           if (error) {
-            console.error('[AUTH] Erro ao salvar no banco:', error)
+            console.error('❌ [AUTH] Erro ao salvar no banco:', error)
             throw new Error(`Erro ao salvar no banco: ${error.message}`)
           } else {
-            console.log('[AUTH] API Key salva no banco com sucesso')
+            console.log('✅ [AUTH] API Key salva no banco com sucesso')
+            console.log('📋 [AUTH] Dados retornados:', data)
           }
           
+          console.log('🎉 [AUTH] setApiKey concluído com sucesso')
+          
         } catch (error) {
-          console.error('[AUTH] Erro ao salvar API Key:', error)
+          console.error('💥 [AUTH] ERRO COMPLETO em setApiKey:', error)
           set({ error: 'Erro ao salvar API Key' })
           throw error
         }
