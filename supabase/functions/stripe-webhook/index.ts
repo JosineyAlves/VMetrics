@@ -63,7 +63,6 @@ async function handleCheckoutCompleted(supabase, session) {
       const customerName = session.customer_details?.name;
       const customerId = session.customer;
       const subscriptionId = session.subscription;
-      
       // CALCULAR PLAN_TYPE BASEADO NO PREÇO REAL DA SESSÃO
       let planType = 'monthly'; // padrão
       const priceAmount = session.amount_total || 0;
@@ -73,7 +72,6 @@ async function handleCheckoutCompleted(supabase, session) {
         planType = 'quarterly';
       }
       console.log('Detected plan type from session:', planType, 'Price amount:', priceAmount);
-      
       console.log('Customer details:', {
         customerEmail,
         customerName,
@@ -81,11 +79,10 @@ async function handleCheckoutCompleted(supabase, session) {
         subscriptionId,
         planType
       });
-      
       // USAR INVITE USER (ENVIA EMAIL AUTOMATICAMENTE)
       const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(customerEmail, {
         data: {
-          full_name: customerName || 'Usuário VMetrics',
+          full_name: customerName || 'Usuário vmetrics',
           stripe_customer_id: customerId
         }
       });
@@ -95,11 +92,10 @@ async function handleCheckoutCompleted(supabase, session) {
       }
       console.log('User invited successfully:', inviteData.user.id);
       console.log('✅ Email de convite enviado automaticamente via Supabase + Resend');
-      
       // Criar plano do usuário com plan_type correto
       const { error: planError } = await supabase.from('user_plans').upsert({
         user_id: inviteData.user.id,
-        plan_type: planType, // ← AGORA USA O TIPO CORRETO
+        plan_type: planType,
         stripe_subscription_id: subscriptionId,
         stripe_customer_id: customerId,
         status: 'active',
@@ -122,5 +118,5 @@ async function handleCheckoutCompleted(supabase, session) {
 async function handleSubscriptionCreated(supabase, subscription) {
   console.log('Processing subscription created:', subscription.id);
   console.log('Subscription processed by handleCheckoutCompleted - no action needed');
-  // Não faz nada - tudo é feito no handleCheckoutCompleted
+// Não faz nada - tudo é feito no handleCheckoutCompleted
 }

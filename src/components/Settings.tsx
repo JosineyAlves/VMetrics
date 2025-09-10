@@ -416,12 +416,12 @@ const Settings: React.FC = () => {
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.monthly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                {currencySymbol}{(STRIPE_PRODUCTS.monthly.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
+                R${(STRIPE_PRODUCTS.monthly.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
               <div className="text-sm text-gray-500 mt-1">
                 <span className="line-through text-gray-400">
-                  {currencySymbol}{(STRIPE_PRODUCTS.monthly.prices.monthly.originalPrice / 100).toFixed(2).replace('.', ',')}
+                  R${(STRIPE_PRODUCTS.monthly.prices.monthly.originalPrice / 100).toFixed(2).replace('.', ',')}
                 </span>
                 <span className="text-green-600 font-medium ml-2">
                   {STRIPE_PRODUCTS.monthly.prices.monthly.discount}% de desconto
@@ -460,19 +460,19 @@ const Settings: React.FC = () => {
             <div className="text-center mb-6">
               <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.quarterly.name}</h4>
               <div className="text-3xl font-bold text-[#3cd48f] mb-1">
-                {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.amount / 100).toFixed(2).replace('.', ',')}
+                R${(STRIPE_PRODUCTS.quarterly.prices.quarterly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
               <div className="text-gray-600">por mês</div>
               <div className="text-sm text-gray-500 mt-1">
                 <span className="line-through text-gray-400">
-                  {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.originalPrice / 100).toFixed(2).replace('.', ',')}
+                  R${(STRIPE_PRODUCTS.quarterly.prices.quarterly.originalPrice / 100).toFixed(2).replace('.', ',')}
                 </span>
                 <span className="text-green-600 font-medium ml-2">
                   {STRIPE_PRODUCTS.quarterly.prices.quarterly.discount}% de desconto
                 </span>
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                Cobrança a cada 3 meses: {currencySymbol}{(STRIPE_PRODUCTS.quarterly.prices.quarterly.totalAmount / 100).toFixed(2).replace('.', ',')}
+                Cobrança a cada 3 meses: R${(STRIPE_PRODUCTS.quarterly.prices.quarterly.totalAmount / 100).toFixed(2).replace('.', ',')}
               </div>
             </div>
             <ul className="space-y-3 mb-6">
