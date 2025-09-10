@@ -38,11 +38,14 @@ export const useAuthStore = create<AuthState>()(
           // 1. Salvar no localStorage primeiro (instantâneo)
           localStorage.setItem('vmetrics_api_key', key)
           set({ apiKey: key, isAuthenticated: true })
+          console.log('[AUTH] API Key salva no localStorage e estado atualizado')
           
           // 2. Salvar no banco de dados (obrigatório)
+          console.log('[AUTH] Obtendo usuário autenticado...')
           const { data: { user } } = await supabase.auth.getUser()
           
           if (user) {
+            console.log('[AUTH] Usuário encontrado:', user.id)
             console.log('[AUTH] Salvando API Key no banco de dados...')
             const { error } = await supabase
               .from('profiles')
@@ -60,6 +63,7 @@ export const useAuthStore = create<AuthState>()(
             throw new Error('Usuário não autenticado')
           }
           
+          console.log('[AUTH] Processo de salvamento concluído com sucesso')
         } catch (error) {
           console.error('[AUTH] Erro ao salvar API Key:', error)
           set({ error: 'Erro ao salvar API Key' })
@@ -210,7 +214,15 @@ export const useAuthStore = create<AuthState>()(
               error: null 
             })
 
-            // 2. Buscar API Key do banco de dados IMEDIATAMENTE
+            // 2. Verificar se já há uma API Key definida (não sobrescrever)
+            const currentState = get()
+            if (currentState.apiKey) {
+              console.log('[AUTH] API Key já definida, não sobrescrevendo:', currentState.apiKey)
+              set({ isLoading: false })
+              return
+            }
+
+            // 3. Buscar API Key do banco de dados apenas se não há API Key definida
             console.log('[AUTH] Buscando API Key do banco de dados...')
             try {
               const { data: profile, error: profileError } = await supabase

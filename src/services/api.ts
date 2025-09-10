@@ -163,9 +163,11 @@ class RedTrackAPI {
 
   // Test API key
   async testConnection(): Promise<boolean> {
+    console.log('🔍 [API] Iniciando teste de conexão...')
     try {
       // Para chaves de teste, sempre retorna true
       if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
+        console.log('🔍 [API] Chave de teste detectada, retornando true')
         return true
       }
       
@@ -175,16 +177,18 @@ class RedTrackAPI {
                            window.location.hostname.includes('localhost')
       
       if (isDevelopment) {
-        console.log('🔧 Modo desenvolvimento detectado. Usando dados simulados.')
+        console.log('🔧 [API] Modo desenvolvimento detectado. Usando dados simulados.')
         return true
       }
       
       // Em produção, testar via proxy
+      console.log('🔍 [API] Testando conexão em produção...')
       await this.request('/settings')
+      console.log('✅ [API] Conexão testada com sucesso')
       return true
       
     } catch (error) {
-      console.error('Erro ao testar API key:', error)
+      console.error('❌ [API] Erro ao testar API key:', error)
       return false
     }
   }

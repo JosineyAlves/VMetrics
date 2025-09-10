@@ -66,6 +66,7 @@ const Settings: React.FC = () => {
       return
     }
 
+    console.log('🔍 [SETTINGS] Iniciando processo de salvamento...')
     setSaving(true)
     setError('')
 
@@ -75,9 +76,11 @@ const Settings: React.FC = () => {
       const api = new RedTrackAPI(tempApiKey.trim())
       
       // Testar conexão com RedTrack
+      console.log('🔍 [SETTINGS] Testando conexão...')
       const isValid = await api.testConnection()
       
       if (!isValid) {
+        console.log('❌ [SETTINGS] API Key inválida')
         setError('API Key inválida. Verifique e tente novamente.')
         return
       }
@@ -85,7 +88,10 @@ const Settings: React.FC = () => {
       console.log('✅ [SETTINGS] API Key válida! Salvando no banco...')
       
       // Salvar API Key no banco de dados
+      console.log('🔍 [SETTINGS] Chamando setApiKey...')
       await setApiKey(tempApiKey.trim())
+      console.log('✅ [SETTINGS] setApiKey concluído')
+      
       setSaved(true)
       
       console.log('✅ [SETTINGS] API Key configurada e integrada com sucesso!')
@@ -98,6 +104,7 @@ const Settings: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao validar API Key. Verifique sua conexão e tente novamente.'
       setError(errorMessage)
     } finally {
+      console.log('🔍 [SETTINGS] Finalizando processo de salvamento')
       setSaving(false)
     }
   }
