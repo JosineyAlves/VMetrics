@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
-import { useCurrencyStore } from './currency'
 
 interface AuthState {
   apiKey: string | null
@@ -40,35 +39,31 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem('vmetrics_api_key', key)
           set({ apiKey: key, isAuthenticated: true })
           
-          // 2. Salvar no banco de dados em background
+          // 2. Salvar no banco de dados (obrigatório)
           const { data: { user } } = await supabase.auth.getUser()
           
           if (user) {
             console.log('[AUTH] Salvando API Key no banco de dados...')
-            try {
-              const { error } = await supabase
-                .from('profiles')
-                .update({ api_key: key })
-                .eq('id', user.id)
-              
-              if (error) {
-                console.error('[AUTH] Erro ao salvar no banco:', error)
-                // Não falhar se o banco falhar, pois já salvou no localStorage
-              } else {
-                console.log('[AUTH] API Key salva no banco com sucesso')
-              }
-            } catch (dbError) {
-              console.error('[AUTH] Erro na operação do banco:', dbError)
+            const { error } = await supabase
+              .from('profiles')
+              .update({ api_key: key })
+              .eq('id', user.id)
+            
+            if (error) {
+              console.error('[AUTH] Erro ao salvar no banco:', error)
+              throw new Error(`Erro ao salvar no banco: ${error.message}`)
+            } else {
+              console.log('[AUTH] API Key salva no banco com sucesso')
             }
+          } else {
+            console.error('[AUTH] Usuário não autenticado, não é possível salvar no banco')
+            throw new Error('Usuário não autenticado')
           }
-          
-          // Detectar moeda automaticamente quando API Key for configurada
-          const { detectCurrency } = useCurrencyStore.getState()
-          detectCurrency(key)
           
         } catch (error) {
           console.error('[AUTH] Erro ao salvar API Key:', error)
           set({ error: 'Erro ao salvar API Key' })
+          throw error
         }
       },
       logout: async () => {

@@ -95,7 +95,8 @@ const Settings: React.FC = () => {
       }, 3000)
     } catch (err) {
       console.error('❌ [SETTINGS] Erro ao validar/salvar API Key:', err)
-      setError('Erro ao validar API Key. Verifique sua conexão e tente novamente.')
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao validar API Key. Verifique sua conexão e tente novamente.'
+      setError(errorMessage)
     } finally {
       setSaving(false)
     }
