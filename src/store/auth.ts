@@ -35,35 +35,34 @@ export const useAuthStore = create<AuthState>()(
         console.log('[AUTH] Salvando API Key:', key)
         
         try {
-          // 1. Salvar no localStorage primeiro (instantâneo)
-          localStorage.setItem('vmetrics_api_key', key)
-          set({ apiKey: key, isAuthenticated: true })
-          console.log('[AUTH] API Key salva no localStorage e estado atualizado')
+          // 1. Verificar se há uma sessão ativa PRIMEIRO
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession()
           
-          // 2. Salvar no banco de dados (obrigatório)
-          console.log('[AUTH] Obtendo usuário autenticado...')
-          const { data: { user } } = await supabase.auth.getUser()
-          
-          if (user) {
-            console.log('[AUTH] Usuário encontrado:', user.id)
-            console.log('[AUTH] Salvando API Key no banco de dados...')
-            const { error } = await supabase
-              .from('profiles')
-              .update({ api_key: key })
-              .eq('id', user.id)
-            
-            if (error) {
-              console.error('[AUTH] Erro ao salvar no banco:', error)
-              throw new Error(`Erro ao salvar no banco: ${error.message}`)
-            } else {
-              console.log('[AUTH] API Key salva no banco com sucesso')
-            }
-          } else {
-            console.error('[AUTH] Usuário não autenticado, não é possível salvar no banco')
-            throw new Error('Usuário não autenticado')
+          if (sessionError || !session) {
+            console.error('[AUTH] Nenhuma sessão ativa encontrada')
+            throw new Error('Usuário não autenticado. Faça login novamente.')
           }
           
-          console.log('[AUTH] Processo de salvamento concluído com sucesso')
+          console.log('[AUTH] Sessão ativa encontrada:', session.user.email)
+          
+          // 2. Salvar no localStorage primeiro (instantâneo)
+          localStorage.setItem('vmetrics_api_key', key)
+          set({ apiKey: key, isAuthenticated: true })
+          
+          // 3. Salvar no banco de dados
+          console.log('[AUTH] Salvando API Key no banco de dados...')
+          const { error } = await supabase
+            .from('profiles')
+            .update({ api_key: key })
+            .eq('id', session.user.id)
+          
+          if (error) {
+            console.error('[AUTH] Erro ao salvar no banco:', error)
+            throw new Error(`Erro ao salvar no banco: ${error.message}`)
+          } else {
+            console.log('[AUTH] API Key salva no banco com sucesso')
+          }
+          
         } catch (error) {
           console.error('[AUTH] Erro ao salvar API Key:', error)
           set({ error: 'Erro ao salvar API Key' })
