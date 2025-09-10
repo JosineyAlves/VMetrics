@@ -77,11 +77,11 @@ const Settings: React.FC = () => {
       
       // Testar conexão com RedTrack
       console.log('🔍 [SETTINGS] Testando conexão...')
-      const isValid = await api.testConnection()
+      const validationResult = await api.testConnection()
       
-      if (!isValid) {
-        console.log('❌ [SETTINGS] API Key inválida')
-        setError('API Key inválida. Verifique e tente novamente.')
+      if (!validationResult.isValid) {
+        console.log('❌ [SETTINGS] API Key inválida:', validationResult.errorMessage)
+        setError(validationResult.errorMessage || 'API Key inválida. Verifique e tente novamente.')
         return
       }
       

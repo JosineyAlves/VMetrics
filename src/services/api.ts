@@ -162,13 +162,13 @@ class RedTrackAPI {
   }
 
   // Test API key
-  async testConnection(): Promise<boolean> {
+  async testConnection(): Promise<{ isValid: boolean; errorMessage?: string }> {
     console.log('🔍 [API] Iniciando teste de conexão via /report...')
     try {
       // Para chaves de teste, sempre retorna true
       if (this.apiKey === 'kXlmMfpINGQqv4btkwRL' || this.apiKey === 'test_key' || this.apiKey === 'yY6GLcfv5E6cWnWDt3KP') {
         console.log('🔍 [API] Chave de teste detectada, retornando true')
-        return true
+        return { isValid: true }
       }
       
       // Em desenvolvimento, simula sucesso para evitar CORS
@@ -178,7 +178,7 @@ class RedTrackAPI {
       
       if (isDevelopment) {
         console.log('🔧 [API] Modo desenvolvimento detectado. Usando dados simulados.')
-        return true
+        return { isValid: true }
       }
       
       // Em produção, testar via endpoint /report (mais confiável)
@@ -194,25 +194,25 @@ class RedTrackAPI {
       })
       
       console.log('✅ [API] Conexão testada com sucesso via /report')
-      return true
+      return { isValid: true }
       
     } catch (error) {
       console.error('❌ [API] Erro ao testar API key:', error)
       
-      // Se for erro de conta bloqueada, rejeitar
+      // Se for erro de conta bloqueada, rejeitar com mensagem específica
       if (error instanceof Error && error.message.includes('user account is blocked')) {
         console.log('❌ [API] Conta bloqueada no RedTrack')
-        return false
+        return { isValid: false, errorMessage: 'Conta bloqueada no RedTrack' }
       }
       
       // Para timeouts ou outros erros de rede, considerar válida
       if (error instanceof Error && (error.message.includes('504') || error.message.includes('timeout'))) {
         console.log('⚠️ [API] Timeout detectado, considerando API Key como válida')
-        return true
+        return { isValid: true }
       }
       
-      // Para outros erros, rejeitar
-      return false
+      // Para outros erros, rejeitar com mensagem genérica
+      return { isValid: false, errorMessage: error instanceof Error ? error.message : 'Erro desconhecido' }
     }
   }
 
