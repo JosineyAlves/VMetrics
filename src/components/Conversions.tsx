@@ -586,27 +586,27 @@ const Conversions: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowAdvancedData(!showAdvancedData)}
-            className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
+            className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm w-full sm:w-auto"
           >
             {showAdvancedData ? <Eye className="w-4 h-4 mr-2" /> : <Activity className="w-4 h-4 mr-2" />}
             {showAdvancedData ? 'Dados Básicos' : 'Dados Avançados'}
           </Button>
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm"
+            className="px-3 sm:px-4 py-2 rounded-xl border border-gray-400 text-gray-700 font-semibold bg-white shadow-lg hover:bg-gray-100 transition text-xs sm:text-sm w-full sm:w-auto"
           >
             <Filter className="w-4 h-4 mr-2 inline" />
             Filtros
@@ -664,18 +664,18 @@ const Conversions: React.FC = () => {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+          className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-600 truncate">Total de Conversões</p>
             </div>
-              <p className="text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
+              <p className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent">
                 {totalConversions}
               </p>
             </div>
@@ -778,7 +778,7 @@ const Conversions: React.FC = () => {
             <p className="text-gray-400 text-sm mt-1">Crie campanhas e comece a rastrear conversões para ver dados aqui.</p>
           </div>
         ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
           <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
