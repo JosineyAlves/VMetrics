@@ -1022,13 +1022,10 @@ const Dashboard: React.FC = () => {
   const metrics = getMetricsFromData(dashboardData)
 
   return (
-    <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-        <div className="w-full sm:w-auto">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 sm:hidden">Dashboard</h2>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           <MetricsSelector />
           <MetricsOrder />
         </div>
@@ -1104,7 +1101,7 @@ const Dashboard: React.FC = () => {
       {/* Removido: PeriodDropdown duplicado do Dashboard */}
 
       {/* KPIs Principais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
         {getMetricsFromData(dashboardData).map((metric) => {
           return (
           <motion.div
@@ -1112,7 +1109,7 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xl sm:shadow-2xl border border-gray-200 hover:shadow-2xl sm:hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] sm:hover:scale-105"
+            className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
@@ -1126,7 +1123,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <p className={`text-lg sm:text-2xl font-bold ${
+                <p className={`text-2xl font-bold ${
                   metric.isNegative 
                     ? 'text-red-500' // ✅ Valor negativo em vermelho
                     : 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent' // ✅ Valor positivo no gradiente verde
@@ -1141,21 +1138,21 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
         {/* Conversões por Dia */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl sm:shadow-2xl border border-gray-200 hover:shadow-2xl sm:hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
-          <div className="flex items-center gap-3 mb-4 sm:mb-6">
-            <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#3cd48f]" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Conversões por Dia</h3>
+          <div className="flex items-center gap-3 mb-6">
+            <BarChart2 className="w-6 h-6 text-[#3cd48f]" />
+            <h3 className="text-xl font-semibold text-gray-800">Conversões por Dia</h3>
           </div>
           
           {dailyData && dailyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
@@ -1181,12 +1178,12 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl sm:shadow-2xl border border-gray-200 hover:shadow-2xl sm:hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
             <div className="flex items-center gap-3">
-              <Shuffle className="w-5 h-5 sm:w-6 sm:h-6 text-[#3cd48f]" />
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800">Cruzamento Diário</h3>
+              <Shuffle className="w-6 h-6 text-[#3cd48f]" />
+              <h3 className="text-xl font-semibold text-gray-800">Cruzamento Diário</h3>
             </div>
             
             <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
@@ -1204,7 +1201,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           {dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
@@ -1231,10 +1228,10 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl sm:shadow-2xl border border-gray-200 hover:shadow-2xl sm:hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
             {sourceStats.length > 0 && (
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total Investido</p>

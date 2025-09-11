@@ -658,24 +658,24 @@ const Performance: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
              
 
       
 
              {/* Cards de Resumo */}
        {performanceData && (
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
            <motion.div
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.1 }}
-             className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200"
+             className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
            >
              <div className="flex items-center justify-between">
                <div>
                  <p className="text-sm font-medium text-gray-600">Total de Conversões</p>
-                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{performanceData.summary.totalConversions}</p>
+                 <p className="text-2xl font-bold text-gray-900">{performanceData.summary.totalConversions}</p>
                                    <p className="text-xs text-gray-500">Apenas conversões aprovadas</p>
                </div>
                        <div className="p-3 bg-[#3cd48f]/20 rounded-xl">
@@ -688,12 +688,12 @@ const Performance: React.FC = () => {
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.2 }}
-             className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200"
+             className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
            >
              <div className="flex items-center justify-between">
                <div>
                  <p className="text-sm font-medium text-gray-600">Receita Total</p>
-                 <p className="text-lg sm:text-2xl font-bold text-gray-900">{formatCurrency(performanceData.summary.totalRevenue)}</p>
+                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(performanceData.summary.totalRevenue)}</p>
                                    <p className="text-xs text-gray-500">Receita das conversões aprovadas</p>
                </div>
                <div className="p-3 bg-green-100 rounded-xl">
@@ -705,10 +705,10 @@ const Performance: React.FC = () => {
        )}
 
              {/* Seletor de Análise */}
-       <div className="flex flex-wrap gap-2 sm:gap-3">
+       <div className="flex flex-wrap gap-2 lg:gap-3">
          <Button
            onClick={() => setSelectedAnalysis('device')}
-           className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+           className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
              selectedAnalysis === 'device'
                ? 'bg-[#3cd48f] text-white shadow-lg'
                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
@@ -719,7 +719,7 @@ const Performance: React.FC = () => {
          </Button>
                    <Button
             onClick={() => setSelectedAnalysis('source')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
               selectedAnalysis === 'source'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
@@ -730,58 +730,63 @@ const Performance: React.FC = () => {
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('placement')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
               selectedAnalysis === 'placement'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Target className="w-5 h-5 mr-2" />
-            Posicionamentos
+            <Target className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
+            <span className="hidden sm:inline">Posicionamentos</span>
+            <span className="sm:hidden">Pos.</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('location')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
               selectedAnalysis === 'location'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <MapPin className="w-5 h-5 mr-2" />
-            Localização
+            <MapPin className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
+            <span className="hidden sm:inline">Localização</span>
+            <span className="sm:hidden">Local</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('browser')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
               selectedAnalysis === 'browser'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Monitor className="w-5 h-5 mr-2" />
-            Navegadores
+            <Monitor className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
+            <span className="hidden sm:inline">Navegadores</span>
+            <span className="sm:hidden">Nav.</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('os')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
               selectedAnalysis === 'os'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Smartphone className="w-5 h-5 mr-2" />
-            Sistemas
+            <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
+            <span className="hidden sm:inline">Sistemas</span>
+            <span className="sm:hidden">OS</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('hourly')}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all text-sm sm:text-base ${
+            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
               selectedAnalysis === 'hourly'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Clock className="w-5 h-5 mr-2" />
-            Horário
+            <Clock className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
+            <span className="hidden sm:inline">Horário</span>
+            <span className="sm:hidden">Hora</span>
           </Button>
        </div>
 
@@ -790,17 +795,17 @@ const Performance: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-8 shadow-lg border border-gray-200"
+        className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"
       >
-                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                 <div className="flex items-center gap-3 mb-6">
            {getAnalysisIcon()}
-           <h2 className="text-lg sm:text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
+           <h2 className="text-xl font-semibold text-gray-800">{getAnalysisTitle()}</h2>
          </div>
 
         {getAnalysisData().length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
                          {/* Gráfico de Barras */}
-             <div className="h-64 sm:h-80">
+             <div className="h-80">
                <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={selectedAnalysis === 'hourly' ? getAnalysisData() : getAnalysisData().slice(0, 10)}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -841,8 +846,8 @@ const Performance: React.FC = () => {
             </div>
 
             {/* Tabela de Dados */}
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <table className="w-full text-sm min-w-[600px]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
                                          <th className="text-left py-3 px-4 font-semibold text-gray-700">

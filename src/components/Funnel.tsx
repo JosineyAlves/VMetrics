@@ -501,12 +501,12 @@ const Funnel: React.FC = () => {
     ]
 
     return (
-      <div className="relative w-full min-h-[400px] bg-white rounded-xl sm:rounded-2xl p-4 overflow-visible shadow-lg">
+      <div className="relative w-full min-h-[400px] bg-white rounded-2xl p-4 overflow-visible shadow-lg">
         
         <div className="flex flex-col items-center py-2">
           {/* Header do funil */}
           <div className="text-center mb-4">
-            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">
               Funil de Conversão - {data.campaign.name}
             </h3>
           </div>
@@ -528,12 +528,12 @@ const Funnel: React.FC = () => {
                   className="flex flex-col items-center relative w-full"
                 >
                   {/* Estágio do funil com gradiente personalizado */}
-                    <div 
+                  <div 
                     className="relative rounded-lg shadow-md flex items-center justify-center mb-0.5"
                     style={{
                       width: `${width}%`,
-                      height: '36px',
-                      minWidth: '180px',
+                      height: '40px',
+                      minWidth: '200px',
                       background: `linear-gradient(135deg, ${colors.from} 0%, ${colors.to} 100%)`
                     }}
                   >
@@ -592,23 +592,23 @@ const Funnel: React.FC = () => {
           
           {/* Resumo do funil ultra compacto */}
           <div className="mt-4 text-center w-full">
-            <div className="inline-flex items-center space-x-2 sm:space-x-4 bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-lg p-2 sm:p-3 shadow-md border border-[#3cd48f]/20">
+            <div className="inline-flex items-center space-x-4 bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 rounded-lg p-3 shadow-md border border-[#3cd48f]/20">
               <div className="text-center">
-                <div className="text-xs sm:text-sm font-bold text-[#3cd48f]">
+                <div className="text-sm font-bold text-[#3cd48f]">
                   {data.summary.totalClicks.toLocaleString()}
                 </div>
                 <div className="text-xs text-[#3cd48f] font-medium">Cliques</div>
               </div>
               <div className="w-px h-4 bg-[#3cd48f]/30"></div>
               <div className="text-center">
-                <div className="text-xs sm:text-sm font-bold text-green-600">
+                <div className="text-sm font-bold text-green-600">
                   {data.summary.totalConversions.toLocaleString()}
                 </div>
                 <div className="text-xs text-green-600 font-medium">Conversões</div>
               </div>
               <div className="w-px h-4 bg-[#3cd48f]/30"></div>
               <div className="text-center">
-                <div className="text-xs sm:text-sm font-bold text-[#3cd48f]">
+                <div className="text-sm font-bold text-[#3cd48f]">
                   {data.summary.totalConversionRate}
                 </div>
                 <div className="text-xs text-[#3cd48f] font-medium">Taxa</div>
@@ -623,19 +623,19 @@ const Funnel: React.FC = () => {
   // Componente de visualização 2D do funil
   const Funnel2DVisualization: React.FC<{ data: FunnelData }> = ({ data }) => {
     return (
-      <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">
+      <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">
           Análise Detalhada do Funil
         </h3>
         
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-4">
           {data.stages.map((stage, index) => (
             <motion.div
               key={stage.name}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-2 sm:gap-0"
+              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
             >
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg bg-gradient-to-r ${stage.gradient} text-white`}>
@@ -647,11 +647,11 @@ const Funnel: React.FC = () => {
                 </div>
               </div>
               
-              <div className="text-left sm:text-right">
-                <div className="text-base sm:text-lg font-bold text-gray-800">
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-800">
                   {stage.value.toLocaleString()}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-600">
+                <div className="text-sm text-gray-600">
                   {isFinite(stage.percentage) ? stage.percentage.toFixed(1) : '0.0'}% de conversão
                 </div>
                 {stage.dropoffRate > 0 && (
@@ -672,9 +672,9 @@ const Funnel: React.FC = () => {
     return (
       <div className="space-y-6">
         {/* Bloco unificado de comparação */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-xl font-bold text-gray-800 flex items-center">
               <BarChart3 className="w-5 h-5 mr-2 text-[#3cd48f]" />
               Análise Comparativa de Campanhas
             </h3>
@@ -683,19 +683,19 @@ const Funnel: React.FC = () => {
             </p>
           </div>
           
-          <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
               {/* Métrica: Taxa de Conversão */}
-              <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="text-center">
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-[#3cd48f] rounded-full mx-auto mb-3">
-                    <Percent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="flex items-center justify-center w-12 h-12 bg-[#3cd48f] rounded-full mx-auto mb-3">
+                    <Percent className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="text-sm font-semibold text-gray-800 mb-4">Taxa de Conversão</h4>
                   
                   <div className="space-y-3">
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="text-base sm:text-lg font-bold text-[#3cd48f] mb-1">
+                      <div className="text-lg font-bold text-[#3cd48f] mb-1">
                         {funnelData?.summary.totalConversionRate || '0%'}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
@@ -704,7 +704,7 @@ const Funnel: React.FC = () => {
                     </div>
                     
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="text-base sm:text-lg font-bold text-green-600 mb-1">
+                      <div className="text-lg font-bold text-green-600 mb-1">
                         {funnelData2?.summary.totalConversionRate || '0%'}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
@@ -716,16 +716,16 @@ const Funnel: React.FC = () => {
               </div>
               
               {/* Métrica: ROI */}
-              <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="text-center">
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-orange-500 rounded-full mx-auto mb-3">
-                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="flex items-center justify-center w-12 h-12 bg-orange-500 rounded-full mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="text-sm font-semibold text-gray-800 mb-4">Retorno sobre Investimento</h4>
                   
                   <div className="space-y-3">
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="text-base sm:text-lg font-bold text-[#3cd48f] mb-1">
+                      <div className="text-lg font-bold text-[#3cd48f] mb-1">
                         {funnelData?.summary.roi.toFixed(2) || '0.00'}%
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
@@ -734,7 +734,7 @@ const Funnel: React.FC = () => {
                     </div>
                     
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="text-base sm:text-lg font-bold text-green-600 mb-1">
+                      <div className="text-lg font-bold text-green-600 mb-1">
                         {funnelData2?.summary.roi.toFixed(2) || '0.00'}%
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
@@ -746,16 +746,16 @@ const Funnel: React.FC = () => {
               </div>
               
               {/* Métrica: Conversões */}
-              <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-sm">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="text-center">
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-full mx-auto mb-3">
-                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="text-sm font-semibold text-gray-800 mb-4">Conversões Aprovadas</h4>
                   
                   <div className="space-y-3">
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="text-base sm:text-lg font-bold text-[#3cd48f] mb-1">
+                      <div className="text-lg font-bold text-[#3cd48f] mb-1">
                         {funnelData?.summary.totalConversions.toLocaleString() || '0'}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
@@ -764,7 +764,7 @@ const Funnel: React.FC = () => {
                     </div>
                     
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <div className="text-base sm:text-lg font-bold text-green-600 mb-1">
+                      <div className="text-lg font-bold text-green-600 mb-1">
                         {funnelData2?.summary.totalConversions.toLocaleString() || '0'}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">
@@ -779,17 +779,17 @@ const Funnel: React.FC = () => {
         </div>
         
         {/* Visualizações lado a lado */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200">
-            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 flex items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
               {funnelData?.campaign.name || 'Campanha 1'}
             </h3>
             {funnelData && <Funnel2DVisualization data={funnelData} />}
           </div>
           
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200">
-            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 flex items-center">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
               {funnelData2?.campaign.name || 'Campanha 2'}
             </h3>
@@ -808,16 +808,16 @@ const Funnel: React.FC = () => {
   }
 
   return (
-    <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-6">
         
         {/* Controles */}
-        <div className="bg-white rounded-xl p-4 shadow-lg mb-4 border border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl p-3 lg:p-4 shadow-lg mb-4 border border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             {/* Seletor de Campanha */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
                 Campanha Principal
               </label>
               <CustomSelect
@@ -838,7 +838,7 @@ const Funnel: React.FC = () => {
             {/* Seletor de Campanha 2 (para comparação) */}
             {comparisonMode && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
                   Campanha para Comparar
                 </label>
                 <CustomSelect
@@ -859,7 +859,7 @@ const Funnel: React.FC = () => {
             
             {/* Modo de Visualização */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
                 Modo de Visualização
               </label>
               <CustomSelect
@@ -877,16 +877,16 @@ const Funnel: React.FC = () => {
             
             {/* Botão Comparar */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
                 Ações
               </label>
               <Button
                 onClick={toggleComparisonMode}
                 variant={comparisonMode ? "primary" : "outline"}
-                className="w-full flex items-center justify-center space-x-2"
+                className="w-full flex items-center justify-center space-x-2 text-xs lg:text-sm py-2 lg:py-3"
               >
-                <SplitSquareVertical className="w-4 h-4" />
-                <span>Comparar</span>
+                <SplitSquareVertical className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Comparar</span>
               </Button>
             </div>
           </div>

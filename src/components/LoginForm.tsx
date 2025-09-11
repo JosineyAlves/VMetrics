@@ -72,22 +72,22 @@ const LoginForm: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="modern-card p-8">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+        <div className="modern-card p-4 lg:p-8">
+          <div className="text-center mb-6 lg:mb-8">
+            <div className="flex justify-center mb-3 lg:mb-4">
               <Logo size="xl" variant="gradient" />
             </div>
-                         <p className="text-[#1f1f1f]/70">
+                         <p className="text-sm lg:text-base text-[#1f1f1f]/70">
                Faça login na sua conta
              </p>
 
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-4 lg:space-y-6">
             <div>
-                             <label htmlFor="email" className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                             <label htmlFor="email" className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
                  Email
                </label>
               <Input
@@ -103,7 +103,7 @@ const LoginForm: React.FC = () => {
             </div>
 
             <div>
-                             <label htmlFor="password" className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                             <label htmlFor="password" className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
                  Senha
                </label>
               <div className="relative">
@@ -129,12 +129,12 @@ const LoginForm: React.FC = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-3 text-lg font-semibold"
+              className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-2 lg:py-3 text-sm lg:text-lg font-semibold"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                  <div className="w-3 h-3 lg:w-4 lg:h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
                   Entrando...
                 </>
               ) : (
@@ -142,11 +142,11 @@ const LoginForm: React.FC = () => {
               )}
             </Button>
 
-            <div className="text-center mt-4">
+            <div className="text-center mt-3 lg:mt-4">
               <button
                 type="button"
                 onClick={() => navigate('/forgot-password')}
-                className="text-sm text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
+                className="text-xs lg:text-sm text-[#3cd48f] hover:text-[#3cd48f]/80 underline"
               >
                 Esqueci minha senha
               </button>
@@ -154,8 +154,8 @@ const LoginForm: React.FC = () => {
           </form>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
-              <p className="text-sm text-red-600 font-medium">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mt-4 lg:mt-6">
+              <p className="text-xs lg:text-sm text-red-600 font-medium">{error}</p>
             </div>
           )}
 

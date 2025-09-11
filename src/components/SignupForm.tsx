@@ -137,20 +137,20 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4 lg:space-y-6"
     >
-      <div className="text-center mb-8">
-                 <h2 className="text-3xl font-bold text-[#1f1f1f] mb-2">
+      <div className="text-center mb-6 lg:mb-8">
+                 <h2 className="text-2xl lg:text-3xl font-bold text-[#1f1f1f] mb-2">
            Complete seu cadastro
          </h2>
-         <p className="text-[#1f1f1f]/70">
+         <p className="text-sm lg:text-base text-[#1f1f1f]/70">
            {planType ? `Plano selecionado: ${planType.toUpperCase()}` : 'Configure sua conta VMetrics'}
          </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
         <div>
-                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                     <label className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
              Nome *
            </label>
           <Input
@@ -166,7 +166,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         </div>
 
         <div>
-                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                     <label className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
              Sobrenome *
            </label>
           <Input
@@ -183,7 +183,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       </div>
 
       <div>
-                 <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                 <label className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
            Email *
          </label>
         <Input
@@ -199,7 +199,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       </div>
 
       <div>
-                 <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                 <label className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
            Empresa *
          </label>
         <Input
@@ -215,7 +215,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
           Telefone
         </label>
         <Input
@@ -226,9 +226,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
         <div>
-                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                     <label className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
              Senha *
            </label>
           <div className="relative">
@@ -253,7 +253,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
         </div>
 
         <div>
-                     <label className="block text-sm font-medium text-[#1f1f1f] mb-2">
+                     <label className="block text-xs lg:text-sm font-medium text-[#1f1f1f] mb-2">
              Confirmar Senha *
            </label>
           <div className="relative">
@@ -280,10 +280,10 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
 
              <Button
          onClick={handleNextStep}
-         className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-3 text-lg font-semibold"
+         className="w-full bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white py-2 lg:py-3 text-sm lg:text-lg font-semibold"
        >
         Continuar
-        <ArrowRight className="w-5 h-5 ml-2" />
+        <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2" />
       </Button>
     </motion.div>
   )
@@ -294,23 +294,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4 lg:space-y-6"
     >
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+      <div className="text-center mb-6 lg:mb-8">
+        <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
           Configure sua API Key
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm lg:text-base text-gray-600">
           Conecte sua conta RedTrack para começar a usar o VMetrics
         </p>
       </div>
 
-              <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-4 mb-6">
-        <div className="flex items-start space-x-3">
-                          <Shield className="w-5 h-5 text-[#3cd48f] mt-0.5 flex-shrink-0" />
+              <div className="bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6">
+        <div className="flex items-start space-x-2 lg:space-x-3">
+                          <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-[#3cd48f] mt-0.5 flex-shrink-0" />
           <div>
-                          <h3 className="font-medium text-[#1f1f1f] mb-2">Como obter sua API Key</h3>
-                          <ol className="text-sm text-[#1f1f1f]/70 space-y-1">
+                          <h3 className="text-sm lg:text-base font-medium text-[#1f1f1f] mb-2">Como obter sua API Key</h3>
+                          <ol className="text-xs lg:text-sm text-[#1f1f1f]/70 space-y-1">
               <li>1. Acesse sua conta RedTrack</li>
               <li>2. Vá em <strong>Settings → API</strong></li>
               <li>3. Clique em <strong>Generate New Key</strong></li>
@@ -321,7 +321,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
           API Key do RedTrack *
         </label>
         <Input
@@ -331,26 +331,26 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
           placeholder="Cole sua API Key aqui"
           className="pr-10"
         />
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-xs lg:text-sm text-gray-500 mt-1">
           Sua API Key será salva de forma segura e usada para conectar ao RedTrack
         </p>
       </div>
 
       {apiKey && (
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <Button
             onClick={validateApiKey}
             disabled={isApiKeyLoading}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 text-white text-xs lg:text-sm py-2 lg:py-3 px-3 lg:px-4"
           >
             {isApiKeyLoading ? (
               <>
-                <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+                <div className="w-3 h-3 lg:w-4 lg:h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
                 Testando...
               </>
             ) : (
               <>
-                <CheckCircle className="w-4 h-4 mr-2" />
+                <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
                 Testar API Key
               </>
             )}
@@ -358,25 +358,25 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
 
           {isApiKeyValid && (
             <div className="flex items-center text-green-600">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">API Key válida!</span>
+              <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
+              <span className="text-xs lg:text-sm font-medium">API Key válida!</span>
             </div>
           )}
 
           {apiKey && !isApiKeyValid && !isApiKeyLoading && (
             <div className="flex items-center text-red-600">
-              <AlertCircle className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">API Key inválida</span>
+              <AlertCircle className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
+              <span className="text-xs lg:text-sm font-medium">API Key inválida</span>
             </div>
           )}
         </div>
       )}
 
-      <div className="flex space-x-4">
+      <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
         <Button
           onClick={handlePrevStep}
           variant="outline"
-          className="flex-1"
+          className="flex-1 text-xs lg:text-sm py-2 lg:py-3"
         >
           Voltar
         </Button>
@@ -384,23 +384,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
                  <Button
            onClick={handleFinishSignup}
            disabled={!apiKey.trim() || isApiKeyLoading}
-           className="flex-1 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white"
+           className="flex-1 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 hover:from-[#3cd48f]/90 hover:to-[#3cd48f]/70 text-white text-xs lg:text-sm py-2 lg:py-3"
          >
           {isApiKeyLoading ? (
             <>
-              <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
+              <div className="w-3 h-3 lg:w-4 lg:h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full"></div>
               Configurando...
             </>
           ) : (
             <>
               Finalizar Cadastro
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5 ml-2" />
             </>
           )}
         </Button>
       </div>
 
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-xs lg:text-sm text-gray-500">
         <p>Já tem uma conta? </p>
                  <a 
            href={APP_URLS.DASHBOARD_APP} 
@@ -413,21 +413,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ email, planType, onSuccess }) =
   )
 
   return (
-         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10 py-12 px-4">
+         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#3cd48f]/5 via-white to-[#3cd48f]/10 py-8 lg:py-12 px-4">
       <div className="w-full max-w-2xl">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-xl lg:rounded-2xl shadow-xl p-4 lg:p-8">
           {/* Progress Steps */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center space-x-4">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+          <div className="flex items-center justify-center mb-6 lg:mb-8">
+            <div className="flex items-center space-x-3 lg:space-x-4">
+              <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-xs lg:text-sm font-semibold ${
                                  step >= 1 ? 'bg-[#3cd48f] text-white' : 'bg-gray-200 text-gray-500'
               }`}>
                 1
               </div>
-              <div className={`w-16 h-1 ${
+              <div className={`w-12 lg:w-16 h-1 ${
                                  step >= 2 ? 'bg-[#3cd48f]' : 'bg-gray-200'
               }`}></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+              <div className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-xs lg:text-sm font-semibold ${
                                  step >= 2 ? 'bg-[#3cd48f] text-white' : 'bg-gray-200 text-gray-500'
               }`}>
                 2

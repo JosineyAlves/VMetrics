@@ -146,23 +146,44 @@ const DashboardLayout: React.FC = () => {
         isSidebarCollapsed={isCollapsed}
         onToggleSidebar={toggle}
       />
-      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0`}>
-        {/* Barra global fixa */}
-        <div className="w-full flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 px-4 sm:px-8 pt-4 sm:pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
-          {/* Título da tela à esquerda */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="text-xl sm:text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
-            {lastUpdateTime && (
-              <div className="text-xs sm:text-sm text-gray-500 hidden sm:block">
-                Atualizado {getTimeSinceLastUpdate()}
-              </div>
-            )}
+      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''}`}>
+        {/* Barra global fixa - Mobile e Desktop */}
+        <div className="w-full bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
+          {/* Primeira linha - Logo e Menu Mobile */}
+          <div className="flex items-center justify-between px-4 py-3 lg:hidden">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/assets/icons/favicon.svg" 
+                alt="VMetrics" 
+                className="w-8 h-8"
+              />
+              <div className="text-lg font-bold text-[#1f1f1f]">{sectionTitle}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              {showRefresh && (
+                <button 
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="inline-flex items-center px-3 py-2 rounded-lg border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50 text-sm"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
+            </div>
           </div>
-          {/* Ações e seletor à direita */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            {/* Não mostrar PeriodDropdown na tela de configurações */}
-            {currentSection !== 'settings' && (
-              <div className="w-full sm:w-auto">
+
+          {/* Segunda linha - Filtros e Ações (Mobile) */}
+          <div className="flex items-center justify-between px-4 py-2 lg:hidden border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              {lastUpdateTime && (
+                <div className="text-xs text-gray-500">
+                  Atualizado {getTimeSinceLastUpdate()}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Não mostrar PeriodDropdown na tela de configurações */}
+              {currentSection !== 'settings' && (
                 <PeriodDropdown
                   value={selectedPeriod}
                   customRange={customRange}
@@ -171,18 +192,45 @@ const DashboardLayout: React.FC = () => {
                     if (period === 'custom' && range) setCustomRange(range)
                   }}
                 />
-              </div>
-            )}
-            {showRefresh && (
-              <button 
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="inline-flex items-center px-3 sm:px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto justify-center"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-              </button>
-            )}
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Layout - Linha única */}
+          <div className="hidden lg:flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2">
+            {/* Título da tela à esquerda */}
+            <div className="flex items-center gap-3">
+              <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
+              {lastUpdateTime && (
+                <div className="text-sm text-gray-500">
+                  Atualizado {getTimeSinceLastUpdate()}
+                </div>
+              )}
+            </div>
+            {/* Ações e seletor à direita */}
+            <div className="flex items-center gap-3">
+              {/* Não mostrar PeriodDropdown na tela de configurações */}
+              {currentSection !== 'settings' && (
+                <PeriodDropdown
+                  value={selectedPeriod}
+                  customRange={customRange}
+                  onChange={(period, range) => {
+                    setSelectedPeriod(period)
+                    if (period === 'custom' && range) setCustomRange(range)
+                  }}
+                />
+              )}
+              {showRefresh && (
+                <button 
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="inline-flex items-center px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <AnimatePresence mode="wait">
