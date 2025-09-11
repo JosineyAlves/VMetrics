@@ -1022,9 +1022,9 @@ const Dashboard: React.FC = () => {
   const metrics = getMetricsFromData(dashboardData)
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
           <MetricsSelector />
           <MetricsOrder />
@@ -1101,7 +1101,7 @@ const Dashboard: React.FC = () => {
       {/* Removido: PeriodDropdown duplicado do Dashboard */}
 
       {/* KPIs Principais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {getMetricsFromData(dashboardData).map((metric) => {
           return (
           <motion.div
@@ -1138,13 +1138,13 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Conversões por Dia */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex items-center gap-3 mb-6">
             <BarChart2 className="w-6 h-6 text-[#3cd48f]" />
@@ -1178,7 +1178,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
             <div className="flex items-center gap-3">
@@ -1228,7 +1228,7 @@ const Dashboard: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-white rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
+          className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>

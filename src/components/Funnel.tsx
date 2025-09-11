@@ -684,7 +684,7 @@ const Funnel: React.FC = () => {
           </div>
           
           <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Métrica: Taxa de Conversão */}
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="text-center">
@@ -779,7 +779,7 @@ const Funnel: React.FC = () => {
         </div>
         
         {/* Visualizações lado a lado */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <div className="w-3 h-3 bg-[#3cd48f] rounded-full mr-2"></div>
@@ -808,16 +808,16 @@ const Funnel: React.FC = () => {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-8 space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-6">
         
         {/* Controles */}
-        <div className="bg-white rounded-xl p-3 lg:p-4 shadow-lg mb-4 border border-gray-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="bg-white rounded-xl p-4 shadow-lg mb-4 border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {/* Seletor de Campanha */}
             <div>
-              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Campanha Principal
               </label>
               <CustomSelect
@@ -838,7 +838,7 @@ const Funnel: React.FC = () => {
             {/* Seletor de Campanha 2 (para comparação) */}
             {comparisonMode && (
               <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Campanha para Comparar
                 </label>
                 <CustomSelect
@@ -859,7 +859,7 @@ const Funnel: React.FC = () => {
             
             {/* Modo de Visualização */}
             <div>
-              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Modo de Visualização
               </label>
               <CustomSelect
@@ -877,16 +877,16 @@ const Funnel: React.FC = () => {
             
             {/* Botão Comparar */}
             <div>
-              <label className="block text-xs lg:text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ações
               </label>
               <Button
                 onClick={toggleComparisonMode}
                 variant={comparisonMode ? "primary" : "outline"}
-                className="w-full flex items-center justify-center space-x-2 text-xs lg:text-sm py-2 lg:py-3"
+                className="w-full flex items-center justify-center space-x-2"
               >
-                <SplitSquareVertical className="w-3 h-3 lg:w-4 lg:h-4" />
-                <span className="hidden sm:inline">Comparar</span>
+                <SplitSquareVertical className="w-4 h-4" />
+                <span>Comparar</span>
               </Button>
             </div>
           </div>

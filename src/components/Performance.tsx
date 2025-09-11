@@ -658,14 +658,14 @@ const Performance: React.FC = () => {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
              
 
       
 
              {/* Cards de Resumo */}
        {performanceData && (
-         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <motion.div
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -705,10 +705,10 @@ const Performance: React.FC = () => {
        )}
 
              {/* Seletor de Análise */}
-       <div className="flex flex-wrap gap-2 lg:gap-3">
+       <div className="flex flex-wrap gap-3">
          <Button
            onClick={() => setSelectedAnalysis('device')}
-           className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
              selectedAnalysis === 'device'
                ? 'bg-[#3cd48f] text-white shadow-lg'
                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
@@ -719,7 +719,7 @@ const Performance: React.FC = () => {
          </Button>
                    <Button
             onClick={() => setSelectedAnalysis('source')}
-            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'source'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
@@ -730,63 +730,58 @@ const Performance: React.FC = () => {
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('placement')}
-            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'placement'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Target className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
-            <span className="hidden sm:inline">Posicionamentos</span>
-            <span className="sm:hidden">Pos.</span>
+            <Target className="w-5 h-5 mr-2" />
+            Posicionamentos
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('location')}
-            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'location'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <MapPin className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
-            <span className="hidden sm:inline">Localização</span>
-            <span className="sm:hidden">Local</span>
+            <MapPin className="w-5 h-5 mr-2" />
+            Localização
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('browser')}
-            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'browser'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Monitor className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
-            <span className="hidden sm:inline">Navegadores</span>
-            <span className="sm:hidden">Nav.</span>
+            <Monitor className="w-5 h-5 mr-2" />
+            Navegadores
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('os')}
-            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'os'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
-            <span className="hidden sm:inline">Sistemas</span>
-            <span className="sm:hidden">OS</span>
+            <Smartphone className="w-5 h-5 mr-2" />
+            Sistemas
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('hourly')}
-            className={`px-3 lg:px-6 py-2 lg:py-3 rounded-xl font-semibold transition-all text-sm lg:text-base ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               selectedAnalysis === 'hourly'
                 ? 'bg-[#3cd48f] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
             }`}
           >
-            <Clock className="w-4 h-4 lg:w-5 lg:h-5 mr-1 lg:mr-2" />
-            <span className="hidden sm:inline">Horário</span>
-            <span className="sm:hidden">Hora</span>
+            <Clock className="w-5 h-5 mr-2" />
+            Horário
           </Button>
        </div>
 
@@ -803,7 +798,7 @@ const Performance: React.FC = () => {
          </div>
 
         {getAnalysisData().length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                          {/* Gráfico de Barras */}
              <div className="h-80">
                <ResponsiveContainer width="100%" height="100%">

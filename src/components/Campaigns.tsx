@@ -789,7 +789,7 @@ const Campaigns: React.FC = () => {
 
   // ✅ NOVA FUNÇÃO: Aplicar filtros aos dados de performance
   const applyFiltersToPerformanceData = (performanceData: any[], dataType: string) => {
-    if (!filters || Object.keys(filters).every(key => !(filters as any)[key])) {
+    if (!filters || Object.keys(filters).every(key => !filters[key])) {
       console.log(`🔍 [PERFORMANCE FILTERS] Nenhum filtro ativo para ${dataType}, retornando dados completos`)
       return performanceData
     }
@@ -940,7 +940,7 @@ const Campaigns: React.FC = () => {
   // Mensagem amigável se não houver campanhas
   // Mostrar filtros sempre, mesmo sem campanhas
     return (
-      <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
               {/* Tabs Navigation */}
@@ -970,7 +970,7 @@ const Campaigns: React.FC = () => {
         </div>
 
         {/* ✅ OTIMIZADO: Indicador de filtros ativos mais sutil */}
-        {activeTab === 'utm' && Object.keys(filters).some(key => (filters as any)[key]) && (
+        {activeTab === 'utm' && Object.keys(filters).some(key => filters[key]) && (
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1246,7 +1246,7 @@ const Campaigns: React.FC = () => {
 
       {/* Performance Blocks - Layout Responsivo - Apenas na aba Campanhas */}
       {activeTab === 'campaigns' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         {/* Best performing campaigns */}
         <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
@@ -1513,7 +1513,7 @@ const Campaigns: React.FC = () => {
             <>
               {/* Performance Blocks UTM - Layout Responsivo - Apenas na aba UTM Analytics */}
               {activeTab === 'utm' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                   {/* Top RT Campaigns */}
                   <div className="bg-gradient-to-br from-white to-[#3cd48f]/5 rounded-2xl p-5 shadow-lg border border-[#3cd48f]/20 hover:shadow-xl transition-all duration-300">
                     <div className="flex items-center justify-between mb-6">
@@ -1528,7 +1528,7 @@ const Campaigns: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center gap-2">
                           <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
-                            Object.keys(filters).some(key => (filters as any)[key]) 
+                            Object.keys(filters).some(key => filters[key]) 
                               ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
                               : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
                           }`}>
@@ -1615,7 +1615,7 @@ const Campaigns: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center gap-2">
                           <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
-                            Object.keys(filters).some(key => (filters as any)[key]) 
+                            Object.keys(filters).some(key => filters[key]) 
                               ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
                               : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
                           }`}>
@@ -1702,7 +1702,7 @@ const Campaigns: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <div className="flex items-center gap-2">
                           <div className={`rounded-full px-4 py-2 text-sm font-semibold shadow-lg ${
-                            Object.keys(filters).some(key => (filters as any)[key]) 
+                            Object.keys(filters).some(key => filters[key]) 
                               ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white' // Filtros ativos
                               : 'bg-gradient-to-r from-[#3cd48f] to-[#10b981] text-white' // Sem filtros
                           }`}>

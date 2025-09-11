@@ -157,23 +157,23 @@ const Settings: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-white/20"
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-3 lg:space-x-4 mb-6 lg:mb-8">
-                  <div className="p-2 lg:p-3 bg-[#3cd48f]/20 rounded-xl lg:rounded-2xl">
-          <Key className="w-5 h-5 lg:w-7 lg:h-7 text-[#3cd48f]" />
+        <div className="flex items-center space-x-4 mb-8">
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <Key className="w-7 h-7 text-[#3cd48f]" />
           </div>
           <div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-800">API Key</h3>
-            <p className="text-xs lg:text-sm text-gray-600">
+            <h3 className="text-xl font-bold text-gray-800">API Key</h3>
+            <p className="text-sm text-gray-600">
               Configure sua chave de API do RedTrack
             </p>
           </div>
         </div>
 
-        <div className="space-y-4 lg:space-y-6">
+        <div className="space-y-6">
           <div>
-            <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-2 lg:mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Chave da API
             </label>
             <div className="relative">
@@ -208,14 +208,14 @@ const Settings: React.FC = () => {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center space-x-2 lg:space-x-3 px-4 lg:px-6 py-2 lg:py-3 rounded-lg lg:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-sm lg:text-base"
+              className="flex items-center space-x-3 px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80"
             >
               {saving ? (
-                <div className="animate-spin rounded-full h-4 w-4 lg:h-5 lg:w-5 border-2 border-white border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
               ) : saved ? (
-                <CheckCircle className="w-4 h-4 lg:w-5 lg:h-5" />
+                <CheckCircle className="w-5 h-5" />
               ) : (
-                <Save className="w-4 h-4 lg:w-5 lg:h-5" />
+                <Save className="w-5 h-5" />
               )}
               <span className="font-semibold">
                 {saving ? 'Salvando...' : saved ? 'API Key Salva!' : 'Salvar API Key'}
@@ -230,24 +230,24 @@ const Settings: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-white/20"
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-3 lg:space-x-4 mb-4 lg:mb-6">
-                  <div className="p-2 lg:p-3 bg-[#3cd48f]/20 rounded-xl lg:rounded-2xl">
-          <DollarSign className="w-5 h-5 lg:w-7 lg:h-7 text-[#3cd48f]" />
+        <div className="flex items-center space-x-4 mb-6">
+                  <div className="p-3 bg-[#3cd48f]/20 rounded-2xl">
+          <DollarSign className="w-7 h-7 text-[#3cd48f]" />
           </div>
           <div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-800">Configuração de Moeda</h3>
-            <p className="text-xs lg:text-sm text-gray-600">
+            <h3 className="text-xl font-bold text-gray-800">Configuração de Moeda</h3>
+            <p className="text-sm text-gray-600">
               Selecione a moeda configurada no seu RedTrack
             </p>
           </div>
         </div>
 
         {/* Dropdown de Seleção de Moeda */}
-        <div className="space-y-3 lg:space-y-4">
+        <div className="space-y-4">
           <div>
-            <label className="text-xs lg:text-sm font-medium text-gray-600 mb-2 block">
+            <label className="text-sm font-medium text-gray-600 mb-2 block">
               Selecione a Moeda
             </label>
             <CustomSelect
@@ -310,48 +310,48 @@ const Settings: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-white/20"
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-3 lg:space-x-4 mb-6 lg:mb-8">
-          <div className="p-2 lg:p-3 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-xl lg:rounded-2xl">
-            <Crown className="w-5 h-5 lg:w-7 lg:h-7 text-white" />
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-2xl">
+            <Crown className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-800">Plano Atual</h3>
-            <p className="text-xs lg:text-sm text-gray-600">
+            <h3 className="text-xl font-bold text-gray-800">Plano Atual</h3>
+            <p className="text-sm text-gray-600">
               Seu plano atual e próximas cobranças
             </p>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 border border-[#3cd48f]/20 rounded-xl lg:rounded-2xl p-4 lg:p-6">
+        <div className="bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 border border-[#3cd48f]/20 rounded-2xl p-6">
           {planLoading ? (
-            <div className="text-center py-6 lg:py-8">
-              <div className="animate-spin rounded-full h-6 w-6 lg:h-8 lg:w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-3 lg:mb-4"></div>
-              <p className="text-sm lg:text-base text-gray-600">Carregando plano...</p>
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-600">Carregando plano...</p>
             </div>
           ) : planError ? (
-            <div className="text-center py-6 lg:py-8">
-              <AlertCircle className="w-8 h-8 lg:w-12 lg:h-12 text-red-500 mx-auto mb-3 lg:mb-4" />
-              <p className="text-sm lg:text-base text-red-600 mb-2">Erro ao carregar plano</p>
-              <p className="text-xs lg:text-sm text-gray-500">{planError}</p>
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <p className="text-red-600 mb-2">Erro ao carregar plano</p>
+              <p className="text-sm text-gray-500">{planError}</p>
               <Button 
                 onClick={refreshPlan}
                 variant="outline" 
-                className="mt-3 lg:mt-4 text-xs lg:text-sm px-3 lg:px-4 py-2"
+                className="mt-4"
               >
-                <RefreshCw className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2" />
                 Tentar Novamente
               </Button>
             </div>
           ) : (
             <>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 lg:mb-6 space-y-3 sm:space-y-0">
+          <div className="flex items-center justify-between mb-6">
             <div>
-                  <h4 className="text-xl lg:text-2xl font-bold text-gray-800 mb-2">{planName}</h4>
+                  <h4 className="text-2xl font-bold text-gray-800 mb-2">{planName}</h4>
               <div className="flex items-baseline space-x-2">
-                    <span className="text-2xl lg:text-3xl font-bold text-[#3cd48f]">{planPrice}</span>
-                    <span className="text-sm lg:text-base text-gray-600">/mês</span>
+                    <span className="text-3xl font-bold text-[#3cd48f]">{planPrice}</span>
+                    <span className="text-gray-600">/mês</span>
               </div>
             </div>
                          <div className="text-right">
@@ -395,48 +395,48 @@ const Settings: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl lg:rounded-3xl p-4 lg:p-8 shadow-2xl border border-white/20"
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-3 lg:space-x-4 mb-6 lg:mb-8">
-          <div className="p-2 lg:p-3 bg-green-100 rounded-xl lg:rounded-2xl">
-            <CreditCard className="w-5 h-5 lg:w-7 lg:h-7 text-green-600" />
+        <div className="flex items-center space-x-4 mb-8">
+          <div className="p-3 bg-green-100 rounded-2xl">
+            <CreditCard className="w-7 h-7 text-green-600" />
           </div>
           <div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-800">Planos Disponíveis</h3>
-            <p className="text-xs lg:text-sm text-gray-600">
+            <h3 className="text-xl font-bold text-gray-800">Planos Disponíveis</h3>
+            <p className="text-sm text-gray-600">
               Escolha o plano ideal para suas necessidades
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Plano Mensal */}
-          <div className="border border-gray-200 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:shadow-lg transition-all duration-300 relative">
+          <div className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 relative">
             {/* Banner Beta */}
-            <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 transform rotate-12">
-              <span className="bg-orange-500 text-white px-2 lg:px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+            <div className="absolute -top-3 -right-3 transform rotate-12">
+              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                 BETA
               </span>
             </div>
-            <div className="text-center mb-4 lg:mb-6">
-              <h4 className="text-lg lg:text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.monthly.name}</h4>
-              <div className="text-2xl lg:text-3xl font-bold text-[#3cd48f] mb-1">
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.monthly.name}</h4>
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">
                 R${(STRIPE_PRODUCTS.monthly.prices.monthly.amount / 100).toFixed(2).replace('.', ',')}
               </div>
-              <div className="text-sm lg:text-base text-gray-600">por mês</div>
+              <div className="text-gray-600">por mês</div>
             </div>
-            <ul className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
+            <ul className="space-y-3 mb-6">
               {STRIPE_PRODUCTS.monthly.features.map((feature, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-500" />
-                  <span className="text-xs lg:text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
                 </li>
               ))}
             </ul>
                          <Button 
               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.monthly, '_blank')}
               variant={planType === 'monthly' ? 'outline' : 'outline'}
-              className={`w-full rounded-lg lg:rounded-xl text-sm lg:text-base py-2 lg:py-3 ${
+              className={`w-full rounded-xl ${
                 planType === 'monthly' 
                   ? 'bg-[#3cd48f]/10 border-[#3cd48f] text-[#3cd48f] cursor-default' 
                   : 'hover:bg-[#3cd48f]/10 hover:border-[#3cd48f]/30'
@@ -448,25 +448,25 @@ const Settings: React.FC = () => {
           </div>
 
           {/* Plano Trimestral */}
-          <div className="border-2 border-[#3cd48f] rounded-xl lg:rounded-2xl p-4 lg:p-6 bg-[#3cd48f]/10 relative">
+          <div className="border-2 border-[#3cd48f] rounded-2xl p-6 bg-[#3cd48f]/10 relative">
             {/* Banner Beta */}
-            <div className="absolute -top-2 -right-2 lg:-top-3 lg:-right-3 transform rotate-12">
-              <span className="bg-orange-500 text-white px-2 lg:px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+            <div className="absolute -top-3 -right-3 transform rotate-12">
+              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                 BETA
               </span>
             </div>
-            <div className="absolute -top-2 lg:-top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-[#3cd48f] text-white px-2 lg:px-3 py-1 rounded-full text-xs font-medium">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-[#3cd48f] text-white px-3 py-1 rounded-full text-xs font-medium">
                 Melhor Valor
               </span>
             </div>
-            <div className="text-center mb-4 lg:mb-6">
-              <h4 className="text-lg lg:text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.quarterly.name}</h4>
-              <div className="text-2xl lg:text-3xl font-bold text-[#3cd48f] mb-1">
+            <div className="text-center mb-6">
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{STRIPE_PRODUCTS.quarterly.name}</h4>
+              <div className="text-3xl font-bold text-[#3cd48f] mb-1">
                 R$ 197,00
               </div>
-              <div className="text-sm lg:text-base text-gray-600">R$ 65,66 por mês</div>
-              <div className="text-xs lg:text-sm text-gray-500 mt-1">
+              <div className="text-gray-600">R$ 65,66 por mês</div>
+              <div className="text-sm text-gray-500 mt-1">
                 <span className="text-green-600 font-medium">
                   16,87% de desconto em relação ao plano mensal
                 </span>
@@ -475,17 +475,17 @@ const Settings: React.FC = () => {
                 Cobrança a cada 3 meses: R$ 197,00
               </div>
             </div>
-            <ul className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
+            <ul className="space-y-3 mb-6">
               {STRIPE_PRODUCTS.quarterly.features.map((feature, index) => (
                 <li key={index} className="flex items-center space-x-2">
-                  <CheckCircle className="w-3 h-3 lg:w-4 lg:h-4 text-green-500" />
-                  <span className="text-xs lg:text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span className="text-sm text-gray-700">{feature}</span>
                 </li>
               ))}
             </ul>
                          <Button 
               onClick={() => window.open(STRIPE_CHECKOUT_LINKS.quarterly, '_blank')}
-              className={`w-full font-semibold rounded-lg lg:rounded-xl text-sm lg:text-base py-2 lg:py-3 ${
+              className={`w-full font-semibold rounded-xl ${
                 planType === 'quarterly' 
                   ? 'bg-[#3cd48f]/20 text-[#3cd48f] border-2 border-[#3cd48f] cursor-default' 
                   : 'bg-[#3cd48f] hover:bg-[#3cd48f]/90 text-white'
@@ -512,7 +512,7 @@ const Settings: React.FC = () => {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Tabs Navigation */}
       <div className="flex space-x-2">
         {tabs.map((tab) => {
@@ -521,14 +521,14 @@ const Settings: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
-              className={`flex items-center space-x-2 px-4 lg:px-6 py-2 lg:py-3 rounded-xl lg:rounded-2xl font-medium transition-all duration-300 text-sm lg:text-base ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <Icon className="w-5 h-5" />
+              <span>{tab.label}</span>
             </button>
           )
         })}
