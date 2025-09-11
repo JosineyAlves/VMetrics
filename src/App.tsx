@@ -9,7 +9,6 @@ import ForgotPasswordForm from "./components/ForgotPasswordForm"
 import ResetPasswordForm from "./components/ResetPasswordForm"
 import ApiKeySetup from "./components/ApiKeySetup"
 import Sidebar from "./components/Sidebar"
-import MobileHeader from "./components/MobileHeader"
 import Dashboard from "./components/Dashboard"
 import Campaigns from "./components/Campaigns"
 import Conversions from "./components/Conversions"
@@ -139,15 +138,6 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-white">
-      {/* Mobile Header */}
-      <MobileHeader
-        isMenuOpen={isMobileMenuOpen}
-        onToggleMenu={toggleMobileMenu}
-        currentSection={currentSection}
-        onSectionChange={(section) => navigate(`/${section}`)}
-      />
-      
-      {/* Desktop Sidebar */}
       <Sidebar
         currentSection={currentSection}
         onSectionChange={(section) => navigate(`/${section}`)}
@@ -156,11 +146,9 @@ const DashboardLayout: React.FC = () => {
         isSidebarCollapsed={isCollapsed}
         onToggleSidebar={toggle}
       />
-      
-      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0 pt-24 lg:pt-0`}>
+      <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0`}>
         {/* Barra global fixa */}
-        {/* Barra global fixa - Desktop */}
-        <div className="w-full flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 px-4 sm:px-8 pt-4 sm:pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100 hidden lg:flex">
+        <div className="w-full flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 px-4 sm:px-8 pt-4 sm:pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="text-xl sm:text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
@@ -195,43 +183,6 @@ const DashboardLayout: React.FC = () => {
                 {isRefreshing ? 'Atualizando...' : 'Atualizar'}
               </button>
             )}
-          </div>
-        </div>
-
-        {/* Barra de controles mobile */}
-        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-16 z-10">
-          <div className="flex flex-col gap-3">
-            {/* Informações de atualização */}
-            {lastUpdateTime && (
-              <div className="text-xs text-gray-500">
-                Atualizado {getTimeSinceLastUpdate()}
-              </div>
-            )}
-            
-            {/* Controles */}
-            <div className="flex flex-col gap-2">
-              {/* Não mostrar PeriodDropdown na tela de configurações */}
-              {currentSection !== 'settings' && (
-                <PeriodDropdown
-                  value={selectedPeriod}
-                  customRange={customRange}
-                  onChange={(period, range) => {
-                    setSelectedPeriod(period)
-                    if (period === 'custom' && range) setCustomRange(range)
-                  }}
-                />
-              )}
-              {showRefresh && (
-                <button 
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-[#3cd48f] text-[#3cd48f] font-semibold hover:bg-[#3cd48f]/10 transition disabled:opacity-50 text-sm"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-                </button>
-              )}
-            </div>
           </div>
         </div>
         <AnimatePresence mode="wait">
