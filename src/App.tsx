@@ -16,6 +16,7 @@ import Performance from "./components/Performance"
 import Funnel from "./components/Funnel"
 import Settings from "./components/Settings"
 import LandingPage from "./components/LandingPage"
+import { AccessControl, PlanStatusBanner } from "./components/AccessControl" // ✅ NOVO
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
@@ -24,8 +25,11 @@ import { RefreshCw, Play, Pause, Menu, X } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 import usePageTitle from './hooks/usePageTitle'
 
-// Componente para rotas protegidas
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// ✅ ATUALIZADO: Componente para rotas protegidas com controle de acesso
+const ProtectedRoute: React.FC<{ children: React.ReactNode; requireActivePlan?: boolean }> = ({ 
+  children, 
+  requireActivePlan = true 
+}) => {
   const { isAuthenticated, apiKey } = useAuthStore()
   const location = useLocation()
   
@@ -34,15 +38,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
-  // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
-  // if (isAuthenticated && !apiKey && location.pathname !== '/setup') {
-  //   return <Navigate to="/setup" replace />
-  // }
-  
-  return <>{children}</>
+  // ✅ NOVO: Usar AccessControl para verificar plano ativo
+  return (
+    <AccessControl requireActivePlan={requireActivePlan}>
+      {children}
+    </AccessControl>
+  )
 }
 
-// Componente para o layout do dashboard
+// ✅ ATUALIZADO: Layout do dashboard com banner de status
 const DashboardLayout: React.FC = () => {
   const { isAuthenticated, apiKey } = useAuthStore()
   const { isCollapsed, toggle } = useSidebarStore()
@@ -55,6 +59,9 @@ const DashboardLayout: React.FC = () => {
   
   // Estado global de datas
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
+  
+  // ✅ NOVO: Banner de status do plano
+  const showPlanBanner = isAuthenticated && location.pathname !== '/pricing'
   
   // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
   // useEffect(() => {
@@ -147,6 +154,9 @@ const DashboardLayout: React.FC = () => {
         onToggleSidebar={toggle}
       />
       <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0`}>
+        {/* ✅ NOVO: Banner de status do plano */}
+        {showPlanBanner && <PlanStatusBanner />}
+        
         {/* Barra global fixa */}
         <div className="w-full flex flex-wrap items-center justify-between gap-2 lg:gap-3 px-4 lg:px-8 pt-4 lg:pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
@@ -287,14 +297,14 @@ const App: React.FC = () => {
       
       {/* Rota de setup da API Key */}
       <Route path="/setup" element={
-        <ProtectedRoute>
+        <ProtectedRoute requireActivePlan={false}>
           <ApiKeySetup />
         </ProtectedRoute>
       } />
       
       {/* Rotas protegidas do dashboard */}
       <Route path="/*" element={
-        <ProtectedRoute>
+        <ProtectedRoute requireActivePlan={true}>
           <DashboardLayout />
         </ProtectedRoute>
       } />

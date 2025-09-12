@@ -15,6 +15,11 @@ interface UserPlan {
   period: string
   features: string[]
   nextBilling: string | null
+  // ✅ NOVOS CAMPOS: Controle de acesso
+  hasAccess?: boolean
+  isActive?: boolean
+  isExpired?: boolean
+  statusMessage?: string
 }
 
 interface UserPlanData {
@@ -25,6 +30,13 @@ interface UserPlanData {
     stripe_customer_id: string
   } | null
   invoice?: any // Adicionar propriedade invoice opcional
+  // ✅ NOVO CAMPO: Informações de acesso
+  access?: {
+    hasAccess: boolean
+    reason: string
+    canUpgrade: boolean
+    canReactivate: boolean
+  }
 }
 
 export const useUserPlan = () => {
@@ -92,11 +104,19 @@ export const useUserPlan = () => {
     loading,
     error,
     refreshPlan,
-    hasActivePlan: planData?.plan?.status === 'active' || false,
+    // ✅ ATUALIZADO: Usar hasAccess em vez de apenas status
+    hasActivePlan: planData?.access?.hasAccess || false,
     planType: planData?.plan?.plan_type || defaultPlan.planType,
     planName: planData?.plan?.name || defaultPlan.planName,
     planPrice: planData?.plan?.price || defaultPlan.planPrice,
     planFeatures: planData?.plan?.features || defaultPlan.planFeatures,
-    planStatus: planData?.plan?.status || defaultPlan.planStatus
+    planStatus: planData?.plan?.status || defaultPlan.planStatus,
+    // ✅ NOVOS CAMPOS
+    hasAccess: planData?.access?.hasAccess || false,
+    accessReason: planData?.access?.reason || 'no_subscription',
+    canUpgrade: planData?.access?.canUpgrade || false,
+    canReactivate: planData?.access?.canReactivate || false,
+    isExpired: planData?.plan?.isExpired || false,
+    statusMessage: planData?.plan?.statusMessage || 'Status desconhecido'
   }
 }
