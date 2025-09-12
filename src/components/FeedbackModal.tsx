@@ -147,12 +147,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                   })}
                 </div>
 
-                {/* Footer */}
-                <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xs text-gray-500">
-                    💡 <strong>Dica:</strong> Se usar WhatsApp Desktop, copie a mensagem e cole no chat
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
