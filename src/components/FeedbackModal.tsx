@@ -29,14 +29,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       description: 'Problemas, dúvidas ou ajuda',
       icon: HelpCircle,
       color: 'bg-blue-500 hover:bg-blue-600',
-      template: `🆘 SUPORTE TÉCNICO
-
-❓ Dúvida/Problema: 
-📱 Tela: 
-🔍 Descrição: 
-💻 Navegador/Dispositivo: 
-
-`
+      template: '🆘 SUPORTE TÉCNICO\n\n❓ Dúvida/Problema: \n📱 Tela: \n🔍 Descrição: \n💻 Navegador/Dispositivo: \n\n'
     },
     {
       id: 'bug',
@@ -44,14 +37,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       description: 'Problema ou erro encontrado',
       icon: Bug,
       color: 'bg-red-500 hover:bg-red-600',
-      template: `🐛 BUG REPORT
-
-📱 Tela: 
-🔍 Descrição: 
-📋 Passos para reproduzir: 
-💻 Navegador/Dispositivo: 
-
-`
+      template: '🐛 BUG REPORT\n\n📱 Tela: \n🔍 Descrição: \n📋 Passos para reproduzir: \n💻 Navegador/Dispositivo: \n\n'
     },
     {
       id: 'feature',
@@ -59,22 +45,25 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       description: 'Nova funcionalidade ou melhoria',
       icon: Lightbulb,
       color: 'bg-green-500 hover:bg-green-600',
-      template: `💡 SUGESTÃO DE MELHORIA
-
-🎯 Funcionalidade: 
-📝 Descrição: 
-🎨 Como seria útil: 
-📊 Prioridade: 
-
-`
+      template: '💡 SUGESTÃO DE MELHORIA\n\n🎯 Funcionalidade: \n📝 Descrição: \n🎨 Como seria útil: \n📊 Prioridade: \n\n'
     }
   ]
 
   const handleSendFeedback = (type: string) => {
     const selected = feedbackTypes.find(t => t.id === type)
     if (selected) {
-      const encodedMessage = encodeURIComponent(selected.template)
+      // Limpar a mensagem e codificar corretamente
+      const cleanMessage = selected.template.trim()
+      const encodedMessage = encodeURIComponent(cleanMessage)
+      
+      // Construir URL do WhatsApp
       const whatsappUrl = `https://api.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
+      
+      console.log('🔍 [FEEDBACK] Mensagem original:', cleanMessage)
+      console.log('🔍 [FEEDBACK] Mensagem codificada:', encodedMessage)
+      console.log('🔍 [FEEDBACK] URL final:', whatsappUrl)
+      
+      // Abrir WhatsApp
       window.open(whatsappUrl, '_blank')
       onClose()
     }
@@ -109,8 +98,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                     <WhatsAppIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Enviar Feedback</h2>
-                    <p className="text-sm text-gray-600">Escolha o tipo de feedback</p>
+                    <h2 className="text-xl font-bold text-gray-900">Precisa de ajuda?</h2>
+                    <p className="text-sm text-gray-600">Escolha o tipo de ajuda.</p>
                   </div>
                 </div>
                 <button

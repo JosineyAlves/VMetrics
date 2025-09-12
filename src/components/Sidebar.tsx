@@ -99,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'feedback',
-      label: 'Feedback',
+      label: 'Suporte',
       icon: WhatsAppIcon,
       description: 'Enviar feedback ou suporte',
       path: 'feedback',
