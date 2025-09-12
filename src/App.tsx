@@ -148,9 +148,9 @@ const DashboardLayout: React.FC = () => {
       />
       <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0`}>
         {/* Barra global fixa */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-4 lg:px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
+        <div className="w-full flex flex-wrap items-center justify-between gap-2 lg:gap-3 px-4 lg:px-8 pt-4 lg:pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3">
             {/* Botão hambúrguer para mobile */}
             <button
               onClick={toggleMobileMenu}
@@ -162,7 +162,7 @@ const DashboardLayout: React.FC = () => {
                 <Menu className="w-6 h-6 text-[#1f1f1f]" />
               )}
             </button>
-            <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
+            <div className="text-lg lg:text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
             {lastUpdateTime && (
               <div className="text-sm text-gray-500">
                 Atualizado {getTimeSinceLastUpdate()}
@@ -170,7 +170,7 @@ const DashboardLayout: React.FC = () => {
             )}
           </div>
           {/* Ações e seletor à direita */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3">
             {/* Não mostrar PeriodDropdown na tela de configurações */}
             {currentSection !== 'settings' && (
               <PeriodDropdown
@@ -229,7 +229,13 @@ const App: React.FC = () => {
     }
     return false
   })
-  const [isInitializing, setIsInitializing] = useState(true)
+  const [isInitializing, setIsInitializing] = useState(() => {
+    // Se já detectou o domínio, não precisa de loading
+    if (typeof window !== 'undefined') {
+      return false
+    }
+    return true
+  })
   const [needsSignup, setNeedsSignup] = useState(false)
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPlanType, setSignupPlanType] = useState('')
@@ -241,6 +247,11 @@ const App: React.FC = () => {
 
   // Detectar se está na URL do dashboard ou landing page
   useEffect(() => {
+    // Se já detectou no estado inicial, não precisa re-detectar
+    if (typeof window !== 'undefined' && isDashboardAppState === isDashboardApp()) {
+      setIsInitializing(false)
+    }
+    
     const isApp = isDashboardApp()
     setIsDashboardAppState(isApp)
     setIsInitializing(false) // Marcar inicialização como completa
@@ -263,15 +274,14 @@ const App: React.FC = () => {
         console.log(`📝 Cadastro necessário para: ${email} - Plano: ${planType}`)
       }
     }
-  }, [initializeAuth])
+  }, [initializeAuth, isDashboardAppState])
 
-  // Mostrar loading durante inicialização para evitar flash
+  // Mostrar loading durante inicialização para evitar flash (apenas se necessário)
   if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto"></div>
         </div>
       </div>
     )

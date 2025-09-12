@@ -310,21 +310,21 @@ const Settings: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20"
+        className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 lg:p-8 shadow-2xl border border-white/20"
       >
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-2xl">
-            <Crown className="w-7 h-7 text-white" />
+        <div className="flex items-center space-x-3 lg:space-x-4 mb-6 lg:mb-8">
+          <div className="p-2 lg:p-3 bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 rounded-2xl">
+            <Crown className="w-5 h-5 lg:w-7 lg:h-7 text-white" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-800">Plano Atual</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg lg:text-xl font-bold text-gray-800">Plano Atual</h3>
+            <p className="text-xs lg:text-sm text-gray-600">
               Seu plano atual e próximas cobranças
             </p>
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 border border-[#3cd48f]/20 rounded-2xl p-6">
+        <div className="bg-gradient-to-r from-[#3cd48f]/10 to-[#3cd48f]/20 border border-[#3cd48f]/20 rounded-2xl p-4 lg:p-6">
           {planLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#3cd48f] border-t-transparent mx-auto mb-4"></div>
@@ -346,12 +346,12 @@ const Settings: React.FC = () => {
             </div>
           ) : (
             <>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-                  <h4 className="text-2xl font-bold text-gray-800 mb-2">{planName}</h4>
-              <div className="flex items-baseline space-x-2">
-                    <span className="text-3xl font-bold text-[#3cd48f]">{planPrice}</span>
-                    <span className="text-gray-600">/mês</span>
+          <div className="flex items-center justify-between mb-4 lg:mb-6">
+            <div className="flex-1 min-w-0">
+                  <h4 className="text-lg lg:text-2xl font-bold text-gray-800 mb-1 lg:mb-2 truncate">{planName}</h4>
+              <div className="flex items-baseline space-x-1 lg:space-x-2">
+                    <span className="text-xl lg:text-3xl font-bold text-[#3cd48f]">{planPrice}</span>
+                    <span className="text-sm lg:text-base text-gray-600">/mês</span>
               </div>
             </div>
                          <div className="text-right">
