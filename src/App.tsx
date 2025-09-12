@@ -222,20 +222,7 @@ const DashboardLayout: React.FC = () => {
 }
 
 const App: React.FC = () => {
-  const [isDashboardAppState, setIsDashboardAppState] = useState(() => {
-    // Inicializar com detecção imediata para evitar flash
-    if (typeof window !== 'undefined') {
-      return isDashboardApp()
-    }
-    return false
-  })
-  const [isInitializing, setIsInitializing] = useState(() => {
-    // Se já detectou o domínio, não precisa de loading
-    if (typeof window !== 'undefined') {
-      return false
-    }
-    return true
-  })
+  const [isDashboardAppState, setIsDashboardAppState] = useState(false)
   const [needsSignup, setNeedsSignup] = useState(false)
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPlanType, setSignupPlanType] = useState('')
@@ -247,14 +234,8 @@ const App: React.FC = () => {
 
   // Detectar se está na URL do dashboard ou landing page
   useEffect(() => {
-    // Se já detectou no estado inicial, não precisa re-detectar
-    if (typeof window !== 'undefined' && isDashboardAppState === isDashboardApp()) {
-      setIsInitializing(false)
-    }
-    
     const isApp = isDashboardApp()
     setIsDashboardAppState(isApp)
-    setIsInitializing(false) // Marcar inicialização como completa
     
     console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
     
@@ -274,18 +255,7 @@ const App: React.FC = () => {
         console.log(`📝 Cadastro necessário para: ${email} - Plano: ${planType}`)
       }
     }
-  }, [initializeAuth, isDashboardAppState])
-
-  // Mostrar loading durante inicialização para evitar flash (apenas se necessário)
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3cd48f] mx-auto"></div>
-        </div>
-      </div>
-    )
-  }
+  }, [initializeAuth])
 
   // Se não for dashboard app, mostrar landing page
   if (!isDashboardAppState) {

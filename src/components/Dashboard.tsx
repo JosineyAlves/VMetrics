@@ -27,8 +27,7 @@ import RedTrackAPI from '../services/api'
 import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, getCurrentRedTrackDate, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
-import MetricsSelector from './MetricsSelector'
-import MetricsOrder from './MetricsOrder'
+import MetricsManager from './MetricsManager'
 import FunnelChart from './FunnelChart'
 import { useMetricsStore } from '../store/metrics'
 import { useCurrencyStore } from '../store/currency'
@@ -1026,8 +1025,7 @@ const Dashboard: React.FC = () => {
       {/* Header com ações */}
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
-          <MetricsSelector />
-          <MetricsOrder />
+          <MetricsManager />
         </div>
       </div>
 

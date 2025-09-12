@@ -25,8 +25,7 @@ import PeriodDropdown from './ui/PeriodDropdown'
 import { getDateRange, periodPresets } from '../lib/utils'
 import { useDateRangeStore } from '../store/dateRange'
 import { useCurrencyStore } from '../store/currency'
-import ColumnsSelector from './ColumnsSelector'
-import ColumnsOrder from './ColumnsOrder'
+import ColumnsManager from './ColumnsManager'
 import { useColumnsStore } from '../store/columns'
 import CustomSelect from './ui/CustomSelect'
 
@@ -1027,10 +1026,7 @@ const Campaigns: React.FC = () => {
           {/* Botões de controle alinhados à direita */}
           <div className="flex gap-2">
             {activeTab === 'campaigns' && (
-              <>
-                <ColumnsSelector />
-                <ColumnsOrder />
-              </>
+              <ColumnsManager />
             )}
             <Button 
               variant="outline" 
