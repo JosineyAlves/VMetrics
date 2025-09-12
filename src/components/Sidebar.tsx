@@ -120,14 +120,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Hidden on mobile, visible on desktop */}
       <motion.div
         initial={false}
         animate={{
           width: isSidebarCollapsed ? 70 : 240,
         }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-2xl z-30 lg:relative flex flex-col"
+        className="hidden lg:flex fixed left-0 top-0 h-full bg-white border-r border-gray-200 shadow-2xl z-30 lg:relative flex-col"
         style={{
           maxHeight: '100vh',
           overflow: 'hidden'
