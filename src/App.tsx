@@ -150,11 +150,11 @@ const DashboardLayout: React.FC = () => {
         {/* Barra global fixa */}
         <div className="w-full flex flex-wrap items-center justify-between gap-2 lg:gap-3 px-4 lg:px-8 pt-4 lg:pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
-          <div className="flex items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-4 lg:gap-3">
             {/* Botão hambúrguer para mobile */}
             <button
               onClick={toggleMobileMenu}
-              className="lg:hidden p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-colors border border-gray-200"
+              className="lg:hidden p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors border border-gray-200"
             >
               {isMobileMenuOpen ? (
                 <X className="w-6 h-6 text-[#1f1f1f]" />
