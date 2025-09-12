@@ -99,7 +99,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">Precisa de ajuda?</h2>
-                    <p className="text-sm text-gray-600">Escolha o tipo de ajuda.</p>
+                    <p className="text-sm text-gray-600">Escolha uma das opções abaixo:</p>
                   </div>
                 </div>
                 <button
