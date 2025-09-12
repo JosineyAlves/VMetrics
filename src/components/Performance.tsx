@@ -704,84 +704,84 @@ const Performance: React.FC = () => {
          </div>
        )}
 
-             {/* Seletor de Análise */}
-       <div className="flex flex-wrap gap-3">
+             {/* Seletor de Análise - Grid Responsivo */}
+       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
          <Button
            onClick={() => setSelectedAnalysis('device')}
-           className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+           className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
              selectedAnalysis === 'device'
-               ? 'bg-[#3cd48f] text-white shadow-lg'
-               : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+               ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+               : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
            }`}
          >
-           <DeviceIcon className="w-5 h-5 mr-2" />
-           Dispositivos
+           <DeviceIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+           <span className="text-sm lg:text-base">Dispositivos</span>
          </Button>
-                   <Button
+         <Button
             onClick={() => setSelectedAnalysis('source')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
               selectedAnalysis === 'source'
-                ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+                ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
             }`}
           >
-            <SourceIcon className="w-5 h-5 mr-2" />
-            Fontes
+            <SourceIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="text-sm lg:text-base">Fontes</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('placement')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
               selectedAnalysis === 'placement'
-                ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+                ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
             }`}
           >
-            <Target className="w-5 h-5 mr-2" />
-            Posicionamentos
+            <Target className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="text-sm lg:text-base">Posicionamentos</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('location')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
               selectedAnalysis === 'location'
-                ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+                ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
             }`}
           >
-            <MapPin className="w-5 h-5 mr-2" />
-            Localização
+            <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="text-sm lg:text-base">Localização</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('browser')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
               selectedAnalysis === 'browser'
-                ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+                ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
             }`}
           >
-            <Monitor className="w-5 h-5 mr-2" />
-            Navegadores
+            <Monitor className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="text-sm lg:text-base">Navegadores</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('os')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
               selectedAnalysis === 'os'
-                ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+                ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
             }`}
           >
-            <Smartphone className="w-5 h-5 mr-2" />
-            Sistemas
+            <Smartphone className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="text-sm lg:text-base">Sistemas</span>
           </Button>
           <Button
             onClick={() => setSelectedAnalysis('hourly')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`w-full px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center ${
               selectedAnalysis === 'hourly'
-                ? 'bg-[#3cd48f] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-[#3cd48f]/5'
+                ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
+                : 'bg-white text-gray-700 border border-gray-200 hover:bg-[#3cd48f]/5 hover:border-[#3cd48f]/30'
             }`}
           >
-            <Clock className="w-5 h-5 mr-2" />
-            Horário
+            <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="text-sm lg:text-base">Horário</span>
           </Button>
        </div>
 
