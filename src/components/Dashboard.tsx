@@ -1022,7 +1022,7 @@ const Dashboard: React.FC = () => {
   const metrics = getMetricsFromData(dashboardData)
 
   return (
-    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Header com ações */}
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-3">
@@ -1101,7 +1101,7 @@ const Dashboard: React.FC = () => {
       {/* Removido: PeriodDropdown duplicado do Dashboard */}
 
       {/* KPIs Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-6">
         {getMetricsFromData(dashboardData).map((metric) => {
           return (
           <motion.div
@@ -1109,7 +1109,7 @@ const Dashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
+            className="bg-white rounded-3xl p-3 lg:p-4 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500 hover:scale-105"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
@@ -1123,7 +1123,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <p className={`text-2xl font-bold ${
+                <p className={`text-lg lg:text-2xl font-bold ${
                   metric.isNegative 
                     ? 'text-red-500' // ✅ Valor negativo em vermelho
                     : 'bg-gradient-to-r from-[#3cd48f] to-[#3cd48f]/80 bg-clip-text text-transparent' // ✅ Valor positivo no gradiente verde

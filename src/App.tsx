@@ -148,7 +148,7 @@ const DashboardLayout: React.FC = () => {
       />
       <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0`}>
         {/* Barra global fixa */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-4 lg:px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
           <div className="flex items-center gap-3">
             {/* Botão hambúrguer para mobile */}
