@@ -222,7 +222,14 @@ const DashboardLayout: React.FC = () => {
 }
 
 const App: React.FC = () => {
-  const [isDashboardAppState, setIsDashboardAppState] = useState(false)
+  const [isDashboardAppState, setIsDashboardAppState] = useState(() => {
+    // Inicializar com detecção imediata para evitar flash
+    if (typeof window !== 'undefined') {
+      return isDashboardApp()
+    }
+    return false
+  })
+  const [isInitializing, setIsInitializing] = useState(true)
   const [needsSignup, setNeedsSignup] = useState(false)
   const [signupEmail, setSignupEmail] = useState('')
   const [signupPlanType, setSignupPlanType] = useState('')
@@ -236,6 +243,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const isApp = isDashboardApp()
     setIsDashboardAppState(isApp)
+    setIsInitializing(false) // Marcar inicialização como completa
     
     console.log(`🌐 URL detectada: ${window.location.hostname} → ${isApp ? 'Dashboard App' : 'Landing Page'}`)
     
@@ -256,6 +264,18 @@ const App: React.FC = () => {
       }
     }
   }, [initializeAuth])
+
+  // Mostrar loading durante inicialização para evitar flash
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3cd48f] mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Se não for dashboard app, mostrar landing page
   if (!isDashboardAppState) {
