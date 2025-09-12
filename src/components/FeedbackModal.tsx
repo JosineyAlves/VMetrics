@@ -29,7 +29,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       description: 'Problemas, dúvidas ou ajuda',
       icon: HelpCircle,
       color: 'bg-blue-500 hover:bg-blue-600',
-      template: '🆘 SUPORTE TÉCNICO\n\n❓ Dúvida/Problema: \n📱 Tela: \n🔍 Descrição: \n💻 Navegador/Dispositivo: \n\n'
+      template: '🆘 SUPORTE TÉCNICO\n\n❓ Dúvida/Problema: \n📱 Tela: \n🔍 Descrição: \n\n'
     },
     {
       id: 'bug',
@@ -37,7 +37,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       description: 'Problema ou erro encontrado',
       icon: Bug,
       color: 'bg-red-500 hover:bg-red-600',
-      template: '🐛 BUG REPORT\n\n📱 Tela: \n🔍 Descrição: \n📋 Passos para reproduzir: \n💻 Navegador/Dispositivo: \n\n'
+      template: '🐛 BUG REPORT\n\n📱 Tela: \n🔍 Descrição: \n📋 Passos para reproduzir: \n\n'
     },
     {
       id: 'feature',
@@ -45,7 +45,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       description: 'Nova funcionalidade ou melhoria',
       icon: Lightbulb,
       color: 'bg-green-500 hover:bg-green-600',
-      template: '💡 SUGESTÃO DE MELHORIA\n\n🎯 Funcionalidade: \n📝 Descrição: \n🎨 Como seria útil: \n📊 Prioridade: \n\n'
+      template: '💡 SUGESTÃO DE MELHORIA\n\n🎯 Funcionalidade: \n📝 Descrição: \n🎨 Como seria útil: \n\n'
     }
   ]
 
@@ -57,7 +57,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       const encodedMessage = encodeURIComponent(cleanMessage)
       
       // Construir URL do WhatsApp
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
+      const whatsappUrl = `https://web.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
       
       console.log('🔍 [FEEDBACK] Mensagem original:', cleanMessage)
       console.log('🔍 [FEEDBACK] Mensagem codificada:', encodedMessage)
@@ -138,9 +138,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
 
                 {/* Footer */}
                 <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <WhatsAppIcon className="w-4 h-4 text-green-500" />
-                    <span>O feedback será enviado via WhatsApp com um template pré-formatado</span>
+                  <div className="text-xs text-gray-500">
+                    💡 <strong>Dica:</strong> Se usar WhatsApp Desktop, copie a mensagem e cole no chat
                   </div>
                 </div>
               </div>
