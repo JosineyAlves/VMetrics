@@ -14,7 +14,8 @@ import {
   BarChart3,
   Filter,
   LogOut,
-  DollarSign
+  DollarSign,
+  MessageCircle
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
 import Logo from './ui/Logo'
@@ -82,6 +83,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       icon: Settings,
       description: 'API e preferências',
       path: '/settings'
+    },
+    {
+      id: 'support',
+      label: 'Suporte',
+      icon: MessageCircle,
+      description: 'Suporte via WhatsApp',
+      path: 'https://api.whatsapp.com/send?phone=5533987523047',
+      isExternal: true
     }
   ]
 
@@ -91,6 +100,18 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   const handleSectionChange = (section: string) => {
+    const menuItem = menuItems.find(item => item.id === section)
+    
+    // Se for um link externo, abrir em nova aba
+    if (menuItem?.isExternal) {
+      window.open(menuItem.path, '_blank')
+      // Fechar menu mobile após clicar
+      if (isMobileMenuOpen) {
+        onToggleMobileMenu()
+      }
+      return
+    }
+    
     onSectionChange(section)
     // Fechar menu mobile após navegação
     if (isMobileMenuOpen) {
@@ -99,6 +120,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   const isActiveSection = (sectionPath: string) => {
+    // Links externos nunca são considerados ativos
+    if (sectionPath.startsWith('http')) {
+      return false
+    }
     return location.pathname === sectionPath
   }
 
@@ -178,14 +203,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
                 className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group ${
-                  isActive
+                  item.id === 'support'
+                    ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25'
+                    : isActive
                     ? 'bg-[#3cd48f] shadow-lg shadow-[#3cd48f]/25'
                     : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                 } ${isSidebarCollapsed ? 'justify-center' : ''}`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Icon className="w-5 h-5 text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]" />
+                <Icon className={`w-5 h-5 ${
+                  item.id === 'support' 
+                    ? 'text-white' 
+                    : 'text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]'
+                }`} />
                 {!isSidebarCollapsed && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -283,14 +314,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   onClick={() => handleSectionChange(item.id)}
                   className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${
-                    isActive
+                    item.id === 'support'
+                      ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25'
+                      : isActive
                       ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
                       : 'text-[#1f1f1f]/70 hover:bg-white/50 hover:text-[#1f1f1f]'
                   }`}
                 >
-                  <Icon className={`w-7 h-7 ${isActive ? 'text-white' : 'text-[#1f1f1f]/60'}`} />
+                  <Icon className={`w-7 h-7 ${
+                    item.id === 'support' || isActive ? 'text-white' : 'text-[#1f1f1f]/60'
+                  }`} />
                   <div className="flex-1 text-left">
-                    <div className="font-medium text-lg text-[#1f1f1f]">{item.label}</div>
+                    <div className={`font-medium text-lg ${
+                      item.id === 'support' ? 'text-white' : 'text-[#1f1f1f]'
+                    }`}>{item.label}</div>
                   </div>
                 </button>
               )
