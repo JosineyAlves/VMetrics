@@ -87,9 +87,7 @@ const MetricsManager: React.FC = () => {
     })
   }
 
-  if (selectedMetrics.length === 0) {
-    return null
-  }
+  // Sempre mostrar o botão, mesmo sem métricas selecionadas
 
   return (
     <>
@@ -100,8 +98,7 @@ const MetricsManager: React.FC = () => {
         className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#3cd48f]/30 text-[#3cd48f] hover:bg-[#3cd48f]/10 transition-all duration-200"
       >
         <Settings className="w-4 h-4" />
-        <span className="hidden sm:inline">Gerenciar Métricas</span>
-        <span className="sm:hidden">Métricas</span>
+        <span>Métricas</span>
       </Button>
 
       <AnimatePresence>
@@ -266,28 +263,47 @@ const MetricsManager: React.FC = () => {
                       </p>
                     </div>
 
-                    <Reorder.Group
-                      axis="y"
-                      values={getSelectedMetricsInOrder()}
-                      onReorder={handleReorder}
-                      className="space-y-2"
-                    >
-                      {getSelectedMetricsInOrder().map((metric) => (
-                        <Reorder.Item
-                          key={metric?.id}
-                          value={metric}
-                          className="bg-gray-50 rounded-lg p-3 border border-gray-200 cursor-move hover:bg-gray-100 transition-colors"
+                    {getSelectedMetricsInOrder().length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Settings className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h4 className="text-lg font-medium text-gray-900 mb-2">Nenhuma métrica selecionada</h4>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Selecione algumas métricas na aba anterior para poder organizá-las.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setActiveTab('select')}
+                          className="text-[#3cd48f] border-[#3cd48f]/30 hover:bg-[#3cd48f]/10"
                         >
-                          <div className="flex items-center space-x-3">
-                            <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 truncate">{metric?.label}</h3>
-                              <p className="text-sm text-gray-500 line-clamp-2">{metric?.description}</p>
+                          Selecionar Métricas
+                        </Button>
+                      </div>
+                    ) : (
+                      <Reorder.Group
+                        axis="y"
+                        values={getSelectedMetricsInOrder()}
+                        onReorder={handleReorder}
+                        className="space-y-2"
+                      >
+                        {getSelectedMetricsInOrder().map((metric) => (
+                          <Reorder.Item
+                            key={metric?.id}
+                            value={metric}
+                            className="bg-gray-50 rounded-lg p-3 border border-gray-200 cursor-move hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium text-gray-900 truncate">{metric?.label}</h3>
+                                <p className="text-sm text-gray-500 line-clamp-2">{metric?.description}</p>
+                              </div>
                             </div>
-                          </div>
-                        </Reorder.Item>
-                      ))}
-                    </Reorder.Group>
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    )}
                   </div>
                 )}
               </div>
