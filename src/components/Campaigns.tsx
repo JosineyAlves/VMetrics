@@ -1437,11 +1437,7 @@ const Campaigns: React.FC = () => {
           activeTab === 'utm' ? '' : 'border border-gray-200'
         }`}
       >
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative">
-          {/* Indicador de scroll horizontal para mobile */}
-          <div className="lg:hidden absolute bottom-0 left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/70 text-white text-xs rounded-full opacity-75">
-            ← Arraste para ver mais →
-          </div>
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -1460,7 +1456,7 @@ const Campaigns: React.FC = () => {
                     <th 
                       key={column?.id} 
                       className={`px-2 lg:px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap ${
-                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[120px] lg:w-[200px]' : ''
+                        column?.id === 'name' ? 'sticky left-0 z-40 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[120px] lg:w-[200px]' : ''
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -1502,7 +1498,7 @@ const Campaigns: React.FC = () => {
                         <td 
                           key={column?.id} 
                           className={`px-2 lg:px-6 py-4 whitespace-nowrap ${
-                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-[#3cd48f]/5 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[120px] lg:w-[200px]' : ''
+                            column?.id === 'name' ? 'sticky left-0 z-30 bg-white group-hover:bg-white border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[120px] lg:w-[200px]' : ''
                           }`}
                         >
                           {renderCell(campaign, column)}
