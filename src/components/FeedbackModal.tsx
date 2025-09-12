@@ -56,9 +56,20 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       const cleanMessage = selected.template.trim()
       const encodedMessage = encodeURIComponent(cleanMessage)
       
-      // Construir URL do WhatsApp
-      const whatsappUrl = `https://wa.me/5533987523047&text=${encodedMessage}`
+      // Detectar se é mobile ou desktop
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
+      let whatsappUrl: string
+      
+      if (isMobile) {
+        // Para mobile, usar api.whatsapp.com (abre o app)
+        whatsappUrl = `https://api.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
+      } else {
+        // Para desktop, usar web.whatsapp.com
+        whatsappUrl = `https://web.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
+      }
+      
+      console.log('🔍 [FEEDBACK] Dispositivo detectado:', isMobile ? 'Mobile' : 'Desktop')
       console.log('🔍 [FEEDBACK] Mensagem original:', cleanMessage)
       console.log('🔍 [FEEDBACK] Mensagem codificada:', encodedMessage)
       console.log('🔍 [FEEDBACK] URL final:', whatsappUrl)
