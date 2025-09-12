@@ -144,7 +144,7 @@ const Campaigns: React.FC = () => {
         return (
           <div className="flex flex-col">
             <div 
-              className="text-sm font-semibold text-gray-900 truncate max-w-[180px] cursor-help relative group" 
+              className="text-sm font-semibold text-gray-900 truncate max-w-[100px] lg:max-w-[180px] cursor-help relative group" 
               title={campaign.name}
               style={{
                 textOverflow: 'ellipsis',
@@ -1437,7 +1437,11 @@ const Campaigns: React.FC = () => {
           activeTab === 'utm' ? '' : 'border border-gray-200'
         }`}
       >
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative">
+          {/* Indicador de scroll horizontal para mobile */}
+          <div className="lg:hidden absolute bottom-0 left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/70 text-white text-xs rounded-full opacity-75">
+            ← Arraste para ver mais →
+          </div>
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-flex items-center space-x-2">
@@ -1449,14 +1453,14 @@ const Campaigns: React.FC = () => {
               </p>
             </div>
           ) : activeTab === 'campaigns' ? (
-            <table className="w-full min-w-[1400px]">
+            <table className="w-full min-w-[800px] lg:min-w-[1400px]">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 <tr>
                   {getVisibleColumns().map((column) => (
                     <th 
                       key={column?.id} 
-                      className={`px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap ${
-                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
+                      className={`px-2 lg:px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap ${
+                        column?.id === 'name' ? 'sticky left-0 z-20 bg-gradient-to-r from-gray-50 to-gray-100 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[120px] lg:w-[200px]' : ''
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -1497,8 +1501,8 @@ const Campaigns: React.FC = () => {
                       {getVisibleColumns().map((column) => (
                         <td 
                           key={column?.id} 
-                          className={`px-6 py-4 whitespace-nowrap ${
-                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-[#3cd48f]/5 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[200px]' : ''
+                          className={`px-2 lg:px-6 py-4 whitespace-nowrap ${
+                            column?.id === 'name' ? 'sticky left-0 z-10 bg-white group-hover:bg-[#3cd48f]/5 border-r border-gray-200 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] w-[120px] lg:w-[200px]' : ''
                           }`}
                         >
                           {renderCell(campaign, column)}
