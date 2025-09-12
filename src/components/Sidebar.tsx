@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../store/auth'
 import Logo from './ui/Logo'
+import FeedbackModal from './FeedbackModal'
 
 // Componente de ícone WhatsApp personalizado
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
@@ -51,6 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { logout } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
+  const [showFeedbackModal, setShowFeedbackModal] = React.useState(false)
 
   const menuItems = [
     {
@@ -96,12 +98,12 @@ const Sidebar: React.FC<SidebarProps> = ({
       path: '/settings'
     },
     {
-      id: 'support',
-      label: 'Suporte',
+      id: 'feedback',
+      label: 'Feedback',
       icon: WhatsAppIcon,
-      description: 'Suporte via WhatsApp',
-      path: 'https://api.whatsapp.com/send?phone=5533987523047',
-      isExternal: true
+      description: 'Enviar feedback ou suporte',
+      path: 'feedback',
+      isModal: true
     }
   ]
 
@@ -113,8 +115,18 @@ const Sidebar: React.FC<SidebarProps> = ({
   const handleSectionChange = (section: string) => {
     const menuItem = menuItems.find(item => item.id === section)
     
+    // Se for um modal, abrir o modal
+    if (menuItem?.isModal) {
+      setShowFeedbackModal(true)
+      // Fechar menu mobile após clicar
+      if (isMobileMenuOpen) {
+        onToggleMobileMenu()
+      }
+      return
+    }
+    
     // Se for um link externo, abrir em nova aba
-    if (menuItem?.isExternal) {
+    if (menuItem && 'isExternal' in menuItem && menuItem.isExternal) {
       window.open(menuItem.path, '_blank')
       // Fechar menu mobile após clicar
       if (isMobileMenuOpen) {
@@ -131,8 +143,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   const isActiveSection = (sectionPath: string) => {
-    // Links externos nunca são considerados ativos
-    if (sectionPath.startsWith('http')) {
+    // Links externos e modais nunca são considerados ativos
+    if (sectionPath.startsWith('http') || sectionPath === 'feedback') {
       return false
     }
     return location.pathname === sectionPath
@@ -214,7 +226,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => handleSectionChange(item.id)}
                 className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group ${
-                  item.id === 'support'
+                  item.id === 'feedback'
                     ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25'
                     : isActive
                     ? 'bg-[#3cd48f] shadow-lg shadow-[#3cd48f]/25'
@@ -224,7 +236,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className={`w-5 h-5 ${
-                  item.id === 'support' 
+                  item.id === 'feedback' 
                     ? 'text-white' 
                     : 'text-[#1f1f1f]/60 group-hover:text-[#1f1f1f]'
                 }`} />
@@ -325,7 +337,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   onClick={() => handleSectionChange(item.id)}
                   className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${
-                    item.id === 'support'
+                    item.id === 'feedback'
                       ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25'
                       : isActive
                       ? 'bg-[#3cd48f] text-white shadow-lg shadow-[#3cd48f]/25'
@@ -333,11 +345,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   }`}
                 >
                   <Icon className={`w-7 h-7 ${
-                    item.id === 'support' || isActive ? 'text-white' : 'text-[#1f1f1f]/60'
+                    item.id === 'feedback' || isActive ? 'text-white' : 'text-[#1f1f1f]/60'
                   }`} />
                   <div className="flex-1 text-left">
                     <div className={`font-medium text-lg ${
-                      item.id === 'support' ? 'text-white' : 'text-[#1f1f1f]'
+                      item.id === 'feedback' ? 'text-white' : 'text-[#1f1f1f]'
                     }`}>{item.label}</div>
                   </div>
                 </button>
@@ -356,6 +368,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </motion.div>
       )}
+
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={showFeedbackModal} 
+        onClose={() => setShowFeedbackModal(false)} 
+      />
     </>
   )
 }
