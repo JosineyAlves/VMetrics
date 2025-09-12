@@ -154,7 +154,7 @@ const DashboardLayout: React.FC = () => {
             {/* Botão hambúrguer para mobile */}
             <button
               onClick={toggleMobileMenu}
-              className="lg:hidden p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors border border-gray-200"
+              className="lg:hidden p-3 lg:p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors border border-gray-200"
             >
               {isMobileMenuOpen ? (
                 <X className="w-6 h-6 text-[#1f1f1f]" />
