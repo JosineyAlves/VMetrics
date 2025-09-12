@@ -20,7 +20,7 @@ import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
 import { useAuthStore } from './store/auth'
 import { useSidebarStore } from './store/sidebar'
-import { RefreshCw, Play, Pause } from 'lucide-react'
+import { RefreshCw, Play, Pause, Menu, X } from 'lucide-react'
 import { isDashboardApp } from './config/urls'
 import usePageTitle from './hooks/usePageTitle'
 
@@ -148,10 +148,21 @@ const DashboardLayout: React.FC = () => {
       />
       <main className={`flex-1 overflow-auto transition-all duration-300 ${isCollapsed ? 'lg:ml-16' : ''} lg:ml-0`}>
         {/* Barra global fixa */}
-        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100 lg:pt-6 pt-20">
+        <div className="w-full flex flex-wrap items-center justify-between gap-3 px-8 pt-6 pb-2 bg-white sticky top-0 z-20 shadow-sm border-b border-gray-100">
           {/* Título da tela à esquerda */}
           <div className="flex items-center gap-3">
-                         <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
+            {/* Botão hambúrguer para mobile */}
+            <button
+              onClick={toggleMobileMenu}
+              className="lg:hidden p-2 rounded-lg bg-white/50 hover:bg-white/80 transition-colors border border-gray-200"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6 text-[#1f1f1f]" />
+              ) : (
+                <Menu className="w-6 h-6 text-[#1f1f1f]" />
+              )}
+            </button>
+            <div className="text-2xl font-bold text-[#1f1f1f]">{sectionTitle}</div>
             {lastUpdateTime && (
               <div className="text-sm text-gray-500">
                 Atualizado {getTimeSinceLastUpdate()}

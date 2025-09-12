@@ -104,14 +104,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={onToggleMobileMenu}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white rounded-xl shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-300"
-      >
-        {isMobileMenuOpen ? <X className="w-6 h-6 text-[#1f1f1f]" /> : <Menu className="w-6 h-6 text-[#1f1f1f]" />}
-      </button>
-
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
