@@ -940,7 +940,7 @@ const Campaigns: React.FC = () => {
   // Mensagem amigável se não houver campanhas
   // Mostrar filtros sempre, mesmo sem campanhas
     return (
-      <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Nav Container */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
               {/* Tabs Navigation */}

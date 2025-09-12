@@ -658,7 +658,7 @@ const Performance: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
              
 
       

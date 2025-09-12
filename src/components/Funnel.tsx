@@ -808,7 +808,7 @@ const Funnel: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="mb-6">
         
