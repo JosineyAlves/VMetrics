@@ -57,7 +57,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
       const encodedMessage = encodeURIComponent(cleanMessage)
       
       // Construir URL do WhatsApp
-      const whatsappUrl = `https://web.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
+      const whatsappUrl = `https://wa.me/5533987523047&text=${encodedMessage}`
       
       console.log('🔍 [FEEDBACK] Mensagem original:', cleanMessage)
       console.log('🔍 [FEEDBACK] Mensagem codificada:', encodedMessage)
