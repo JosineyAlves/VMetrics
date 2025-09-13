@@ -1020,6 +1020,9 @@ const Dashboard: React.FC = () => {
 
   // ✅ APLICAR AGRUPAMENTO INTELIGENTE
   const processedData = groupDataByPeriod(dailyDataWithProfit, selectedPeriod)
+  
+  // ✅ AGRUPAR DADOS DE CONVERSÕES (mesma lógica)
+  const processedConversionsData = groupDataByPeriod(dailyData, selectedPeriod)
 
   // Buscar distribuição por fonte (apenas custo por traffic_channel)
   useEffect(() => {
@@ -1248,18 +1251,63 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-3 mb-6">
             <BarChart2 className="w-6 h-6 text-[#3cd48f]" />
             <h3 className="text-xl font-semibold text-gray-800">Conversões por Dia</h3>
+            {/* ✅ INDICADOR DE AGRUPAMENTO PARA CONVERSÕES */}
+            {processedConversionsData && processedConversionsData.length > 0 && (
+              <div className="flex items-center gap-2">
+                {dailyData.length > 90 ? (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                    📅 Agrupado por mês
+                  </span>
+                ) : dailyData.length > 30 ? (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                    📊 Agrupado por semana
+                  </span>
+                ) : (
+                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">
+                    📈 Dados diários
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           
-          {dailyData && dailyData.length > 0 ? (
+          {processedConversionsData && processedConversionsData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={dailyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
+              <LineChart data={processedConversionsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
                 <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
-                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
-                <Bar dataKey="conversions" name="Conversões" fill="#3cd48f" radius={[12, 12, 0, 0]} />
+                <Tooltip 
+                  formatter={(value: any, name: any, props: any) => {
+                    const isGrouped = dailyData.length > 30
+                    const groupType = dailyData.length > 90 ? 'mês' : 'semana'
+                    const suffix = isGrouped ? ` (${groupType})` : ' (dia)'
+                    return [value?.toLocaleString?.('pt-BR') ?? value, name + suffix]
+                  }}
+                  labelFormatter={(label: any) => {
+                    const isGrouped = dailyData.length > 30
+                    const groupType = dailyData.length > 90 ? 'mês' : 'semana'
+                    const suffix = isGrouped ? ` - ${groupType}` : ' - dia'
+                    return `${label}${suffix}`
+                  }}
+                  contentStyle={{ 
+                    borderRadius: 12, 
+                    background: '#fff', 
+                    boxShadow: '0 4px 24px #0001',
+                    border: '1px solid #3cd48f20'
+                  }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="conversions" 
+                  stroke="#3cd48f" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3cd48f', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#3cd48f', strokeWidth: 2, fill: '#fff' }}
+                  name="Conversões"
+                />
                 <Legend verticalAlign="top" height={36} iconType="circle"/>
-              </BarChart>
+              </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">
