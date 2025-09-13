@@ -1431,7 +1431,15 @@ const Dashboard: React.FC = () => {
           className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
+              {/* ✅ INDICADOR DE NÚMERO DE FONTES */}
+              {sourceStats.length > 0 && (
+                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">
+                  {sourceStats.length === 1 ? '1 fonte' : `${sourceStats.length} fontes`}
+                </span>
+              )}
+            </div>
             {sourceStats.length > 0 && (
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total Investido</p>
@@ -1461,10 +1469,21 @@ const Dashboard: React.FC = () => {
                   data={sourceStats.slice(0, 8)}
                   margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
                   barCategoryGap={18}
+                  maxBarSize={60} // ✅ LARGURA MÁXIMA DAS BARRAS
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis type="number" hide={false} tick={{ fontSize: 13 }} />
-                  <YAxis dataKey="key" type="category" width={120} tick={{ fontSize: 14, fontWeight: 500 }} />
+                  <XAxis 
+                    type="number" 
+                    hide={false} 
+                    tick={{ fontSize: 13 }} 
+                    domain={[0, 'dataMax']} // ✅ ESCALA BASEADA NOS DADOS
+                  />
+                  <YAxis 
+                    dataKey="key" 
+                    type="category" 
+                    width={120} 
+                    tick={{ fontSize: 14, fontWeight: 500 }} 
+                  />
                   <Tooltip 
                     formatter={(v: any, name: any) => [
                       formatCurrency(v), 
@@ -1478,7 +1497,13 @@ const Dashboard: React.FC = () => {
                       border: '1px solid #3cd48f20'
                     }} 
                   />
-                  <Bar dataKey="cost" name="Investimento" fill="#3cd48f" radius={[0, 12, 12, 0]} />
+                  <Bar 
+                    dataKey="cost" 
+                    name="Investimento" 
+                    fill="#3cd48f" 
+                    radius={[0, 12, 12, 0]}
+                    maxBarSize={60} // ✅ LARGURA MÁXIMA ESPECÍFICA DA BARRA
+                  />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
                 </BarChart>
               </ResponsiveContainer>
