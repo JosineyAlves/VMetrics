@@ -77,7 +77,7 @@ export const LANDING_PLANS: Record<string, Plan> = {
         interval: 'quarter',
         originalAmount: 23700, // 3 × R$ 79,00
         discount: 17, // 17% de desconto
-        billingNote: 'Cobrança a cada 3 meses: R$ 591,00'
+        billingNote: 'Cobrança a cada 3 meses: R$ 197,00'
       }
     ]
   }

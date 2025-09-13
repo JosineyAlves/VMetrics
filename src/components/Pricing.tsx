@@ -152,7 +152,17 @@ const Pricing: React.FC = () => {
             </p>
             <div className="flex justify-center">
               <button
-                onClick={() => window.open('mailto:suporte@vmetrics.com.br', '_blank')}
+                onClick={() => {
+                  const message = 'Olá! Preciso de ajuda para escolher o plano ideal no vMetrics.';
+                  const encodedMessage = encodeURIComponent(message);
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                  
+                  const whatsappUrl = isMobile 
+                    ? `https://api.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`
+                    : `https://web.whatsapp.com/send?phone=5533987523047&text=${encodedMessage}`;
+                  
+                  window.open(whatsappUrl, '_blank');
+                }}
                 className="px-6 py-3 bg-[#3cd48f] text-white rounded-xl hover:bg-[#3cd48f]/90 transition-colors shadow-lg shadow-[#3cd48f]/25"
               >
                 Falar com Suporte
