@@ -16,6 +16,7 @@ import Performance from "./components/Performance"
 import Funnel from "./components/Funnel"
 import Settings from "./components/Settings"
 import LandingPage from "./components/LandingPage"
+import Pricing from "./components/Pricing" // ✅ NOVO
 import { AccessControl, PlanStatusBanner } from "./components/AccessControl" // ✅ NOVO
 import PeriodDropdown from './components/ui/PeriodDropdown'
 import { useDateRangeStore } from './store/dateRange'
@@ -276,6 +277,7 @@ const App: React.FC = () => {
     <Routes>
       {/* Rotas públicas */}
       <Route path="/landing" element={<LandingPage />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/forgot-password" element={<ForgotPasswordForm />} />
       <Route path="/auth/reset-password" element={<ResetPasswordForm />} />

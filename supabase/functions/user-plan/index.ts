@@ -30,9 +30,16 @@ serve(async (req)=>{
         }
       });
     }
-    console.log('🔍 [EDGE-FUNCTION] Buscando plano para user_id:', userId);
-    // Buscar plano do usuário por user_id
-    const { data: userPlan, error: planError } = await supabase.from('user_plans').select('*').eq('user_id', userId).eq('status', 'active').single();
+    console.log('�� [EDGE-FUNCTION] Buscando plano para user_id:', userId);
+    // ✅ ATUALIZADO: Buscar plano ativo (não apenas status 'active')
+    const { data: userPlan, error: planError } = await supabase.from('user_plans').select('*').eq('user_id', userId).in('status', [
+      'active',
+      'trialing',
+      'past_due'
+    ]) // Incluir planos em trial ou com pagamento pendente
+    .order('created_at', {
+      ascending: false
+    }).limit(1).single();
     if (planError) {
       console.error('❌ [EDGE-FUNCTION] Erro ao buscar plano:', planError);
       return new Response(JSON.stringify({
@@ -61,6 +68,9 @@ serve(async (req)=>{
       });
     }
     console.log('✅ [EDGE-FUNCTION] Usuário encontrado:', user);
+    // ✅ NOVO: Verificar se o plano está realmente ativo
+    const isPlanActive = userPlan.status === 'active' || userPlan.status === 'trialing';
+    const hasAccess = isPlanActive && new Date(userPlan.current_period_end) > new Date();
     // Formatar resposta
     const response = {
       plan: userPlan ? {
@@ -75,12 +85,24 @@ serve(async (req)=>{
         price: getPlanPrice(userPlan.plan_type),
         period: getPlanPeriod(userPlan.plan_type),
         features: getPlanFeatures(userPlan.plan_type),
-        nextBilling: userPlan.current_period_end
+        nextBilling: userPlan.current_period_end,
+        // ✅ NOVOS CAMPOS: Controle de acesso
+        hasAccess: hasAccess,
+        isActive: isPlanActive,
+        isExpired: new Date(userPlan.current_period_end) <= new Date(),
+        statusMessage: getStatusMessage(userPlan.status, userPlan.current_period_end)
       } : null,
       user: {
         id: user.id,
         email: user.email,
         stripe_customer_id: user.stripe_customer_id
+      },
+      // ✅ NOVO: Informações de acesso
+      access: {
+        hasAccess: hasAccess,
+        reason: hasAccess ? 'active_subscription' : getAccessDeniedReason(userPlan),
+        canUpgrade: !hasAccess,
+        canReactivate: userPlan?.status === 'canceled'
       }
     };
     console.log('✅ [EDGE-FUNCTION] Resposta formatada:', response);
@@ -104,24 +126,66 @@ serve(async (req)=>{
     });
   }
 });
+// ✅ NOVA FUNÇÃO: Obter mensagem de status
+function getStatusMessage(status, periodEnd) {
+  const now = new Date();
+  const endDate = new Date(periodEnd);
+  switch(status){
+    case 'active':
+      return 'Plano ativo';
+    case 'trialing':
+      return 'Período de teste';
+    case 'past_due':
+      return 'Pagamento pendente';
+    case 'canceled':
+      if (endDate > now) {
+        return 'Cancelado - acesso até ' + endDate.toLocaleDateString('pt-BR');
+      }
+      return 'Cancelado - sem acesso';
+    default:
+      return 'Status desconhecido';
+  }
+}
+// ✅ NOVA FUNÇÃO: Obter motivo de negação de acesso
+function getAccessDeniedReason(userPlan) {
+  if (!userPlan) return 'no_subscription';
+  const now = new Date();
+  const endDate = new Date(userPlan.current_period_end);
+  if (userPlan.status === 'canceled' && endDate <= now) {
+    return 'subscription_expired';
+  }
+  if (userPlan.status === 'past_due') {
+    return 'payment_failed';
+  }
+  return 'subscription_inactive';
+}
 function getPlanName(planType) {
   const plans = {
     'monthly': 'Plano Mensal',
-    'quarterly': 'Plano Trimestral'
+    'quarterly': 'Plano Trimestral',
+    'starter': 'Starter',
+    'pro': 'Pro',
+    'enterprise': 'Enterprise'
   };
   return plans[planType] || 'Plano Desconhecido';
 }
 function getPlanPrice(planType) {
   const prices = {
     'monthly': 'R$ 79,00',
-    'quarterly': 'R$ 197,00'
+    'quarterly': 'R$ 197,00',
+    'starter': 'R$ 29,00',
+    'pro': 'R$ 79,00',
+    'enterprise': 'R$ 199,00'
   };
   return prices[planType] || 'Gratuito';
 }
 function getPlanPeriod(planType) {
   const periods = {
     'monthly': 'mês',
-    'quarterly': 'trimestre'
+    'quarterly': 'trimestre',
+    'starter': 'mês',
+    'pro': 'mês',
+    'enterprise': 'mês'
   };
   return periods[planType] || 'mês';
 }
@@ -137,6 +201,21 @@ function getPlanFeatures(planType) {
       'Suporte prioritário',
       'Relatórios avançados',
       'Desconto trimestral'
+    ],
+    'starter': [
+      'Acesso básico',
+      'Suporte por email'
+    ],
+    'pro': [
+      'Acesso completo',
+      'Suporte prioritário',
+      'Relatórios avançados'
+    ],
+    'enterprise': [
+      'Acesso completo',
+      'Suporte dedicado',
+      'Relatórios customizados',
+      'API access'
     ]
   };
   return features[planType] || [
