@@ -920,6 +920,107 @@ const Dashboard: React.FC = () => {
     profit: (d.revenue ?? 0) - (d.spend ?? d.cost ?? 0)
   }))
 
+  // ✅ NOVA FUNÇÃO: Agrupar dados baseado no período
+  const groupDataByPeriod = (data: any[], period: string) => {
+    if (!data || data.length === 0) return data
+
+    const dataLength = data.length
+    console.log('🔍 [GROUPING] Dados recebidos:', dataLength, 'itens para período:', period)
+
+    // Se poucos dados, manter como está
+    if (dataLength <= 30) {
+      console.log('🔍 [GROUPING] Poucos dados, mantendo granularidade diária')
+      return data
+    }
+
+    // Agrupar por semana se entre 30-90 dias
+    if (dataLength <= 90) {
+      console.log('🔍 [GROUPING] Agrupando por semana')
+      return groupByWeek(data)
+    }
+
+    // Agrupar por mês se mais de 90 dias
+    console.log('🔍 [GROUPING] Agrupando por mês')
+    return groupByMonth(data)
+  }
+
+  // ✅ FUNÇÃO: Agrupar por semana
+  const groupByWeek = (data: any[]) => {
+    const grouped: { [key: string]: any } = {}
+    
+    data.forEach(item => {
+      const date = new Date(item.date)
+      const weekStart = new Date(date)
+      weekStart.setDate(date.getDate() - date.getDay()) // Domingo da semana
+      const weekKey = weekStart.toISOString().split('T')[0]
+      
+      if (!grouped[weekKey]) {
+        grouped[weekKey] = {
+          date: weekKey,
+          cost: 0,
+          revenue: 0,
+          profit: 0,
+          clicks: 0,
+          conversions: 0,
+          count: 0
+        }
+      }
+      
+      grouped[weekKey].cost += item.cost || 0
+      grouped[weekKey].revenue += item.revenue || 0
+      grouped[weekKey].profit += item.profit || 0
+      grouped[weekKey].clicks += item.clicks || 0
+      grouped[weekKey].conversions += item.conversions || 0
+      grouped[weekKey].count += 1
+    })
+    
+    const result = Object.values(grouped).sort((a: any, b: any) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
+    
+    console.log('🔍 [GROUPING] Dados agrupados por semana:', result.length, 'semanas')
+    return result
+  }
+
+  // ✅ FUNÇÃO: Agrupar por mês
+  const groupByMonth = (data: any[]) => {
+    const grouped: { [key: string]: any } = {}
+    
+    data.forEach(item => {
+      const date = new Date(item.date)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      
+      if (!grouped[monthKey]) {
+        grouped[monthKey] = {
+          date: monthKey,
+          cost: 0,
+          revenue: 0,
+          profit: 0,
+          clicks: 0,
+          conversions: 0,
+          count: 0
+        }
+      }
+      
+      grouped[monthKey].cost += item.cost || 0
+      grouped[monthKey].revenue += item.revenue || 0
+      grouped[monthKey].profit += item.profit || 0
+      grouped[monthKey].clicks += item.clicks || 0
+      grouped[monthKey].conversions += item.conversions || 0
+      grouped[monthKey].count += 1
+    })
+    
+    const result = Object.values(grouped).sort((a: any, b: any) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    )
+    
+    console.log('🔍 [GROUPING] Dados agrupados por mês:', result.length, 'meses')
+    return result
+  }
+
+  // ✅ APLICAR AGRUPAMENTO INTELIGENTE
+  const processedData = groupDataByPeriod(dailyDataWithProfit, selectedPeriod)
+
   // Buscar distribuição por fonte (apenas custo por traffic_channel)
   useEffect(() => {
     const processSourceStatsFromExistingCampaigns = () => {
@@ -1182,6 +1283,24 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <Shuffle className="w-6 h-6 text-[#3cd48f]" />
               <h3 className="text-xl font-semibold text-gray-800">Cruzamento Diário</h3>
+              {/* ✅ INDICADOR DE AGRUPAMENTO */}
+              {processedData && processedData.length > 0 && (
+                <div className="flex items-center gap-2">
+                  {dailyDataWithProfit.length > 90 ? (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                      📅 Agrupado por mês
+                    </span>
+                  ) : dailyDataWithProfit.length > 30 ? (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                      📊 Agrupado por semana
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">
+                      📈 Dados diários
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
@@ -1198,14 +1317,25 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           
-          {dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
+          {processedData && processedData.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <LineChart data={processedData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
                 <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
                 <Tooltip 
-                  formatter={(value: any) => [formatCurrency(value), '']} 
+                  formatter={(value: any, name: any, props: any) => {
+                    const isGrouped = dailyDataWithProfit.length > 30
+                    const groupType = dailyDataWithProfit.length > 90 ? 'mês' : 'semana'
+                    const suffix = isGrouped ? ` (${groupType})` : ' (dia)'
+                    return [formatCurrency(value), name + suffix]
+                  }}
+                  labelFormatter={(label: any) => {
+                    const isGrouped = dailyDataWithProfit.length > 30
+                    const groupType = dailyDataWithProfit.length > 90 ? 'mês' : 'semana'
+                    const suffix = isGrouped ? ` - ${groupType}` : ' - dia'
+                    return `${label}${suffix}`
+                  }}
                   contentStyle={{ 
                     borderRadius: 12, 
                     background: '#fff', 
