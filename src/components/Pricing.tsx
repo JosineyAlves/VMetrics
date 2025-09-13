@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ArrowRight, Star, Zap, Users, BarChart3, Shield } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import { LANDING_PLANS, formatPrice, getMainPrice, hasDiscount, getMaxDiscount, getBillingNote, getPlanStripeUrl } from '../config/plans';
 
 const Pricing: React.FC = () => {
@@ -36,28 +36,6 @@ const Pricing: React.FC = () => {
     }
   };
 
-  const features = [
-    {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: 'Dashboard Integrado',
-      description: 'Conecte diretamente com o RedTrack'
-    },
-    {
-      icon: <Zap className="w-6 h-6" />,
-      title: 'Métricas Avançadas',
-      description: 'ROI, CPA, CTR e muito mais'
-    },
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: 'Campanhas Ilimitadas',
-      description: 'Gerencie quantas campanhas precisar'
-    },
-    {
-      icon: <Shield className="w-6 h-6" />,
-      title: 'Suporte Prioritário',
-      description: 'Ajuda quando você precisar'
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] to-white py-12 px-4 sm:px-6 lg:px-8">
@@ -72,18 +50,6 @@ const Pricing: React.FC = () => {
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {features.map((feature, index) => (
-            <div key={index} className="text-center p-6 bg-white/90 rounded-2xl shadow-sm border border-[#e2e8f0] hover:shadow-lg transition-all duration-300">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-[#3cd48f]/10 rounded-xl mb-4 text-[#3cd48f]">
-                {feature.icon}
-              </div>
-              <h3 className="text-lg font-semibold text-[#1f1f1f] mb-2">{feature.title}</h3>
-              <p className="text-[#1f1f1f]/70 text-sm">{feature.description}</p>
-            </div>
-          ))}
-        </div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -179,18 +145,12 @@ const Pricing: React.FC = () => {
         <div className="text-center mt-16">
           <div className="bg-[#3cd48f]/10 rounded-2xl p-8 max-w-2xl mx-auto border border-[#3cd48f]/20">
             <h3 className="text-xl font-semibold text-[#1f1f1f] mb-4">
-              Precisa de ajuda para escolher?
+              Precisa de ajuda para adquirir o plano?
             </h3>
             <p className="text-[#1f1f1f]/70 mb-6">
-              Nossa equipe está pronta para ajudar você a encontrar o plano ideal para suas necessidades.
+              Está com dúvidas sobre qual plano escolher ou precisa de suporte para finalizar sua assinatura? Nossa equipe está pronta para ajudar!
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-6 py-3 bg-white border border-[#e2e8f0] rounded-xl text-[#1f1f1f] hover:bg-[#f8fafc] transition-colors"
-              >
-                Voltar ao Dashboard
-              </button>
+            <div className="flex justify-center">
               <button
                 onClick={() => window.open('mailto:suporte@vmetrics.com.br', '_blank')}
                 className="px-6 py-3 bg-[#3cd48f] text-white rounded-xl hover:bg-[#3cd48f]/90 transition-colors shadow-lg shadow-[#3cd48f]/25"

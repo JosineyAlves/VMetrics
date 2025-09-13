@@ -61,7 +61,7 @@ export class CheckoutService {
           customer_name: customerName,
           plan_type: planType,
           success_url: `${window.location.origin}/dashboard?success=true`,
-          cancel_url: `${window.location.origin}/pricing?cancelled=true`
+          cancel_url: `${window.location.origin}/planos?cancelled=true`
         })
       })
 

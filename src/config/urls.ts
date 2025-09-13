@@ -15,7 +15,7 @@ export const APP_URLS = {
   
   // URLs do Stripe
   STRIPE_SUCCESS: `${DASHBOARD_APP_URL}/success`,
-  STRIPE_CANCEL: `${LANDING_PAGE_URL}/pricing`,
+  STRIPE_CANCEL: `${LANDING_PAGE_URL}/planos`,
   STRIPE_PORTAL_RETURN: `${DASHBOARD_APP_URL}/dashboard`,
   
   // URLs de autenticação

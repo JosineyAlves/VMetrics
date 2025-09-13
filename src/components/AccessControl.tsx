@@ -37,7 +37,7 @@ export const AccessControl: React.FC<AccessControlProps> = ({
       return <>{fallbackComponent}</>;
     }
     
-    return <Navigate to="/pricing" replace />;
+    return <Navigate to="/planos" replace />;
   }
 
   return <>{children}</>;

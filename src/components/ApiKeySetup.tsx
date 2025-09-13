@@ -83,7 +83,7 @@ const ApiKeySetup: React.FC = () => {
                Configure sua API Key
              </h1>
              <p className="text-[#1f1f1f]/70 text-lg">
-               Conecte sua conta RedTrack para começar a usar o TrackView
+               Conecte sua conta RedTrack para começar a usar o vMetrics
              </p>
           </div>
 

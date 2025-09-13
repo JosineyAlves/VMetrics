@@ -62,7 +62,7 @@ const DashboardLayout: React.FC = () => {
   const { selectedPeriod, customRange, setSelectedPeriod, setCustomRange } = useDateRangeStore()
   
   // ✅ NOVO: Banner de status do plano
-  const showPlanBanner = isAuthenticated && location.pathname !== '/pricing'
+  const showPlanBanner = isAuthenticated && location.pathname !== '/planos'
   
   // ✅ VALIDAÇÃO REMOVIDA: Usuário pode configurar API Key em /settings
   // useEffect(() => {
@@ -277,7 +277,7 @@ const App: React.FC = () => {
     <Routes>
       {/* Rotas públicas */}
       <Route path="/landing" element={<LandingPage />} />
-      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/planos" element={<Pricing />} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/forgot-password" element={<ForgotPasswordForm />} />
       <Route path="/auth/reset-password" element={<ResetPasswordForm />} />

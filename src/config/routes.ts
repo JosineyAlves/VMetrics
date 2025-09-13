@@ -62,32 +62,32 @@ export const isPublicRoute = (path: string): boolean => {
 // Obter título da rota
 export const getRouteTitle = (path: string): string => {
   const titles: Record<RoutePath, string> = {
-    [ROUTES.LANDING]: 'TrackView - Analytics Inteligente',
-    [ROUTES.LOGIN]: 'Login - TrackView',
-    [ROUTES.SIGNUP]: 'Criar Conta - TrackView',
-    [ROUTES.SETUP]: 'Configuração - TrackView',
-    [ROUTES.DASHBOARD]: 'Dashboard - TrackView',
-    [ROUTES.CAMPAIGNS]: 'Campanhas - TrackView',
-    [ROUTES.CONVERSIONS]: 'Conversões - TrackView',
-    [ROUTES.PERFORMANCE]: 'Performance - TrackView',
-    [ROUTES.FUNNEL]: 'Funil - TrackView',
-    [ROUTES.SETTINGS]: 'Configurações - TrackView',
-    [ROUTES.AUTH_CALLBACK]: 'Autenticação - TrackView',
-    [ROUTES.AUTH_RESET_PASSWORD]: 'Redefinir Senha - TrackView',
-    [ROUTES.STRIPE_SUCCESS]: 'Pagamento Confirmado - TrackView',
-    [ROUTES.STRIPE_CANCEL]: 'Pagamento Cancelado - TrackView',
-    [ROUTES.STRIPE_PORTAL]: 'Faturamento - TrackView'
+    [ROUTES.LANDING]: 'vMetrics - Analytics Inteligente',
+    [ROUTES.LOGIN]: 'Login - vMetrics',
+    [ROUTES.SIGNUP]: 'Criar Conta - vMetrics',
+    [ROUTES.SETUP]: 'Configuração - vMetrics',
+    [ROUTES.DASHBOARD]: 'Dashboard - vMetrics',
+    [ROUTES.CAMPAIGNS]: 'Campanhas - vMetrics',
+    [ROUTES.CONVERSIONS]: 'Conversões - vMetrics',
+    [ROUTES.PERFORMANCE]: 'Performance - vMetrics',
+    [ROUTES.FUNNEL]: 'Funil - vMetrics',
+    [ROUTES.SETTINGS]: 'Configurações - vMetrics',
+    [ROUTES.AUTH_CALLBACK]: 'Autenticação - vMetrics',
+    [ROUTES.AUTH_RESET_PASSWORD]: 'Redefinir Senha - vMetrics',
+    [ROUTES.STRIPE_SUCCESS]: 'Pagamento Confirmado - vMetrics',
+    [ROUTES.STRIPE_CANCEL]: 'Pagamento Cancelado - vMetrics',
+    [ROUTES.STRIPE_PORTAL]: 'Faturamento - vMetrics'
   }
   
-  return titles[path as RoutePath] || 'TrackView'
+  return titles[path as RoutePath] || 'vMetrics'
 }
 
 // Obter descrição da rota
 export const getRouteDescription = (path: string): string => {
   const descriptions: Record<RoutePath, string> = {
     [ROUTES.LANDING]: 'Plataforma de analytics inteligente para campanhas de marketing digital',
-    [ROUTES.LOGIN]: 'Acesse sua conta TrackView',
-    [ROUTES.SIGNUP]: 'Crie sua conta TrackView e comece a analisar suas campanhas',
+    [ROUTES.LOGIN]: 'Acesse sua conta vMetrics',
+    [ROUTES.SIGNUP]: 'Crie sua conta vMetrics e comece a analisar suas campanhas',
     [ROUTES.SETUP]: 'Configure sua conta e API Key para começar',
     [ROUTES.DASHBOARD]: 'Visão geral e KPIs das suas campanhas',
     [ROUTES.CAMPAIGNS]: 'Análise detalhada de campanhas e performance',
@@ -102,7 +102,7 @@ export const getRouteDescription = (path: string): string => {
     [ROUTES.STRIPE_PORTAL]: 'Gerencie seu plano e faturamento'
   }
   
-  return descriptions[path as RoutePath] || 'TrackView - Analytics Inteligente'
+  return descriptions[path as RoutePath] || 'vMetrics - Analytics Inteligente'
 }
 
 export default ROUTES
