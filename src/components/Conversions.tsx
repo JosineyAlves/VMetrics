@@ -774,7 +774,7 @@ const Conversions: React.FC = () => {
           <div className="p-8 text-center">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">✅ API conectada com sucesso!</p>
-            <p className="text-gray-400 text-sm mt-2">Sua conta trial ainda não possui conversões registradas.</p>
+            <p className="text-gray-400 text-sm mt-2">Sua conta ainda não possui conversões registradas.</p>
             <p className="text-gray-400 text-sm mt-1">Crie campanhas e comece a rastrear conversões para ver dados aqui.</p>
           </div>
         ) : (

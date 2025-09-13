@@ -507,7 +507,7 @@ const Funnel: React.FC = () => {
           {/* Header do funil */}
           <div className="text-center mb-4">
             <h3 className="text-lg font-bold text-gray-800 mb-1">
-              Funil de Conversão - {data.campaign.name}
+              Funil de Conversão: {data.campaign.name}
             </h3>
           </div>
           

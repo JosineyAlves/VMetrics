@@ -291,7 +291,6 @@ const Settings: React.FC = () => {
           <div className="flex items-start space-x-3">
             <Info className="w-5 h-5 text-[#3cd48f] mt-0.5" />
             <div className="text-sm text-[#1f1f1f]">
-                <p className="font-medium mb-1">Configuração de Moeda</p>
                 <p>
                   A moeda selecionada será usada para exibir todos os valores monetários no dashboard. 
                   Certifique-se de escolher a mesma moeda configurada no seu RedTrack.

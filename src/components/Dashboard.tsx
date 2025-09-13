@@ -1200,15 +1200,39 @@ const Dashboard: React.FC = () => {
           
           {dailyDataWithProfit && dailyDataWithProfit.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barCategoryGap={20}>
+              <LineChart data={dailyDataWithProfit} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} />
                 <YAxis tick={{ fontSize: 13, fontWeight: 500, fill: '#3cd48f' }} allowDecimals={false} />
-                <Tooltip formatter={(value: any) => value?.toLocaleString?.('pt-BR') ?? value} contentStyle={{ borderRadius: 12, background: '#fff', boxShadow: '0 4px 24px #0001' }} />
-                <Bar dataKey={selectedOption.left} name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'} fill="#3cd48f" radius={[12, 12, 0, 0]} />
-                <Bar dataKey={selectedOption.right} name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'} fill="#3cd48f/80" radius={[12, 12, 0, 0]} />
+                <Tooltip 
+                  formatter={(value: any) => [formatCurrency(value), '']} 
+                  contentStyle={{ 
+                    borderRadius: 12, 
+                    background: '#fff', 
+                    boxShadow: '0 4px 24px #0001',
+                    border: '1px solid #3cd48f20'
+                  }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey={selectedOption.left} 
+                  stroke="#3cd48f" 
+                  strokeWidth={3}
+                  dot={{ fill: '#3cd48f', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#3cd48f', strokeWidth: 2, fill: '#fff' }}
+                  name={selectedOption.left === 'cost' ? 'Custo' : 'Receita'}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey={selectedOption.right} 
+                  stroke="#ff6b6b" 
+                  strokeWidth={3}
+                  dot={{ fill: '#ff6b6b', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#ff6b6b', strokeWidth: 2, fill: '#fff' }}
+                  name={selectedOption.right === 'revenue' ? 'Receita' : 'Lucro'}
+                />
                 <Legend verticalAlign="top" height={36} iconType="circle"/>
-              </BarChart>
+              </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-64 text-gray-500">
