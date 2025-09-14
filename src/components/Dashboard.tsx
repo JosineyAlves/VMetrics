@@ -1251,24 +1251,6 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-3 mb-6">
             <BarChart2 className="w-6 h-6 text-[#3cd48f]" />
             <h3 className="text-xl font-semibold text-gray-800">Conversões por Dia</h3>
-            {/* ✅ INDICADOR DE AGRUPAMENTO PARA CONVERSÕES */}
-            {processedConversionsData && processedConversionsData.length > 0 && (
-              <div className="flex items-center gap-2">
-                {dailyData.length > 90 ? (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                    📅 Agrupado por mês
-                  </span>
-                ) : dailyData.length > 30 ? (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                    📊 Agrupado por semana
-                  </span>
-                ) : (
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">
-                    📈 Dados diários
-                  </span>
-                )}
-              </div>
-            )}
           </div>
           
           {processedConversionsData && processedConversionsData.length > 0 ? (
@@ -1331,24 +1313,6 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <Shuffle className="w-6 h-6 text-[#3cd48f]" />
               <h3 className="text-xl font-semibold text-gray-800">Cruzamento Diário</h3>
-              {/* ✅ INDICADOR DE AGRUPAMENTO */}
-              {processedData && processedData.length > 0 && (
-                <div className="flex items-center gap-2">
-                  {dailyDataWithProfit.length > 90 ? (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                      📅 Agrupado por mês
-                    </span>
-                  ) : dailyDataWithProfit.length > 30 ? (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                      📊 Agrupado por semana
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">
-                      📈 Dados diários
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
             
             <div className="flex items-center gap-2 bg-[#3cd48f]/10 border border-[#3cd48f]/20 rounded-xl px-4 py-2 shadow-sm">
@@ -1431,15 +1395,7 @@ const Dashboard: React.FC = () => {
           className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 hover:shadow-3xl transition-all duration-500"
         >
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
-              {/* ✅ INDICADOR DE NÚMERO DE FONTES */}
-              {sourceStats.length > 0 && (
-                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full font-medium">
-                  {sourceStats.length === 1 ? '1 fonte' : `${sourceStats.length} fontes`}
-                </span>
-              )}
-            </div>
+            <h3 className="text-lg font-semibold text-gray-800">💰 Investimento por Fonte de Tráfego</h3>
             {sourceStats.length > 0 && (
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total Investido</p>
